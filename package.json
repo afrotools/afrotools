@@ -10,7 +10,8 @@
   "devDependencies": {
     "typescript": "^6.0.2",
     "ajv": "^8.18.0",
-    "ajv-formats": "^3.0.1"
+    "ajv-formats": "^3.0.1",
+    "@types/node": "^22.0.0"
   },
   "license": "Apache-2.0",
   "repository": {
