@@ -1,0 +1,33 @@
+name: Bug report
+description: Report an error in an existing spec
+labels: ["bug", "triage"]
+body:
+  - type: input
+    id: spec
+    attributes:
+      label: Spec path
+      placeholder: e.g. specs/payment/paycard/create_payment
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What is wrong?
+      description: Describe the incorrect field, schema, or gotcha
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should it say?
+      description: The correct value or behavior
+    validations:
+      required: true
+
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: Link to provider docs or error log that shows the correct behavior
