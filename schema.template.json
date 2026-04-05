@@ -1,0 +1,28 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "",
+  "provider_name": "",
+  "provider_api_version": "",
+  "category": "",
+  "capability": "",
+  "capability_type": "",
+  "status": "draft",
+  "country_code": [],
+  "currency": [],
+  "sandbox": false,
+  "docs_url": "",
+  "auth": {
+    "type": "",
+    "header": "",
+    "format": "",
+    "env_var": ""
+  },
+  "endpoint": {
+    "method": "",
+    "url": ""
+  },
+  "input_schema": {},
+  "response_schema": {},
+  "error_schema": {},
+  "gotchas": []
+}
