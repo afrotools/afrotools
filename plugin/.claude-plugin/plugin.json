@@ -1,0 +1,13 @@
+{
+  "name": "afrotools",
+  "description": "AI-ready infrastructure for African APIs",
+  "version": "0.1.0",
+  "author": {
+    "name": "Afro.tools",
+    "url": "https://afro.tools"
+  },
+  "homepage": "https://afro.tools",
+  "repository": "https://github.com/afrotools/afrotools",
+  "license": "Apache-2.0",
+  "keywords": ["africa", "payment", "sms", "paycard", "wave", "mcp"]
+}
