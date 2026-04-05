@@ -225,7 +225,7 @@ function validateTypeScript(specPath) {
 
   try {
     execSync(
-      `"${tscBin}" --noEmit --strict --target ES2020 --module ESNext --moduleResolution bundler --lib ES2020,DOM "${tsPath}"`,
+      `"${tscBin}" --noEmit --strict --target ES2020 --module ESNext --moduleResolution bundler --lib ES2020,DOM --types node "${tsPath}"`,
       { stdio: "pipe" }
     );
   } catch (err) {
