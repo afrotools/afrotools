@@ -7,6 +7,7 @@ We as contributors and maintainers pledge to make participation in Afro.tools a 
 ## Our Standards
 
 **Positive behavior includes:**
+
 - Using welcoming and inclusive language
 - Being respectful of differing viewpoints and experience
 - Gracefully accepting constructive criticism
@@ -14,6 +15,7 @@ We as contributors and maintainers pledge to make participation in Afro.tools a 
 - Showing empathy towards other community members
 
 **Unacceptable behavior includes:**
+
 - Harassment in any form, public or private
 - Trolling, insulting or derogatory comments
 - Publishing others' private information without explicit permission
