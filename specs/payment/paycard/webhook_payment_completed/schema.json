@@ -1,0 +1,41 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "paycard",
+  "provider_name": "Paycard",
+  "provider_api_version": "2024-01-01",
+  "category": "payment",
+  "capability": "webhook_payment_completed",
+  "capability_type": "webhook",
+  "status": "compliant",
+  "country_code": ["GN"],
+  "currency": ["GNF"],
+  "sandbox": false,
+  "docs_url": "https://mapaycard.com",
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_callback_url}"
+  },
+  "input_schema": {
+    "type": "object",
+    "description": "Payload Paycard POSTs to your paycard-callback-url when a payment completes.",
+    "properties": {
+      "paycard-operation-reference": {
+        "type": "string",
+        "description": "The transaction reference. Use this to call verify_payment and confirm the payment."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "Your endpoint must return HTTP 200. The response body is ignored by Paycard."
+  },
+  "error_schema": {},
+  "gotchas": [
+    "Never fulfill an order based on the webhook payload alone. Always call verify_payment with the paycard-operation-reference to confirm the payment server-side before doing anything.",
+    "Return HTTP 200 immediately. Paycard does not retry failed webhook deliveries — if your handler throws or times out, the notification is lost.",
+    "Paycard sends no webhook signature. Anyone who knows your callback URL can POST to it. The only safe verification is calling verify_payment with the API key."
+  ]
+}
