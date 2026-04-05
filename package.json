@@ -1,0 +1,20 @@
+{
+  "name": "@afrotools/registry",
+  "version": "0.1.0",
+  "description": "AI-ready infrastructure for African APIs",
+  "private": true,
+  "scripts": {
+    "validate": "node scripts/validate.js",
+    "validate:changed": "node scripts/validate.js --changed"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "ajv": "^8.18.0",
+    "ajv-formats": "^3.0.1"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/afrotools/afrotools"
+  }
+}
