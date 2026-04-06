@@ -78,6 +78,7 @@ Every spec folder must contain exactly these two files. Nothing else.
 | country_code | string[] | ISO 3166-1 alpha-2 codes |
 | currency | string[] | ISO 4217 codes |
 | sandbox | boolean | true if provider has a sandbox environment |
+| docs_public | boolean | false if the provider does not publish their API documentation publicly |
 | gotchas | string[] | MANDATORY — minimum 1 entry, no exceptions |
 | input_schema | object | JSON Schema describing the request body |
 | response_schema | object | JSON Schema describing the success response |
