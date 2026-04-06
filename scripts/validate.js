@@ -34,6 +34,7 @@ const REQUIRED_FIELDS = [
   "currency",
   "sandbox",
   "docs_url",
+  "docs_public",
   "auth",
   "endpoint",
   "input_schema",
@@ -49,12 +50,14 @@ const VALID_STATUSES = ["draft", "compliant", "verified", "deprecated", "archive
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** @param {string} specPath @param {string} message @returns {false} */
 function fail(specPath, message) {
   console.error(`  FAIL  ${specPath}`);
   console.error(`        ${message}`);
   return false;
 }
 
+/** @param {string} specPath @returns {true} */
 function pass(specPath) {
   console.log(`  OK    ${specPath}`);
   return true;
@@ -66,8 +69,10 @@ function pass(specPath) {
 
 /**
  * Returns an array of absolute paths to spec folders (depth 3: category/provider/capability).
+ * @returns {string[]}
  */
 function discoverAllSpecs() {
+  /** @type {string[]} */
   const specs = [];
   if (!fs.existsSync(SPECS_ROOT)) return specs;
 
@@ -124,6 +129,8 @@ function discoverChangedSpecs() {
 
 /**
  * Check 1: folder must contain exactly schema.json + canonical_example.ts.
+ * @param {string} specPath
+ * @returns {boolean}
  */
 function validateStructure(specPath) {
   const entries = fs.readdirSync(specPath).filter((f) => !f.startsWith("."));
@@ -144,13 +151,15 @@ function validateStructure(specPath) {
 
 /**
  * Check 2: schema.json must have all required fields with correct types.
+ * @param {string} specPath
+ * @returns {boolean}
  */
 function validateSchema(specPath) {
   const schemaPath = path.join(specPath, "schema.json");
   let schema;
   try {
     schema = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
-  } catch (err) {
+  } catch (/** @type {any} */ err) {
     return fail(specPath, `schema.json parse error: ${err.message}`);
   }
 
@@ -194,6 +203,11 @@ function validateSchema(specPath) {
     return fail(specPath, `sandbox must be a boolean`);
   }
 
+  // docs_public boolean
+  if (typeof schema.docs_public !== "boolean") {
+    return fail(specPath, `docs_public must be a boolean`);
+  }
+
   // gotchas — minimum 1 entry
   if (!Array.isArray(schema.gotchas) || schema.gotchas.length === 0) {
     return fail(specPath, `gotchas must be a non-empty array (minimum 1 entry)`);
@@ -214,6 +228,8 @@ function validateSchema(specPath) {
 
 /**
  * Check 3: canonical_example.ts must compile with tsc --noEmit.
+ * @param {string} specPath
+ * @returns {boolean}
  */
 function validateTypeScript(specPath) {
   const tsPath = path.join(specPath, "canonical_example.ts");
@@ -225,10 +241,10 @@ function validateTypeScript(specPath) {
 
   try {
     execSync(
-      `"${tscBin}" --noEmit --strict --target ES2020 --module ESNext --moduleResolution bundler --lib ES2020,DOM "${tsPath}"`,
+      `"${tscBin}" --noEmit --strict --target ES2020 --module ESNext --moduleResolution bundler --lib ES2020,DOM --types node "${tsPath}"`,
       { stdio: "pipe" }
     );
-  } catch (err) {
+  } catch (/** @type {any} */ err) {
     const output = (err.stdout || err.stderr || "").toString().trim();
     return fail(specPath, `canonical_example.ts TypeScript error:\n        ${output.split("\n").join("\n        ")}`);
   }

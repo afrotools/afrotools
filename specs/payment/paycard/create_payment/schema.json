@@ -1,0 +1,124 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "paycard",
+  "provider_name": "Paycard",
+  "provider_api_version": "2024-01-01",
+  "category": "payment",
+  "capability": "create_payment",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": ["GN"],
+  "currency": ["GNF"],
+  "sandbox": false,
+  "docs_url": "",
+  "docs_public": false,
+  "auth": {
+    "type": "api_key",
+    "location": "body",
+    "field": "c",
+    "format": "{token}",
+    "env_var": "PAYCARD_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://mapaycard.com/epay/create/"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": ["paycard-amount"],
+    "properties": {
+      "paycard-amount": {
+        "type": "integer",
+        "description": "Amount in GNF. Must be greater than 0."
+      },
+      "paycard-description": {
+        "type": "string",
+        "description": "Human-readable description of the order."
+      },
+      "paycard-operation-reference": {
+        "type": "string",
+        "description": "Your own reference for this transaction. If omitted, Paycard generates one."
+      },
+      "paycard-callback-url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL Paycard will POST to when the payment completes."
+      },
+      "paycard-auto-redirect": {
+        "type": "string",
+        "enum": ["on", "off"],
+        "description": "Whether to redirect the user automatically after payment."
+      },
+      "paycard-redirect-with-get": {
+        "type": "string",
+        "enum": ["on", "off"],
+        "description": "Append paycard-operation-reference as a query param on redirect."
+      },
+      "paycard-jump-to-paycard": {
+        "type": "string",
+        "enum": ["on"],
+        "description": "Skip payment method selection and go directly to Paycard wallet."
+      },
+      "paycard-jump-to-cc": {
+        "type": "string",
+        "enum": ["on"],
+        "description": "Skip payment method selection and go directly to credit card."
+      },
+      "paycard-jump-to-om": {
+        "type": "string",
+        "enum": ["on"],
+        "description": "Skip payment method selection and go directly to Orange Money."
+      },
+      "paycard-jump-to-momo": {
+        "type": "string",
+        "enum": ["on"],
+        "description": "Skip payment method selection and go directly to MTN MoMo."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "0 on success."
+      },
+      "paycard-payment-url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to redirect the user to complete the payment."
+      },
+      "paycard-operation-reference": {
+        "type": "string",
+        "description": "Transaction reference. Store this to verify the payment later."
+      },
+      "paycard-amount": {
+        "type": "string",
+        "description": "Amount echoed back as a string."
+      },
+      "paycard-description": {
+        "type": "string",
+        "description": "Description echoed back."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "Non-zero error code."
+      },
+      "error_message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "Always verify payment status server-side by calling verify_payment before fulfilling an order. The callback URL alone is not sufficient — it can be spoofed by anyone who knows your endpoint.",
+    "Store paycard-operation-reference from the response immediately. It is the only way to verify the payment status later. If you passed your own reference, use that.",
+    "Auth is the field 'c' sent in the POST body, not an HTTP header. Do not confuse it with a Bearer token or X-Api-Key pattern.",
+    "There is no sandbox environment. All requests hit production. Use minimal amounts (e.g. 100 GNF) when testing."
+  ]
+}

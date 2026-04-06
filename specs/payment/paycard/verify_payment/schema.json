@@ -1,0 +1,83 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "paycard",
+  "provider_name": "Paycard",
+  "provider_api_version": "2024-01-01",
+  "category": "payment",
+  "capability": "verify_payment",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": ["GN"],
+  "currency": ["GNF"],
+  "sandbox": false,
+  "docs_url": "",
+  "docs_public": false,
+  "auth": {
+    "type": "api_key",
+    "location": "query",
+    "field": "c",
+    "format": "{token}",
+    "env_var": "PAYCARD_API_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://mapaycard.com/epay/verify/"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": ["c", "ref"],
+    "properties": {
+      "c": {
+        "type": "string",
+        "description": "API key passed as a query parameter."
+      },
+      "ref": {
+        "type": "string",
+        "description": "The paycard-operation-reference returned by create_payment."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "0 means the payment succeeded."
+      },
+      "paycard-transaction-date": {
+        "type": "string",
+        "description": "Date and time of the transaction."
+      },
+      "paycard-payment-method": {
+        "type": "string",
+        "description": "Method used (e.g. ORANGE_MONEY, MOMO, CREDIT_CARD, PAYCARD)."
+      },
+      "paycard-amount": {
+        "type": "string",
+        "description": "Amount paid as a string."
+      },
+      "paycard-formatted-amount": {
+        "type": "string",
+        "description": "Human-readable amount with currency (e.g. '100 000 GNF')."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "Non-zero: payment is pending, failed, or the reference is unknown."
+      },
+      "error_message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "code: 0 means the payment succeeded. Any other value — including pending — means you must not fulfill the order.",
+    "Always call this endpoint server-side before fulfilling an order. Never trust the redirect URL or callback payload alone.",
+    "The 'ref' parameter is the paycard-operation-reference returned by create_payment, not your own internal order ID."
+  ]
+}
