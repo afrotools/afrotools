@@ -34,6 +34,7 @@ const REQUIRED_FIELDS = [
   "currency",
   "sandbox",
   "docs_url",
+  "docs_public",
   "auth",
   "endpoint",
   "input_schema",
@@ -192,6 +193,11 @@ function validateSchema(specPath) {
   // sandbox boolean
   if (typeof schema.sandbox !== "boolean") {
     return fail(specPath, `sandbox must be a boolean`);
+  }
+
+  // docs_public boolean
+  if (typeof schema.docs_public !== "boolean") {
+    return fail(specPath, `docs_public must be a boolean`);
   }
 
   // gotchas — minimum 1 entry
