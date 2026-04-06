@@ -6,9 +6,13 @@
   "category": "payment",
   "capability": "create_payment",
   "capability_type": "synchronous",
-  "status": "compliant",
-  "country_code": ["GN"],
-  "currency": ["GNF"],
+  "status": "verified",
+  "country_code": [
+    "GN"
+  ],
+  "currency": [
+    "GNF"
+  ],
   "sandbox": false,
   "docs_url": "",
   "docs_public": false,
@@ -25,7 +29,9 @@
   },
   "input_schema": {
     "type": "object",
-    "required": ["paycard-amount"],
+    "required": [
+      "paycard-amount"
+    ],
     "properties": {
       "paycard-amount": {
         "type": "integer",
@@ -46,32 +52,46 @@
       },
       "paycard-auto-redirect": {
         "type": "string",
-        "enum": ["on", "off"],
+        "enum": [
+          "on",
+          "off"
+        ],
         "description": "Whether to redirect the user automatically after payment."
       },
       "paycard-redirect-with-get": {
         "type": "string",
-        "enum": ["on", "off"],
+        "enum": [
+          "on",
+          "off"
+        ],
         "description": "Append paycard-operation-reference as a query param on redirect."
       },
       "paycard-jump-to-paycard": {
         "type": "string",
-        "enum": ["on"],
+        "enum": [
+          "on"
+        ],
         "description": "Skip payment method selection and go directly to Paycard wallet."
       },
       "paycard-jump-to-cc": {
         "type": "string",
-        "enum": ["on"],
+        "enum": [
+          "on"
+        ],
         "description": "Skip payment method selection and go directly to credit card."
       },
       "paycard-jump-to-om": {
         "type": "string",
-        "enum": ["on"],
+        "enum": [
+          "on"
+        ],
         "description": "Skip payment method selection and go directly to Orange Money."
       },
       "paycard-jump-to-momo": {
         "type": "string",
-        "enum": ["on"],
+        "enum": [
+          "on"
+        ],
         "description": "Skip payment method selection and go directly to MTN MoMo."
       }
     }
