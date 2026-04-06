@@ -10,7 +10,7 @@
   "country_code": ["GN"],
   "currency": ["GNF"],
   "sandbox": false,
-  "docs_url": "https://mapaycard.com",
+  "docs_url": "",
   "auth": {
     "type": "api_key",
     "location": "query",
