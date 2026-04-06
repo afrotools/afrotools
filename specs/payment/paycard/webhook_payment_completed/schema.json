@@ -6,7 +6,7 @@
   "category": "payment",
   "capability": "webhook_payment_completed",
   "capability_type": "webhook",
-  "status": "compliant",
+  "status": "verified",
   "country_code": ["GN"],
   "currency": ["GNF"],
   "sandbox": false,

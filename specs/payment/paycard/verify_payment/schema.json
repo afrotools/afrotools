@@ -6,7 +6,7 @@
   "category": "payment",
   "capability": "verify_payment",
   "capability_type": "synchronous",
-  "status": "compliant",
+  "status": "verified",
   "country_code": ["GN"],
   "currency": ["GNF"],
   "sandbox": false,
