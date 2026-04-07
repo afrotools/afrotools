@@ -35,8 +35,9 @@
   },
   "error_schema": {},
   "gotchas": [
-    "Never fulfill an order based on the webhook payload alone. Always call verify_payment with the paycard-operation-reference to confirm the payment server-side before doing anything.",
+    "Never fulfill an order based on the webhook payload alone. Always call verify_payment (GET /epay/{c}/{ref}/status) with the operation reference to confirm server-side. Check that status?.toLowerCase() === 'success' — code: 0 alone does not confirm payment.",
     "Return HTTP 200 immediately. Paycard does not retry failed webhook deliveries — if your handler throws or times out, the notification is lost.",
-    "Paycard sends no webhook signature. Anyone who knows your callback URL can POST to it. The only safe verification is calling verify_payment with the API key."
+    "Paycard sends no webhook signature. Anyone who knows your callback URL can POST to it. The only safe verification is calling verify_payment with the API key.",
+    "If create_payment was called with paycard-redirect-with-get: 'on', Paycard sends a browser GET redirect instead of this server-to-server POST. In that case, your callback route must handle GET (not POST) and extract operation_reference from the query string."
   ]
 }

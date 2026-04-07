@@ -14,10 +14,19 @@ interface PaycardWebhookPayload {
 
 interface VerifyPaymentResponse {
   code: number;
-  "paycard-transaction-date": string;
-  "paycard-payment-method": string;
-  "paycard-amount": string;
-  "paycard-formatted-amount": string;
+  error_message: string;
+  reference: string;
+  payment_amount: number;
+  payment_amount_formatted: string;
+  merchant_name: string;
+  status: string;
+  status_description: string | null;
+  ecommerce_description: string | null;
+  payment_method: string | null;
+  payment_method_reference: string | null;
+  payment_reference: string | null;
+  payment_description: string | null;
+  transaction_date: string | null;
 }
 
 interface PaycardError {
@@ -25,12 +34,14 @@ interface PaycardError {
   error_message: string;
 }
 
-async function verifyPayment(reference: string): Promise<VerifyPaymentResponse> {
-  const url = new URL("https://mapaycard.com/epay/verify/");
-  url.searchParams.set("c", PAYCARD_API_KEY!); // guarded at module level above
-  url.searchParams.set("ref", reference);
+function isPaid(status: string | null | undefined): boolean {
+  return status?.toLowerCase() === "success";
+}
 
-  const response = await fetch(url.toString());
+async function verifyPayment(reference: string): Promise<VerifyPaymentResponse> {
+  const url = `https://mapaycard.com/epay/${PAYCARD_API_KEY!}/${reference}/status`;
+
+  const response = await fetch(url);
   const data: VerifyPaymentResponse | PaycardError = await response.json();
 
   if ((data as PaycardError).code !== 0) {
@@ -58,10 +69,10 @@ export async function handlePaycardWebhook(
 
   try {
     // Never trust the webhook payload alone — verify server-side.
-    const status = await verifyPayment(reference);
+    const result = await verifyPayment(reference);
 
-    if (status.code === 0) {
-      await fulfillOrder(reference, status["paycard-amount"]);
+    if (isPaid(result.status)) {
+      await fulfillOrder(reference, result.payment_amount_formatted);
     }
   } catch {
     // Log and alert — do not rethrow. The 200 is already sent.
