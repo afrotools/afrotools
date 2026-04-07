@@ -34,7 +34,7 @@ interface LengoPayError {
 
 async function verifyPayment(payId: string): Promise<VerifyPaymentResponse> {
   const response = await fetch(
-    `https://portal.lengopay.com/api/v1/payments/${encodeURIComponent(payId)}`,
+    `https://portal.lengopay.com/api/v1/payments/${payId}`,
     {
       method: "GET",
       headers: {

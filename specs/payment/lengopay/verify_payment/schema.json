@@ -89,7 +89,7 @@
   "gotchas": [
     "Toujours appeler verify_payment côté serveur avant de valider une commande. Le webhook seul ne suffit pas — il peut être forgé par quiconque connaît votre callback_url.",
     "PENDING est un statut valide : le paiement est en cours de traitement. Ne pas fulfiller la commande sur PENDING — attendre SUCCESS.",
-    "Le statut est en UPPERCASE strict : comparer avec status === 'SUCCESS', pas status.toLowerCase() comme avec Paycard.",
+    "Le statut est en UPPERCASE strict : comparer avec status === 'SUCCESS'.",
     "metadata est renvoyé tel quel depuis create_payment — passer l'ID de commande interne dans metadata pour le retrouver sans base de données supplémentaire."
   ]
 }
