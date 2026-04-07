@@ -1,0 +1,102 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "lengopay",
+  "provider_name": "LengoPay",
+  "provider_api_version": "2024-01-01",
+  "category": "payment",
+  "capability": "create_payment",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": [
+    "GN"
+  ],
+  "currency": [
+    "GNF",
+    "XOF",
+    "USD"
+  ],
+  "sandbox": false,
+  "docs_url": "",
+  "docs_public": false,
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic {token}",
+    "env_var": "LENGOPAY_LICENSE_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://portal.lengopay.com/api/v1/payments"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "websiteid",
+      "amount",
+      "currency"
+    ],
+    "properties": {
+      "websiteid": {
+        "type": "string",
+        "description": "Identifiant unique de votre site, fourni par LengoPay (distinct de la license key)."
+      },
+      "amount": {
+        "type": "number",
+        "description": "Montant du paiement dans la devise indiquée."
+      },
+      "currency": {
+        "type": "string",
+        "description": "Code ISO 4217 de la devise. Ex: GNF, XOF, USD."
+      },
+      "return_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL de retour vers le site du marchand après le paiement (optionnel)."
+      },
+      "callback_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL que LengoPay appellera en POST lorsque le paiement est traité (optionnel)."
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Données arbitraires passées à la création, renvoyées à l'identique dans verify_payment et le webhook. Utile pour stocker un ID de commande interne.",
+        "additionalProperties": true
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Statut de la requête. 'Success' si la payment URL a été générée."
+      },
+      "pay_id": {
+        "type": "string",
+        "description": "Identifiant unique du paiement. Stocker avant de rediriger — requis pour appeler verify_payment."
+      },
+      "payment_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL vers laquelle rediriger l'utilisateur pour compléter le paiement."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "Description de l'erreur."
+      }
+    }
+  },
+  "gotchas": [
+    "Stocker pay_id immédiatement avant de rediriger l'utilisateur — c'est le seul identifiant pour appeler verify_payment et confirmer le paiement côté serveur.",
+    "Le header Authorization attend la license key directement : 'Basic {license_key}'. Ce n'est pas du Basic Auth standard (pas de base64 username:password) — passer la clé telle quelle.",
+    "websiteid est un paramètre requis distinct de la license key. Les deux doivent être configurés comme variables d'environnement séparées.",
+    "Il n'y a pas de sandbox. Tous les appels touchent la production — utiliser de petits montants pour les tests."
+  ]
+}
