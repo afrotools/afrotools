@@ -20,10 +20,12 @@ interface CreatePaymentInput {
 
 interface CreatePaymentResponse {
   code: number;
-  "paycard-payment-url": string;
-  "paycard-operation-reference": string;
-  "paycard-amount": string;
-  "paycard-description": string;
+  error_message: string;
+  operation_reference: string;
+  payment_amount: number;
+  payment_amount_formatted: string;
+  payment_description: string;
+  payment_url: string;
 }
 
 interface PaycardError {
@@ -82,9 +84,9 @@ const payment = await createPayment({
 });
 
 // Redirect the user to the payment page
-// window.location.href = payment["paycard-payment-url"];
+// window.location.href = payment.payment_url;
 
-// Store payment["paycard-operation-reference"] in your database
-// before redirecting — you need it to verify the payment server-side.
+// Store payment.operation_reference in your database
+// before redirecting — you need it to call verify_payment server-side.
 // Never fulfill an order based on the callback URL alone.
 */

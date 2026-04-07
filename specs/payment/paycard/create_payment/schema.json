@@ -64,7 +64,7 @@
           "on",
           "off"
         ],
-        "description": "Append paycard-operation-reference as a query param on redirect."
+        "description": "When 'on', Paycard redirects the user's browser to paycard-callback-url with the operation_reference as a GET query param instead of sending a server-to-server POST. Your callback route must handle GET and call verify_payment server-side."
       },
       "paycard-jump-to-paycard": {
         "type": "string",
@@ -103,22 +103,30 @@
         "type": "integer",
         "description": "0 on success."
       },
-      "paycard-payment-url": {
+      "error_message": {
         "type": "string",
-        "format": "uri",
-        "description": "URL to redirect the user to complete the payment."
+        "description": "Empty string on success."
       },
-      "paycard-operation-reference": {
+      "operation_reference": {
         "type": "string",
-        "description": "Transaction reference. Store this to verify the payment later."
+        "description": "Transaction reference. Store this before redirecting — required to call verify_payment later."
       },
-      "paycard-amount": {
+      "payment_amount": {
+        "type": "integer",
+        "description": "Amount in GNF."
+      },
+      "payment_amount_formatted": {
         "type": "string",
-        "description": "Amount echoed back as a string."
+        "description": "Human-readable amount, e.g. '65 000 GNF'."
       },
-      "paycard-description": {
+      "payment_description": {
         "type": "string",
         "description": "Description echoed back."
+      },
+      "payment_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to redirect the user to complete the payment. Format: https://mapaycard.com/epay/{api_key}/{reference}/"
       }
     }
   },
@@ -137,8 +145,9 @@
   },
   "gotchas": [
     "Always verify payment status server-side by calling verify_payment before fulfilling an order. The callback URL alone is not sufficient — it can be spoofed by anyone who knows your endpoint.",
-    "Store paycard-operation-reference from the response immediately. It is the only way to verify the payment status later. If you passed your own reference, use that.",
+    "Store operation_reference from the response immediately. It is the only way to call verify_payment later. If you passed your own paycard-operation-reference in the request, that same value is echoed back.",
     "Auth is the field 'c' sent in the POST body, not an HTTP header. Do not confuse it with a Bearer token or X-Api-Key pattern.",
-    "There is no sandbox environment. All requests hit production. Use minimal amounts (e.g. 100 GNF) when testing."
+    "There is no sandbox environment. All requests hit production. Use minimal amounts (e.g. 100 GNF) when testing.",
+    "paycard-redirect-with-get: 'on' changes the callback from a server-to-server POST to a browser GET redirect. Your callback route must handle GET requests and still call verify_payment server-side before fulfilling the order."
   ]
 }

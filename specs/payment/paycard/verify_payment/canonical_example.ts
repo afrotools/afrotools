@@ -10,10 +10,19 @@ if (!PAYCARD_API_KEY) throw new Error("Missing env: PAYCARD_API_KEY");
 
 interface VerifyPaymentResponse {
   code: number;
-  "paycard-transaction-date": string;
-  "paycard-payment-method": string;
-  "paycard-amount": string;
-  "paycard-formatted-amount": string;
+  error_message: string;
+  reference: string;
+  payment_amount: number;
+  payment_amount_formatted: string;
+  merchant_name: string;
+  status: string;
+  status_description: string | null;
+  ecommerce_description: string | null;
+  payment_method: string | null;
+  payment_method_reference: string | null;
+  payment_reference: string | null;
+  payment_description: string | null;
+  transaction_date: string | null;
 }
 
 interface PaycardError {
@@ -21,17 +30,16 @@ interface PaycardError {
   error_message: string;
 }
 
+function isPaid(status: string | null | undefined): boolean {
+  return status?.toLowerCase() === "success";
+}
+
 export async function verifyPayment(
   reference: string
 ): Promise<VerifyPaymentResponse> {
-  const url = new URL("https://mapaycard.com/epay/verify/");
-  url.searchParams.set("c", PAYCARD_API_KEY!); // guarded at module level above
-  url.searchParams.set("ref", reference);
+  const url = `https://mapaycard.com/epay/${PAYCARD_API_KEY!}/${reference}/status`;
 
-  const response = await fetch(url.toString(), {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  });
+  const response = await fetch(url, { method: "GET" });
 
   const data: VerifyPaymentResponse | PaycardError = await response.json();
 
@@ -47,13 +55,14 @@ export async function verifyPayment(
 Usage example:
 
 // After receiving the webhook or redirect, verify server-side before fulfilling:
-const status = await verifyPayment("2312-Z1LISQM9IY");
+const result = await verifyPayment("2604-PR700IACRG");
 
-if (status.code === 0) {
+if (isPaid(result.status)) {
   // Payment confirmed — safe to fulfill the order
-  console.log("Paid:", status["paycard-formatted-amount"]);
-  console.log("Method:", status["paycard-payment-method"]);
+  console.log("Paid:", result.payment_amount_formatted);
+  console.log("Method:", result.payment_method);
 } else {
-  // Payment pending or failed — do not fulfill
+  // Payment pending (status: 'new') or unknown — do not fulfill
+  console.log("Status:", result.status);
 }
 */

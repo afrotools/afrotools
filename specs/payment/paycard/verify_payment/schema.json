@@ -14,26 +14,22 @@
   "docs_public": false,
   "auth": {
     "type": "api_key",
-    "location": "query",
+    "location": "path",
     "field": "c",
     "format": "{token}",
     "env_var": "PAYCARD_API_KEY"
   },
   "endpoint": {
     "method": "GET",
-    "url": "https://mapaycard.com/epay/verify/"
+    "url": "https://mapaycard.com/epay/{c}/{ref}/status"
   },
   "input_schema": {
     "type": "object",
-    "required": ["c", "ref"],
+    "required": ["ref"],
     "properties": {
-      "c": {
-        "type": "string",
-        "description": "API key passed as a query parameter."
-      },
       "ref": {
         "type": "string",
-        "description": "The paycard-operation-reference returned by create_payment."
+        "description": "The operation_reference returned by create_payment."
       }
     }
   },
@@ -42,23 +38,55 @@
     "properties": {
       "code": {
         "type": "integer",
-        "description": "0 means the payment succeeded."
+        "description": "0 means the transaction was found. Check the status field to confirm payment."
       },
-      "paycard-transaction-date": {
+      "error_message": {
         "type": "string",
-        "description": "Date and time of the transaction."
+        "description": "Empty string on success."
       },
-      "paycard-payment-method": {
+      "reference": {
         "type": "string",
-        "description": "Method used (e.g. ORANGE_MONEY, MOMO, CREDIT_CARD, PAYCARD)."
+        "description": "The transaction reference."
       },
-      "paycard-amount": {
-        "type": "string",
-        "description": "Amount paid as a string."
+      "payment_amount": {
+        "type": "integer",
+        "description": "Amount in GNF."
       },
-      "paycard-formatted-amount": {
+      "payment_amount_formatted": {
         "type": "string",
-        "description": "Human-readable amount with currency (e.g. '100 000 GNF')."
+        "description": "Human-readable amount, e.g. '65 000 GNF'."
+      },
+      "merchant_name": {
+        "type": "string",
+        "description": "Name of the merchant account."
+      },
+      "status": {
+        "type": "string",
+        "description": "Payment status. Known values: 'new' (pending, do not fulfill), 'success' (paid). Check case-insensitively. Paycard does not document all possible values."
+      },
+      "status_description": {
+        "type": ["string", "null"]
+      },
+      "ecommerce_description": {
+        "type": ["string", "null"],
+        "description": "Order description echoed back."
+      },
+      "payment_method": {
+        "type": ["string", "null"],
+        "description": "Method used, e.g. ORANGE_MONEY, MOMO, CREDIT_CARD, PAYCARD. Null until payment completes."
+      },
+      "payment_method_reference": {
+        "type": ["string", "null"]
+      },
+      "payment_reference": {
+        "type": ["string", "null"]
+      },
+      "payment_description": {
+        "type": ["string", "null"]
+      },
+      "transaction_date": {
+        "type": ["string", "null"],
+        "description": "Date and time of the transaction. Null until payment completes."
       }
     }
   },
@@ -67,7 +95,7 @@
     "properties": {
       "code": {
         "type": "integer",
-        "description": "Non-zero: payment is pending, failed, or the reference is unknown."
+        "description": "Non-zero: transaction not found or invalid reference."
       },
       "error_message": {
         "type": "string",
@@ -76,8 +104,9 @@
     }
   },
   "gotchas": [
-    "code: 0 means the payment succeeded. Any other value — including pending — means you must not fulfill the order.",
+    "code: 0 means the transaction was found, NOT that it was paid. Always check status: treat status?.toLowerCase() === 'success' as confirmed. status: 'new' means pending — do not fulfill.",
     "Always call this endpoint server-side before fulfilling an order. Never trust the redirect URL or callback payload alone.",
-    "The 'ref' parameter is the paycard-operation-reference returned by create_payment, not your own internal order ID."
+    "The ref path parameter is the operation_reference returned by create_payment, not your own internal order ID.",
+    "The API key (c) is a path segment in the URL, not a query parameter: GET /epay/{c}/{ref}/status."
   ]
 }
