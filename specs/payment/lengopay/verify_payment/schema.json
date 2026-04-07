@@ -1,0 +1,95 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "lengopay",
+  "provider_name": "LengoPay",
+  "provider_api_version": "2024-01-01",
+  "category": "payment",
+  "capability": "verify_payment",
+  "capability_type": "synchronous",
+  "status": "verified",
+  "country_code": [
+    "GN"
+  ],
+  "currency": [
+    "GNF",
+    "XOF",
+    "USD"
+  ],
+  "sandbox": false,
+  "docs_url": "",
+  "docs_public": false,
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic {token}",
+    "env_var": "LENGOPAY_LICENSE_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://portal.lengopay.com/api/v1/payments/{payId}"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "payId"
+    ],
+    "properties": {
+      "payId": {
+        "type": "string",
+        "description": "Identifiant du paiement retourné par create_payment. Intégré dans le path de la requête."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "pay_id": {
+        "type": "string",
+        "description": "Identifiant du paiement."
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "SUCCESS",
+          "FAILED",
+          "PENDING",
+          "CANCELLED"
+        ],
+        "description": "Statut final de la transaction. Toujours en UPPERCASE."
+      },
+      "amount": {
+        "type": "number",
+        "description": "Montant du paiement traité."
+      },
+      "currency": {
+        "type": "string",
+        "description": "Code ISO 4217 de la devise."
+      },
+      "message": {
+        "type": "string",
+        "description": "Message décrivant le résultat de la transaction."
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Données passées à create_payment, renvoyées à l'identique.",
+        "additionalProperties": true
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "Description de l'erreur."
+      }
+    }
+  },
+  "gotchas": [
+    "Toujours appeler verify_payment côté serveur avant de valider une commande. Le webhook seul ne suffit pas — il peut être forgé par quiconque connaît votre callback_url.",
+    "PENDING est un statut valide : le paiement est en cours de traitement. Ne pas fulfiller la commande sur PENDING — attendre SUCCESS.",
+    "Le statut est en UPPERCASE strict : comparer avec status === 'SUCCESS'.",
+    "metadata est renvoyé tel quel depuis create_payment — passer l'ID de commande interne dans metadata pour le retrouver sans base de données supplémentaire."
+  ]
+}

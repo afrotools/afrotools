@@ -1,0 +1,74 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "lengopay",
+  "provider_name": "LengoPay",
+  "provider_api_version": "2024-01-01",
+  "category": "payment",
+  "capability": "webhook_payment_completed",
+  "capability_type": "webhook",
+  "status": "verified",
+  "country_code": [
+    "GN"
+  ],
+  "currency": [
+    "GNF",
+    "XOF",
+    "USD"
+  ],
+  "sandbox": false,
+  "docs_url": "",
+  "docs_public": false,
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_callback_url}"
+  },
+  "input_schema": {
+    "type": "object",
+    "description": "Payload que LengoPay POSTe à votre callback_url lorsqu'un paiement est traité.",
+    "properties": {
+      "pay_id": {
+        "type": "string",
+        "description": "Identifiant unique du paiement. Utiliser pour appeler verify_payment et confirmer côté serveur."
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "SUCCESS",
+          "FAILED"
+        ],
+        "description": "Statut final de la transaction envoyé par le webhook."
+      },
+      "amount": {
+        "type": "number",
+        "description": "Montant du paiement traité."
+      },
+      "message": {
+        "type": "string",
+        "description": "Message décrivant le résultat de la transaction."
+      },
+      "Client": {
+        "type": "string",
+        "description": "Numéro de téléphone du payeur."
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Données passées à create_payment, renvoyées à l'identique.",
+        "additionalProperties": true
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "Votre endpoint doit retourner HTTP 200. Le corps de la réponse est ignoré par LengoPay."
+  },
+  "error_schema": {},
+  "gotchas": [
+    "Ne jamais fulfiller une commande sur la base du webhook seul. Appeler verify_payment (GET /api/v1/payments/{payId}) pour confirmer côté serveur — le webhook peut être forgé par quiconque connaît votre callback_url.",
+    "Répondre HTTP 200 immédiatement et traiter le paiement de façon asynchrone. LengoPay retry en cas d'échec, ce qui peut provoquer des doublons si votre handler est lent.",
+    "Implémenter l'idempotence : LengoPay peut envoyer le même webhook plusieurs fois pour le même pay_id. Vérifier que la commande n'est pas déjà fulfillée avant d'agir.",
+    "Le champ Client contient le numéro de téléphone du payeur (ex: '624897845'). Il est absent du payload dans certains cas — ne pas en dépendre."
+  ]
+}
