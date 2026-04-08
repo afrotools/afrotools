@@ -69,6 +69,7 @@
     "Ne jamais fulfiller une commande sur la base du webhook seul. Appeler verify_payment (GET /api/v1/payments/{payId}) pour confirmer côté serveur — le webhook peut être forgé par quiconque connaît votre callback_url.",
     "Répondre HTTP 200 immédiatement et traiter le paiement de façon asynchrone. LengoPay retry en cas d'échec, ce qui peut provoquer des doublons si votre handler est lent.",
     "Implémenter l'idempotence : LengoPay peut envoyer le même webhook plusieurs fois pour le même pay_id. Vérifier que la commande n'est pas déjà fulfillée avant d'agir.",
-    "Le champ Client contient le numéro de téléphone du payeur (ex: '624897845'). Il est absent du payload dans certains cas — ne pas en dépendre."
+    "Le champ Client contient le numéro de téléphone du payeur (ex: '624897845'). Il est absent du payload dans certains cas — ne pas en dépendre.",
+    "LengoPay appelle le callback_url uniquement en HTTPS. En développement local, utiliser un tunnel HTTPS comme ngrok (`ngrok http 3000`) et passer l'URL ngrok comme callback_url."
   ]
 }
