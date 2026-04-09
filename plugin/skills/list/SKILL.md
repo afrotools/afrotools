@@ -1,5 +1,5 @@
 ---
-name: afrotools-list
+name: list
 description: >
   List all available specs in the Afro.tools registry, optionally filtered by
   category or provider. Manual invocation only.
