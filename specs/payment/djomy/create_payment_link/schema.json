@@ -6,7 +6,7 @@
   "category": "payment",
   "capability": "create_payment_link",
   "capability_type": "synchronous",
-  "status": "draft",
+  "status": "verified",
   "country_code": [
     "GN"
   ],
