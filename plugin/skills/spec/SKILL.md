@@ -1,5 +1,5 @@
 ---
-name: afrotools-spec
+name: spec
 description: >
   Fetch and display the full ATSS spec for a specific provider and capability.
   Use this to inspect a spec before implementing, review field rules, or check

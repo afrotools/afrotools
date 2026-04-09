@@ -1,5 +1,5 @@
 ---
-name: afrotools-debug
+name: debug
 description: >
   Use this skill when the user has a failing or broken Afro.tools integration —
   wrong status codes, auth errors, webhook not firing, unexpected response fields,

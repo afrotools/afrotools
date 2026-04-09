@@ -1,5 +1,5 @@
 ---
-name: afrotools-sms
+name: sms
 description: >
   Use this skill whenever the user wants to send SMS messages, OTPs, or bulk
   notifications via an African SMS provider — including NimbaSMS or any provider
