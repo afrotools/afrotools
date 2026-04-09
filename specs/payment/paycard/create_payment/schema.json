@@ -64,7 +64,7 @@
           "on",
           "off"
         ],
-        "description": "When 'on', Paycard redirects the user's browser to paycard-callback-url with the operation_reference as a GET query param instead of sending a server-to-server POST. Your callback route must handle GET and call verify_payment server-side."
+        "description": "When 'on', Paycard redirects the user's browser to paycard-callback-url with the reference appended as the query param 'paycard-operation-reference' (e.g. ?paycard-operation-reference=2604-XXX&c=...&transaction-reference=...). No server-to-server POST is sent. Read 'paycard-operation-reference' from the query string and pass it to verify_payment."
       },
       "paycard-jump-to-paycard": {
         "type": "string",
@@ -148,6 +148,6 @@
     "Store operation_reference from the response immediately. It is the only way to call verify_payment later. If you passed your own paycard-operation-reference in the request, that same value is echoed back.",
     "Auth is the field 'c' sent in the POST body, not an HTTP header. Do not confuse it with a Bearer token or X-Api-Key pattern.",
     "There is no sandbox environment. All requests hit production. Use minimal amounts (e.g. 100 GNF) when testing.",
-    "paycard-redirect-with-get: 'on' changes the callback from a server-to-server POST to a browser GET redirect. Your callback route must handle GET requests and still call verify_payment server-side before fulfilling the order."
+    "paycard-redirect-with-get: 'on' redirects the user's browser to paycard-callback-url with the reference appended as the query param 'paycard-operation-reference' (e.g. ?paycard-operation-reference=2604-XXX&c=...&transaction-reference=...). No server-to-server POST is sent. Read 'paycard-operation-reference' from the query string and pass it to verify_payment server-side before fulfilling the order."
   ]
 }
