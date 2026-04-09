@@ -1,0 +1,269 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "djomy",
+  "provider_name": "Djomy",
+  "provider_api_version": "v1.0",
+  "category": "payment",
+  "capability": "create_payment_link",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "country_code": [
+    "GN"
+  ],
+  "currency": [
+    "GNF"
+  ],
+  "sandbox": true,
+  "docs_url": "https://developers.djomy.africa/",
+  "docs_public": true,
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {access_token}",
+    "env_var": "DJOMY_CLIENT_ID"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://sandbox-api.djomy.africa/v1/links"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "countryCode"
+    ],
+    "properties": {
+      "countryCode": {
+        "type": "string",
+        "pattern": "^[A-Z]{2}$",
+        "description": "ISO 3166-1 alpha-2 country code in uppercase (e.g. GN for Guinea)."
+      },
+      "amountToPay": {
+        "type": "number",
+        "description": "Fixed payment amount. If omitted, the payer enters the amount themselves on the payment page."
+      },
+      "linkName": {
+        "type": "string",
+        "description": "Name for the link, useful to identify it in the merchant dashboard."
+      },
+      "description": {
+        "type": "string",
+        "description": "Context for the payment, shown in the dashboard."
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Payer's phone number. Required if sendSms is true."
+      },
+      "sendSms": {
+        "type": "boolean",
+        "description": "If true, Djomy sends the payment link to phoneNumber via SMS. Requires phoneNumber to be set. Defaults to false."
+      },
+      "usageType": {
+        "type": "string",
+        "enum": [
+          "UNIQUE",
+          "MULTIPLE"
+        ],
+        "description": "UNIQUE: the link deactivates after one successful payment. MULTIPLE: the link can be used for multiple payments."
+      },
+      "usageLimit": {
+        "type": "integer",
+        "description": "Maximum number of payments allowed through this link (for MULTIPLE usage type)."
+      },
+      "expiresAt": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 datetime after which the link is automatically deactivated."
+      },
+      "merchantReference": {
+        "type": "string",
+        "description": "Your own reference for this payment link."
+      },
+      "returnUrl": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to redirect the payer to after payment."
+      },
+      "cancelUrl": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to redirect the payer to if they cancel."
+      },
+      "allowedPaymentMethods": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Payment methods to display on the payment page. Defaults to all available methods."
+      },
+      "customFields": {
+        "type": "array",
+        "description": "Custom form fields to add to the payment page.",
+        "items": {
+          "type": "object"
+        }
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Custom key-value data echoed back in webhooks. Must be flat JSON (no arrays, no nested objects)."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "All responses are wrapped in { success, message, data, error, errors, timestamp, status }.",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "message": {
+        "type": "string"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "paymentLinkReference": {
+            "type": "string",
+            "description": "Use this to retrieve the link later. The field 'reference' is deprecated — use paymentLinkReference."
+          },
+          "reference": {
+            "type": "string",
+            "description": "Deprecated. Use paymentLinkReference instead."
+          },
+          "linkName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "REVOKED",
+              "PAID"
+            ],
+            "description": "ACTIVE = ready to receive payments. REVOKED = manually deactivated. For UNIQUE links, status becomes REVOKED after one successful payment."
+          },
+          "usageType": {
+            "type": "string",
+            "enum": [
+              "UNIQUE",
+              "MULTIPLE"
+            ]
+          },
+          "amountToPay": {
+            "type": "number"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "merchantReference": {
+            "type": "string"
+          },
+          "paymentPageUrl": {
+            "type": "string",
+            "description": "Public URL of the payment page. Share this with the payer."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "numberOfUsage": {
+            "type": "integer"
+          },
+          "usageLimit": {
+            "type": "integer"
+          },
+          "allowedPaymentMethods": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "customFields": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "fieldsErrors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "status": {
+        "type": "integer"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "enum": [
+          false
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "fieldsErrors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "status": {
+        "type": "integer"
+      }
+    }
+  },
+  "gotchas": [
+    "Use paymentLinkReference (not reference) to retrieve or track the link. The reference field is deprecated according to the API spec.",
+    "For UNIQUE links, Djomy automatically deactivates the link after the first successful payment. Do not rely on a second payment going through.",
+    "sendSms: true requires phoneNumber to be set. If phoneNumber is omitted, the SMS will not be sent and no error is returned.",
+    "Auth requires two steps: (1) compute HMAC-SHA256(clientId, clientSecret) as hex, (2) call POST /v1/auth with header X-API-KEY: clientId:hexSignature to get a Bearer token.",
+    "countryCode must be uppercase (GN, SL, LR). The API validates against the pattern ^[A-Z]{2}$ and will reject lowercase values."
+  ]
+}

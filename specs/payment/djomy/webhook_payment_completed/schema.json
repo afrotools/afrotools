@@ -1,0 +1,81 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "djomy",
+  "provider_name": "Djomy",
+  "provider_api_version": "v1.0",
+  "category": "payment",
+  "capability": "webhook_payment_completed",
+  "capability_type": "webhook",
+  "status": "draft",
+  "country_code": [
+    "GN"
+  ],
+  "currency": [
+    "GNF"
+  ],
+  "sandbox": true,
+  "docs_url": "https://developers.djomy.africa/",
+  "docs_public": true,
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_webhook_url}"
+  },
+  "input_schema": {
+    "type": "object",
+    "description": "Payload Djomy POSTs to your webhook URL when a payment event occurs.",
+    "properties": {
+      "eventType": {
+        "type": "string",
+        "enum": [
+          "payment.created",
+          "payment.pending",
+          "payment.success",
+          "payment.failed"
+        ],
+        "description": "Type of payment event. Use payment.success as the trigger to call verify_payment."
+      },
+      "eventId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Unique identifier for this webhook event."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable event description."
+      },
+      "data": {
+        "type": "object",
+        "description": "Payment details. Contains the same fields as verify_payment response data."
+      },
+      "paymentLinkReference": {
+        "type": "string",
+        "description": "Reference of the payment link associated with this event, if applicable."
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 timestamp when the event occurred."
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Custom data passed by the merchant when creating the payment."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "Your endpoint must return HTTP 200. The response body is ignored by Djomy."
+  },
+  "error_schema": {},
+  "gotchas": [
+    "[MUST TELL USER] Le webhook Djomy ne se déclenche pas automatiquement. Le développeur doit d'abord configurer l'URL de son endpoint dans le dashboard Djomy (espace développeur). Sans cette étape, aucun événement ne sera envoyé, même si le paiement est traité avec succès.",
+    "[MUST TELL USER] Djomy n'appelle l'URL webhook qu'en HTTPS — les URLs http:// sont silencieusement ignorées. En développement local, le webhook ne se déclenchera jamais sans tunnel HTTPS. Indiquer explicitement à l'utilisateur : lancer `ngrok http 3000`, puis configurer l'URL ngrok dans l'espace développeur Djomy avant de tester.",
+    "Always verify the webhook signature before processing the event. Compute HMAC-SHA256(rawBody, clientSecret) as hex and compare it to the X-Webhook-Signature header value. Reject any request where they don't match.",
+    "Never fulfill an order based on the webhook payload alone. Always call verify_payment with the transactionId to confirm status === 'SUCCESS' server-side.",
+    "Return HTTP 200 immediately, even if your processing is asynchronous. Djomy considers a non-200 response a delivery failure.",
+    "You receive events for all lifecycle changes (payment.created, payment.pending, payment.success, payment.failed). Only act on payment.success for order fulfillment."
+  ]
+}

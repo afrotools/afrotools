@@ -1,0 +1,196 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "djomy",
+  "provider_name": "Djomy",
+  "provider_api_version": "v1.0",
+  "category": "payment",
+  "capability": "verify_payment",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "country_code": [
+    "GN"
+  ],
+  "currency": [
+    "GNF"
+  ],
+  "sandbox": true,
+  "docs_url": "https://developers.djomy.africa/",
+  "docs_public": true,
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {access_token}",
+    "env_var": "DJOMY_CLIENT_ID"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://sandbox-api.djomy.africa/v1/payments/{transactionId}/status"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "transactionId"
+    ],
+    "properties": {
+      "transactionId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "The transactionId returned by create_payment or create_payment_gateway. Passed as a path parameter."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "All responses are wrapped in { success, message, data, error, errors, timestamp, status }.",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "message": {
+        "type": "string"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "PENDING",
+              "FAILED",
+              "SUCCESS",
+              "REDIRECTED",
+              "CANCELLED",
+              "TIMEOUT",
+              "REFUNDED"
+            ],
+            "description": "Use status === 'SUCCESS' as the only safe condition to fulfill an order."
+          },
+          "paidAmount": {
+            "type": "number",
+            "description": "Amount paid by the payer."
+          },
+          "receivedAmount": {
+            "type": "number",
+            "description": "Amount received by the merchant after Djomy fees."
+          },
+          "fees": {
+            "type": "number"
+          },
+          "paymentMethod": {
+            "type": "string"
+          },
+          "payerIdentifier": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "GNF",
+              "FCFA",
+              "Dollar",
+              "Leones"
+            ],
+            "description": "Note: these are Djomy's internal currency strings, not ISO 4217 codes."
+          },
+          "merchantPaymentReference": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "providerReference": {
+            "type": "string",
+            "description": "Reference from the payment operator (Orange Money, Kulu, etc.)."
+          },
+          "allowedPaymentMethods": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "fieldsErrors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "status": {
+        "type": "integer"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "enum": [
+          false
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "fieldsErrors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "status": {
+        "type": "integer"
+      }
+    }
+  },
+  "gotchas": [
+    "This endpoint requires both the Bearer token (Authorization header) and the X-API-KEY header (clientId:HMAC signature). Omitting either will return 401.",
+    "Never fulfill an order until data.status === 'SUCCESS'. PENDING means payment is still in progress. CAPTURED means the amount has been collected but may differ from SUCCESS depending on the flow.",
+    "receivedAmount is what you actually receive after Djomy deducts fees. Use this for your accounting, not paidAmount.",
+    "The currency field returns non-ISO strings: 'GNF', 'FCFA', 'Dollar', 'Leones'. Map these to ISO 4217 codes (GNF, XOF, USD, SLE) in your system.",
+    "Auth requires two steps: (1) compute HMAC-SHA256(clientId, clientSecret) as hex, (2) call POST /v1/auth with header X-API-KEY: clientId:hexSignature to get a Bearer token."
+  ]
+}

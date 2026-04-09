@@ -1,0 +1,213 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "djomy",
+  "provider_name": "Djomy",
+  "provider_api_version": "v1.0",
+  "category": "payment",
+  "capability": "create_payment_gateway",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "country_code": [
+    "GN"
+  ],
+  "currency": [
+    "GNF"
+  ],
+  "sandbox": true,
+  "docs_url": "https://developers.djomy.africa/",
+  "docs_public": true,
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {access_token}",
+    "env_var": "DJOMY_CLIENT_ID"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://sandbox-api.djomy.africa/v1/payments/gateway"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "amount",
+      "countryCode",
+      "payerNumber"
+    ],
+    "properties": {
+      "amount": {
+        "type": "number",
+        "description": "Amount to be paid. Must be a positive number."
+      },
+      "countryCode": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 3,
+        "description": "ISO 3166-1 alpha-2 country code (e.g. GN for Guinea)."
+      },
+      "payerNumber": {
+        "type": "string",
+        "description": "Payer phone number in international format (e.g. 00224623707722). Used to pre-fill the payment portal."
+      },
+      "allowedPaymentMethods": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Restrict which payment methods are displayed on the Djomy portal. Valid values: OM, MOMO, SOUTRA_MONEY, PAYCARD, CARD. Defaults to all available methods if omitted or if an invalid value is provided."
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 255,
+        "description": "Human-readable description providing payment context."
+      },
+      "merchantPaymentReference": {
+        "type": "string",
+        "maxLength": 255,
+        "description": "Your own reference for this payment (e.g. an order ID). Not required but strongly recommended."
+      },
+      "returnUrl": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to redirect the payer to after payment success or failure. Must be HTTPS."
+      },
+      "cancelUrl": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to redirect the payer to if they leave the payment portal. Falls back to returnUrl if omitted. Must be HTTPS."
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Custom key-value data echoed back in webhooks and status responses. Must be flat JSON (no arrays, no nested objects)."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "All responses are wrapped in { success, message, data, error, errors, timestamp, status }.",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "message": {
+        "type": "string"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Djomy's internal transaction ID. Store this — required for verify_payment."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "PENDING",
+              "REDIRECTED",
+              "FAILED",
+              "SUCCESS",
+              "CAPTURED"
+            ],
+            "description": "REDIRECTED means the payer has been sent to the Djomy portal. Wait for webhook to know the final status."
+          },
+          "paidAmount": {
+            "type": "number"
+          },
+          "paymentMethod": {
+            "type": "string"
+          },
+          "redirectUrl": {
+            "type": "string",
+            "description": "URL of the Djomy payment portal. Redirect the payer here immediately after receiving this response."
+          },
+          "allowedPaymentMethods": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "fieldsErrors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "status": {
+        "type": "integer"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "enum": [
+          false
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "fieldsErrors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "status": {
+        "type": "integer"
+      }
+    }
+  },
+  "gotchas": [
+    "Auth requires two steps: (1) compute HMAC-SHA256(clientId, clientSecret) as hex, (2) call POST /v1/auth with header X-API-KEY: clientId:hexSignature to get a Bearer token.",
+    "The gateway flow handles OTP internally — the payer completes everything on the Djomy portal. Do NOT call confirm_otp after this endpoint. Wait for the webhook instead.",
+    "Redirect the payer to redirectUrl immediately after receiving the response. Do not delay — the link may expire.",
+    "Always verify payment status server-side via verify_payment before fulfilling an order. The returnUrl redirect is not a proof of payment.",
+    "If an invalid payment method is passed in allowedPaymentMethods (wrong spelling or unsupported value), Djomy silently falls back to showing all available methods instead of returning an error."
+  ]
+}

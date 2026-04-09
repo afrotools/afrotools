@@ -1,0 +1,222 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "djomy",
+  "provider_name": "Djomy",
+  "provider_api_version": "v1.0",
+  "category": "payment",
+  "capability": "create_payment",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "country_code": [
+    "GN"
+  ],
+  "currency": [
+    "GNF"
+  ],
+  "sandbox": true,
+  "docs_url": "https://developers.djomy.africa/",
+  "docs_public": true,
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {access_token}",
+    "env_var": "DJOMY_CLIENT_ID"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://sandbox-api.djomy.africa/v1/payments"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "paymentMethod",
+      "payerIdentifier",
+      "amount",
+      "countryCode"
+    ],
+    "properties": {
+      "paymentMethod": {
+        "type": "string",
+        "enum": [
+          "OM",
+          "MOMO",
+          "KULU",
+          "SOUTRA_MONEY",
+          "PAYCARD",
+          "YMO"
+        ],
+        "description": "Payment method. OM = Orange Money, MOMO = MTN Mobile Money, KULU = Kulu (Digital Pay). SOUTRA_MONEY, PAYCARD, YMO are coming soon."
+      },
+      "payerIdentifier": {
+        "type": "string",
+        "description": "Payer account number. For mobile wallets, use the phone number in international format (e.g. 00224623707722). For cards, use the card number."
+      },
+      "amount": {
+        "type": "number",
+        "description": "Amount to be paid. Must be a positive number."
+      },
+      "countryCode": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 3,
+        "description": "ISO 3166-1 alpha-2 country code (e.g. GN for Guinea)."
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 255,
+        "description": "Human-readable description providing payment context."
+      },
+      "merchantPaymentReference": {
+        "type": "string",
+        "maxLength": 255,
+        "description": "Your own reference for this payment (e.g. an order ID). Not required but strongly recommended."
+      },
+      "returnUrl": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to redirect the payer to after payment success or failure. Must be HTTPS."
+      },
+      "cancelUrl": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to redirect the payer to if they leave the payment page before submitting. Falls back to returnUrl if omitted. Must be HTTPS."
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Custom key-value data echoed back in webhooks and status responses. Must be flat JSON (no arrays, no nested objects). Example: { \"order_id\": \"ORD-456\", \"vip\": true }"
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "All responses are wrapped in { success, message, data, error, errors, timestamp, status }.",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "message": {
+        "type": "string"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Djomy's internal transaction ID. Store this — required for verify_payment and confirm_otp."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "PENDING",
+              "FAILED",
+              "SUCCESS",
+              "AUTHORIZED",
+              "CAPTURED"
+            ],
+            "description": "PENDING means the payer is being prompted by the operator to validate. For OM/MOMO direct flow, call confirm_otp next."
+          },
+          "paidAmount": {
+            "type": "number"
+          },
+          "paymentMethod": {
+            "type": "string"
+          },
+          "merchantPaymentReference": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "paymentUrl": {
+            "type": "string",
+            "description": "URL for the payer to complete the payment (present when using redirect flow)."
+          },
+          "allowedPaymentMethods": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "fieldsErrors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "status": {
+        "type": "integer"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "enum": [
+          false
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "fieldsErrors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "status": {
+        "type": "integer"
+      }
+    }
+  },
+  "gotchas": [
+    "Auth requires two steps: (1) compute HMAC-SHA256(clientId, clientSecret) as hex, (2) call POST /v1/auth with header X-API-KEY: clientId:hexSignature to get a Bearer token. Both DJOMY_CLIENT_ID and DJOMY_CLIENT_SECRET env vars are required.",
+    "For Orange Money (OM) and MTN MoMo (MOMO) direct payments, status returns PENDING immediately. The payer receives an OTP from their operator. You must then call confirm_otp with the transactionId and the OTP to complete the payment.",
+    "Always verify payment status server-side via verify_payment before fulfilling an order. Never trust only the callback or paymentUrl redirect.",
+    "The base URL in this spec is the sandbox (https://sandbox-api.djomy.africa). Replace with the production URL for live payments.",
+    "metadata must be a flat object — no arrays or nested structures. Values can be strings, numbers, or booleans."
+  ]
+}
