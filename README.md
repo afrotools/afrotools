@@ -23,9 +23,9 @@ See [ATSS.md](./ATSS.md) for the full specification.
 | Paycard | payment | GN | create_payment, verify_payment, webhook_payment_completed | ✅ Verified |
 | LengoPay | payment | GN | create_payment, verify_payment, webhook_payment_completed | ✅ Verified |
 | Wave | payment | SN, CI, ML | create_payment, verify_payment, webhook_payment_completed | Planned |
-| Djomy | payment | — | create_payment, verify_payment | Planned |
+| Djomy | payment | GN | create_payment, verify_payment | Planned |
 | Bictorys | payment | — | create_payment, verify_payment, webhook_payment_completed | Planned |
-| NimbaSMS | sms | SN | send_otp, send_bulk | Planned |
+| NimbaSMS | sms | GN | send_otp, send_bulk | Planned |
 
 ---
 
