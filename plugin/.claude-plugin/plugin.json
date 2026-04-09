@@ -9,5 +9,5 @@
   "homepage": "https://afro.tools",
   "repository": "https://github.com/afrotools/afrotools",
   "license": "Apache-2.0",
-  "keywords": ["africa", "payment", "sms", "paycard", "wave", "mcp"]
+  "keywords": ["africa", "payment", "sms", "paycard", "lengopay", "wave", "djomy", "bictorys", "nimbasms", "mobile-money", "fintech", "checkout", "otp", "webhook", "mcp", "api", "integration"]
 }
