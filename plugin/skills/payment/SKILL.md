@@ -1,5 +1,5 @@
 ---
-name: afrotools-payment
+name: payment
 description: >
   Use this skill whenever the user wants to integrate, implement, or test a
   payment API from an African provider — including Paycard, LengoPay, Wave,
