@@ -20,8 +20,8 @@ Fetches the full spec for a given provider and capability from the Afro.tools re
 Examples:
 ```
 /afrotools:spec paycard create_payment
-/afrotools:spec wave verify_payment
-/afrotools:spec nimbasms send_otp
+/afrotools:spec lengopay verify_payment
+/afrotools:spec paycard webhook_payment_completed
 ```
 
 ## What it returns

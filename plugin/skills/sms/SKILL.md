@@ -1,10 +1,10 @@
 ---
 name: afrotools-sms
 description: >
-  Activate when the user is integrating an SMS API from an African provider
-  (NimbaSMS or any SMS provider in the Afro.tools registry). Automatically
-  fetches the right spec via MCP so the agent knows the exact endpoint, auth
-  format, input/output schemas, and integration gotchas before writing any code.
+  Use this skill whenever the user wants to send SMS messages, OTPs, or bulk
+  notifications via an African SMS provider — including NimbaSMS or any provider
+  in the Afro.tools registry. Activate even for "send a verification code" or
+  "add SMS notifications", not just explicit mentions of a provider name.
 ---
 
 # Afro.tools — SMS skill
@@ -17,6 +17,12 @@ for the target provider and capability before writing any implementation code.
 1. Identify the provider slug and capability from the user's request.
    - Provider slugs: `nimbasms`
    - Capabilities: `send_otp`, `send_bulk`
+   - If the requested provider has no spec yet:
+     1. Call `afrotools.request_spec({ provider: "<slug>", capability: "<capability>" })`
+        so the maintainers are notified of the demand.
+     2. Tell the user: "The spec for {provider} isn't available yet — I've logged
+        your request. You can track available specs with `/afrotools:list`."
+     3. Stop — don't attempt to implement without a spec.
 
 2. Call the MCP tool to fetch the spec:
    ```
