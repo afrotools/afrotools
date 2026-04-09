@@ -20,9 +20,9 @@ See [ATSS.md](./ATSS.md) for the full specification.
 
 | Provider | Category | Country | Capabilities | Status |
 |---|---|---|---|---|
-| Paycard | payment | GN | create_payment, verify_payment, webhook_payment_completed | In progress |
+| Paycard | payment | GN | create_payment, verify_payment, webhook_payment_completed | ✅ Verified |
+| LengoPay | payment | GN | create_payment, verify_payment, webhook_payment_completed | ✅ Verified |
 | Wave | payment | SN, CI, ML | create_payment, verify_payment, webhook_payment_completed | Planned |
-| LengoPay | payment | — | create_payment, verify_payment | Planned |
 | Djomy | payment | — | create_payment, verify_payment | Planned |
 | Bictorys | payment | — | create_payment, verify_payment, webhook_payment_completed | Planned |
 | NimbaSMS | sms | SN | send_otp, send_bulk | Planned |
@@ -86,14 +86,22 @@ Or add to your project's `.mcp.json`:
 
 Install the plugin to get Afro.tools skills directly in your editor:
 
-```bash
+```
+/plugin marketplace add afrotools/afrotools
 /plugin install afrotools
 ```
 
 The plugin includes:
-- **Auto-activation skills** for payment and SMS tasks — the agent reads the right spec automatically
-- **`/afrotools:spec`** — fetch a specific spec by provider and capability
-- **`/afrotools:list`** — list all available specs
+
+**Auto-activated skills** (trigger automatically based on your request):
+- **`payment`** — integrating a payment API → fetches the right spec before writing any code
+- **`sms`** — integrating an SMS API → same
+- **`debug`** — debugging a failing integration → cross-checks your code against the spec and gotchas
+
+**Manual commands:**
+- **`/afrotools:spec <provider> <capability>`** — inspect the full spec for a provider/capability
+- **`/afrotools:list`** — list all available specs with their status
+- **`/afrotools:new <category> <provider> <capability>`** — scaffold a new spec (for contributors)
 
 ---
 
