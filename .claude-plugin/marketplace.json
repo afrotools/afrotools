@@ -12,7 +12,7 @@
     {
       "name": "afrotools",
       "source": "./plugin",
-      "description": "Integrate African payment and SMS APIs with zero guesswork. Automatically fetches specs, surfaces gotchas, and scaffolds correct implementations for Paycard, LengoPay, NimbaSMS, and more.",
+      "description": "Integrate African APIs with zero guesswork. Automatically fetches specs, surfaces gotchas, and scaffolds correct implementations for Paycard, LengoPay, NimbaSMS, and more.",
       "homepage": "https://afro.tools",
       "repository": "https://github.com/afrotools/afrotools",
       "license": "Apache-2.0",
