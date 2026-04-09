@@ -1,5 +1,5 @@
 ---
-name: afrotools-new
+name: new
 description: >
   Scaffold a new ATSS spec (schema.json + canonical_example.ts) for a provider
   and capability. Manual invocation only.
