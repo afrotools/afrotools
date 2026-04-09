@@ -1,0 +1,22 @@
+{
+  "name": "afrotools",
+  "owner": {
+    "name": "Afro.tools",
+    "email": "hello@afro.tools"
+  },
+  "metadata": {
+    "description": "AI-ready infrastructure for African APIs — payment, SMS, and more.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "afrotools",
+      "source": "./plugin",
+      "description": "Integrate African APIs with zero guesswork. Automatically fetches specs, surfaces gotchas, and scaffolds correct implementations for Paycard, LengoPay, NimbaSMS, and more.",
+      "homepage": "https://afro.tools",
+      "repository": "https://github.com/afrotools/afrotools",
+      "license": "Apache-2.0",
+      "keywords": ["africa", "payment", "sms", "mobile-money", "fintech", "api", "mcp"]
+    }
+  ]
+}
