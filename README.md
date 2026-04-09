@@ -86,7 +86,7 @@ Or add to your project's `.mcp.json`:
 
 Install the plugin to get Afro.tools skills directly in your editor:
 
-```
+```text
 /plugin marketplace add afrotools/afrotools
 /plugin install afrotools
 ```
@@ -94,11 +94,13 @@ Install the plugin to get Afro.tools skills directly in your editor:
 The plugin includes:
 
 **Auto-activated skills** (trigger automatically based on your request):
+
 - **`payment`** — integrating a payment API → fetches the right spec before writing any code
 - **`sms`** — integrating an SMS API → same
 - **`debug`** — debugging a failing integration → cross-checks your code against the spec and gotchas
 
 **Manual commands:**
+
 - **`/afrotools:spec <provider> <capability>`** — inspect the full spec for a provider/capability
 - **`/afrotools:list`** — list all available specs with their status
 - **`/afrotools:new <category> <provider> <capability>`** — scaffold a new spec (for contributors)
@@ -109,7 +111,7 @@ The plugin includes:
 
 If you don't use the plugin, you can copy a single `SKILL.md` into your project:
 
-```
+```text
 plugin/skills/payment/SKILL.md   ← for payment integrations
 plugin/skills/sms/SKILL.md       ← for SMS integrations
 ```
