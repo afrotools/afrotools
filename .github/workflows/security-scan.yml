@@ -1,0 +1,47 @@
+name: Security Scan
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "specs/**"
+  push:
+    branches: [main]
+    paths:
+      - "specs/**"
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Security scan — changed specs (PR)
+        if: github.event_name == 'pull_request'
+        run: node scripts/validate.js --changed --security-only
+
+      - name: Security scan — all specs (push to main)
+        if: github.event_name == 'push'
+        run: node scripts/validate.js --security-only
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3

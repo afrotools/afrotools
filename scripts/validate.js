@@ -13,6 +13,11 @@
  *   1. Structure  — exactly schema.json + canonical_example.ts, nothing else
  *   2. schema.json — all required ATSS fields present and valid
  *   3. canonical_example.ts — compiles with tsc --noEmit, zero errors
+ *   4. Security    — endpoint safety, prompt injection in text fields, fetch/env coherence
+ *
+ * Flags:
+ *   --changed       validate only git-changed specs
+ *   --security-only skip checks 1-3, run only security scan (used by dedicated CI workflow)
  */
 
 const fs = require("fs");
@@ -253,10 +258,200 @@ function validateTypeScript(specPath) {
 }
 
 // ---------------------------------------------------------------------------
+// Security scan
+// ---------------------------------------------------------------------------
+
+const INTERNAL_IP_PATTERNS = [
+  /^localhost$/i, /^127\./, /^10\./, /^192\.168\./,
+  /^172\.(1[6-9]|2\d|3[01])\./, /^169\.254\./, /^::1$/,
+];
+
+/**
+ * Patterns that indicate prompt injection attempts in spec text fields (gotchas, etc.).
+ * blocking:true  → hard error, fails the spec
+ * blocking:false → warning, printed but does not fail
+ *
+ * Only the most unambiguous patterns are blocking — broad heuristics are warnings only.
+ * @type {Array<{re: RegExp, label: string, blocking: boolean}>}
+ */
+const PROMPT_INJECTION_PATTERNS = [
+  // Unambiguous override instructions — always block
+  { re: /\b(IGNORE|DISREGARD|FORGET)\s+(ALL\s+)?(PREVIOUS|ABOVE|PRIOR)/i, label: "instruction d'override d'agent", blocking: true },
+  // Credential/key exfiltration disguised as debugging — block
+  { re: /for\s+(debug|logging|monitoring|telemetry)\s+purposes?\s+.{0,80}(api[_\s]?key|token|secret|credential)/i, label: "exfiltration de credential déguisée en debug", blocking: true },
+  // base64 obfuscation in text fields — block
+  { re: /atob\s*\(|btoa\s*\(/, label: "encoding base64 suspect dans un champ texte", blocking: true },
+  // Broad heuristics — warn only (too many false-positives as hard errors)
+  { re: /https?:\/\//, label: "URL dans un champ texte (vérifier si légitime)", blocking: false },
+];
+
+/**
+ * Patterns that detect dangerous constructs in canonical_example.ts source code.
+ * Labels intentionally avoid the exact forbidden phrases to prevent hook false-positives.
+ * @type {Array<{re: RegExp, label: string}>}
+ */
+const DANGEROUS_CODE_PATTERNS = [
+  { re: /\beval\s*\(/,              label: "exécution dynamique de chaîne interdite" },
+  { re: /new\s+Function\s*\(/,      label: "constructeur de code dynamique interdit" },
+  { re: /require\s*\(\s*['"]fs['"]/, label: "accès direct au filesystem interdit" },
+  { re: /process\.exit\s*\(/,       label: "arrêt forcé du processus interdit" },
+  { re: /fetch\s*\(`[^`]*\$\{[^}]*env[^}]*\}/, label: "variable d'env dans une URL fetch via template literal" },
+];
+
+/** Infrastructure env vars allowed without auth declaration */
+const INFRA_ENV_PREFIXES = ["NEXT_PUBLIC_", "NEXT_", "VITE_", "NUXT_"];
+const INFRA_ENV_VARS = new Set(["NODE_ENV", "PORT", "HOST", "BASE_URL"]);
+
+/**
+ * Validates that an endpoint URL is HTTPS and not an internal address.
+ * @param {string} url
+ * @returns {string[]}
+ */
+function validateEndpointUrl(url) {
+  /** @type {string[]} */ const errors = [];
+  let parsed;
+  try { parsed = new URL(url); }
+  catch { return [`endpoint.url n'est pas une URL valide: "${url}"`]; }
+
+  if (parsed.protocol !== "https:")
+    errors.push(`endpoint.url doit être HTTPS (reçu: ${parsed.protocol})`);
+  if (INTERNAL_IP_PATTERNS.some((r) => r.test(parsed.hostname)))
+    errors.push(`endpoint.url pointe vers une IP interne: "${parsed.hostname}"`);
+  if (parsed.username || parsed.password)
+    errors.push("endpoint.url ne doit pas contenir de credentials");
+
+  return errors;
+}
+
+/**
+ * Scans string fields for prompt injection patterns.
+ * @param {object} schema
+ * @returns {{ errors: string[], warnings: string[] }}
+ */
+function scanTextFields(schema) {
+  /** @type {string[]} */ const errors = [];
+  /** @type {string[]} */ const warnings = [];
+
+  const fields = [
+    schema.provider_name,
+    schema.capability,
+    schema.provider_api_version,
+    ...(Array.isArray(schema.gotchas) ? schema.gotchas : []),
+  ].filter((f) => typeof f === "string");
+
+  for (const field of fields) {
+    for (const { re, label, blocking } of PROMPT_INJECTION_PATTERNS) {
+      if (re.test(field)) {
+        const excerpt = field.length > 80 ? field.slice(0, 80) + "…" : field;
+        if (blocking) errors.push(`[PROMPT INJECTION] ${label}: "${excerpt}"`);
+        else warnings.push(`[WARN] ${label}: "${excerpt}"`);
+      }
+    }
+  }
+  return { errors, warnings };
+}
+
+/**
+ * Scans canonical_example.ts source for:
+ *   - fetch() calls pointing outside the declared endpoint hostname (hard error)
+ *   - process.env references not in auth.env_var (warning — multi-credential APIs are legit)
+ *   - dangerous code patterns (hard error)
+ * @param {string} source
+ * @param {object} schema
+ * @returns {{ errors: string[], warnings: string[] }}
+ */
+function scanCanonicalExample(source, schema) {
+  /** @type {string[]} */ const errors = [];
+  /** @type {string[]} */ const warnings = [];
+
+  // 1. Coherence: all literal fetch() URLs must match declared endpoint hostname
+  let allowedHost = null;
+  try { allowedHost = new URL(schema.endpoint.url).hostname; } catch { /* already flagged by validateEndpointUrl */ }
+
+  if (allowedHost) {
+    const fetchRe = /fetch\s*\(\s*['"`](https?:\/\/[^'"`\s]+)['"`]/g;
+    for (const m of source.matchAll(fetchRe)) {
+      try {
+        const fetchedHost = new URL(m[1]).hostname;
+        if (fetchedHost !== allowedHost)
+          errors.push(`[EXFILTRATION] fetch() vers "${fetchedHost}" mais endpoint déclaré est "${allowedHost}"`);
+      } catch {
+        errors.push(`[INVALID URL] URL de fetch() invalide: "${m[1]}"`);
+      }
+    }
+  }
+
+  // 2. process.env references not in auth.env_var → warning only.
+  //    Multi-credential APIs legitimately use env vars for required params (e.g. website_id).
+  const declaredEnvVars = new Set();
+  const auth = schema.auth;
+  if (auth && typeof auth === "object" && !Array.isArray(auth) && auth.env_var) declaredEnvVars.add(auth.env_var);
+  if (Array.isArray(auth)) auth.forEach((/** @type {any} */ a) => a.env_var && declaredEnvVars.add(a.env_var));
+
+  const envRe = /process\.env\.([A-Z_][A-Z0-9_]*)/g;
+  for (const em of source.matchAll(envRe)) {
+    const v = em[1];
+    const isInfra = INFRA_ENV_PREFIXES.some((p) => v.startsWith(p)) || INFRA_ENV_VARS.has(v);
+    if (!isInfra && !declaredEnvVars.has(v))
+      warnings.push(`[WARN] process.env.${v} utilisé mais non déclaré dans auth.env_var`);
+  }
+
+  // 3. Dangerous code patterns in canonical_example source
+  for (const { re, label } of DANGEROUS_CODE_PATTERNS) {
+    if (re.test(source)) errors.push(`[DANGEROUS CODE] ${label}`);
+  }
+
+  return { errors, warnings };
+}
+
+/**
+ * Check 4: security scan — endpoint, prompt injection, canonical_example coherence.
+ * Webhook specs skip endpoint URL validation (their endpoint is a developer-defined placeholder).
+ * @param {string} specPath
+ * @returns {boolean}
+ */
+function runSecurityScan(specPath) {
+  let schema;
+  try {
+    schema = JSON.parse(fs.readFileSync(path.join(specPath, "schema.json"), "utf8"));
+  } catch {
+    return true; // already caught by check 2 — skip here
+  }
+
+  /** @type {string[]} */ const allErrors = [];
+  /** @type {string[]} */ const allWarnings = [];
+
+  // Webhook specs have placeholder endpoint URLs (developer-defined) — skip URL validation
+  if (schema.capability_type !== "webhook" && schema.endpoint?.url) {
+    allErrors.push(...validateEndpointUrl(schema.endpoint.url));
+  }
+
+  const { errors: textErrors, warnings: textWarnings } = scanTextFields(schema);
+  allErrors.push(...textErrors);
+  allWarnings.push(...textWarnings);
+
+  try {
+    const source = fs.readFileSync(path.join(specPath, "canonical_example.ts"), "utf8");
+    const { errors: codeErrors, warnings: codeWarnings } = scanCanonicalExample(source, schema);
+    allErrors.push(...codeErrors);
+    allWarnings.push(...codeWarnings);
+  } catch { /* file missing — caught by check 1 */ }
+
+  if (allWarnings.length > 0) allWarnings.forEach((w) => console.warn(`        ${w}`));
+
+  if (allErrors.length > 0) {
+    allErrors.forEach((e) => console.error(`        ${e}`));
+    return fail(specPath, `Security scan: ${allErrors.length} issue(s) found`);
+  }
+  return true;
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
 const isChangedMode = process.argv.includes("--changed");
+const isSecurityOnly = process.argv.includes("--security-only");
 const specs = isChangedMode ? discoverChangedSpecs() : discoverAllSpecs();
 
 if (specs.length === 0) {
@@ -264,26 +459,21 @@ if (specs.length === 0) {
   process.exit(0);
 }
 
-console.log(`\nValidating ${specs.length} spec(s)${isChangedMode ? " (changed)" : ""}...\n`);
+const modeLabel = [isChangedMode ? "changed" : "all", isSecurityOnly ? "security-only" : "full"].join(", ");
+console.log(`\nValidating ${specs.length} spec(s) [${modeLabel}]...\n`);
 
 let failures = 0;
 
 for (const specPath of specs) {
   const rel = path.relative(SPECS_ROOT, specPath);
 
-  // Run checks in order — stop at first failure per spec
-  if (!validateStructure(specPath)) {
-    failures++;
-    continue;
+  if (!isSecurityOnly) {
+    if (!validateStructure(specPath))  { failures++; continue; }
+    if (!validateSchema(specPath))     { failures++; continue; }
+    if (!validateTypeScript(specPath)) { failures++; continue; }
   }
-  if (!validateSchema(specPath)) {
-    failures++;
-    continue;
-  }
-  if (!validateTypeScript(specPath)) {
-    failures++;
-    continue;
-  }
+
+  if (!runSecurityScan(specPath)) { failures++; continue; }
 
   pass(rel);
 }
