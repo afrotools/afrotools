@@ -415,7 +415,7 @@ function runSecurityScan(specPath) {
   try {
     schema = JSON.parse(fs.readFileSync(path.join(specPath, "schema.json"), "utf8"));
   } catch {
-    return true; // already caught by check 2 — skip here
+    return fail(specPath, "schema.json manquant ou invalide");
   }
 
   /** @type {string[]} */ const allErrors = [];
