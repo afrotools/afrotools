@@ -70,6 +70,6 @@
     "Répondre HTTP 200 immédiatement et traiter le paiement de façon asynchrone. LengoPay retry en cas d'échec, ce qui peut provoquer des doublons si votre handler est lent.",
     "Implémenter l'idempotence : LengoPay peut envoyer le même webhook plusieurs fois pour le même pay_id. Vérifier que la commande n'est pas déjà fulfillée avant d'agir.",
     "Le champ Client contient le numéro de téléphone du payeur (ex: '624897845'). Il est absent du payload dans certains cas — ne pas en dépendre.",
-    "LengoPay appelle le callback_url uniquement en HTTPS. En développement local, utiliser un tunnel HTTPS comme ngrok (`ngrok http 3000`) et passer l'URL ngrok comme callback_url."
+    "[MUST TELL USER] LengoPay n'appelle le callback_url qu'en HTTPS — les URLs http:// sont silencieusement ignorées. En développement local, le webhook ne se déclenchera jamais sans tunnel HTTPS. Indiquer explicitement à l'utilisateur : lancer `ngrok http 3000`, puis mettre à jour NEXT_PUBLIC_BASE_URL (ou l'équivalent) avec l'URL ngrok avant de tester."
   ]
 }
