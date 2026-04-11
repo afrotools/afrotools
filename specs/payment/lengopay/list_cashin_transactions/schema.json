@@ -1,0 +1,89 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "lengopay",
+  "provider_name": "LengoPay",
+  "provider_api_version": "2024-01-01",
+  "category": "payment",
+  "capability": "list_cashin_transactions",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": [
+    "GN"
+  ],
+  "currency": [
+    "GNF",
+    "XOF",
+    "USD"
+  ],
+  "sandbox": false,
+  "docs_url": "",
+  "docs_public": false,
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic {token}",
+    "env_var": "LENGOPAY_LICENSE_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://portal.lengopay.com/api/v1/cashin/all-transactions"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "websiteid"
+    ],
+    "properties": {
+      "websiteid": {
+        "type": "string",
+        "description": "Identifiant unique du site (ID Site dans le tableau de bord LengoPay)."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "pay_id": {
+          "type": "string",
+          "description": "Identifiant du paiement."
+        },
+        "date": {
+          "type": "string",
+          "description": "Date de la transaction (format YYYY-MM-DD HH:MM:SS)."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Montant du paiement."
+        },
+        "account": {
+          "type": "string",
+          "description": "Numéro de téléphone destinataire du paiement."
+        },
+        "gateway": {
+          "type": "string",
+          "description": "Réseau utilisé pour le paiement (ex: \"Orange Money\")."
+        },
+        "status": {
+          "type": "string",
+          "description": "Statut du paiement (SUCCESS, FAILED, PENDING)."
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "Description de l'erreur."
+      }
+    }
+  },
+  "gotchas": [
+    "Retourne uniquement les transactions Cash In (push vers numéro de téléphone via cashin_request). Pour les transactions Cash Out via URL de paiement, utiliser list_transactions.",
+    "Le champ account peut être retourné comme number ou string selon la réponse — normaliser avec String(account) avant utilisation."
+  ]
+}

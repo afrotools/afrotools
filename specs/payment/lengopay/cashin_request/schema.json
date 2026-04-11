@@ -1,0 +1,105 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "lengopay",
+  "provider_name": "LengoPay",
+  "provider_api_version": "2024-01-01",
+  "category": "payment",
+  "capability": "cashin_request",
+  "capability_type": "asynchronous",
+  "status": "compliant",
+  "country_code": [
+    "GN"
+  ],
+  "currency": [
+    "GNF",
+    "XOF",
+    "USD"
+  ],
+  "sandbox": false,
+  "docs_url": "",
+  "docs_public": false,
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic {token}",
+    "env_var": "LENGOPAY_LICENSE_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://portal.lengopay.com/api/v2/cashin/request"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "amount",
+      "currency",
+      "websiteid",
+      "type_account",
+      "account"
+    ],
+    "properties": {
+      "amount": {
+        "type": "string",
+        "description": "Montant du paiement sous forme de chaîne numérique (ex: \"1000\")."
+      },
+      "currency": {
+        "type": "string",
+        "description": "Code ISO 4217 de la devise (ex: \"GNF\")."
+      },
+      "websiteid": {
+        "type": "string",
+        "description": "Identifiant unique du site (ID Site dans le tableau de bord LengoPay)."
+      },
+      "type_account": {
+        "type": "string",
+        "description": "Type de réseau mobile pour le paiement (ex: \"lp-om-gn\" pour Orange Money Guinée, \"lp-momo-gn\" pour MTN MoMo Guinée)."
+      },
+      "account": {
+        "type": "string",
+        "description": "Numéro de téléphone du destinataire du paiement (ex: \"620124578\")."
+      },
+      "callback_url": {
+        "type": "string",
+        "description": "URL HTTPS pour recevoir la notification de statut final. Facultatif mais fortement recommandé."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": [
+          "Success",
+          "ERROR"
+        ],
+        "description": "Statut de la réception de la requête (pas du paiement final)."
+      },
+      "pay_id": {
+        "type": "string",
+        "description": "Identifiant unique de la transaction encodé en base64. Présent si status = Success."
+      },
+      "message": {
+        "type": "string",
+        "description": "Message décrivant le résultat de la réception de la requête."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "Description de l'erreur."
+      }
+    }
+  },
+  "gotchas": [
+    "amount doit être une string numérique (ex: \"1000\"), pas un number. Passer un number provoque une erreur 400.",
+    "Le status \"Success\" dans la réponse indique seulement que la requête a été reçue, pas que le paiement est effectué. Utiliser cashin_status ou le callback pour connaître le résultat final.",
+    "pay_id retourné est encodé en base64 — le conserver tel quel pour l'utiliser dans cashin_status, sans décodage.",
+    "callback_url doit être une URL HTTPS valide. Les URLs HTTP sont ignorées silencieusement.",
+    "type_account doit correspondre au réseau du numéro account (ex: ne pas utiliser lp-om-gn pour un numéro MTN)."
+  ]
+}
