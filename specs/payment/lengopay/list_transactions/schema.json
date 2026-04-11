@@ -1,0 +1,81 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "lengopay",
+  "provider_name": "LengoPay",
+  "provider_api_version": "2024-01-01",
+  "category": "payment",
+  "capability": "list_transactions",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": [
+    "GN"
+  ],
+  "currency": [
+    "GNF",
+    "XOF",
+    "USD"
+  ],
+  "sandbox": false,
+  "docs_url": "",
+  "docs_public": false,
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic {token}",
+    "env_var": "LENGOPAY_LICENSE_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://portal.lengopay.com/api/v1/transactions"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "websiteid"
+    ],
+    "properties": {
+      "websiteid": {
+        "type": "string",
+        "description": "Identifiant unique du site (ID Site dans le tableau de bord LengoPay)."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "pay_id": {
+          "type": "string",
+          "description": "Identifiant du paiement."
+        },
+        "date": {
+          "type": "string",
+          "description": "Date de la transaction (format YYYY-MM-DD HH:MM:SS)."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Montant du paiement."
+        },
+        "status": {
+          "type": "string",
+          "description": "Statut du paiement (SUCCESS, FAILED, PENDING ou entier selon les cas)."
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "Description de l'erreur."
+      }
+    }
+  },
+  "gotchas": [
+    "Retourne uniquement les transactions Cash Out (paiements initiés via create_payment avec URL de paiement). Pour les transactions Cash In, utiliser list_cashin_transactions.",
+    "Le champ status peut être une string (\"SUCCESS\") ou un entier (0) selon la transaction — normaliser avant utilisation."
+  ]
+}

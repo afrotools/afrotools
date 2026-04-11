@@ -1,0 +1,74 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "lengopay",
+  "provider_name": "LengoPay",
+  "provider_api_version": "2024-01-01",
+  "category": "payment",
+  "capability": "get_balance",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": [
+    "GN"
+  ],
+  "currency": [
+    "GNF",
+    "XOF",
+    "USD"
+  ],
+  "sandbox": false,
+  "docs_url": "",
+  "docs_public": false,
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic {token}",
+    "env_var": "LENGOPAY_LICENSE_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://portal.lengopay.com/api/getbalance/{websiteId}"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "websiteId"
+    ],
+    "properties": {
+      "websiteId": {
+        "type": "string",
+        "description": "Identifiant unique du site (ID Site dans le tableau de bord LengoPay). Intégré dans le path."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "\"Success\" si la requête a abouti."
+      },
+      "balance": {
+        "type": "string",
+        "description": "Solde du compte sous forme de chaîne numérique (ex: \"7792\")."
+      },
+      "currency": {
+        "type": "string",
+        "description": "Devise du solde (ex: \"GNF\")."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "Description de l'erreur."
+      }
+    }
+  },
+  "gotchas": [
+    "balance est retourné comme une string (ex: \"7792\"), pas un number — utiliser parseFloat(balance) avant tout calcul.",
+    "L'URL n'a pas de préfixe /v1/ contrairement aux autres endpoints LengoPay (ex: /api/getbalance/ et non /api/v1/getbalance/)."
+  ]
+}

@@ -4,7 +4,7 @@
   "provider_name": "LengoPay",
   "provider_api_version": "2024-01-01",
   "category": "payment",
-  "capability": "verify_payment",
+  "capability": "cashin_status",
   "capability_type": "synchronous",
   "status": "compliant",
   "country_code": [
@@ -27,7 +27,7 @@
   },
   "endpoint": {
     "method": "POST",
-    "url": "https://portal.lengopay.com/api/v1/transaction/status"
+    "url": "https://portal.lengopay.com/api/v2/cashin/transaction"
   },
   "input_schema": {
     "type": "object",
@@ -38,7 +38,7 @@
     "properties": {
       "pay_id": {
         "type": "string",
-        "description": "Identifiant du paiement retourné par create_payment."
+        "description": "Identifiant de la transaction retourné par cashin_request (encodé en base64)."
       },
       "websiteid": {
         "type": "string",
@@ -49,10 +49,6 @@
   "response_schema": {
     "type": "object",
     "properties": {
-      "pay_id": {
-        "type": "string",
-        "description": "Identifiant du paiement."
-      },
       "status": {
         "type": "string",
         "enum": [
@@ -60,11 +56,19 @@
           "FAILED",
           "PENDING"
         ],
-        "description": "Statut final de la transaction. Toujours en UPPERCASE."
+        "description": "Statut du paiement Cash In."
+      },
+      "pay_id": {
+        "type": "string",
+        "description": "Identifiant du paiement."
       },
       "amount": {
         "type": "number",
-        "description": "Montant du paiement traité."
+        "description": "Montant du paiement."
+      },
+      "account": {
+        "type": "string",
+        "description": "Numéro de téléphone destinataire du paiement."
       },
       "date": {
         "type": "string",
@@ -82,9 +86,8 @@
     }
   },
   "gotchas": [
-    "Toujours appeler verify_payment côté serveur avant de valider une commande. Le webhook seul ne suffit pas — il peut être forgé par quiconque connaît votre callback_url.",
-    "PENDING est un statut valide : le paiement est en cours de traitement. Ne pas fulfiller la commande sur PENDING — attendre SUCCESS.",
-    "Le statut est en UPPERCASE strict : comparer avec status === 'SUCCESS'.",
-    "L'endpoint a changé en v1.2.0 : il est désormais POST /api/v1/transaction/status avec pay_id et websiteid dans le body. L'ancien GET /api/v1/payments/{payId} ne fonctionne plus."
+    "Utiliser le pay_id base64 retourné par cashin_request sans décodage — LengoPay l'attend tel quel.",
+    "PENDING signifie que le paiement est en cours de traitement sur le réseau mobile. Ne pas considérer PENDING comme final — attendre SUCCESS ou FAILED.",
+    "Ne jamais fulfiller une commande sur le statut PENDING, même après plusieurs vérifications successives."
   ]
 }

@@ -1,6 +1,6 @@
 /**
  * @provider LengoPay
- * @capability verify_payment
+ * @capability cashin_status
  * @atss 1.0
  * @capability_type synchronous
  */
@@ -11,17 +11,18 @@ if (!LENGOPAY_LICENSE_KEY) throw new Error("Missing env: LENGOPAY_LICENSE_KEY");
 const LENGOPAY_WEBSITE_ID = process.env.LENGOPAY_WEBSITE_ID;
 if (!LENGOPAY_WEBSITE_ID) throw new Error("Missing env: LENGOPAY_WEBSITE_ID");
 
-type PaymentStatus = "SUCCESS" | "FAILED" | "PENDING";
+type CashinPaymentStatus = "SUCCESS" | "FAILED" | "PENDING";
 
-interface VerifyPaymentInput {
+interface CashinStatusInput {
   pay_id: string;
   websiteid: string;
 }
 
-interface VerifyPaymentResponse {
+interface CashinStatusResponse {
+  status: CashinPaymentStatus;
   pay_id: string;
-  status: PaymentStatus;
   amount: number;
+  account: string;
   date: string;
 }
 
@@ -29,9 +30,11 @@ interface LengoPayError {
   message: string;
 }
 
-export async function verifyPayment(input: VerifyPaymentInput): Promise<VerifyPaymentResponse> {
+export async function cashinStatus(
+  input: CashinStatusInput
+): Promise<CashinStatusResponse> {
   const response = await fetch(
-    "https://portal.lengopay.com/api/v1/transaction/status",
+    "https://portal.lengopay.com/api/v2/cashin/transaction",
     {
       method: "POST",
       headers: {
@@ -46,25 +49,25 @@ export async function verifyPayment(input: VerifyPaymentInput): Promise<VerifyPa
   if (!response.ok) {
     const error: LengoPayError = await response.json();
     throw new Error(
-      `LengoPay verify error ${response.status}: ${error.message ?? "Unknown error"}`
+      `LengoPay cashin status error ${response.status}: ${error.message ?? "Unknown error"}`
     );
   }
 
-  return response.json() as Promise<VerifyPaymentResponse>;
+  return response.json() as Promise<CashinStatusResponse>;
 }
 
 /*
 Usage example:
 
-const result = await verifyPayment({
-  pay_id: "WTVWaTBOUXVlNTB1NXNzbUhldGF0eENSV3VkeTJuV3E=",
+const result = await cashinStatus({
+  pay_id: "elNZc1FUZzduVzhQcjlYVWtkZ2pmVmRac1Z5anUxUG8=",
   websiteid: LENGOPAY_WEBSITE_ID!,
 });
 
 if (result.status === "SUCCESS") {
-  // Safe to fulfill the order
+  // Paiement confirmé — fulfiller la commande
   await db.orders.update({ pay_id: result.pay_id }, { status: "paid" });
 } else if (result.status === "PENDING") {
-  // Payment still in progress — wait for webhook or retry later
+  // En cours — réessayer plus tard ou attendre le callback
 }
 */
