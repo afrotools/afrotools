@@ -1,7 +1,25 @@
 # Afro.tools — AI-ready infrastructure for African APIs
 
-A static registry of structured, machine-readable API specs for African payment and SMS providers.
-Each spec is a self-contained description of one API capability: what to send, what comes back, what can go wrong, and the gotchas that real integrations surface.
+African APIs are production-grade. What's been missing is a standard, machine-readable format that lets AI coding agents consume them directly — without parsing documentation pages or guessing at request shapes.
+
+Afro.tools fills that gap: a static, open-source registry of structured API specs for African APIs — payments, SMS, identity, logistics, and beyond. Each spec is verified against the live API and exposes exactly what an AI agent needs to generate correct integration code on the first try.
+
+**Built for:**
+- Developers integrating African APIs into their apps
+- AI coding assistants (Claude, Cursor, Copilot, and others) that need reliable specs to generate code
+- Contributors who want to document providers they've integrated
+
+---
+
+## How it works
+
+```mermaid
+graph LR
+    A["specs/ — open source"] -->|GitHub raw URLs| B["MCP server\nmcp.afro.tools"]
+    B -->|MCP protocol| C["AI agent\nClaude · Cursor · Copilot · ..."]
+    C -->|generates| D["Integration code\nin your app"]
+    A -->|plugin| C
+```
 
 ---
 
@@ -64,7 +82,7 @@ Add to your MCP client configuration:
 ### Claude Code (CLI)
 
 ```bash
-claude mcp add afrotools --transport http https://mcp.afro.tools/mcp
+claude mcp add --transport http afrotools https://mcp.afro.tools/mcp
 ```
 
 Or add to your project's `.mcp.json`:
