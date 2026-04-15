@@ -68,7 +68,13 @@ function verifyWaveSignature(
   const payload = timestamp + rawBody;
   const expected = createHmac("sha256", secret).update(payload).digest("hex");
 
-  return timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+  // timingSafeEqual throws si les buffers n'ont pas la même longueur.
+  // Vérifier d'abord la longueur pour éviter une exception sur signature malformée.
+  const sigBuf = Buffer.from(signature);
+  const expBuf = Buffer.from(expected);
+  if (sigBuf.length !== expBuf.length) return false;
+
+  return timingSafeEqual(sigBuf, expBuf);
 }
 
 async function verifyPaymentServerSide(sessionId: string): Promise<CheckoutSession> {

@@ -22,7 +22,7 @@ interface SendPayoutInput {
 
 interface PayoutResponse {
   id: string;
-  status: "processing" | "succeeded" | "failed";
+  status: "processing" | "succeeded" | "failed" | "reversed";
   currency: string;
   receive_amount: string;
   fee: string;

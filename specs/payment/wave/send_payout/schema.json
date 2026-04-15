@@ -54,6 +54,10 @@
       "payment_reason": {
         "type": "string",
         "description": "Motif du paiement visible par le destinataire (max 40 chars)."
+      },
+      "aggregated_merchant_id": {
+        "type": "string",
+        "description": "ID de marchand agrégé. Requis pour les agrégateurs ayant activé l'API Aggregated Merchants."
       }
     }
   },
@@ -66,8 +70,8 @@
       },
       "status": {
         "type": "string",
-        "enum": ["processing", "succeeded", "failed"],
-        "description": "État du payout. 'processing' signifie que le résultat n'est pas encore définitif."
+        "enum": ["processing", "succeeded", "failed", "reversed"],
+        "description": "État du payout. 'processing' signifie que le résultat n'est pas encore définitif. 'reversed' indique que le payout a été annulé via POST /v1/payout/{id}/reverse."
       },
       "currency": {
         "type": "string",

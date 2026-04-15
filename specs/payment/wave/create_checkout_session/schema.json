@@ -116,6 +116,24 @@
         "format": "date-time",
         "description": "Horodatage ISO 8601 UTC de complétion ou d'expiration. Absent si la session est encore ouverte."
       },
+      "success_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL de redirection post-paiement réussi, telle que fournie à la création."
+      },
+      "error_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL de redirection en cas d'échec, telle que fournie à la création."
+      },
+      "restrict_payer_mobile": {
+        "type": "string",
+        "description": "Numéro E.164 de restriction si fourni à la création."
+      },
+      "aggregated_merchant_id": {
+        "type": "string",
+        "description": "ID de marchand agrégé utilisé pour cette session."
+      },
       "last_payment_error": {
         "type": "object",
         "description": "Dernière erreur de paiement. Présent uniquement si payment_status est processing ou cancelled.",

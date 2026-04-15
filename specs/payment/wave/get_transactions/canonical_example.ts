@@ -37,6 +37,14 @@ interface Transaction {
   counterparty_mobile?: string;
   client_reference?: string;
   checkout_api_session_id?: string;
+  balance?: string;
+  counterparty_id?: string;
+  payment_reason?: string;
+  batch_id?: string;
+  aggregated_merchant_id?: string;
+  custom_fields?: Record<string, unknown>;
+  submerchant_id?: string;
+  government_tax_amount?: string;
 }
 
 interface TransactionsResponse {

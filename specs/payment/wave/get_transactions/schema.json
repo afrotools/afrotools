@@ -127,6 +127,39 @@
             "checkout_api_session_id": {
               "type": "string",
               "description": "ID de la session checkout associée (pour api_checkout)."
+            },
+            "balance": {
+              "type": "string",
+              "description": "Solde du wallet après cette transaction. Utile pour la réconciliation ligne à ligne."
+            },
+            "counterparty_id": {
+              "type": "string",
+              "description": "Identifiant de la contrepartie pour les paiements B2B."
+            },
+            "payment_reason": {
+              "type": "string",
+              "description": "Motif du paiement fourni par l'expéditeur."
+            },
+            "batch_id": {
+              "type": "string",
+              "description": "Identifiant du lot pour les paiements bulk."
+            },
+            "aggregated_merchant_id": {
+              "type": "string",
+              "description": "ID de marchand agrégé si applicable."
+            },
+            "custom_fields": {
+              "type": "object",
+              "description": "Métadonnées clé-valeur associées à la transaction.",
+              "additionalProperties": true
+            },
+            "submerchant_id": {
+              "type": "string",
+              "description": "Identifiant du sous-compte si include_subaccounts est activé."
+            },
+            "government_tax_amount": {
+              "type": "string",
+              "description": "Montant de taxe gouvernementale appliqué (Sénégal uniquement)."
             }
           }
         }

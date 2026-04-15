@@ -81,6 +81,7 @@
   },
   "error_schema": {},
   "gotchas": [
+    "Wave envoie aussi l'événement checkout.session.payment_failed lorsqu'un paiement échoue. Implémenter un handler pour cet événement afin de notifier l'utilisateur ou libérer le stock réservé.",
     "Ne jamais fulfiller une commande sur la base du webhook seul. Appeler verify_payment (GET /v1/checkout/sessions/{id}) pour confirmer côté serveur — le payload webhook peut être forgé.",
     "Répondre HTTP 200 immédiatement et traiter de façon asynchrone. Wave retry pendant 3 jours si votre endpoint ne répond pas dans les 5 secondes.",
     "Implémenter l'idempotence via event.id — Wave peut livrer le même événement plusieurs fois. Vérifier que la commande n'est pas déjà fulfillée avant d'agir.",
