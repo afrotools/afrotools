@@ -1,0 +1,57 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "wave",
+  "provider_name": "Wave",
+  "provider_api_version": "2024-03-29",
+  "category": "payment",
+  "capability": "expire_checkout",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": ["SN", "CI", "ML", "GN", "UG"],
+  "currency": ["XOF", "GNF", "UGX"],
+  "sandbox": false,
+  "docs_url": "https://docs.wave.com/checkout",
+  "docs_public": true,
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "WAVE_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.wave.com/v1/checkout/sessions/{id}/expire"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": ["id"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Identifiant de la session checkout à expirer (préfixe \"cos-\")."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "HTTP 200 avec corps vide en cas de succès."
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "string",
+        "description": "Code d'erreur. Ex: checkout-session-not-found (404), 409 si déjà complétée ou expirée."
+      },
+      "message": {
+        "type": "string",
+        "description": "Description lisible de l'erreur."
+      }
+    }
+  },
+  "gotchas": [
+    "Impossible d'expirer une session déjà complétée ou déjà expirée — Wave retourne HTTP 409.",
+    "Les sessions expirent automatiquement 30 minutes après création. Cet endpoint est utile pour libérer immédiatement le stock réservé sans attendre l'expiration naturelle."
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "wave",
+  "provider_name": "Wave",
+  "provider_api_version": "2024-03-29",
+  "category": "payment",
+  "capability": "create_payout_batch",
+  "capability_type": "asynchronous",
+  "status": "compliant",
+  "country_code": ["SN", "CI", "ML", "GN", "UG"],
+  "currency": ["XOF", "GNF", "UGX"],
+  "sandbox": false,
+  "docs_url": "https://docs.wave.com/payout",
+  "docs_public": true,
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "WAVE_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.wave.com/v1/payout-batch"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": ["payouts"],
+    "properties": {
+      "payouts": {
+        "type": "array",
+        "description": "Liste de payouts à envoyer en une seule requête.",
+        "items": {
+          "type": "object",
+          "required": ["currency", "receive_amount", "mobile"],
+          "properties": {
+            "currency": {
+              "type": "string",
+              "description": "Code ISO 4217. Ex: \"XOF\"."
+            },
+            "receive_amount": {
+              "type": "string",
+              "description": "Montant que le destinataire reçoit, en string, sans décimales."
+            },
+            "mobile": {
+              "type": "string",
+              "description": "Numéro E.164 du destinataire. Ex: \"+221700000000\"."
+            },
+            "name": {
+              "type": "string",
+              "description": "Nom du destinataire (max 255 chars)."
+            },
+            "national_id": {
+              "type": "string",
+              "description": "Pièce d'identité nationale (max 255 chars)."
+            },
+            "client_reference": {
+              "type": "string",
+              "description": "Référence interne par payout (max 255 chars)."
+            },
+            "payment_reason": {
+              "type": "string",
+              "description": "Motif visible par le destinataire (max 40 chars)."
+            },
+            "aggregated_merchant_id": {
+              "type": "string",
+              "description": "ID de marchand agrégé si applicable."
+            }
+          }
+        }
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Identifiant unique du batch. Utiliser pour interroger GET /v1/payout-batch/{id} jusqu'à ce que status soit 'complete'."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": { "type": "string" },
+      "message": { "type": "string" }
+    }
+  },
+  "gotchas": [
+    "Cet endpoint est asynchrone — il retourne immédiatement un batch.id sans attendre le traitement des payouts. Interroger GET /v1/payout-batch/{id} en polling jusqu'à status === 'complete'.",
+    "batch.status === 'complete' ne signifie pas que tous les payouts ont réussi. Inspecter le status de chaque payout individuel dans la réponse — certains peuvent être 'failed' pendant que d'autres sont 'succeeded'.",
+    "Il n'y a pas de status 'success' ou 'failed' au niveau du batch lui-même, seulement 'processing' et 'complete'. Le résultat réel est dans chaque payout.",
+    "Chaque payout dans le batch est traité indépendamment. Un échec sur un payout (ex: insufficient-funds) n'annule pas les autres."
+  ]
+}

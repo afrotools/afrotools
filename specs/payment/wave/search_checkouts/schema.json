@@ -1,0 +1,77 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "wave",
+  "provider_name": "Wave",
+  "provider_api_version": "2024-03-29",
+  "category": "payment",
+  "capability": "search_checkouts",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": ["SN", "CI", "ML", "GN", "UG"],
+  "currency": ["XOF", "GNF", "UGX"],
+  "sandbox": false,
+  "docs_url": "https://docs.wave.com/checkout",
+  "docs_public": true,
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "WAVE_API_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.wave.com/v1/checkout/sessions/search"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": ["client_reference"],
+    "properties": {
+      "client_reference": {
+        "type": "string",
+        "description": "Référence interne fournie à la création de la session (max 255 chars). Retourne toutes les sessions correspondantes."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "result": {
+        "type": "array",
+        "description": "Liste des sessions checkout correspondant au client_reference.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "checkout_status": {
+              "type": "string",
+              "enum": ["open", "complete", "expired"]
+            },
+            "payment_status": {
+              "type": "string",
+              "enum": ["processing", "cancelled", "succeeded"]
+            },
+            "amount": { "type": "string" },
+            "currency": { "type": "string" },
+            "client_reference": { "type": "string" },
+            "transaction_id": { "type": "string" },
+            "when_created": { "type": "string", "format": "date-time" },
+            "when_expires": { "type": "string", "format": "date-time" },
+            "when_completed": { "type": "string", "format": "date-time" }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": { "type": "string" },
+      "message": { "type": "string" }
+    }
+  },
+  "gotchas": [
+    "Si client_reference n'est pas unique par commande dans votre système, la recherche peut retourner plusieurs sessions — filtrer sur checkout_status === 'complete' && payment_status === 'succeeded' pour identifier la session payée.",
+    "Cet endpoint est le mécanisme de récupération principal quand session.id n'a pas été stocké (crash serveur entre create et redirect). Toujours passer un client_reference à la création pour pouvoir retrouver la session."
+  ]
+}

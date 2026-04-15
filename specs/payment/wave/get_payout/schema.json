@@ -1,0 +1,113 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "wave",
+  "provider_name": "Wave",
+  "provider_api_version": "2024-03-29",
+  "category": "payment",
+  "capability": "get_payout",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": ["SN", "CI", "ML", "GN", "UG"],
+  "currency": ["XOF", "GNF", "UGX"],
+  "sandbox": false,
+  "docs_url": "https://docs.wave.com/payout",
+  "docs_public": true,
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "WAVE_API_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.wave.com/v1/payout/{id}"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": ["id"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Identifiant du payout retourné par send_payout."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Identifiant unique du payout."
+      },
+      "status": {
+        "type": "string",
+        "enum": ["processing", "succeeded", "failed", "reversed"],
+        "description": "État courant du payout."
+      },
+      "currency": {
+        "type": "string",
+        "description": "Code ISO 4217."
+      },
+      "receive_amount": {
+        "type": "string",
+        "description": "Montant reçu par le destinataire."
+      },
+      "fee": {
+        "type": "string",
+        "description": "Frais prélevés sur le wallet."
+      },
+      "mobile": {
+        "type": "string",
+        "description": "Numéro E.164 du destinataire."
+      },
+      "name": {
+        "type": "string",
+        "description": "Nom du destinataire si fourni."
+      },
+      "national_id": {
+        "type": "string",
+        "description": "Pièce d'identité si fournie."
+      },
+      "client_reference": {
+        "type": "string",
+        "description": "Référence interne si fournie."
+      },
+      "payment_reason": {
+        "type": "string",
+        "description": "Motif du paiement si fourni."
+      },
+      "aggregated_merchant_id": {
+        "type": "string",
+        "description": "ID de marchand agrégé si applicable."
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Horodatage ISO 8601 UTC du payout."
+      },
+      "payout_error": {
+        "type": "object",
+        "description": "Présent uniquement si status est 'failed'.",
+        "properties": {
+          "error_code": { "type": "string" },
+          "error_message": { "type": "string" }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "string",
+        "description": "Code d'erreur. Ex: not-found (404)."
+      },
+      "message": { "type": "string" }
+    }
+  },
+  "gotchas": [
+    "Utiliser cet endpoint pour surveiller un payout en status 'processing' retourné par send_payout. Un payout 'processing' peut encore basculer vers 'succeeded' ou 'failed' — ne jamais le marquer définitivement échoué avant d'avoir observé un status final.",
+    "Un payout en status 'reversed' a été annulé via POST /v1/payout/{id}/reverse. Le montant + les frais sont recrédités sur le wallet expéditeur."
+  ]
+}
