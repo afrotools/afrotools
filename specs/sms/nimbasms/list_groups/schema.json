@@ -58,7 +58,10 @@
         "items": {
           "type": "object",
           "properties": {
-            "name": { "type": "string", "description": "Nom du groupe." }
+            "groupe_id": { "type": "string", "format": "uuid", "description": "Identifiant unique du groupe." },
+            "name": { "type": "string", "maxLength": 100, "description": "Nom du groupe." },
+            "added_at": { "type": "string", "description": "Date d'ajout du groupe." },
+            "total_contact": { "type": "integer", "description": "Nombre de contacts dans le groupe." }
           }
         }
       }

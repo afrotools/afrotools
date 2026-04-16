@@ -13,7 +13,11 @@ if (!NIMBASMS_SECRET_TOKEN) throw new Error("Missing env: NIMBASMS_SECRET_TOKEN"
 const credentials = btoa(`${NIMBASMS_SERVICE_ID}:${NIMBASMS_SECRET_TOKEN}`);
 
 interface AccountResponse {
-  balance: number;
+  sid: string;
+  sms_balance: number;
+  whatsapp_balance: number;
+  webhook_url: string | null;
+  balance: number; // deprecated — utiliser sms_balance
 }
 
 interface NimbaSMSError {
@@ -40,7 +44,13 @@ export async function getBalance(): Promise<AccountResponse> {
 Usage example:
 
 const account = await getBalance();
-console.log(`Solde disponible : ${account.balance}`);
 
-// Vérifier le solde avant tout envoi groupé pour éviter les rejets silencieux
+// Utiliser sms_balance — 'balance' est deprecated
+console.log(`Solde SMS : ${account.sms_balance} SMS disponibles`);
+console.log(`Solde WhatsApp : ${account.whatsapp_balance}`);
+
+// Vérifier avant envoi groupé
+if (account.sms_balance < 100) {
+  throw new Error("Solde insuffisant pour l'envoi groupé");
+}
 */

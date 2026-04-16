@@ -30,44 +30,54 @@
       "id": {
         "type": "string",
         "format": "uuid",
-        "description": "Identifiant unique du message retourné par send_message."
+        "description": "Identifiant unique du message retourné par send_message (champ messageid)."
       }
     }
   },
   "response_schema": {
     "type": "object",
     "properties": {
-      "id": {
+      "messageid": {
         "type": "string",
         "format": "uuid",
         "description": "Identifiant unique du message."
-      },
-      "status": {
-        "type": "string",
-        "description": "Statut de livraison du message (ex: pending, sent, delivered, failed)."
-      },
-      "to": {
-        "type": "array",
-        "items": { "type": "string" },
-        "description": "Liste des numéros destinataires."
-      },
-      "message": {
-        "type": "string",
-        "description": "Contenu du message."
       },
       "sender_name": {
         "type": "string",
         "description": "Nom d'expéditeur utilisé."
       },
-      "sent_at": {
+      "message": {
         "type": "string",
-        "format": "date-time",
-        "description": "Horodatage d'envoi ISO 8601."
+        "description": "Contenu du message."
+      },
+      "status": {
+        "type": "string",
+        "enum": ["pending", "sent", "failure"],
+        "description": "Statut global du message."
+      },
+      "sent_at": {
+        "type": "integer",
+        "description": "Horodatage d'envoi en Unix timestamp (secondes). Convertir avec new Date(sent_at * 1000)."
       },
       "message_cost": {
         "type": "integer",
-        "readOnly": true,
-        "description": "Nombre de SMS consommés : longueur du message en nombre de SMS × nombre de destinataires."
+        "description": "Nombre de SMS consommés."
+      },
+      "numbers": {
+        "type": "array",
+        "description": "Statut de livraison par destinataire.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "format": "uuid" },
+            "contact": { "type": "string", "description": "Numéro destinataire." },
+            "status": {
+              "type": "string",
+              "enum": ["tosend", "sent", "received", "failure", "not_available"],
+              "description": "Statut de livraison pour ce destinataire."
+            }
+          }
+        }
       }
     }
   },
@@ -81,7 +91,9 @@
     }
   },
   "gotchas": [
-    "Le statut 'sent' ne garantit pas la livraison — utiliser cet endpoint pour vérifier si le statut passe à 'delivered'. Le délai de mise à jour du statut dépend de l'opérateur destinataire.",
-    "L'id doit être un UUID valide retourné par send_message. Un id mal formé retourne une 404 sans message d'erreur explicite."
+    "Le champ d'identifiant dans la réponse est 'messageid' (pas 'id'). Utiliser le messageid retourné par send_message.",
+    "sent_at est un Unix timestamp en secondes (integer), pas une date ISO 8601. Convertir avec new Date(sent_at * 1000) en JavaScript.",
+    "Le statut global ('status') peut être 'sent' alors que certains destinataires dans 'numbers' ont statut 'failure' ou 'not_available'. Inspecter 'numbers' pour le statut par destinataire.",
+    "Le statut 'received' dans 'numbers' signifie livré (delivery receipt reçu de l'opérateur). 'sent' signifie envoyé à l'opérateur mais non encore confirmé livré."
   ]
 }

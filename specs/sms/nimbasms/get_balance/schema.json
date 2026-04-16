@@ -30,9 +30,26 @@
   "response_schema": {
     "type": "object",
     "properties": {
+      "sid": {
+        "type": "string",
+        "description": "Identifiant unique du compte (SID)."
+      },
+      "sms_balance": {
+        "type": "integer",
+        "description": "Solde SMS disponible (en nombre de SMS). Utiliser ce champ — 'balance' est deprecated."
+      },
+      "whatsapp_balance": {
+        "type": "integer",
+        "description": "Solde WhatsApp disponible."
+      },
+      "webhook_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL webhook configurée pour les notifications de statut SMS."
+      },
       "balance": {
-        "type": "number",
-        "description": "Solde disponible sur le compte en unités SMS ou en monnaie locale."
+        "type": "integer",
+        "description": "DEPRECATED — Utiliser sms_balance à la place."
       }
     }
   },
@@ -46,7 +63,8 @@
     }
   },
   "gotchas": [
-    "Vérifier le solde avant tout envoi groupé — un solde insuffisant entraîne un rejet silencieux de certains messages sans notification d'erreur globale.",
-    "La structure exacte de la réponse (nom du champ solde, type numérique ou string) n'est pas documentée publiquement. Inspecter la réponse brute lors de l'intégration pour confirmer les noms de champs."
+    "Le champ 'balance' est DEPRECATED — utiliser 'sms_balance' pour le solde SMS. Les deux sont retournés mais 'balance' sera supprimé dans une future version.",
+    "sms_balance est en nombre de SMS (unités), pas en GNF. Un solde de 100 signifie 100 SMS disponibles.",
+    "Vérifier le solde avant tout envoi groupé — un solde insuffisant retourne une erreur 400 avec le champ 'solde' dans la réponse d'erreur de send_message."
   ]
 }

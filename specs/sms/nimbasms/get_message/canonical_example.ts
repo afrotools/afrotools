@@ -12,14 +12,20 @@ if (!NIMBASMS_SECRET_TOKEN) throw new Error("Missing env: NIMBASMS_SECRET_TOKEN"
 
 const credentials = btoa(`${NIMBASMS_SERVICE_ID}:${NIMBASMS_SECRET_TOKEN}`);
 
-interface MessageResponse {
+interface DeliveryStatus {
   id: string;
-  status: string;
-  to: string[];
-  message: string;
+  contact: string;
+  status: "tosend" | "sent" | "received" | "failure" | "not_available";
+}
+
+interface MessageResponse {
+  messageid: string;
   sender_name: string;
-  sent_at: string;
+  message: string;
+  status: "pending" | "sent" | "failure";
+  sent_at: number; // Unix timestamp en secondes
   message_cost: number;
+  numbers: DeliveryStatus[];
 }
 
 interface NimbaSMSError {
@@ -46,10 +52,19 @@ export async function getMessage(messageId: string): Promise<MessageResponse> {
 /*
 Usage example:
 
+// messageId = messageid retourné par send_message
 const message = await getMessage("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx");
-console.log(`Statut : ${message.status}`);
-// Statuts possibles : pending, sent, delivered, failed
 
-// Attendre quelques secondes après send_message avant de vérifier le statut
-// 'sent' ne garantit pas la livraison — attendre 'delivered' pour confirmation
+// sent_at est un Unix timestamp (secondes) — pas une date ISO
+const sentDate = new Date(message.sent_at * 1000);
+console.log(`Envoyé le : ${sentDate.toISOString()}`);
+
+// Statut par destinataire dans numbers[]
+for (const delivery of message.numbers) {
+  console.log(`${delivery.contact}: ${delivery.status}`);
+  // 'received' = livré, 'sent' = envoyé mais non confirmé, 'failure' = échec
+}
+
+// Le statut global 'sent' ne signifie pas que tous les destinataires ont reçu le SMS
+// Inspecter numbers[] pour le statut individuel
 */

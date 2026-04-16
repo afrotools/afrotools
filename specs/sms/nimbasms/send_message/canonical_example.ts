@@ -16,20 +16,20 @@ interface SendMessageInput {
   to: string[];
   message: string;
   sender_name: string;
+  channel?: "sms" | "whatsapp" | "email";
 }
 
 interface SendMessageResponse {
-  id: string;
-  status: string;
-  to: string[];
-  message: string;
-  sender_name: string;
-  sent_at: string;
+  messageid: string;
   message_cost: number;
+  url: string;
 }
 
 interface NimbaSMSError {
-  detail: string;
+  detail?: string;
+  sender_name?: string;
+  solde?: string;
+  to?: string;
 }
 
 export async function sendMessage(
@@ -46,7 +46,8 @@ export async function sendMessage(
 
   if (!response.ok) {
     const error: NimbaSMSError = await response.json();
-    throw new Error(`NimbaSMS error ${response.status}: ${error.detail}`);
+    const msg = error.detail ?? error.sender_name ?? error.solde ?? error.to ?? "Unknown error";
+    throw new Error(`NimbaSMS error ${response.status}: ${msg}`);
   }
 
   return response.json() as Promise<SendMessageResponse>;
@@ -55,17 +56,17 @@ export async function sendMessage(
 /*
 Usage example:
 
-const message = await sendMessage({
-  to: ["622XXXXXX", "628XXXXXX"], // format local sans indicatif pays ni '+' (Guinée: 6XXXXXXXX)
+// Retourne HTTP 201 Created
+const result = await sendMessage({
+  to: ["623XXXXXX", "224623XXXXXX", "+224623XXXXXX"], // trois formats acceptés
   message: "Votre commande #123 a été confirmée.",
-  sender_name: "MonApp", // doit correspondre exactement à un sender name approuvé (case-sensitive)
+  sender_name: "MonApp", // case-sensitive, statut 'accepted' requis
 });
 
-console.log(`Message envoyé : ${message.id} (statut: ${message.status})`);
-console.log(`SMS consommés : ${message.message_cost}`); // longueur message × nombre destinataires
+console.log(`messageid : ${result.messageid}`);
+console.log(`SMS consommés : ${result.message_cost}`);
 
-// Vérifier le statut de livraison avec get_message après quelques secondes
-// sender_name est case-sensitive — utiliser list_sendernames pour récupérer la valeur exacte
-// ATTENTION : send_message utilise le format local (6XXXXXXXX), pas E.164 (+224XXXXXXXX)
-// send_verification utilise E.164 avec '+' — formats différents selon l'endpoint
+// Utiliser result.messageid avec get_message pour suivre le statut par destinataire
+// Maximum 30 destinataires par requête, message max 665 chars (5 SMS)
+// sender_name doit avoir statut 'accepted' dans list_sendernames (pas 'pending' ni 'refused')
 */

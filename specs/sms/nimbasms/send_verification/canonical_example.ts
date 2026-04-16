@@ -14,25 +14,23 @@ const credentials = btoa(`${NIMBASMS_SERVICE_ID}:${NIMBASMS_SECRET_TOKEN}`);
 
 interface SendVerificationInput {
   to: string;
+  sender_name: string; // obligatoire
+  channel?: "sms" | "whatsapp" | "email";
   message?: string;
-  sender_name?: string;
-  expiry_time?: number;
-  attempts?: number;
+  expiry_time?: number | null;
+  attempts?: number | null;
   code_length?: number;
 }
 
 interface SendVerificationResponse {
-  id: string;
-  to: string;
-  status: string;
-  expiry_time: number;
-  attempts: number;
-  code_length: number;
+  verificationid: string;
+  code: string;
   message_cost: number;
+  url: string;
 }
 
 interface NimbaSMSError {
-  detail: string;
+  detail?: string;
 }
 
 export async function sendVerification(
@@ -49,7 +47,7 @@ export async function sendVerification(
 
   if (!response.ok) {
     const error: NimbaSMSError = await response.json();
-    throw new Error(`NimbaSMS error ${response.status}: ${error.detail}`);
+    throw new Error(`NimbaSMS error ${response.status}: ${error.detail ?? JSON.stringify(error)}`);
   }
 
   return response.json() as Promise<SendVerificationResponse>;
@@ -59,16 +57,16 @@ export async function sendVerification(
 Usage example:
 
 const verification = await sendVerification({
-  to: "+224XXXXXXXXX", // format E.164 avec '+' (différent de send_message qui utilise le format local)
-  message: "Votre code de vérification est : <1234>", // <1234> est obligatoire
-  expiry_time: 10,   // 10 minutes, entre 5 et 30
-  attempts: 3,       // 3 tentatives max, entre 3 et 10
-  code_length: 6,    // code à 6 chiffres, entre 4 et 8
+  to: "+224623XXXXXX",
+  sender_name: "MonApp", // OBLIGATOIRE et case-sensitive (statut 'accepted')
+  message: "Votre code de vérification est : <1234>", // <1234> obligatoire
+  expiry_time: 10,  // 10 minutes (5-30)
+  attempts: 3,      // 3 tentatives max (3-10)
+  code_length: 6,   // code à 6 chiffres (4-8)
 });
 
-console.log(`Vérification créée : ${verification.id}`);
-console.log(`SMS consommés : ${verification.message_cost}`); // toujours 1 pour les vérifications
-// Stocker verification.id côté serveur pour appeler verify_code
-// Ne jamais exposer cet id côté client
-// expiry_time et attempts sont envoyés à null quand non fournis — l'API utilise ses propres défauts
+console.log(`verificationid : ${verification.verificationid}`);
+// Stocker verificationid côté serveur pour appeler verify_code
+// Ne jamais exposer verificationid côté client
+// verification.code est retourné dans la réponse — uniquement pour les tests
 */

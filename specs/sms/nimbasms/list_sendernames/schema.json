@@ -58,8 +58,14 @@
         "items": {
           "type": "object",
           "properties": {
-            "name": { "type": "string", "description": "Nom d'expéditeur approuvé." },
-            "status": { "type": "string", "description": "Statut du sender name (ex: active, pending)." }
+            "sendername_id": { "type": "string", "format": "uuid", "description": "Identifiant unique du sender name." },
+            "name": { "type": "string", "description": "Nom d'expéditeur." },
+            "status": {
+              "type": "string",
+              "enum": ["pending", "refused", "accepted"],
+              "description": "Statut du sender name. Seul 'accepted' peut être utilisé dans send_message et send_verification."
+            },
+            "added_at": { "type": "integer", "description": "Date d'ajout en Unix timestamp (secondes)." }
           }
         }
       }
@@ -75,7 +81,7 @@
     }
   },
   "gotchas": [
-    "Seuls les sender names avec statut 'active' peuvent être utilisés dans send_message et send_verification. Un sender name 'pending' est en cours de validation manuelle par NimbaSMS.",
+    "Seuls les sender names avec statut 'accepted' peuvent être utilisés dans send_message et send_verification. Les statuts valides sont 'pending' (en validation), 'refused' (refusé) et 'accepted' (utilisable) — pas 'active'.",
     "Les sender names sont approuvés manuellement par NimbaSMS — ils ne peuvent pas être créés via l'API. Les créer depuis le dashboard, puis les récupérer ici.",
     "La valeur retournée dans 'name' est à utiliser telle quelle dans send_message({ sender_name: '...' }) — elle est case-sensitive.",
     "Le SDK NimbaSMS strip les champs 'count', 'next', 'previous' de la réponse paginée et ne retourne que 'results'. En appelant l'API directement, la réponse brute contient tous ces champs."

@@ -29,53 +29,46 @@
     "properties": {
       "to": {
         "type": "array",
-        "items": { "type": "string" },
-        "description": "Liste des numéros destinataires. Chaque numéro doit inclure l'indicatif pays (ex: 224XXXXXXXXX pour la Guinée)."
+        "items": { "type": "string", "maxLength": 15 },
+        "minItems": 1,
+        "maxItems": 30,
+        "description": "Numéros destinataires. Trois formats acceptés : local (623XXXXXX), avec indicatif (224623XXXXXX), ou E.164 (+224623XXXXXX). Maximum 30 contacts par requête."
       },
       "message": {
         "type": "string",
-        "description": "Contenu du SMS à envoyer."
+        "maxLength": 665,
+        "description": "Contenu du message à envoyer. Maximum 665 caractères (5 SMS). Utiliser le simulateur https://simulator.nimbasms.com/ pour calculer le coût."
       },
       "sender_name": {
         "type": "string",
-        "description": "Nom d'expéditeur approuvé (case-sensitive). Doit correspondre exactement à un sender name de votre compte."
+        "maxLength": 30,
+        "description": "Nom d'expéditeur approuvé (case-sensitive). Doit correspondre exactement à un sender name avec statut 'accepted' dans votre compte."
+      },
+      "channel": {
+        "type": "string",
+        "enum": ["sms", "whatsapp", "email"],
+        "default": "sms",
+        "description": "Canal d'envoi. Défaut: 'sms'."
       }
     }
   },
   "response_schema": {
     "type": "object",
+    "required": ["messageid", "message_cost", "url"],
     "properties": {
-      "id": {
+      "messageid": {
         "type": "string",
         "format": "uuid",
-        "description": "Identifiant unique du message."
-      },
-      "status": {
-        "type": "string",
-        "description": "Statut initial du message (ex: pending, sent)."
-      },
-      "to": {
-        "type": "array",
-        "items": { "type": "string" },
-        "description": "Liste des destinataires."
-      },
-      "message": {
-        "type": "string",
-        "description": "Contenu du message envoyé."
-      },
-      "sender_name": {
-        "type": "string",
-        "description": "Nom d'expéditeur utilisé."
-      },
-      "sent_at": {
-        "type": "string",
-        "format": "date-time",
-        "description": "Horodatage d'envoi ISO 8601."
+        "description": "Identifiant unique du message. Utiliser avec get_message pour suivre le statut de livraison."
       },
       "message_cost": {
         "type": "integer",
-        "readOnly": true,
-        "description": "Nombre de SMS consommés : longueur du message en nombre de SMS × nombre de destinataires. Permet le suivi de consommation sans calcul côté client."
+        "description": "Nombre de SMS consommés (longueur du message en nombre de SMS × nombre de destinataires)."
+      },
+      "url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL pour récupérer les détails du message (GET /v1/messages/{messageid})."
       }
     }
   },
@@ -84,29 +77,27 @@
     "properties": {
       "detail": {
         "type": "string",
-        "description": "Erreur générale (ex: authentification invalide)."
-      },
-      "to": {
-        "type": "array",
-        "items": { "type": "string" },
-        "description": "Erreurs de validation sur le champ 'to'."
-      },
-      "message": {
-        "type": "array",
-        "items": { "type": "string" },
-        "description": "Erreurs de validation sur le champ 'message'."
+        "description": "Erreur générale (ex: compte sans privilèges d'envoi, solde insuffisant)."
       },
       "sender_name": {
-        "type": "array",
-        "items": { "type": "string" },
-        "description": "Erreurs de validation sur le champ 'sender_name'."
+        "type": "string",
+        "description": "Erreur sur le champ sender_name (ex: 'Sender Name invalide.')."
+      },
+      "solde": {
+        "type": "string",
+        "description": "Erreur de solde insuffisant (ex: 'Le solde de votre compte est insuffisant.')."
+      },
+      "to": {
+        "type": "string",
+        "description": "Erreur sur les destinataires (ex: 'Aucun numéro valide fourni.')."
       }
     }
   },
   "gotchas": [
-    "sender_name est case-sensitive et doit correspondre exactement à un nom approuvé sur votre compte. Utiliser list_sendernames pour récupérer la valeur exacte — une casse incorrecte retourne une erreur 400.",
-    "Le format attendu pour les numéros dans 'to' est le format local sans indicatif pays ni '+' (ex: 6XXXXXXXX pour la Guinée). Tester avec un seul destinataire avant un envoi groupé pour valider le format accepté par votre compte.",
-    "Le champ 'to' accepte plusieurs destinataires dans un seul appel mais chaque destinataire est facturé séparément. message_cost dans la réponse indique le total de SMS consommés (longueur message × nombre destinataires). Vérifier le solde avec get_balance avant un envoi groupé.",
-    "Les erreurs de validation retournent un objet avec le nom du champ en clé et un tableau de messages en valeur (ex: {\"sender_name\": [\"...\"]}) et non un simple champ 'detail'."
+    "sender_name est case-sensitive et doit correspondre exactement à un nom avec statut 'accepted' retourné par list_sendernames. 'active' n'est pas un statut valide — c'est 'accepted'.",
+    "Le champ 'to' accepte trois formats interchangeables : local (623XXXXXX), avec indicatif pays (224623XXXXXX), ou E.164 (+224623XXXXXX). Maximum 30 destinataires par requête.",
+    "Le message est limité à 665 caractères (5 SMS). Au-delà de 160 caractères, message_cost augmente proportionnellement. Utiliser le simulateur pour estimer avant l'envoi.",
+    "La réponse HTTP est 201 Created (pas 200). La réponse ne contient que messageid, message_cost et url — les détails complets (statut par destinataire) sont dans GET /v1/messages/{messageid}.",
+    "Les erreurs 400 retournent des champs avec des valeurs string (pas tableau) : sender_name, solde, to, detail. Vérifier le solde avec get_balance avant un envoi groupé."
   ]
 }

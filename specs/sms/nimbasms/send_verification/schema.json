@@ -25,31 +25,40 @@
   },
   "input_schema": {
     "type": "object",
-    "required": ["to"],
+    "required": ["to", "sender_name"],
     "properties": {
       "to": {
         "type": "string",
-        "description": "Numéro de téléphone du destinataire au format E.164 (ex: +224XXXXXXXXX)."
-      },
-      "message": {
-        "type": "string",
-        "description": "Modèle du message. Doit contenir le placeholder <1234> qui sera remplacé par le code généré. Défaut: 'Code de vérification : <1234>'."
+        "maxLength": 128,
+        "description": "Numéro de téléphone mobile du destinataire."
       },
       "sender_name": {
         "type": "string",
-        "description": "Nom de l'expéditeur (case-sensitive). Défaut: 'SMS 9080'."
+        "maxLength": 30,
+        "description": "Nom de l'expéditeur (case-sensitive, obligatoire). Doit être un sender name avec statut 'accepted'. Pour WhatsApp, le nom d'expéditeur Nimba SMS peut être utilisé par défaut."
+      },
+      "channel": {
+        "type": "string",
+        "enum": ["sms", "whatsapp", "email"],
+        "default": "sms",
+        "description": "Canal d'envoi. Défaut: 'sms'."
+      },
+      "message": {
+        "type": "string",
+        "maxLength": 153,
+        "description": "Modèle du message. Doit contenir le placeholder <1234> qui sera remplacé par le code. Défaut: 'Code de confirmation Nimba SMS <1234>'. Pour WhatsApp, le contenu est remplacé selon le template."
       },
       "expiry_time": {
-        "type": "integer",
+        "type": ["integer", "null"],
         "minimum": 5,
         "maximum": 30,
-        "description": "Durée de validité du code en minutes. Entre 5 et 30 (inclus)."
+        "description": "Durée de validité du code en minutes. Entre 5 et 30 (inclus). null par défaut."
       },
       "attempts": {
-        "type": "integer",
+        "type": ["integer", "null"],
         "minimum": 3,
         "maximum": 10,
-        "description": "Nombre maximum de tentatives avant expiration du code. Entre 3 et 10 (inclus)."
+        "description": "Nombre maximum de tentatives avant expiration. Entre 3 et 10 (inclus). null par défaut."
       },
       "code_length": {
         "type": "integer",
@@ -63,35 +72,23 @@
   "response_schema": {
     "type": "object",
     "properties": {
-      "id": {
+      "verificationid": {
         "type": "string",
         "format": "uuid",
         "description": "Identifiant unique de la vérification. À conserver pour appeler verify_code."
       },
-      "to": {
+      "code": {
         "type": "string",
-        "description": "Numéro destinataire de la vérification."
-      },
-      "status": {
-        "type": "string",
-        "description": "Statut de la vérification (ex: pending)."
-      },
-      "expiry_time": {
-        "type": ["integer", "null"],
-        "description": "Durée de validité du code en minutes. Null si non fourni à la création."
-      },
-      "attempts": {
-        "type": ["integer", "null"],
-        "description": "Nombre de tentatives restantes. Null si non fourni à la création."
-      },
-      "code_length": {
-        "type": "integer",
-        "description": "Longueur du code généré."
+        "description": "Code de confirmation généré (retourné dans la réponse pour faciliter les tests)."
       },
       "message_cost": {
         "type": "integer",
-        "readOnly": true,
         "description": "Nombre de SMS consommés. Toujours 1 pour les vérifications."
+      },
+      "url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL pour vérifier la demande (PATCH /v1/verifications/{verificationid})."
       }
     }
   },
@@ -106,6 +103,11 @@
         "type": "array",
         "items": { "type": "string" },
         "description": "Erreurs de validation sur le champ 'to'."
+      },
+      "sender_name": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Erreurs de validation sur le champ 'sender_name'."
       },
       "expiry_time": {
         "type": "array",
@@ -125,11 +127,11 @@
     }
   },
   "gotchas": [
-    "Le placeholder <1234> dans le champ 'message' est obligatoire — sans lui, le code généré ne sera pas inclus dans le SMS reçu par l'utilisateur. Le texte autour du placeholder est libre.",
-    "Stocker l'id retourné côté serveur pour appeler verify_code. Ne jamais exposer cet id côté client car il suffit de le connaître pour tenter la vérification.",
-    "expiry_time doit être entre 5 et 30 (inclus) et attempts entre 3 et 10 (inclus). Les valeurs hors plage retournent une erreur 400 avec le nom du champ comme clé (ex: {\"expiry_time\": [\"...\"]}).",
-    "sender_name est case-sensitive. Le défaut 'SMS 9080' doit être reproduit à l'identique si utilisé explicitement. Utiliser list_sendernames pour récupérer les valeurs exactes des noms approuvés.",
-    "Le champ 'to' attend le numéro en format E.164 avec le '+' (ex: +224XXXXXXXXX), contrairement à send_message qui attend le format local sans '+'.",
-    "Les champs expiry_time et attempts sont envoyés à null quand non fournis. Certaines erreurs 400 peuvent provenir de la réception de null sur un champ qui n'accepte pas cette valeur."
+    "sender_name est OBLIGATOIRE (pas optionnel) et case-sensitive. Utiliser list_sendernames pour récupérer les noms avec statut 'accepted'.",
+    "Le placeholder <1234> dans 'message' est obligatoire — sans lui, le code ne sera pas inclus dans le SMS. Le texte autour du placeholder est libre.",
+    "Le champ d'identifiant dans la réponse est 'verificationid' (pas 'id'). Stocker ce champ côté serveur pour appeler verify_code.",
+    "expiry_time et attempts sont envoyés à null quand non fournis — l'API applique ses propres défauts internes.",
+    "Le code généré est retourné dans la réponse API (champ 'code') — ne jamais l'exposer côté client, l'utiliser uniquement pour les tests.",
+    "Pour WhatsApp (channel: 'whatsapp'), le contenu du message est remplacé selon un template NimbaSMS — le champ 'message' est ignoré."
   ]
 }

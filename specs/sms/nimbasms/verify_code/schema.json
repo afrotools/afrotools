@@ -30,34 +30,23 @@
       "id": {
         "type": "string",
         "format": "uuid",
-        "description": "Identifiant de la vérification retourné par send_verification."
+        "description": "Identifiant de la vérification retourné par send_verification (champ verificationid)."
       },
       "code": {
-        "type": "string",
-        "description": "Code saisi par l'utilisateur à vérifier."
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 999999,
+        "description": "Code saisi par l'utilisateur (integer, 4 à 6 chiffres selon code_length). Envoyer comme integer, pas comme string."
       }
     }
   },
   "response_schema": {
     "type": "object",
     "properties": {
-      "id": {
-        "type": "string",
-        "format": "uuid",
-        "description": "Identifiant de la vérification."
-      },
       "status": {
         "type": "string",
-        "description": "Statut de la vérification après tentative (ex: approved, expired, failed)."
-      },
-      "to": {
-        "type": "string",
-        "description": "Numéro téléphone associé à la vérification."
-      },
-      "message_cost": {
-        "type": "integer",
-        "readOnly": true,
-        "description": "Nombre de SMS consommés. Toujours 1 pour les vérifications."
+        "enum": ["pending", "sent", "expired", "failure", "received", "too_many_attemps", "approved", "read"],
+        "description": "Statut de la vérification après tentative. 'approved' = code correct. 'too_many_attemps' = tentatives épuisées (typo dans l'API, un seul 't' à 'attempts')."
       }
     }
   },
@@ -66,7 +55,7 @@
     "properties": {
       "detail": {
         "type": "string",
-        "description": "Erreur générale (ex: code invalide, vérification expirée, not found)."
+        "description": "Erreur générale (ex: not found, unauthorized)."
       },
       "code": {
         "type": "array",
@@ -76,8 +65,10 @@
     }
   },
   "gotchas": [
-    "Chaque appel erroné à verify_code décrémente le compteur de tentatives. Une fois épuisé, la vérification expire définitivement — il faudra en créer une nouvelle via send_verification.",
-    "Ne jamais retransmettre le code saisi par l'utilisateur vers le client avant vérification. Appeler cet endpoint côté serveur uniquement.",
-    "Un status 'approved' doit être validé immédiatement côté serveur et ne pas être mis en cache côté client — le même id ne peut pas être réutilisé pour une seconde vérification."
+    "Le champ 'code' est un integer (pas une string). Envoyer le code saisi par l'utilisateur comme nombre entier dans le body JSON.",
+    "Le champ 'id' dans l'URL correspond au champ 'verificationid' (pas 'id') retourné par send_verification.",
+    "Le statut 'too_many_attemps' (avec une seule lettre 't' à 'attempts') est un typo dans l'API NimbaSMS — prévoir cette valeur exacte dans le code.",
+    "Chaque appel erroné décrémente le compteur de tentatives. Une fois épuisé (status: 'too_many_attemps'), la vérification expire — créer une nouvelle via send_verification.",
+    "Ne jamais appeler cet endpoint côté client — appeler uniquement côté serveur avec le code saisi par l'utilisateur. Un status 'approved' doit immédiatement marquer le numéro comme vérifié en base de données."
   ]
 }
