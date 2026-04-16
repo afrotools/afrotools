@@ -12,12 +12,22 @@
     "CI",
     "ML",
     "GN",
-    "UG"
+    "UG",
+    "BF",
+    "GM",
+    "NE",
+    "CM",
+    "SL",
+    "CD"
   ],
   "currency": [
     "XOF",
     "GNF",
-    "UGX"
+    "UGX",
+    "GMD",
+    "XAF",
+    "SLE",
+    "CDF"
   ],
   "sandbox": false,
   "docs_url": "https://docs.wave.com/payout",

@@ -1,0 +1,84 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "nimbasms",
+  "provider_name": "NimbaSMS",
+  "provider_api_version": "2024-01-01",
+  "category": "sms",
+  "capability": "list_groups",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": ["GN"],
+  "currency": ["GNF"],
+  "sandbox": false,
+  "docs_url": "https://developers.nimbasms.com/",
+  "docs_public": true,
+  "auth": {
+    "type": "basic",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic {base64(NIMBASMS_SERVICE_ID:NIMBASMS_SECRET_TOKEN)}",
+    "env_var": "NIMBASMS_SERVICE_ID"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.nimbasms.com/v1/groups"
+  },
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "limit": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Nombre maximum de groupes à retourner."
+      },
+      "offset": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Décalage pour la pagination."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "count": {
+        "type": "integer",
+        "description": "Nombre total de groupes."
+      },
+      "next": {
+        "type": ["string", "null"],
+        "description": "URL de la page suivante ou null."
+      },
+      "previous": {
+        "type": ["string", "null"],
+        "description": "URL de la page précédente ou null."
+      },
+      "results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "groupe_id": { "type": "string", "format": "uuid", "description": "Identifiant unique du groupe." },
+            "name": { "type": "string", "maxLength": 100, "description": "Nom du groupe." },
+            "added_at": { "type": "string", "description": "Date d'ajout du groupe." },
+            "total_contact": { "type": "integer", "description": "Nombre de contacts dans le groupe." }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "detail": {
+        "type": "string",
+        "description": "Erreur générale (ex: 401 unauthorized)."
+      }
+    }
+  },
+  "gotchas": [
+    "Les noms de groupes retournés ici sont ceux à passer dans create_contact({ groups: [...] }). La casse est significative — copier les valeurs exactes retournées par cet endpoint.",
+    "Les groupes ne peuvent pas être créés via l'API — ils doivent être créés depuis le dashboard NimbaSMS.",
+    "Le SDK NimbaSMS strip les champs 'count', 'next', 'previous' de la réponse paginée et ne retourne que 'results'. En appelant l'API directement, la réponse brute contient tous ces champs."
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "nimbasms",
+  "provider_name": "NimbaSMS",
+  "provider_api_version": "2024-01-01",
+  "category": "sms",
+  "capability": "verify_code",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": ["GN"],
+  "currency": ["GNF"],
+  "sandbox": false,
+  "docs_url": "https://developers.nimbasms.com/",
+  "docs_public": true,
+  "auth": {
+    "type": "basic",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic {base64(NIMBASMS_SERVICE_ID:NIMBASMS_SECRET_TOKEN)}",
+    "env_var": "NIMBASMS_SERVICE_ID"
+  },
+  "endpoint": {
+    "method": "PATCH",
+    "url": "https://api.nimbasms.com/v1/verifications/{id}"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": ["id", "code"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Identifiant de la vérification retourné par send_verification (champ verificationid)."
+      },
+      "code": {
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 999999,
+        "description": "Code saisi par l'utilisateur (integer, 4 à 6 chiffres selon code_length). Envoyer comme integer, pas comme string."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": ["pending", "sent", "expired", "failure", "received", "too_many_attemps", "approved", "read"],
+        "description": "Statut de la vérification après tentative. 'approved' = code correct. 'too_many_attemps' = tentatives épuisées (typo dans l'API, un seul 't' à 'attempts')."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "detail": {
+        "type": "string",
+        "description": "Erreur générale (ex: not found, unauthorized)."
+      },
+      "code": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Erreurs de validation sur le champ 'code'."
+      }
+    }
+  },
+  "gotchas": [
+    "Le champ 'code' est un integer (pas une string). Envoyer le code saisi par l'utilisateur comme nombre entier dans le body JSON.",
+    "Le champ 'id' dans l'URL correspond au champ 'verificationid' (pas 'id') retourné par send_verification.",
+    "Le statut 'too_many_attemps' (avec une seule lettre 't' à 'attempts') est un typo dans l'API NimbaSMS — prévoir cette valeur exacte dans le code.",
+    "Chaque appel erroné décrémente le compteur de tentatives. Une fois épuisé (status: 'too_many_attemps'), la vérification expire — créer une nouvelle via send_verification.",
+    "Ne jamais appeler cet endpoint côté client — appeler uniquement côté serveur avec le code saisi par l'utilisateur. Un status 'approved' doit immédiatement marquer le numéro comme vérifié en base de données."
+  ]
+}

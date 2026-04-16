@@ -1,0 +1,87 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "nimbasms",
+  "provider_name": "NimbaSMS",
+  "provider_api_version": "2024-01-01",
+  "category": "sms",
+  "capability": "create_contact",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": ["GN"],
+  "currency": ["GNF"],
+  "sandbox": false,
+  "docs_url": "https://developers.nimbasms.com/",
+  "docs_public": true,
+  "auth": {
+    "type": "basic",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic {base64(NIMBASMS_SERVICE_ID:NIMBASMS_SECRET_TOKEN)}",
+    "env_var": "NIMBASMS_SERVICE_ID"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.nimbasms.com/v1/contacts"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": ["numero"],
+    "properties": {
+      "numero": {
+        "type": "string",
+        "description": "Numéro de téléphone du contact avec indicatif pays (ex: 224XXXXXXXXX)."
+      },
+      "name": {
+        "type": "string",
+        "description": "Nom du contact (optionnel)."
+      },
+      "groups": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Noms des groupes auxquels ajouter le contact (optionnel). Les groupes doivent exister dans votre compte."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "numero": {
+        "type": "string",
+        "description": "Numéro de téléphone du contact créé."
+      },
+      "name": {
+        "type": "string",
+        "description": "Nom du contact."
+      },
+      "groups": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Groupes auxquels le contact a été ajouté."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "detail": {
+        "type": "string",
+        "description": "Erreur générale (ex: 401 unauthorized)."
+      },
+      "numero": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Erreurs de validation sur le champ 'numero' (format invalide, doublon)."
+      },
+      "groups": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Erreurs de validation sur le champ 'groups' (groupe inexistant)."
+      }
+    }
+  },
+  "gotchas": [
+    "Sans 'groups', le contact est ajouté à la liste de contacts par défaut du compte. Spécifier un groupe inexistant retourne une erreur 400 — utiliser list_groups pour récupérer les noms valides.",
+    "Le champ 'numero' doit inclure l'indicatif pays sans le '+' (ex: 224XXXXXXXXX), contrairement à send_verification qui attend le format E.164 avec '+'. Un format incorrect retourne une erreur 400.",
+    "Créer un contact avec un numéro déjà existant peut retourner une erreur de doublon — vérifier avec list_contacts avant d'insérer en masse."
+  ]
+}

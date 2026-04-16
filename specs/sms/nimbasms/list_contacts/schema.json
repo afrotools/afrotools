@@ -1,0 +1,86 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "nimbasms",
+  "provider_name": "NimbaSMS",
+  "provider_api_version": "2024-01-01",
+  "category": "sms",
+  "capability": "list_contacts",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": ["GN"],
+  "currency": ["GNF"],
+  "sandbox": false,
+  "docs_url": "https://developers.nimbasms.com/",
+  "docs_public": true,
+  "auth": {
+    "type": "basic",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic {base64(NIMBASMS_SERVICE_ID:NIMBASMS_SECRET_TOKEN)}",
+    "env_var": "NIMBASMS_SERVICE_ID"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.nimbasms.com/v1/contacts"
+  },
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "limit": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Nombre maximum de contacts à retourner."
+      },
+      "offset": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Décalage pour la pagination."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "count": {
+        "type": "integer",
+        "description": "Nombre total de contacts."
+      },
+      "next": {
+        "type": ["string", "null"],
+        "description": "URL de la page suivante ou null."
+      },
+      "previous": {
+        "type": ["string", "null"],
+        "description": "URL de la page précédente ou null."
+      },
+      "results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "numero": { "type": "string", "description": "Numéro de téléphone du contact." },
+            "name": { "type": "string", "description": "Nom du contact." },
+            "groups": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Groupes auxquels appartient le contact."
+            }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "detail": {
+        "type": "string",
+        "description": "Erreur générale (ex: 401 unauthorized)."
+      }
+    }
+  },
+  "gotchas": [
+    "La réponse est paginée. Utiliser 'limit' et 'offset' pour naviguer entre les pages — le champ 'next' contient l'URL complète de la page suivante.",
+    "Le SDK NimbaSMS strip les champs 'count', 'next', 'previous' de la réponse et ne retourne que 'results'. En appelant l'API directement, la réponse brute contient tous ces champs."
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "nimbasms",
+  "provider_name": "NimbaSMS",
+  "provider_api_version": "2024-01-01",
+  "category": "sms",
+  "capability": "list_sendernames",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": ["GN"],
+  "currency": ["GNF"],
+  "sandbox": false,
+  "docs_url": "https://developers.nimbasms.com/",
+  "docs_public": true,
+  "auth": {
+    "type": "basic",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic {base64(NIMBASMS_SERVICE_ID:NIMBASMS_SECRET_TOKEN)}",
+    "env_var": "NIMBASMS_SERVICE_ID"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.nimbasms.com/v1/sendernames"
+  },
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "limit": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Nombre maximum de sender names à retourner."
+      },
+      "offset": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Décalage pour la pagination."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "count": {
+        "type": "integer",
+        "description": "Nombre total de sender names."
+      },
+      "next": {
+        "type": ["string", "null"],
+        "description": "URL de la page suivante ou null."
+      },
+      "previous": {
+        "type": ["string", "null"],
+        "description": "URL de la page précédente ou null."
+      },
+      "results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "sendername_id": { "type": "string", "format": "uuid", "description": "Identifiant unique du sender name." },
+            "name": { "type": "string", "description": "Nom d'expéditeur." },
+            "status": {
+              "type": "string",
+              "enum": ["pending", "refused", "accepted"],
+              "description": "Statut du sender name. Seul 'accepted' peut être utilisé dans send_message et send_verification."
+            },
+            "added_at": { "type": "integer", "description": "Date d'ajout en Unix timestamp (secondes)." }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "detail": {
+        "type": "string",
+        "description": "Erreur générale (ex: 401 unauthorized)."
+      }
+    }
+  },
+  "gotchas": [
+    "Seuls les sender names avec statut 'accepted' peuvent être utilisés dans send_message et send_verification. Les statuts valides sont 'pending' (en validation), 'refused' (refusé) et 'accepted' (utilisable) — pas 'active'.",
+    "Les sender names sont approuvés manuellement par NimbaSMS — ils ne peuvent pas être créés via l'API. Les créer depuis le dashboard, puis les récupérer ici.",
+    "La valeur retournée dans 'name' est à utiliser telle quelle dans send_message({ sender_name: '...' }) — elle est case-sensitive.",
+    "Le SDK NimbaSMS strip les champs 'count', 'next', 'previous' de la réponse paginée et ne retourne que 'results'. En appelant l'API directement, la réponse brute contient tous ces champs."
+  ]
+}

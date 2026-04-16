@@ -1,0 +1,99 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "nimbasms",
+  "provider_name": "NimbaSMS",
+  "provider_api_version": "2024-01-01",
+  "category": "sms",
+  "capability": "get_message",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": ["GN"],
+  "currency": ["GNF"],
+  "sandbox": false,
+  "docs_url": "https://developers.nimbasms.com/",
+  "docs_public": true,
+  "auth": {
+    "type": "basic",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic {base64(NIMBASMS_SERVICE_ID:NIMBASMS_SECRET_TOKEN)}",
+    "env_var": "NIMBASMS_SERVICE_ID"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.nimbasms.com/v1/messages/{id}"
+  },
+  "input_schema": {
+    "type": "object",
+    "required": ["id"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Identifiant unique du message retourné par send_message (champ messageid)."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "messageid": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Identifiant unique du message."
+      },
+      "sender_name": {
+        "type": "string",
+        "description": "Nom d'expéditeur utilisé."
+      },
+      "message": {
+        "type": "string",
+        "description": "Contenu du message."
+      },
+      "status": {
+        "type": "string",
+        "enum": ["pending", "sent", "failure"],
+        "description": "Statut global du message."
+      },
+      "sent_at": {
+        "type": "integer",
+        "description": "Horodatage d'envoi en Unix timestamp (secondes). Convertir avec new Date(sent_at * 1000)."
+      },
+      "message_cost": {
+        "type": "integer",
+        "description": "Nombre de SMS consommés."
+      },
+      "numbers": {
+        "type": "array",
+        "description": "Statut de livraison par destinataire.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "format": "uuid" },
+            "contact": { "type": "string", "description": "Numéro destinataire." },
+            "status": {
+              "type": "string",
+              "enum": ["tosend", "sent", "received", "failure", "not_available"],
+              "description": "Statut de livraison pour ce destinataire."
+            }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "detail": {
+        "type": "string",
+        "description": "Erreur générale (ex: 404 not found, 401 unauthorized)."
+      }
+    }
+  },
+  "gotchas": [
+    "Le champ d'identifiant dans la réponse est 'messageid' (pas 'id'). Utiliser le messageid retourné par send_message.",
+    "sent_at est un Unix timestamp en secondes (integer), pas une date ISO 8601. Convertir avec new Date(sent_at * 1000) en JavaScript.",
+    "Le statut global ('status') peut être 'sent' alors que certains destinataires dans 'numbers' ont statut 'failure' ou 'not_available'. Inspecter 'numbers' pour le statut par destinataire.",
+    "Le statut 'received' dans 'numbers' signifie livré (delivery receipt reçu de l'opérateur). 'sent' signifie envoyé à l'opérateur mais non encore confirmé livré."
+  ]
+}

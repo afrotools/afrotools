@@ -1,0 +1,70 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "nimbasms",
+  "provider_name": "NimbaSMS",
+  "provider_api_version": "2024-01-01",
+  "category": "sms",
+  "capability": "get_balance",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": ["GN"],
+  "currency": ["GNF"],
+  "sandbox": false,
+  "docs_url": "https://developers.nimbasms.com/",
+  "docs_public": true,
+  "auth": {
+    "type": "basic",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic {base64(NIMBASMS_SERVICE_ID:NIMBASMS_SECRET_TOKEN)}",
+    "env_var": "NIMBASMS_SERVICE_ID"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.nimbasms.com/v1/accounts"
+  },
+  "input_schema": {
+    "type": "object",
+    "properties": {}
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "sid": {
+        "type": "string",
+        "description": "Identifiant unique du compte (SID)."
+      },
+      "sms_balance": {
+        "type": "integer",
+        "description": "Solde SMS disponible (en nombre de SMS). Utiliser ce champ — 'balance' est deprecated."
+      },
+      "whatsapp_balance": {
+        "type": "integer",
+        "description": "Solde WhatsApp disponible."
+      },
+      "webhook_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL webhook configurée pour les notifications de statut SMS."
+      },
+      "balance": {
+        "type": "integer",
+        "description": "DEPRECATED — Utiliser sms_balance à la place."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "detail": {
+        "type": "string",
+        "description": "Erreur générale (ex: 401 unauthorized)."
+      }
+    }
+  },
+  "gotchas": [
+    "Le champ 'balance' est DEPRECATED — utiliser 'sms_balance' pour le solde SMS. Les deux sont retournés mais 'balance' sera supprimé dans une future version.",
+    "sms_balance est en nombre de SMS (unités), pas en GNF. Un solde de 100 signifie 100 SMS disponibles.",
+    "Vérifier le solde avant tout envoi groupé — un solde insuffisant retourne une erreur 400 avec le champ 'solde' dans la réponse d'erreur de send_message."
+  ]
+}

@@ -52,6 +52,24 @@ const VALID_CAPABILITY_TYPES = ["synchronous", "asynchronous", "webhook"];
 const VALID_STATUSES = ["draft", "compliant", "verified", "deprecated", "archived"];
 
 // ---------------------------------------------------------------------------
+// Cross-spec constants
+// ---------------------------------------------------------------------------
+
+/** @type {Record<string, string>} */
+const COUNTRY_CURRENCY_MAP = {
+  SN: "XOF", CI: "XOF", ML: "XOF", BF: "XOF", NE: "XOF",
+  GN: "GNF",
+  UG: "UGX",
+  GM: "GMD",
+  CM: "XAF",
+  SL: "SLE",
+  CD: "CDF",
+};
+
+const VALID_ENDPOINT_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"]);
+const VALID_AUTH_TYPES = new Set(["api_key", "bearer", "basic", "oauth2", "none"]);
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -447,6 +465,185 @@ function runSecurityScan(specPath) {
 }
 
 // ---------------------------------------------------------------------------
+// Cross-spec checks
+// ---------------------------------------------------------------------------
+
+/**
+ * @param {Set<any>} a
+ * @param {Set<any>} b
+ * @returns {boolean}
+ */
+function setsEqual(a, b) {
+  if (a.size !== b.size) return false;
+  for (const item of a) if (!b.has(item)) return false;
+  return true;
+}
+
+/** Reverse of COUNTRY_CURRENCY_MAP: Map<currency, country[]> */
+const CURRENCY_COUNTRIES_MAP = (() => {
+  /** @type {Map<string, string[]>} */
+  const m = new Map();
+  for (const [country, currency] of Object.entries(COUNTRY_CURRENCY_MAP)) {
+    if (!m.has(currency)) m.set(currency, []);
+    m.get(currency).push(country);
+  }
+  return m;
+})();
+
+/**
+ * Checks that every country in country_code[] has its expected currency, and vice-versa.
+ * @param {string} specPath
+ * @param {any} schema
+ * @returns {boolean}
+ */
+function checkCountryCurrencyCoherence(specPath, schema) {
+  const rel = path.relative(SPECS_ROOT, specPath);
+  const countries = /** @type {string[]} */ (schema.country_code || []);
+  const currencies = new Set(/** @type {string[]} */ (schema.currency || []));
+  /** @type {string[]} */ const errors = [];
+
+  // Every country must have its expected currency present
+  for (const cc of countries) {
+    const expected = COUNTRY_CURRENCY_MAP[cc];
+    if (!expected) {
+      console.warn(`        [WARN] ${rel}: country_code "${cc}" absent de COUNTRY_CURRENCY_MAP`);
+      continue;
+    }
+    if (!currencies.has(expected)) {
+      errors.push(`[COHERENCE] pays "${cc}" requiert la devise "${expected}" mais elle est absente de currency[]`);
+    }
+  }
+
+  // Every currency must correspond to at least one listed country
+  const countriesSet = new Set(countries);
+  for (const cur of currencies) {
+    const validCountries = CURRENCY_COUNTRIES_MAP.get(cur);
+    if (!validCountries) {
+      // Unknown currency — warn only
+      console.warn(`        [WARN] ${rel}: devise "${cur}" absente de CURRENCY_COUNTRIES_MAP`);
+      continue;
+    }
+    if (!validCountries.some((c) => countriesSet.has(c))) {
+      errors.push(
+        `[COHERENCE] devise "${cur}" listée mais aucun pays correspondant [${validCountries.join(", ")}] n'est dans country_code[]`
+      );
+    }
+  }
+
+  if (errors.length > 0) {
+    errors.forEach((e) => console.error(`        ${e}`));
+    return fail(specPath, `Cohérence pays/devise : ${errors.length} problème(s)`);
+  }
+  return true;
+}
+
+/**
+ * Warns on non-standard endpoint.method or auth.type values.
+ * @param {string} specPath
+ * @param {any} schema
+ */
+function checkEnumValues(specPath, schema) {
+  const rel = path.relative(SPECS_ROOT, specPath);
+  const method = schema.endpoint?.method;
+  if (method && !VALID_ENDPOINT_METHODS.has(method)) {
+    console.warn(`        [WARN] ${rel}: endpoint.method "${method}" n'est pas un verbe HTTP standard`);
+  }
+  const authEntries = Array.isArray(schema.auth) ? schema.auth : [schema.auth];
+  for (const auth of authEntries) {
+    if (auth && auth.type && !VALID_AUTH_TYPES.has(auth.type)) {
+      console.warn(`        [WARN] ${rel}: auth.type "${auth.type}" n'est pas un type connu`);
+    }
+  }
+}
+
+/**
+ * Runs all cross-spec checks on specs grouped by provider_slug.
+ * @param {Map<string, Array<{specPath: string, schema: any}>>} loadedSchemas
+ * @returns {{ failures: number }}
+ */
+function runCrossSpecChecks(loadedSchemas) {
+  let failures = 0;
+  const groupCount = loadedSchemas.size;
+  console.log(`\nCross-spec consistency checks (${groupCount} provider(s))...\n`);
+
+  // Priority 1: provider-level consistency (majority-vote — no single spec is the oracle)
+  /** @param {string[]} arr @returns {string} */
+  function mostCommon(arr) {
+    /** @type {Record<string, number>} */ const counts = {};
+    for (const v of arr) counts[v] = (counts[v] || 0) + 1;
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+  }
+
+  for (const [slug, entries] of loadedSchemas) {
+    if (entries.length < 2) continue;
+
+    const ccSigs    = entries.map(({ schema: s }) => JSON.stringify([...s.country_code].sort()));
+    const curSigs   = entries.map(({ schema: s }) => JSON.stringify([...s.currency].sort()));
+    const apiVers   = entries.map(({ schema: s }) => s.provider_api_version);
+    const sandboxes = entries.map(({ schema: s }) => String(s.sandbox));
+
+    const majCC      = mostCommon(ccSigs);
+    const majCur     = mostCommon(curSigs);
+    const majApiVer  = mostCommon(apiVers);
+    const majSandbox = mostCommon(sandboxes);
+
+    for (const { specPath, schema } of entries) {
+      const rel = path.relative(SPECS_ROOT, specPath);
+      /** @type {string[]} */ const errors = [];
+      const ccSig = JSON.stringify([...schema.country_code].sort());
+      const curSig = JSON.stringify([...schema.currency].sort());
+
+      if (ccSig !== majCC) {
+        errors.push(
+          `[CROSS-SPEC] country_code: [${[...schema.country_code].sort().join(", ")}] ` +
+          `(majoritaire: ${majCC})`
+        );
+      }
+      if (curSig !== majCur) {
+        errors.push(
+          `[CROSS-SPEC] currency: [${[...schema.currency].sort().join(", ")}] ` +
+          `(majoritaire: ${majCur})`
+        );
+      }
+      if (schema.provider_api_version !== majApiVer) {
+        errors.push(
+          `[CROSS-SPEC] provider_api_version: "${schema.provider_api_version}" (majoritaire: "${majApiVer}")`
+        );
+      }
+      if (String(schema.sandbox) !== majSandbox) {
+        errors.push(
+          `[CROSS-SPEC] sandbox: ${schema.sandbox} (majoritaire: ${majSandbox})`
+        );
+      }
+
+      if (errors.length > 0) {
+        errors.forEach((e) => console.error(`        ${e}`));
+        fail(specPath, `Incohérence provider "${slug}" : ${errors.length} champ(s) non-majoritaire(s)`);
+        failures++;
+      } else {
+        console.log(`  OK    ${rel} (cohérent avec le groupe "${slug}")`);
+      }
+    }
+  }
+
+  // Priority 2: country/currency coherence per spec
+  for (const [, entries] of loadedSchemas) {
+    for (const { specPath, schema } of entries) {
+      if (!checkCountryCurrencyCoherence(specPath, schema)) failures++;
+    }
+  }
+
+  // Priority 3: enum values (warnings only — no failures)
+  for (const [, entries] of loadedSchemas) {
+    for (const { specPath, schema } of entries) {
+      checkEnumValues(specPath, schema);
+    }
+  }
+
+  return { failures };
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -464,6 +661,9 @@ console.log(`\nValidating ${specs.length} spec(s) [${modeLabel}]...\n`);
 
 let failures = 0;
 
+/** @type {Map<string, Array<{specPath: string, schema: any}>>} */
+const loadedSchemas = new Map();
+
 for (const specPath of specs) {
   const rel = path.relative(SPECS_ROOT, specPath);
 
@@ -471,11 +671,33 @@ for (const specPath of specs) {
     if (!validateStructure(specPath))  { failures++; continue; }
     if (!validateSchema(specPath))     { failures++; continue; }
     if (!validateTypeScript(specPath)) { failures++; continue; }
+
+    // Collect for cross-spec checks — only after all per-spec checks pass
+    if (!isChangedMode) {
+      try {
+        const schema = JSON.parse(fs.readFileSync(path.join(specPath, "schema.json"), "utf8"));
+        const slug = schema.provider_slug;
+        if (!loadedSchemas.has(slug)) loadedSchemas.set(slug, []);
+        loadedSchemas.get(slug).push({ specPath, schema });
+      } catch { /* parse errors already caught by validateSchema */ }
+    }
   }
 
   if (!runSecurityScan(specPath)) { failures++; continue; }
 
   pass(rel);
+}
+
+// Cross-spec checks (full run only)
+if (isChangedMode || isSecurityOnly) {
+  if (isChangedMode) {
+    console.log("\n  NOTE  Cross-spec checks skippés (mode --changed ; lancez npm run validate pour les checks complets)");
+  } else {
+    console.log("\n  NOTE  Cross-spec checks skippés (mode --security-only)");
+  }
+} else {
+  const crossResult = runCrossSpecChecks(loadedSchemas);
+  failures += crossResult.failures;
 }
 
 console.log(`\n${specs.length - failures} passed, ${failures} failed.\n`);

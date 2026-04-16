@@ -1,0 +1,106 @@
+{
+  "spec_version": "1.0",
+  "provider_slug": "nimbasms",
+  "provider_name": "NimbaSMS",
+  "provider_api_version": "2024-01-01",
+  "category": "sms",
+  "capability": "list_messages",
+  "capability_type": "synchronous",
+  "status": "compliant",
+  "country_code": ["GN"],
+  "currency": ["GNF"],
+  "sandbox": false,
+  "docs_url": "https://developers.nimbasms.com/",
+  "docs_public": true,
+  "auth": {
+    "type": "basic",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic {base64(NIMBASMS_SERVICE_ID:NIMBASMS_SECRET_TOKEN)}",
+    "env_var": "NIMBASMS_SERVICE_ID"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.nimbasms.com/v1/messages"
+  },
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "limit": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Nombre maximum de messages à retourner."
+      },
+      "offset": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Décalage pour la pagination."
+      },
+      "sent_at": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Filtrer les messages envoyés exactement à cette date et heure (ISO 8601)."
+      },
+      "sent_at__lte": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Filtrer les messages envoyés avant ou à cette date et heure (ISO 8601)."
+      },
+      "sent_at__gte": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Filtrer les messages envoyés après ou à cette date et heure (ISO 8601)."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "count": {
+        "type": "integer",
+        "description": "Nombre total de messages disponibles."
+      },
+      "next": {
+        "type": ["string", "null"],
+        "description": "URL de la page suivante ou null si dernière page."
+      },
+      "previous": {
+        "type": ["string", "null"],
+        "description": "URL de la page précédente ou null si première page."
+      },
+      "results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "format": "uuid" },
+            "status": { "type": "string" },
+            "to": { "type": "array", "items": { "type": "string" } },
+            "message": { "type": "string" },
+            "sender_name": { "type": "string" },
+            "sent_at": { "type": "string", "format": "date-time" },
+            "message_cost": {
+              "type": "integer",
+              "readOnly": true,
+              "description": "Nombre de SMS consommés : longueur du message en nombre de SMS × nombre de destinataires."
+            }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "detail": {
+        "type": "string",
+        "description": "Erreur générale (ex: 401 unauthorized)."
+      }
+    }
+  },
+  "gotchas": [
+    "La réponse est paginée — le champ 'count' indique le total mais 'results' ne contient que la page courante. Utiliser 'next' pour itérer sur toutes les pages.",
+    "Les filtres sent_at__lte et sent_at__gte peuvent être combinés pour définir une plage de dates. Les dates doivent être en format ISO 8601.",
+    "Chaque item retourné dans 'results' inclut un champ message_cost indiquant le nombre de SMS consommés pour ce message (longueur × destinataires). Utiliser ce champ pour les rapports de consommation."
+  ]
+}
