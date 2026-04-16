@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  # Detect which paths changed — used by security and deploy to skip when irrelevant
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      specs: ${{ steps.filter.outputs.specs }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            specs:
+              - 'specs/**'
+
+  # Validate all specs (or changed ones on PR)
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Validate changed specs (PR)
+        if: github.event_name == 'pull_request'
+        run: npm run validate:changed
+      - name: Validate all specs (push to main)
+        if: github.event_name == 'push'
+        run: npm run validate
+
+  # Security scan + CodeQL — only when specs/** changed
+  security:
+    needs: changes
+    if: needs.changes.outputs.specs == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      security-events: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Security scan — changed specs (PR)
+        if: github.event_name == 'pull_request'
+        run: node scripts/validate.js --changed --security-only
+      - name: Security scan — all specs (push to main)
+        if: github.event_name == 'push'
+        run: node scripts/validate.js --security-only
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+
+  # Redeploy afro.tools — only on push to main when specs changed and validate passed
+  # Required secrets: VPS_HOST, VPS_USER, VPS_SSH_KEY
+  deploy:
+    needs: [changes, validate]
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      needs.changes.outputs.specs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy afro.tools
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: sudo /opt/afrotools-core/infra/scripts/deploy.sh
