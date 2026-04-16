@@ -73,19 +73,14 @@ jobs:
         uses: github/codeql-action/analyze@v4
 
   # Redeploy afro.tools — only on push to main when specs changed and validate passed
-  # Required secrets: VPS_HOST, VPS_USER, VPS_SSH_KEY
+  # Runs on the self-hosted VPS runner (no SSH secrets needed)
   deploy:
     needs: [changes, validate]
     if: |
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
       needs.changes.outputs.specs == 'true'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, vps]
     steps:
       - name: Deploy afro.tools
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: sudo /opt/afrotools-core/infra/scripts/deploy.sh
+        run: sudo /opt/afrotools-core/infra/scripts/deploy.sh
