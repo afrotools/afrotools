@@ -28,12 +28,13 @@ interface CreatePaymentInput {
 
 interface CreatedPaymentData {
   transactionId: string;
-  status: "CREATED" | "PENDING" | "FAILED" | "SUCCESS" | "AUTHORIZED" | "CAPTURED";
+  status: "CREATED" | "PENDING" | "FAILED" | "SUCCESS" | "CAPTURED" | "CANCELLED" | "TIMEOUT" | "REFUNDED";
   paidAmount: number;
   paymentMethod: string;
   merchantPaymentReference: string;
   createdAt: string;
-  paymentUrl: string;
+  redirectUrl?: string;
+  paymentUrl?: string;
   allowedPaymentMethods: string[];
   metadata: Record<string, unknown>;
 }

@@ -47,6 +47,7 @@ interface PaymentLinkData {
   numberOfUsage: number;
   usageLimit: number;
   allowedPaymentMethods: string[];
+  payments: Record<string, unknown>[];
   metadata: Record<string, unknown>;
 }
 

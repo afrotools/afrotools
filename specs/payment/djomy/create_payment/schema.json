@@ -113,8 +113,10 @@
               "PENDING",
               "FAILED",
               "SUCCESS",
-              "AUTHORIZED",
-              "CAPTURED"
+              "CAPTURED",
+              "CANCELLED",
+              "TIMEOUT",
+              "REFUNDED"
             ],
             "description": "PENDING means the payer is being prompted by the operator to validate. For OM/MOMO direct flow, call confirm_otp next."
           },
@@ -130,6 +132,10 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "redirectUrl": {
+            "type": "string",
+            "description": "URL for the payer to complete the payment via redirect flow."
           },
           "paymentUrl": {
             "type": "string",

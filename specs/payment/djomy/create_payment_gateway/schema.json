@@ -108,7 +108,10 @@
               "REDIRECTED",
               "FAILED",
               "SUCCESS",
-              "CAPTURED"
+              "CAPTURED",
+              "CANCELLED",
+              "TIMEOUT",
+              "REFUNDED"
             ],
             "description": "REDIRECTED means the payer has been sent to the Djomy portal. Wait for webhook to know the final status."
           },
@@ -118,9 +121,17 @@
           "paymentMethod": {
             "type": "string"
           },
+          "merchantPaymentReference": {
+            "type": "string",
+            "description": "The merchant's own reference echoed back from the request."
+          },
           "redirectUrl": {
             "type": "string",
             "description": "URL of the Djomy payment portal. Redirect the payer here immediately after receiving this response."
+          },
+          "paymentUrl": {
+            "type": "string",
+            "description": "URL to complete the payment transaction."
           },
           "allowedPaymentMethods": {
             "type": "array",
