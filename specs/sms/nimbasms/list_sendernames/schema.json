@@ -77,6 +77,7 @@
   "gotchas": [
     "Seuls les sender names avec statut 'active' peuvent être utilisés dans send_message et send_verification. Un sender name 'pending' est en cours de validation manuelle par NimbaSMS.",
     "Les sender names sont approuvés manuellement par NimbaSMS — ils ne peuvent pas être créés via l'API. Les créer depuis le dashboard, puis les récupérer ici.",
-    "La valeur retournée dans 'name' est à utiliser telle quelle dans send_message({ sender_name: '...' }) — elle est case-sensitive."
+    "La valeur retournée dans 'name' est à utiliser telle quelle dans send_message({ sender_name: '...' }) — elle est case-sensitive.",
+    "Le SDK NimbaSMS strip les champs 'count', 'next', 'previous' de la réponse paginée et ne retourne que 'results'. En appelant l'API directement, la réponse brute contient tous ces champs."
   ]
 }

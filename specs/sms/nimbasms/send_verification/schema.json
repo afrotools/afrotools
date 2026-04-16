@@ -77,12 +77,12 @@
         "description": "Statut de la vérification (ex: pending)."
       },
       "expiry_time": {
-        "type": "integer",
-        "description": "Durée de validité du code en minutes."
+        "type": ["integer", "null"],
+        "description": "Durée de validité du code en minutes. Null si non fourni à la création."
       },
       "attempts": {
-        "type": "integer",
-        "description": "Nombre de tentatives restantes."
+        "type": ["integer", "null"],
+        "description": "Nombre de tentatives restantes. Null si non fourni à la création."
       },
       "code_length": {
         "type": "integer",

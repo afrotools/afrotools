@@ -24,6 +24,7 @@ interface SendMessageResponse {
   to: string[];
   message: string;
   sender_name: string;
+  sent_at: string;
   message_cost: number;
 }
 

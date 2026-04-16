@@ -75,6 +75,7 @@
   },
   "gotchas": [
     "Les noms de groupes retournés ici sont ceux à passer dans create_contact({ groups: [...] }). La casse est significative — copier les valeurs exactes retournées par cet endpoint.",
-    "Les groupes ne peuvent pas être créés via l'API — ils doivent être créés depuis le dashboard NimbaSMS."
+    "Les groupes ne peuvent pas être créés via l'API — ils doivent être créés depuis le dashboard NimbaSMS.",
+    "Le SDK NimbaSMS strip les champs 'count', 'next', 'previous' de la réponse paginée et ne retourne que 'results'. En appelant l'API directement, la réponse brute contient tous ces champs."
   ]
 }
