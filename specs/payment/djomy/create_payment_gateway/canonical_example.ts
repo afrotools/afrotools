@@ -85,12 +85,14 @@ async function getAccessToken(): Promise<string> {
 export async function createPaymentGateway(
   input: CreatePaymentGatewayInput
 ): Promise<CreatedPaymentGatewayData> {
+  const signature = await computeHmacHex(DJOMY_CLIENT_ID!, DJOMY_CLIENT_SECRET!);
   const accessToken = await getAccessToken();
 
   const response = await fetch(`${DJOMY_BASE_URL}/v1/payments/gateway`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
+      "X-API-KEY": `${DJOMY_CLIENT_ID}:${signature}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({

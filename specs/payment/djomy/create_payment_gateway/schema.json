@@ -47,7 +47,7 @@
       },
       "payerNumber": {
         "type": "string",
-        "description": "Payer phone number in international format (e.g. 00224623707722). Used to pre-fill the payment portal."
+        "description": "Payer phone number in international format (e.g. 00224623707722). Strictly required by the API — used to pre-fill the payment portal but enforced server-side. Passing an empty string returns 400."
       },
       "allowedPaymentMethods": {
         "type": "array",
@@ -216,6 +216,9 @@
   },
   "gotchas": [
     "Auth requires two steps: (1) compute HMAC-SHA256(clientId, clientSecret) as hex, (2) call POST /v1/auth with header X-API-KEY: clientId:hexSignature to get a Bearer token.",
+    "Every authenticated request requires BOTH headers: Authorization: Bearer {token} AND X-API-KEY: clientId:HMAC. The X-API-KEY must be recomputed for each request. Omitting it returns 401 even with a valid Bearer token.",
+    "payerNumber is strictly enforced by the API despite being described as 'used to pre-fill the portal'. Passing an empty string or omitting it returns 400: 'Le numéro de téléphone du payeur est obligatoire.' Always collect the payer's phone number before calling this endpoint.",
+    "[VERY IMPORTANT] This is the default integration method for Djomy. Unless the user explicitly requests a direct flow with OTP handling in their own UI, always use create_payment_gateway. It delegates payment method selection and OTP handling to the Djomy portal.",
     "The gateway flow handles OTP internally — the payer completes everything on the Djomy portal. Do NOT call confirm_otp after this endpoint. Wait for the webhook instead.",
     "Redirect the payer to redirectUrl immediately after receiving the response. Do not delay — the link may expire.",
     "Always verify payment status server-side via verify_payment before fulfilling an order. The returnUrl redirect is not a proof of payment.",

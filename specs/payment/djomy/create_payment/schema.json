@@ -6,7 +6,7 @@
   "category": "payment",
   "capability": "create_payment",
   "capability_type": "synchronous",
-  "status": "verified",
+  "status": "compliant",
   "country_code": [
     "GN"
   ],
@@ -220,9 +220,11 @@
   },
   "gotchas": [
     "Auth requires two steps: (1) compute HMAC-SHA256(clientId, clientSecret) as hex, (2) call POST /v1/auth with header X-API-KEY: clientId:hexSignature to get a Bearer token. Both DJOMY_CLIENT_ID and DJOMY_CLIENT_SECRET env vars are required.",
+    "Every authenticated request requires BOTH headers: Authorization: Bearer {token} AND X-API-KEY: clientId:HMAC. The X-API-KEY must be recomputed for each request. Omitting it returns 401 even with a valid Bearer token.",
     "For Orange Money (OM) and MTN MoMo (MOMO) direct payments, status returns PENDING immediately. The payer receives an OTP from their operator. You must then call confirm_otp with the transactionId and the OTP to complete the payment.",
     "Always verify payment status server-side via verify_payment before fulfilling an order. Never trust only the callback or paymentUrl redirect.",
     "The base URL in this spec is the sandbox (https://sandbox-api.djomy.africa). Replace with the production URL for live payments.",
-    "metadata must be a flat object — no arrays or nested structures. Values can be strings, numbers, or booleans."
+    "metadata must be a flat object — no arrays or nested structures. Values can be strings, numbers, or booleans.",
+    "[VERY IMPORTANT] Unless the user explicitly requests the direct flow (no redirect, OTP collected in your own UI), always use create_payment_gateway instead. create_payment requires you to know the payment method and payer identifier upfront and to handle OTP confirmation yourself. create_payment_gateway delegates everything to the Djomy portal."
   ]
 }

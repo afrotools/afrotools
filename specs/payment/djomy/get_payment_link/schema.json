@@ -6,7 +6,7 @@
   "category": "payment",
   "capability": "get_payment_link",
   "capability_type": "synchronous",
-  "status": "verified",
+  "status": "compliant",
   "country_code": [
     "GN"
   ],
