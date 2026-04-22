@@ -2,7 +2,13 @@
   "slug": "paycard",
   "name": "Paycard",
   "category": "payment",
-  "country_code": ["GN"],
+  "country_code": [
+    "GN"
+  ],
+  "website": "https://mapaycard.com",
+  "docs_url": "",
+  "docs_public": false,
+  "sandbox": false,
   "description": "Paycard is a Guinean mobile money payment gateway that lets you accept payments via MTN, Orange, and Cellcom mobile wallets. No sandbox — all requests hit production.",
   "example_prompt": "Add Paycard mobile money payments to my app."
 }

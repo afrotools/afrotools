@@ -2,7 +2,23 @@
   "slug": "wave",
   "name": "Wave",
   "category": "payment",
-  "country_code": ["SN", "CI", "ML", "GN", "UG", "BF", "GM", "NE", "CM", "SL", "CD"],
+  "country_code": [
+    "SN",
+    "CI",
+    "ML",
+    "GN",
+    "UG",
+    "BF",
+    "GM",
+    "NE",
+    "CM",
+    "SL",
+    "CD"
+  ],
+  "website": "https://www.wave.com",
+  "docs_url": "https://docs.wave.com",
+  "docs_public": true,
+  "sandbox": false,
   "description": "Wave is a mobile money operator active in 11 African countries offering checkout sessions for e-commerce payments and batch payouts via a REST API.",
   "example_prompt": "Add Wave checkout to my e-commerce app."
 }

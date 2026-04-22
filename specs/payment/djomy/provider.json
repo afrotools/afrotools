@@ -2,7 +2,13 @@
   "slug": "djomy",
   "name": "Djomy",
   "category": "payment",
-  "country_code": ["GN"],
+  "country_code": [
+    "GN"
+  ],
+  "website": "https://djomy.africa",
+  "docs_url": "https://developers.djomy.africa/",
+  "docs_public": true,
+  "sandbox": true,
   "description": "Djomy is a Guinean payment solution offering payment links, QR code payments, and mobile money integrations via a unified API.",
   "example_prompt": "Add Djomy mobile money payments to my app."
 }

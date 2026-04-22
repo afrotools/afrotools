@@ -7,9 +7,6 @@
   "currency": [
     "GNF"
   ],
-  "sandbox": false,
-  "docs_url": "https://developers.nimbasms.com/",
-  "docs_public": true,
   "auth": {
     "type": "basic",
     "location": "header",

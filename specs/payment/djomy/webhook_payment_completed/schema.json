@@ -7,9 +7,6 @@
   "currency": [
     "GNF"
   ],
-  "sandbox": true,
-  "docs_url": "https://developers.djomy.africa/",
-  "docs_public": true,
   "auth": {
     "type": "none"
   },

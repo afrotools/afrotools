@@ -2,7 +2,13 @@
   "slug": "nimbasms",
   "name": "NimbaSMS",
   "category": "sms",
-  "country_code": ["GN"],
+  "country_code": [
+    "GN"
+  ],
+  "website": "https://nimbasms.com",
+  "docs_url": "https://developers.nimbasms.com/",
+  "docs_public": true,
+  "sandbox": false,
   "description": "NimbaSMS is a Guinean professional messaging platform supporting SMS, WhatsApp, and email delivery from a single API with contact and group management.",
   "example_prompt": "Add SMS verification to my app using NimbaSMS."
 }

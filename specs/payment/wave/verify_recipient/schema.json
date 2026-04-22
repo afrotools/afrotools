@@ -13,9 +13,6 @@
     "SLE",
     "CDF"
   ],
-  "sandbox": false,
-  "docs_url": "https://docs.wave.com/payout",
-  "docs_public": true,
   "auth": {
     "type": "api_key",
     "location": "header",

@@ -33,9 +33,6 @@ const REQUIRED_FIELDS = [
   "capability_type",
   "status",
   "currency",
-  "sandbox",
-  "docs_url",
-  "docs_public",
   "auth",
   "endpoint",
   "example_prompt",
@@ -195,7 +192,7 @@ function validateSchema(specPath) {
   }
 
   // Validate provider.json required fields
-  const PROVIDER_REQUIRED_FIELDS = ["slug", "name", "category", "country_code", "description", "example_prompt"];
+  const PROVIDER_REQUIRED_FIELDS = ["slug", "name", "category", "country_code", "website", "docs_url", "docs_public", "sandbox", "description", "example_prompt"];
   for (const field of PROVIDER_REQUIRED_FIELDS) {
     if (!(field in providerManifest)) {
       return fail(specPath, `provider.json at ${providerJsonPath} missing required field: "${field}"`);
@@ -216,7 +213,7 @@ function validateSchema(specPath) {
   }
 
   // Migrated fields must not appear in schema.json — they belong in provider.json
-  const MIGRATED_FIELDS = ["provider_slug", "provider_name", "category", "country_code"];
+  const MIGRATED_FIELDS = ["provider_slug", "provider_name", "category", "country_code", "sandbox", "docs_url", "docs_public"];
   for (const field of MIGRATED_FIELDS) {
     if (field in schema) {
       return fail(specPath, `schema.json must not contain "${field}" — this field has been migrated to provider.json`);
@@ -249,16 +246,6 @@ function validateSchema(specPath) {
   // currency array
   if (!Array.isArray(schema.currency)) {
     return fail(specPath, `currency must be an array`);
-  }
-
-  // sandbox boolean
-  if (typeof schema.sandbox !== "boolean") {
-    return fail(specPath, `sandbox must be a boolean`);
-  }
-
-  // docs_public boolean
-  if (typeof schema.docs_public !== "boolean") {
-    return fail(specPath, `docs_public must be a boolean`);
   }
 
   // gotchas — minimum 1 entry
@@ -611,7 +598,7 @@ function runCrossSpecChecks(loadedSchemas) {
     const ccSigs    = entries.map(({ providerManifest: p }) => JSON.stringify([...p.country_code].sort()));
     const curSigs   = entries.map(({ schema: s }) => JSON.stringify([...s.currency].sort()));
     const apiVers   = entries.map(({ schema: s }) => s.provider_api_version);
-    const sandboxes = entries.map(({ schema: s }) => String(s.sandbox));
+    const sandboxes = entries.map(({ providerManifest: p }) => String(p.sandbox));
 
     const majCC      = mostCommon(ccSigs);
     const majCur     = mostCommon(curSigs);
@@ -641,9 +628,9 @@ function runCrossSpecChecks(loadedSchemas) {
           `[CROSS-SPEC] provider_api_version: "${schema.provider_api_version}" (majoritaire: "${majApiVer}")`
         );
       }
-      if (String(schema.sandbox) !== majSandbox) {
+      if (String(providerManifest.sandbox) !== majSandbox) {
         errors.push(
-          `[CROSS-SPEC] sandbox: ${schema.sandbox} (majoritaire: ${majSandbox})`
+          `[CROSS-SPEC] sandbox: ${providerManifest.sandbox} (majoritaire: ${majSandbox})`
         );
       }
 

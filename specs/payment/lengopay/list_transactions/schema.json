@@ -7,9 +7,6 @@
   "currency": [
     "GNF"
   ],
-  "sandbox": false,
-  "docs_url": "",
-  "docs_public": false,
   "auth": {
     "type": "api_key",
     "location": "header",
