@@ -4,5 +4,5 @@
   "category": "payment",
   "country_code": ["GN"],
   "description": "Paycard is a Guinean mobile money payment gateway that lets you accept payments via MTN, Orange, and Cellcom mobile wallets. No sandbox — all requests hit production.",
-  "example_prompt": "I need to accept mobile money payments in Guinea with Paycard. Write a complete checkout flow: create a payment, redirect the user to the payment page, verify the transaction server-side using the operation_reference, and handle the webhook confirmation before fulfilling the order."
+  "example_prompt": "I need to accept mobile money payments in Guinea with Paycard."
 }

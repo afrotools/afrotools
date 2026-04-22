@@ -27,7 +27,7 @@
     "method": "GET",
     "url": "https://api.wave.com/v1/payout/{id}"
   },
-  "example_prompt": "Write a Node.js function that checks the status of a Wave payout by its payout ID. Use this to confirm whether a payout has settled.",
+  "example_prompt": "Check the status of a Wave payout I sent.",
   "input_schema": {
     "type": "object",
     "required": [

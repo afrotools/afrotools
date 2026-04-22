@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://portal.lengopay.com/api/v2/cashin/request"
   },
-  "example_prompt": "Write a Node.js function that initiates a LengoPay cashin to collect a mobile money payment. It receives an amount and a customer phone number, calls cashin_request, and returns the transaction reference for status polling.",
+  "example_prompt": "Collect a mobile money payment from my customer via LengoPay.",
   "input_schema": {
     "type": "object",
     "required": [

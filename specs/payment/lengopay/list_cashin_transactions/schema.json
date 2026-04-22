@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://portal.lengopay.com/api/v1/cashin/all-transactions"
   },
-  "example_prompt": "Write a Node.js function that fetches LengoPay cashin transactions for a given date range. Use this to reconcile incoming payments at end of day.",
+  "example_prompt": "List today's incoming LengoPay payments for reconciliation.",
   "input_schema": {
     "type": "object",
     "required": [

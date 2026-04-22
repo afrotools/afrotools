@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://sandbox-api.djomy.africa/v1/payments"
   },
-  "example_prompt": "Write a Node.js function that creates a Djomy mobile money payment. It receives an amount and a customer phone number, calls the Djomy create_payment endpoint, and returns the redirect URL to send the user to.",
+  "example_prompt": "Start a Djomy mobile money payment and redirect my user to complete it.",
   "input_schema": {
     "type": "object",
     "required": [

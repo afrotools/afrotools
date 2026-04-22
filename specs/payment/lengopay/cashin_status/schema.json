@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://portal.lengopay.com/api/v2/cashin/transaction"
   },
-  "example_prompt": "Write a Node.js function that polls the status of a LengoPay cashin using its transaction reference. It returns the final status (success / failed / pending) — call this in a loop after cashin_request until the payment settles.",
+  "example_prompt": "Check whether my LengoPay cashin request has been paid yet.",
   "input_schema": {
     "type": "object",
     "required": [

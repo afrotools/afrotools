@@ -21,7 +21,7 @@
     "method": "GET",
     "url": "https://api.nimbasms.com/v1/messages/{id}"
   },
-  "example_prompt": "Write a Node.js function that retrieves the delivery status of a NimbaSMS message by its message ID.",
+  "example_prompt": "Check the delivery status of an SMS I sent via NimbaSMS.",
   "input_schema": {
     "type": "object",
     "required": [

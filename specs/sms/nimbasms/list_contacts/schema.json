@@ -21,7 +21,7 @@
     "method": "GET",
     "url": "https://api.nimbasms.com/v1/contacts"
   },
-  "example_prompt": "Write a Node.js function that lists all contacts in the NimbaSMS address book with pagination support.",
+  "example_prompt": "List all contacts in my NimbaSMS address book.",
   "input_schema": {
     "type": "object",
     "properties": {

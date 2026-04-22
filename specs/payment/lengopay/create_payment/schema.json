@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://portal.lengopay.com/api/v1/payments"
   },
-  "example_prompt": "Write a Node.js function that creates a LengoPay payment request for a given amount and returns the payment reference and redirect URL.",
+  "example_prompt": "Create a LengoPay payment request for a given amount.",
   "input_schema": {
     "type": "object",
     "required": [

@@ -27,7 +27,7 @@
     "method": "GET",
     "url": "https://api.wave.com/v1/balance"
   },
-  "example_prompt": "Write a Node.js function that retrieves the Wave wallet balance for the authenticated API key. Use this to verify available funds before initiating payouts.",
+  "example_prompt": "Check my Wave wallet balance.",
   "input_schema": {
     "type": "object",
     "properties": {

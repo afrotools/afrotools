@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://sandbox-api.djomy.africa/v1/payments/gateway"
   },
-  "example_prompt": "Write a Node.js function that initializes a Djomy payment gateway with my API credentials and returns the gateway configuration needed for subsequent payment calls.",
+  "example_prompt": "Set up a Djomy payment gateway integration for my app.",
   "input_schema": {
     "type": "object",
     "required": [

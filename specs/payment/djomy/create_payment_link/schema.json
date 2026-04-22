@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://sandbox-api.djomy.africa/v1/links"
   },
-  "example_prompt": "Write a Node.js function that generates a shareable Djomy payment link for a fixed amount. It receives a label and price, calls the Djomy create_payment_link endpoint, and returns the URL to share with the customer.",
+  "example_prompt": "Generate a Djomy payment link I can send to my customer.",
   "input_schema": {
     "type": "object",
     "required": [

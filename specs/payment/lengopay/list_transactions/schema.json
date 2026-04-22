@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://portal.lengopay.com/api/v1/transactions"
   },
-  "example_prompt": "Write a Node.js function that retrieves all LengoPay account transactions with pagination. It accepts page and limit parameters and returns the transaction list.",
+  "example_prompt": "Get all my LengoPay transactions.",
   "input_schema": {
     "type": "object",
     "required": [

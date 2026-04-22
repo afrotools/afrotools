@@ -17,7 +17,7 @@
     "method": "POST",
     "url": "{your_callback_url}"
   },
-  "example_prompt": "Write an Express route POST /webhooks/lengopay that receives a LengoPay payment completion event and triggers order fulfillment after validating the payload.",
+  "example_prompt": "Handle the LengoPay webhook that fires when a payment is confirmed.",
   "input_schema": {
     "type": "object",
     "description": "Payload que LengoPay POSTe à votre callback_url lorsqu'un paiement est traité.",

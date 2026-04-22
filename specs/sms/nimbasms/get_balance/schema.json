@@ -21,7 +21,7 @@
     "method": "GET",
     "url": "https://api.nimbasms.com/v1/accounts"
   },
-  "example_prompt": "Write a Node.js function that retrieves the current NimbaSMS credit balance. Call this before sending bulk messages to verify sufficient credits.",
+  "example_prompt": "Check how many SMS credits I have left on NimbaSMS.",
   "input_schema": {
     "type": "object",
     "properties": {}

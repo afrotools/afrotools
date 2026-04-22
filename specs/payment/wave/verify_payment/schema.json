@@ -27,7 +27,7 @@
     "method": "GET",
     "url": "https://api.wave.com/v1/checkout/sessions/{id}"
   },
-  "example_prompt": "Write a Node.js function that verifies a Wave checkout session status by session ID. Call this server-side before fulfilling an order.",
+  "example_prompt": "Verify server-side that a Wave checkout was actually paid before I ship the order.",
   "input_schema": {
     "type": "object",
     "required": [

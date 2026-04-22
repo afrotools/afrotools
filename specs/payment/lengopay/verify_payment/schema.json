@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://portal.lengopay.com/api/v1/transaction/status"
   },
-  "example_prompt": "Write a Node.js function that verifies a LengoPay payment status using its transaction reference. Call this server-side before fulfilling an order.",
+  "example_prompt": "Verify server-side that a LengoPay payment went through before I fulfill the order.",
   "input_schema": {
     "type": "object",
     "required": [

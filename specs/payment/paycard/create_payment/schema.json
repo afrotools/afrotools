@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://mapaycard.com/epay/create/"
   },
-  "example_prompt": "Write a Node.js function that initiates a Paycard mobile money payment. It receives an amount in GNF and a callback URL, calls the Paycard create_payment endpoint, and returns the operation_reference to use for server-side verification.",
+  "example_prompt": "I need to accept a mobile money payment in Guinea with Paycard.",
   "input_schema": {
     "type": "object",
     "required": [

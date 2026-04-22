@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://api.nimbasms.com/v1/messages"
   },
-  "example_prompt": "Write a Node.js function that sends an SMS via NimbaSMS. It receives a recipient phone number, message text, and sender name, and returns the message ID for delivery tracking.",
+  "example_prompt": "Send an SMS to a Guinean phone number via NimbaSMS.",
   "input_schema": {
     "type": "object",
     "required": [

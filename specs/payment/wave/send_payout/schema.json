@@ -27,7 +27,7 @@
     "method": "POST",
     "url": "https://api.wave.com/v1/payout"
   },
-  "example_prompt": "Write a Node.js function that sends a single Wave payout to a mobile money recipient. It receives a phone number and amount and returns the payout ID for tracking.",
+  "example_prompt": "Send money to a recipient's Wave mobile wallet.",
   "input_schema": {
     "type": "object",
     "required": [

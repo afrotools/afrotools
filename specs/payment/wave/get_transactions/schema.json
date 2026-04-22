@@ -27,7 +27,7 @@
     "method": "GET",
     "url": "https://api.wave.com/v1/transactions"
   },
-  "example_prompt": "Write a Node.js function that retrieves recent Wave wallet transactions. It accepts a pagination cursor and returns a list of transactions with the next cursor.",
+  "example_prompt": "Get my recent Wave wallet transactions.",
   "input_schema": {
     "type": "object",
     "properties": {

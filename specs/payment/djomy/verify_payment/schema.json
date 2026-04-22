@@ -21,7 +21,7 @@
     "method": "GET",
     "url": "https://sandbox-api.djomy.africa/v1/payments/{transactionId}/status"
   },
-  "example_prompt": "Write a Node.js function that verifies a Djomy payment server-side using its transaction reference. Call this before fulfilling an order — do not rely on the redirect URL alone.",
+  "example_prompt": "Verify server-side that a Djomy payment went through before I fulfill the order.",
   "input_schema": {
     "type": "object",
     "required": [

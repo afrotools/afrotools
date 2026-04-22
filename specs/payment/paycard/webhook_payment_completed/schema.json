@@ -17,7 +17,7 @@
     "method": "POST",
     "url": "{your_callback_url}"
   },
-  "example_prompt": "Write an Express route POST /webhooks/paycard that receives a Paycard payment completion event, validates the payload, and marks the corresponding order as paid.",
+  "example_prompt": "Handle the Paycard webhook that fires when a payment is done.",
   "input_schema": {
     "type": "object",
     "description": "Payload Paycard POSTs to your paycard-callback-url when a payment completes.",

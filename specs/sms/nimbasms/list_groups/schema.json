@@ -21,7 +21,7 @@
     "method": "GET",
     "url": "https://api.nimbasms.com/v1/groups"
   },
-  "example_prompt": "Write a Node.js function that retrieves all contact groups defined in the NimbaSMS account.",
+  "example_prompt": "List my NimbaSMS contact groups.",
   "input_schema": {
     "type": "object",
     "properties": {

@@ -23,7 +23,7 @@
     "method": "POST",
     "url": "{your_webhook_url}"
   },
-  "example_prompt": "Write an Express route POST /webhooks/wave that receives a Wave payment completion event, verifies the session status server-side, and triggers order fulfillment.",
+  "example_prompt": "Handle the Wave webhook that fires when a checkout is paid.",
   "input_schema": {
     "type": "object",
     "description": "Payload que Wave POSTe à votre endpoint lors d'un événement checkout.session.completed.",

@@ -21,7 +21,7 @@
     "method": "GET",
     "url": "https://portal.lengopay.com/api/getbalance/{websiteId}"
   },
-  "example_prompt": "Write a Node.js function that retrieves the current LengoPay account balance. Use this before initiating payouts to verify sufficient funds.",
+  "example_prompt": "Check my LengoPay account balance.",
   "input_schema": {
     "type": "object",
     "required": [

@@ -21,7 +21,7 @@
     "method": "PATCH",
     "url": "https://api.nimbasms.com/v1/verifications/{id}"
   },
-  "example_prompt": "Write a Node.js function that verifies an OTP entered by the user. It receives the verification ID and the code submitted by the user, calls NimbaSMS verify_code, and returns whether authentication succeeded.",
+  "example_prompt": "Check if the OTP my user entered is correct.",
   "input_schema": {
     "type": "object",
     "required": [

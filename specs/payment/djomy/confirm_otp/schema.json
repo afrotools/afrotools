@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://sandbox-api.djomy.africa/v1/payments/{transactionReference}/confirmOTP"
   },
-  "example_prompt": "Write a Node.js function that confirms a Djomy payment OTP. It receives a payment_ref and the otp_code entered by the user, calls the Djomy confirm_otp endpoint, and returns whether the transaction was authorized.",
+  "example_prompt": "My user just entered their OTP to confirm a Djomy mobile money payment — authorize it.",
   "input_schema": {
     "type": "object",
     "required": [

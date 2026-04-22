@@ -27,7 +27,7 @@
     "method": "POST",
     "url": "https://api.wave.com/v1/verify_recipient"
   },
-  "example_prompt": "Write a Node.js function that checks whether a phone number is a valid Wave recipient before sending a payout. Use this to avoid failed payout attempts.",
+  "example_prompt": "Check that a phone number can receive a Wave payout before I send it.",
   "input_schema": {
     "type": "object",
     "required": [

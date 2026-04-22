@@ -27,7 +27,7 @@
     "method": "POST",
     "url": "https://api.wave.com/v1/payout-batch"
   },
-  "example_prompt": "Write a Node.js function that sends a batch payout to multiple recipients via Wave. It receives an array of {phone, amount} objects and calls Wave's create_payout_batch endpoint.",
+  "example_prompt": "Send payouts to multiple recipients at once via Wave.",
   "input_schema": {
     "type": "object",
     "required": [
