@@ -27,7 +27,7 @@
     "method": "GET",
     "url": "https://api.wave.com/v1/checkout/sessions/{id}"
   },
-  "example_prompt": "Verify server-side that a Wave checkout was actually paid before I ship the order.",
+  "example_prompt": "Add server-side Wave payment verification to my order fulfillment flow.",
   "input_schema": {
     "type": "object",
     "required": [

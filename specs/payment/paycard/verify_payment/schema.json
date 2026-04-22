@@ -21,7 +21,7 @@
     "method": "GET",
     "url": "https://mapaycard.com/epay/{c}/{ref}/status"
   },
-  "example_prompt": "Check server-side if a Paycard payment was actually completed before I ship the order.",
+  "example_prompt": "Add server-side Paycard payment verification to my order fulfillment flow.",
   "input_schema": {
     "type": "object",
     "required": [

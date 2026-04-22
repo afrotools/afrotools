@@ -27,7 +27,7 @@
     "method": "GET",
     "url": "https://api.wave.com/v1/checkout/sessions/search"
   },
-  "example_prompt": "List Wave payments from the last 7 days for reconciliation.",
+  "example_prompt": "List Wave payments from the past week for daily reconciliation.",
   "input_schema": {
     "type": "object",
     "required": [

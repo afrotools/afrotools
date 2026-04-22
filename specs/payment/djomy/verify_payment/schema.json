@@ -21,7 +21,7 @@
     "method": "GET",
     "url": "https://sandbox-api.djomy.africa/v1/payments/{transactionId}/status"
   },
-  "example_prompt": "Verify server-side that a Djomy payment went through before I fulfill the order.",
+  "example_prompt": "Add server-side Djomy payment verification to my order fulfillment flow.",
   "input_schema": {
     "type": "object",
     "required": [

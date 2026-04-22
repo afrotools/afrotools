@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://portal.lengopay.com/api/v2/cashin/request"
   },
-  "example_prompt": "Collect a mobile money payment from my customer via LengoPay.",
+  "example_prompt": "Add LengoPay mobile money collection to my checkout.",
   "input_schema": {
     "type": "object",
     "required": [

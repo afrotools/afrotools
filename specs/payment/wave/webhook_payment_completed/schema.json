@@ -23,7 +23,7 @@
     "method": "POST",
     "url": "{your_webhook_url}"
   },
-  "example_prompt": "Handle the Wave webhook that fires when a checkout is paid.",
+  "example_prompt": "Add a Wave webhook handler to automatically confirm orders when payment completes.",
   "input_schema": {
     "type": "object",
     "description": "Payload que Wave POSTe à votre endpoint lors d'un événement checkout.session.completed.",

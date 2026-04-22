@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://portal.lengopay.com/api/v1/payments"
   },
-  "example_prompt": "Create a LengoPay payment request for a given amount.",
+  "example_prompt": "Add a LengoPay payment request to my checkout.",
   "input_schema": {
     "type": "object",
     "required": [

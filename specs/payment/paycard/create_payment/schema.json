@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://mapaycard.com/epay/create/"
   },
-  "example_prompt": "I need to accept a mobile money payment in Guinea with Paycard.",
+  "example_prompt": "Add Paycard mobile money payment to my checkout.",
   "input_schema": {
     "type": "object",
     "required": [

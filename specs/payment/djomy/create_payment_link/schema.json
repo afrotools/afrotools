@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://sandbox-api.djomy.africa/v1/links"
   },
-  "example_prompt": "Generate a Djomy payment link I can send to my customer.",
+  "example_prompt": "Add Djomy payment link to my payment workflow.",
   "input_schema": {
     "type": "object",
     "required": [

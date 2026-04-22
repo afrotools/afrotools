@@ -21,7 +21,7 @@
     "method": "PATCH",
     "url": "https://api.nimbasms.com/v1/verifications/{id}"
   },
-  "example_prompt": "Check if the OTP my user entered is correct.",
+  "example_prompt": "Verify the OTP my user entered during phone verification.",
   "input_schema": {
     "type": "object",
     "required": [

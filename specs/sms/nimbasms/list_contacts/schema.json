@@ -21,7 +21,7 @@
     "method": "GET",
     "url": "https://api.nimbasms.com/v1/contacts"
   },
-  "example_prompt": "List all contacts in my NimbaSMS address book.",
+  "example_prompt": "List contacts in my NimbaSMS address book.",
   "input_schema": {
     "type": "object",
     "properties": {

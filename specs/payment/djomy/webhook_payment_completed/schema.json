@@ -17,7 +17,7 @@
     "method": "POST",
     "url": "{your_webhook_url}"
   },
-  "example_prompt": "Handle the Djomy webhook that fires when a payment is confirmed.",
+  "example_prompt": "Add a Djomy webhook handler to automatically confirm orders when payment completes.",
   "input_schema": {
     "type": "object",
     "description": "Payload Djomy POSTs to your webhook URL when a payment event occurs.",

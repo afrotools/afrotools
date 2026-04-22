@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://portal.lengopay.com/api/v1/transaction/status"
   },
-  "example_prompt": "Verify server-side that a LengoPay payment went through before I fulfill the order.",
+  "example_prompt": "Add server-side LengoPay payment verification to my order fulfillment flow.",
   "input_schema": {
     "type": "object",
     "required": [

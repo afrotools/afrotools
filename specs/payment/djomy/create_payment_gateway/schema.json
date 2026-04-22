@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://sandbox-api.djomy.africa/v1/payments/gateway"
   },
-  "example_prompt": "Set up a Djomy payment gateway integration for my app.",
+  "example_prompt": "Add Djomy as a payment gateway to my app.",
   "input_schema": {
     "type": "object",
     "required": [

@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://sandbox-api.djomy.africa/v1/payments/{transactionReference}/confirmOTP"
   },
-  "example_prompt": "My user just entered their OTP to confirm a Djomy mobile money payment — authorize it.",
+  "example_prompt": "Add OTP confirmation to my Djomy payment flow.",
   "input_schema": {
     "type": "object",
     "required": [

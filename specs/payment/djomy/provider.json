@@ -4,5 +4,5 @@
   "category": "payment",
   "country_code": ["GN"],
   "description": "Djomy is a Guinean payment solution offering payment links, QR code payments, and mobile money integrations via a unified API.",
-  "example_prompt": "I want to add Djomy mobile money payments to my app."
+  "example_prompt": "Add Djomy mobile money payments to my app."
 }

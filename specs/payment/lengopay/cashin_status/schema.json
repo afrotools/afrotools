@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://portal.lengopay.com/api/v2/cashin/transaction"
   },
-  "example_prompt": "Check whether my LengoPay cashin request has been paid yet.",
+  "example_prompt": "Add LengoPay payment status polling to my order flow.",
   "input_schema": {
     "type": "object",
     "required": [

@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://sandbox-api.djomy.africa/v1/payments"
   },
-  "example_prompt": "Start a Djomy mobile money payment and redirect my user to complete it.",
+  "example_prompt": "Add Djomy mobile money payment to my checkout.",
   "input_schema": {
     "type": "object",
     "required": [

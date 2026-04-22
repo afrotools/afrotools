@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://portal.lengopay.com/api/v1/cashin/all-transactions"
   },
-  "example_prompt": "List today's incoming LengoPay payments for reconciliation.",
+  "example_prompt": "List today's LengoPay incoming payments for reconciliation.",
   "input_schema": {
     "type": "object",
     "required": [

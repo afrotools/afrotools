@@ -21,7 +21,7 @@
     "method": "GET",
     "url": "https://api.nimbasms.com/v1/accounts"
   },
-  "example_prompt": "Check how many SMS credits I have left on NimbaSMS.",
+  "example_prompt": "Check my NimbaSMS credit balance.",
   "input_schema": {
     "type": "object",
     "properties": {}

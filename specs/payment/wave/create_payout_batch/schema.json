@@ -27,7 +27,7 @@
     "method": "POST",
     "url": "https://api.wave.com/v1/payout-batch"
   },
-  "example_prompt": "Send payouts to multiple recipients at once via Wave.",
+  "example_prompt": "Add batch Wave payouts to multiple recipients to my payout workflow.",
   "input_schema": {
     "type": "object",
     "required": [

@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://api.nimbasms.com/v1/contacts"
   },
-  "example_prompt": "Save a contact to my NimbaSMS address book.",
+  "example_prompt": "Add a contact to my NimbaSMS address book.",
   "input_schema": {
     "type": "object",
     "required": [

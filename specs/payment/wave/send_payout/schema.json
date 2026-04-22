@@ -27,7 +27,7 @@
     "method": "POST",
     "url": "https://api.wave.com/v1/payout"
   },
-  "example_prompt": "Send money to a recipient's Wave mobile wallet.",
+  "example_prompt": "Add Wave payouts to my disbursement flow.",
   "input_schema": {
     "type": "object",
     "required": [

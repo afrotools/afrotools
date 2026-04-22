@@ -17,7 +17,7 @@
     "method": "POST",
     "url": "{your_callback_url}"
   },
-  "example_prompt": "Handle the Paycard webhook that fires when a payment is done.",
+  "example_prompt": "Add a Paycard webhook handler to automatically confirm orders when payment completes.",
   "input_schema": {
     "type": "object",
     "description": "Payload Paycard POSTs to your paycard-callback-url when a payment completes.",

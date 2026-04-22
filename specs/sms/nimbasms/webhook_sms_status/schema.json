@@ -18,7 +18,7 @@
     "method": "POST",
     "url": "https://your-app.com/webhooks/sms-status"
   },
-  "example_prompt": "Handle NimbaSMS delivery status updates for messages I sent.",
+  "example_prompt": "Add a NimbaSMS delivery status webhook to track message delivery in my app.",
   "input_schema": {
     "type": "object",
     "required": [

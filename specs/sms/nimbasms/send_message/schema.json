@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://api.nimbasms.com/v1/messages"
   },
-  "example_prompt": "Send an SMS to a Guinean phone number via NimbaSMS.",
+  "example_prompt": "Add SMS sending to my app via NimbaSMS.",
   "input_schema": {
     "type": "object",
     "required": [

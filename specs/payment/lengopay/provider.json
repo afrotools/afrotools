@@ -4,5 +4,5 @@
   "category": "payment",
   "country_code": ["GN"],
   "description": "LengoPay is a Guinean mobile money platform supporting multi-operator cashin and cashout via a REST API.",
-  "example_prompt": "I need to collect mobile money payments from my customers using LengoPay."
+  "example_prompt": "Add LengoPay mobile money payments to my app."
 }

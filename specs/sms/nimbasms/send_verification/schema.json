@@ -21,7 +21,7 @@
     "method": "POST",
     "url": "https://api.nimbasms.com/v1/verifications"
   },
-  "example_prompt": "Send an OTP to my user's phone number to verify it.",
+  "example_prompt": "Add phone number verification via SMS to my signup flow.",
   "input_schema": {
     "type": "object",
     "required": [

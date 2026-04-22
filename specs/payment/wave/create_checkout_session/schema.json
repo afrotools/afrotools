@@ -27,7 +27,7 @@
     "method": "POST",
     "url": "https://api.wave.com/v1/checkout/sessions"
   },
-  "example_prompt": "Create a Wave payment page for my customer and get the URL to redirect them to.",
+  "example_prompt": "Add Wave checkout to my e-commerce payment flow.",
   "input_schema": {
     "type": "object",
     "required": [

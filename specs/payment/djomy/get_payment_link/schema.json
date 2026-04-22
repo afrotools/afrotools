@@ -21,7 +21,7 @@
     "method": "GET",
     "url": "https://sandbox-api.djomy.africa/v1/links/{reference}"
   },
-  "example_prompt": "Check if my customer has paid the Djomy link I sent them.",
+  "example_prompt": "Add a check to see if a customer has paid via the Djomy link I sent them.",
   "input_schema": {
     "type": "object",
     "required": [

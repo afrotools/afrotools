@@ -27,7 +27,7 @@
     "method": "POST",
     "url": "https://api.wave.com/v1/verify_recipient"
   },
-  "example_prompt": "Check that a phone number can receive a Wave payout before I send it.",
+  "example_prompt": "Add a Wave recipient check before sending a payout.",
   "input_schema": {
     "type": "object",
     "required": [

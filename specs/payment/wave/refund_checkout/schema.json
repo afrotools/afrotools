@@ -27,7 +27,7 @@
     "method": "POST",
     "url": "https://api.wave.com/v1/checkout/sessions/{id}/refund"
   },
-  "example_prompt": "Refund a Wave payment to my customer.",
+  "example_prompt": "Add Wave payment refunds to my order management flow.",
   "input_schema": {
     "type": "object",
     "required": [
