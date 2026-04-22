@@ -1,91 +1,77 @@
 # Afro.tools — AI-ready infrastructure for African APIs
 
-African APIs are production-grade. What's been missing is a standard, machine-readable format that lets AI coding agents consume them directly — without parsing documentation pages or guessing at request shapes.
+African APIs sont production-grade. Ce qui manquait : un format
+machine-readable standardisé que les agents IA peuvent consommer
+directement — sans parser des pages de documentation ni deviner
+les shapes de requêtes.
 
-Afro.tools fills that gap: a static, open-source registry of structured API specs for African APIs — payments, SMS, identity, logistics, and beyond. Each spec is verified against the live API and exposes exactly what an AI agent needs to generate correct integration code on the first try.
-
-**Built for:**
-- Developers integrating African APIs into their apps
-- AI coding assistants (Claude, Cursor, Copilot, and others) that need reliable specs to generate code
-- Contributors who want to document providers they've integrated
+Afro.tools comble ce vide : un registre statique, open source,
+de specs structurées pour les APIs africaines. Chaque spec est
+vérifiée contre l'API réelle et expose exactement ce qu'un agent
+IA a besoin pour générer du code d'intégration correct du premier coup.
 
 ---
 
-## How it works
+## Comment ça marche
 
 ```mermaid
 graph LR
     A["specs/ — open source"] -->|GitHub raw URLs| B["MCP server\nmcp.afro.tools"]
-    B -->|MCP protocol| C["AI agent\nClaude · Cursor · Copilot · ..."]
-    C -->|generates| D["Integration code\nin your app"]
+    B -->|MCP protocol| C["Agent IA\nClaude · Cursor · Copilot · ..."]
+    C -->|génère| D["Code d'intégration\ndans ton app"]
     A -->|plugin| C
 ```
 
 ---
 
-## What is a spec?
+## Qu'est-ce qu'une spec ?
 
-A spec lives at `specs/{category}/{provider}/{capability}/` and contains exactly two files:
+Une spec vit dans `specs/{category}/{provider}/{capability}/` et contient deux fichiers :
 
-- **`schema.json`** — ATSS-compliant description of the API capability (endpoint, auth, input/output schemas, gotchas)
-- **`canonical_example.ts`** — TypeScript implementation using native fetch, compiles with `tsc --noEmit`
+- **`schema.json`** — description ATSS-compliant de la capability API (endpoint, auth, input/output schemas, gotchas)
+- **`canonical_example.ts`** — implémentation TypeScript avec native fetch, compile avec `tsc --noEmit`
 
-See [ATSS.md](./ATSS.md) for the full specification.
+Chaque provider a aussi un **`provider.json`** à la racine de son dossier :
+
+```
+specs/payment/paycard/
+├── provider.json                    ← metadata + description + example_prompt global
+├── create_payment/
+│   ├── schema.json
+│   └── canonical_example.ts
+├── verify_payment/
+└── webhook_payment_completed/
+```
+
+Voir [ATSS.md](./ATSS.md) pour la spécification complète.
 
 ---
 
 ## Providers
 
-| Provider | Category | Country | Capabilities | Status |
-|---|---|---|---|---|
-| Paycard | payment | GN | create_payment, verify_payment, webhook_payment_completed | ✅ Verified |
-| LengoPay | payment | GN | create_payment, verify_payment, webhook_payment_completed | ✅ Verified |
-| Wave | payment | SN, CI, ML | create_payment, verify_payment, webhook_payment_completed | Planned |
-| Djomy | payment | GN | create_payment, verify_payment | Planned |
-| Bictorys | payment | — | create_payment, verify_payment, webhook_payment_completed | Planned |
-| NimbaSMS | sms | GN | send_otp, send_bulk | Planned |
+<!-- tableau généré automatiquement par le pipeline — ne pas éditer manuellement -->
+| Provider | Catégorie | Pays | Capabilities | Statut |
+|----------|-----------|------|-------------|--------|
+| Paycard | payment | 🇬🇳 | 3 | ✅ AI Ready |
+| Djomy | payment | 🇬🇳 | 7 | 4 verified · 3 ready |
+| LengoPay | payment | 🇬🇳 | 8 | 2 verified · 6 ready |
+| NimbaSMS | sms | 🇬🇳 | 11 | 📋 Ready |
+| Wave | payment | 🇸🇳 🇨🇮 🇲🇱 +8 | 12 | 📋 Ready |
+<!-- fin du tableau -->
+
+**Légende :** ✅ AI Ready = toutes les capabilities `verified` · X verified · Y ready = en attente de validation en prod · 📋 Ready = spec validée · 🗓 Planifié = specs à venir
 
 ---
 
-## Use with an MCP client
+## Utiliser avec un client MCP
 
-Add to your MCP client configuration:
-
-### Claude Desktop (`claude_desktop_config.json`)
-
-```json
-{
-  "mcpServers": {
-    "afrotools": {
-      "type": "http",
-      "url": "https://mcp.afro.tools/mcp"
-    }
-  }
-}
-```
-
-### Cursor / Windsurf / other editors
-
-```json
-{
-  "mcp": {
-    "servers": {
-      "afrotools": {
-        "type": "http",
-        "url": "https://mcp.afro.tools/mcp"
-      }
-    }
-  }
-}
-```
-
-### Claude Code (CLI)
+### Claude Code
 
 ```bash
 claude mcp add --transport http afrotools https://mcp.afro.tools/mcp
 ```
 
-Or add to your project's `.mcp.json`:
+### Cursor / Windsurf / VS Code Copilot
 
 ```json
 {
@@ -100,53 +86,35 @@ Or add to your project's `.mcp.json`:
 
 ---
 
-## Claude Code plugin
+## Plugin Claude Code
 
-Install the plugin to get Afro.tools skills directly in your editor:
-
-```text
+```
 /plugin marketplace add afrotools/afrotools
 /plugin install afrotools
 ```
 
-The plugin includes:
+**Skills auto-activés** selon le contexte :
+- `payment` — intégration d'une API de paiement
+- `sms` — intégration d'une API SMS
+- `debug` — quand une intégration basée sur une spec afrotools échoue → diagnostique si le problème vient de la spec, d'un gotcha manquant ou d'un changement d'API non documenté
 
-**Auto-activated skills** (trigger automatically based on your request):
-
-- **`payment`** — integrating a payment API → fetches the right spec before writing any code
-- **`sms`** — integrating an SMS API → same
-- **`debug`** — debugging a failing integration → cross-checks your code against the spec and gotchas
-
-**Manual commands:**
-
-- **`/afrotools:spec <provider> <capability>`** — inspect the full spec for a provider/capability
-- **`/afrotools:list`** — list all available specs with their status
-- **`/afrotools:new <category> <provider> <capability>`** — scaffold a new spec (for contributors)
+**Commandes manuelles :**
+- `/afrotools:spec <provider> <capability>` — inspecter une spec complète
+- `/afrotools:list` — lister toutes les specs disponibles
+- `/afrotools:new <category> <provider> <capability>` — scaffolder une nouvelle spec
 
 ---
 
-## Standalone SKILL.md
+## Contribuer
 
-If you don't use the plugin, you can copy a single `SKILL.md` into your project:
+Voir [CONTRIBUTING.md](./CONTRIBUTING.md) pour ajouter une spec ou améliorer une existante.
 
-```text
-plugin/skills/payment/SKILL.md   ← for payment integrations
-plugin/skills/sms/SKILL.md       ← for SMS integrations
-```
+Lifecycle des specs : `draft → ready → verified`
 
-Place it in your project's `.claude/skills/` directory and Claude Code will pick it up automatically.
+Un provider affiche le badge **AI Ready** quand toutes ses capabilities sont `verified`.
 
 ---
 
-## Contributing
+## Licence
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) to add a spec or improve an existing one.
-
-All specs go through a lifecycle: `draft → compliant → verified`.
-A provider is **AI Ready** when all its capabilities reach `verified`.
-
----
-
-## License
-
-Apache 2.0 — see [LICENSE](./LICENSE).
+Apache 2.0 — voir [LICENSE](./LICENSE).

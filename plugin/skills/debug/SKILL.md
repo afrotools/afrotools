@@ -1,10 +1,13 @@
 ---
 name: debug
 description: >
-  Use this skill when the user has a failing or broken Afro.tools integration —
-  wrong status codes, auth errors, webhook not firing, unexpected response fields,
-  or any runtime error from a Paycard, LengoPay, NimbaSMS, or other Afro.tools
-  provider. Activate even if the user just pastes an error without context.
+  Use this skill ONLY when the user has a failing integration that is specifically
+  based on an Afro.tools spec — the user is integrating a provider whose spec exists
+  in the Afro.tools registry (Paycard, LengoPay, Djomy, Wave, NimbaSMS, etc.) and
+  encounters wrong status codes, auth errors, webhook failures, unexpected response
+  fields, or runtime errors. Do NOT activate for generic debugging, non-afrotools
+  providers, or integrations not based on an Afro.tools spec. This skill diagnoses
+  whether the problem is a spec error, a missing gotcha, or an undocumented API change.
 ---
 
 # Afro.tools — Debug skill
