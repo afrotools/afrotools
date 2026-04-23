@@ -1,6 +1,6 @@
 # Afro.tools — AI-ready infrastructure for African APIs
 
-> Integrate Wave, Paycard, or Orange Money in a single prompt.
+> Integrate Wave, Paycard, and any African API in a single prompt.
 
 African APIs are production-grade. What's been missing is a standard,
 machine-readable format that AI agents can consume directly — without
