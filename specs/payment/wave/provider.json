@@ -16,7 +16,7 @@
     "CD"
   ],
   "website": "https://www.wave.com",
-  "docs_url": "https://docs.wave.com",
+  "docs_url": "https://docs.wave.com/business",
   "docs_public": true,
   "sandbox": false,
   "description": "Wave is a mobile money operator active in 11 African countries offering checkout sessions for e-commerce payments and batch payouts via a REST API.",
