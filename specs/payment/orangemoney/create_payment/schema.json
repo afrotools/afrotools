@@ -1,0 +1,130 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "create_payment",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XOF"
+  ],
+  "auth": {
+    "type": "oauth2",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {access_token}",
+    "env_var": "ORANGE_MONEY_BASIC_TOKEN"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.orange.com/orange-money-webpay/ml/v1/webpayment"
+  },
+  "example_prompt": "Add Orange Money Mali web payment to my checkout flow: obtain an OAuth2 Bearer token, create a payment session, store the returned pay_token / notif_token, then redirect the user to payment_url.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "merchant_key",
+      "currency",
+      "order_id",
+      "amount",
+      "return_url",
+      "cancel_url",
+      "notif_url"
+    ],
+    "properties": {
+      "merchant_key": {
+        "type": "string",
+        "description": "Merchant key issued by Orange Money. Distinct from the OAuth credentials. Must be sent in the request body of every payment creation call."
+      },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code. For Mali use 'XOF'. The currency must match the country segment in the endpoint URL (here: /ml/)."
+      },
+      "order_id": {
+        "type": "string",
+        "description": "Unique identifier for this transaction in your own system. MUST be unique per attempt — reusing the same order_id returns HTTP 403."
+      },
+      "amount": {
+        "type": "integer",
+        "description": "Amount to charge, in the smallest unit of the currency. XOF has no decimals — pass an integer (e.g. 1000 for 1 000 FCFA)."
+      },
+      "return_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "HTTPS URL where the customer is redirected after a successful payment."
+      },
+      "cancel_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "HTTPS URL where the customer is redirected if they cancel the payment."
+      },
+      "notif_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "HTTPS URL Orange Money POSTs to asynchronously when the transaction reaches a final state. MUST be publicly reachable from the internet — Orange Money does not retry failed deliveries."
+      },
+      "lang": {
+        "type": "string",
+        "description": "Language of the hosted payment page. Common values: 'fr', 'en'. Defaults to 'fr' if omitted."
+      },
+      "reference": {
+        "type": "string",
+        "description": "Free-text label echoed back in the dashboard and in the notification payload. Useful for human-readable reconciliation. Distinct from order_id."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "integer",
+        "description": "HTTP status echoed in the body. 201 on success."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable status message."
+      },
+      "pay_token": {
+        "type": "string",
+        "description": "Server-side token identifying this payment session within Orange Money. Store it to query the transaction status later."
+      },
+      "payment_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL of the hosted Orange Money payment page. Redirect the user's browser to this URL to complete the payment."
+      },
+      "notif_token": {
+        "type": "string",
+        "description": "One-time token Orange Money will include in the asynchronous notification POST to your notif_url. Use it to authenticate the webhook payload server-side."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": [
+          "integer",
+          "string"
+        ],
+        "description": "Error code. Common cases: 401 (invalid Bearer), 403 (duplicated order_id or invalid merchant_key), 400 (missing/invalid field)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      },
+      "description": {
+        "type": "string",
+        "description": "Optional longer description of the error returned by the OAuth or webpayment endpoint."
+      }
+    }
+  },
+  "gotchas": [
+    "Two distinct credentials are required: ORANGE_MONEY_BASIC_TOKEN (base64 of clientId:clientSecret, used to obtain the OAuth Bearer) and ORANGE_MONEY_MERCHANT_KEY (sent in the request body). They are NOT interchangeable.",
+    "order_id MUST be unique across all attempts. Reusing a previous order_id returns HTTP 403 Forbidden — generate a fresh value (e.g. UUID) for every retry, even after a failure.",
+    "amount is an integer in the smallest unit of the currency. XOF has no sub-unit, so '1000' means 1 000 FCFA, not 10.00 FCFA. Sending a decimal is rejected.",
+    "notif_url must be a publicly reachable HTTPS endpoint. Orange Money does not retry on failure — if your endpoint times out or returns a non-2xx, the notification is lost and you must reconcile manually.",
+    "The OAuth access token returned by /oauth/v3/token is short-lived. Request a fresh token before each create_payment call (or cache it with a safety margin under the documented expires_in) — do not embed a long-lived token in code.",
+    "The endpoint path is country-specific: /orange-money-webpay/ml/v1/webpayment for Mali. Other countries (SN, CI, BF, etc.) use a different path segment — do not assume one URL covers all Orange Money markets.",
+    "Always verify the payment server-side via the notif_url callback (using notif_token) before fulfilling the order. The browser redirect to return_url alone can be spoofed and is not proof of payment."
+  ]
+}

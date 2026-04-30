@@ -1,0 +1,71 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "webhook_payment_completed",
+  "capability_type": "webhook",
+  "status": "ready",
+  "currency": [
+    "XOF"
+  ],
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_notif_url}"
+  },
+  "example_prompt": "Add an Orange Money Mali webhook handler at the URL passed as notif_url in create_payment. Authenticate the inbound POST by matching the notif_token field against the value previously stored when the payment was created, then mark the order as paid only when status === 'SUCCESS'.",
+  "input_schema": {
+    "type": "object",
+    "description": "Payload Orange Money POSTs (Content-Type: application/json) to your notif_url when a transaction reaches a final state. Field names follow the Orange Money Web Payment v1 contract.",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Final transaction status. Known values include: 'SUCCESS' (paid), 'FAILED' (rejected by user or operator), 'EXPIRED' (timeout). Treat anything other than 'SUCCESS' as not-paid."
+      },
+      "txnid": {
+        "type": "string",
+        "description": "Orange Money transaction identifier — useful for support and reconciliation."
+      },
+      "pay_token": {
+        "type": "string",
+        "description": "The pay_token returned by create_payment for this session. Use it to look up the order in your database."
+      },
+      "notif_token": {
+        "type": "string",
+        "description": "The notif_token returned by create_payment for this session. MUST match the value you persisted at creation time — this is the only way to authenticate the webhook (Orange Money does not sign the payload otherwise)."
+      },
+      "order_id": {
+        "type": "string",
+        "description": "The order_id you supplied to create_payment. Echoed back so you can locate the order without joining on pay_token."
+      },
+      "amount": {
+        "type": [
+          "string",
+          "integer"
+        ],
+        "description": "Amount that was authorised, in the smallest currency unit. May be returned as a string depending on the country/version — coerce defensively."
+      },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code, e.g. 'XOF'."
+      },
+      "reference": {
+        "type": "string",
+        "description": "Free-text reference you supplied to create_payment, echoed back."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "Your endpoint must return HTTP 200 within a few seconds. The response body is ignored. A non-2xx response or a timeout means the notification is lost — Orange Money does not retry."
+  },
+  "error_schema": {},
+  "gotchas": [
+    "The ONLY authentication mechanism is matching the inbound notif_token against the value you stored when create_payment returned. Reject any POST whose notif_token does not match a known session — anyone who guesses your URL can otherwise POST to it.",
+    "Return HTTP 200 immediately, before doing any business work. Orange Money does NOT retry a failed delivery — if your handler times out (typically after a few seconds) or throws, the notification is permanently lost and you must reconcile manually.",
+    "Treat status === 'SUCCESS' as the only paid state. 'FAILED' / 'EXPIRED' (and any other value) mean the customer was not charged. Do not rely on the mere fact of receiving a webhook to fulfill the order.",
+    "The exact set of fields and casing in the JSON payload may vary across Orange Money country deployments and API versions. Code defensively: validate notif_token first, then read fields with optional chaining and explicit type coercion (e.g. amount may be a string).",
+    "Orange Money never calls back the return_url server-side — the user's browser is just redirected there. Order fulfillment MUST happen from this webhook handler (or a polled status check), never from the return_url request."
+  ]
+}

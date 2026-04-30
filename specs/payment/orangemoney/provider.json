@@ -1,0 +1,14 @@
+{
+  "slug": "orangemoney",
+  "name": "Orange Money",
+  "category": "payment",
+  "country_code": [
+    "ML"
+  ],
+  "website": "https://developer.orange.com",
+  "docs_url": "https://developer.orange.com/apis/om-webpay",
+  "docs_public": true,
+  "sandbox": false,
+  "description": "Orange Money is the leading mobile money operator in West and Central Africa. The Orange Money Web Payment API lets merchants generate hosted payment pages from a server-side Bearer token obtained via OAuth2 client_credentials. This spec covers the Mali (ML) endpoint; the same API shape is exposed per country under /orange-money-webpay/{country}/v1/webpayment.",
+  "example_prompt": "Add Orange Money Mali web payment to my checkout: obtain a Bearer token via OAuth2, create a hosted payment session, redirect the user to the returned payment_url, then verify the payment server-side from the notif_url callback before fulfilling the order."
+}
