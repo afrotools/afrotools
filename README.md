@@ -57,6 +57,7 @@ See [ATSS.md](./ATSS.md) for the full specification.
 | Djomy | payment | 🇬🇳 | 7 | 4 verified · 3 ready |
 | LengoPay | payment | 🇬🇳 | 8 | 2 verified · 6 ready |
 | NimbaSMS | sms | 🇬🇳 | 11 | 📋 Ready |
+| Orange Money Mali | payment | 🇲🇱 | 2 | 📋 Ready |
 | Wave | payment | 🇸🇳 🇨🇮 🇲🇱 +8 | 12 | 📋 Ready |
 <!-- fin du tableau -->
 
