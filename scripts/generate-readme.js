@@ -17,7 +17,7 @@ const path = require("path")
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const SPECS_ROOT = path.resolve(__dirname, "../specs")
-const README_PATH = path.resolve(__dirname, "../README.md")
+const README_PATH = process.env.README_PATH ?? path.resolve(__dirname, "../README.md")
 const START_MARKER =
   "<!-- tableau généré automatiquement par le pipeline — ne pas éditer manuellement -->"
 const END_MARKER = "<!-- fin du tableau -->"
