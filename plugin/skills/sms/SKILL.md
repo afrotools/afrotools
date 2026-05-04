@@ -16,7 +16,9 @@ for the target provider and capability before writing any implementation code.
 
 1. Identify the provider slug and capability from the user's request.
    - Provider slugs: `nimbasms`
-   - Capabilities: `send_otp`, `send_bulk`
+   - Capabilities: `send_message`, `send_verification`, `verify_code`, `get_balance`,
+     `get_message`, `list_messages`, `list_contacts`, `create_contact`, `list_groups`,
+     `list_sendernames`, `webhook_sms_status`
    - If the requested provider has no spec yet:
      1. Call `afrotools.request_spec({ provider: "<slug>", capability: "<capability>" })`
         so the maintainers are notified of the demand.

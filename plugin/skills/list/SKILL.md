@@ -22,7 +22,7 @@ Lists all specs available in the Afro.tools registry.
 ## What it returns
 
 A table of available specs with their provider, category, capability, country,
-currency, and current status (`draft`, `compliant`, or `verified`).
+currency, and current status (`draft`, `ready`, or `verified`).
 
 ## MCP call
 

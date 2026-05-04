@@ -16,8 +16,8 @@ for the target provider and capability before writing any implementation code.
 ## Workflow
 
 1. Identify the provider slug and capability from the user's request.
-   - Providers with specs available: `paycard`, `lengopay`
-   - Providers planned (no spec yet): `wave`, `djomy`, `bictorys`
+   - Providers with specs available: `paycard`, `lengopay`, `wave`, `djomy`, `orangemoney-mali`
+   - Providers planned (no spec yet): `bictorys`
    - If the requested provider has no spec yet:
      1. Call `afrotools.request_spec({ provider: "<slug>", capability: "<capability>" })`
         so the maintainers are notified of the demand.
