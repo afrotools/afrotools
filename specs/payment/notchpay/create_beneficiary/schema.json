@@ -1,0 +1,136 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "create_beneficiary",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PRIVATE_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.notchpay.co/beneficiaries"
+  },
+  "example_prompt": "Add a new Notch Pay beneficiary for MTN MoMo to use as a transfer recipient.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "channel",
+      "name",
+      "account_number"
+    ],
+    "properties": {
+      "channel": {
+        "type": "string",
+        "description": "Payment channel slug, e.g. \"cm.mtn\" for MTN Cameroon or \"cm.orange\" for Orange Money Cameroon."
+      },
+      "name": {
+        "type": "string",
+        "description": "Full name of the beneficiary."
+      },
+      "account_number": {
+        "type": "string",
+        "description": "Phone number or account number associated with the channel (e.g. +237XXXXXXXXX for mobile money)."
+      },
+      "email": {
+        "type": "string",
+        "format": "email",
+        "description": "Optional email address of the beneficiary."
+      },
+      "phone": {
+        "type": "string",
+        "description": "Optional phone number of the beneficiary."
+      },
+      "description": {
+        "type": "string",
+        "description": "Optional free-form description for the beneficiary, useful for internal labelling (e.g. \"Payroll - Marketing team\")."
+      },
+      "country": {
+        "type": "string",
+        "description": "Optional ISO 3166-1 alpha-2 country code (e.g. \"CM\"). When omitted, Notch Pay infers the country from the channel slug."
+      },
+      "reference": {
+        "type": "string",
+        "description": "Optional unique reference you assign to this beneficiary for reconciliation. Notch Pay rejects duplicates."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, e.g. \"Created\"."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP-like code, 201 on success."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable confirmation, e.g. \"Beneficiary created\"."
+      },
+      "beneficiary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique beneficiary ID. Store this to use in transfer and delete operations."
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "payment_method": {
+            "type": "string",
+            "description": "The resolved payment method for this beneficiary."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (401, 422)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "The Authorization header value is your public key with no prefix — do not add 'Bearer ' or 'Basic ' before it.",
+    "The channel slug must exactly match a Notch Pay supported channel (e.g. \"cm.mtn\", \"cm.orange\"). An invalid channel returns a 422 error without listing valid values.",
+    "account_number must be a valid phone number for mobile money channels — include the country code (e.g. +237XXXXXXXXX). Passing just a local number may fail silently or create an unusable beneficiary.",
+    "Store the returned beneficiary.id immediately — it is required to initiate transfers to this recipient and to delete the beneficiary later.",
+    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable.",
+    "The channel slug determines the settlement currency: cm.* → XAF, ci.*/sn.* → XOF, ke.* → KES, ug.* → UGX, gh.* → GHS. The currency does not need to be specified at beneficiary creation but is fixed by the channel."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "slug": "notchpay",
+  "name": "Notch Pay",
+  "category": "payment",
+  "country_code": ["CM", "CI", "SN", "KE", "UG", "GH"],
+  "website": "https://notchpay.co",
+  "docs_url": "https://developer.notchpay.co/api-reference",
+  "docs_public": true,
+  "sandbox": true,
+  "description": "Notch Pay is a payment gateway enabling businesses to accept and send money via mobile money (MTN MoMo, Orange Money, M-Pesa, Wave, Airtel) across Cameroon, Côte d'Ivoire, Senegal, Kenya, Uganda and Ghana. Each market settles in its local currency (XAF in CM; XOF in CI/SN; KES, UGX, GHS).",
+  "example_prompt": "Add Notch Pay checkout to accept MTN MoMo and Orange Money payments in Cameroon."
+}

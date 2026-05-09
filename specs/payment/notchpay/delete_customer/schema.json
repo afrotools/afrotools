@@ -1,0 +1,79 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "delete_customer",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "DELETE",
+    "url": "https://api.notchpay.co/customers/{id}"
+  },
+  "example_prompt": "Permanently delete a customer from Notch Pay by their ID.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Unique identifier of the customer to delete. Interpolated into the URL path."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response status label, e.g. 'Accepted'."
+      },
+      "code": {
+        "type": "integer",
+        "description": "202 on success."
+      },
+      "message": {
+        "type": "string",
+        "description": "Confirmation message, e.g. 'Customer deleted successfully'."
+      },
+      "customer": {
+        "type": "array",
+        "description": "Always an empty array [] after successful deletion.",
+        "items": {}
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "code": {
+        "type": "integer"
+      },
+      "message": {
+        "type": "string"
+      }
+    }
+  },
+  "gotchas": [
+    "Deletion is permanent and irreversible. There is no soft-delete or recycle bin — once deleted, the customer and all associated data cannot be recovered via the API.",
+    "A 404 is returned if the customer ID does not exist or no longer belongs to your account. Check for 404 separately from other error codes.",
+    "Deleting a customer does not automatically cancel or refund any associated payments. Resolve outstanding transactions before deleting the customer record."
+  ]
+}

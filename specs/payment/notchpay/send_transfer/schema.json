@@ -1,0 +1,136 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "send_transfer",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PRIVATE_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.notchpay.co/transfers"
+  },
+  "example_prompt": "Send money to a beneficiary via MTN MoMo or Orange Money using Notch Pay.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "amount",
+      "currency",
+      "description"
+    ],
+    "properties": {
+      "amount": {
+        "type": "number",
+        "description": "Amount to transfer. Integer for XAF (no decimals)."
+      },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code, e.g. \"XAF\"."
+      },
+      "description": {
+        "type": "string",
+        "description": "Human-readable reason for the transfer."
+      },
+      "beneficiary": {
+        "type": "string",
+        "description": "ID of an existing beneficiary. Either beneficiary or recipient+channel is required."
+      },
+      "recipient": {
+        "type": "string",
+        "description": "Phone number or account number of the recipient. Used with channel when no saved beneficiary."
+      },
+      "channel": {
+        "type": "string",
+        "description": "Payment channel slug (e.g. \"cm.mtn\", \"cm.orange\"). Required when using recipient instead of beneficiary."
+      },
+      "reference": {
+        "type": "string",
+        "description": "Optional unique reference you assign to this transfer for reconciliation. Auto-generated if omitted; reusing a reference returns a 422 conflict."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, e.g. \"Accepted\"."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable confirmation."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP-like code, 201 on success."
+      },
+      "transfer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string",
+            "description": "Transfer reference. Store this to call verify_transfer later."
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "Initial transfer status, typically \"pending\"."
+          },
+          "beneficiary": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (400, 401, 422)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "Transfers are not immediately settled — the initial status is \"pending\". Always call verify_transfer (GET /transfers/{reference}) to confirm completion before recording the disbursement as successful.",
+    "Either beneficiary (saved beneficiary ID) or the recipient+channel pair is required. Providing neither returns a 422 error.",
+    "All transfer endpoints require an additional `X-Grant` header for enhanced security. Generate this grant token in your Notch Pay dashboard and pass it as `X-Grant: {token}`. Requests without this header return 401.",
+    "Your server's IP address must be whitelisted in the Notch Pay dashboard before API transfers will be accepted. Requests from non-whitelisted IPs are rejected regardless of valid API credentials.",
+    "The Authorization header uses your public key with no 'Bearer ' prefix.",
+    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable.",
+    "The currency must match the channel's country: XAF for cm.* channels (Cameroon), XOF for ci.*/sn.* (Côte d'Ivoire/Senegal), KES for ke.* (Kenya), UGX for ug.* (Uganda), GHS for gh.* (Ghana). A mismatch returns 422."
+  ]
+}

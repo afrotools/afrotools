@@ -1,0 +1,175 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "create_customer",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.notchpay.co/customers"
+  },
+  "example_prompt": "Create a new customer on Notch Pay with their name, email and phone number.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "email": {
+        "type": "string",
+        "format": "email",
+        "description": "Email address of the customer. At least one of email or phone is required."
+      },
+      "phone": {
+        "type": "string",
+        "description": "Phone number of the customer. At least one of email or phone is required."
+      },
+      "name": {
+        "type": "string",
+        "description": "Optional full name of the customer."
+      },
+      "company_name": {
+        "type": "string",
+        "description": "Optional company name of the customer."
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Free-form key/value metadata stored on the customer. Returned as-is in subsequent reads.",
+        "additionalProperties": true
+      },
+      "address": {
+        "type": "object",
+        "description": "Postal address of the customer.",
+        "properties": {
+          "country": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2 country code."
+          },
+          "state": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "address_line1": {
+            "type": "string"
+          },
+          "address_line2": {
+            "type": "string"
+          }
+        }
+      },
+      "billing": {
+        "type": "object",
+        "description": "Optional billing address (same shape as address). Used when distinct from the postal address.",
+        "properties": {
+          "country": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "address_line1": {
+            "type": "string"
+          },
+          "address_line2": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response status label, e.g. 'Created'."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP status code, 201 on success."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable success message."
+      },
+      "customer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique customer identifier, e.g. 'cus.test_xxx'."
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": ["string", "null"]
+          },
+          "name": {
+            "type": "string"
+          },
+          "company_name": {
+            "type": ["string", "null"]
+          },
+          "tax_number": {
+            "type": ["string", "null"]
+          },
+          "metadata": {
+            "type": ["object", "null"]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "code": {
+        "type": "integer"
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "At least one of email or phone is required. Submitting only name returns a 422 validation error — the Notch Pay docs make 'name' look mandatory but the API really enforces 'one of email/phone'.",
+    "The Authorization header must contain the public key directly as the token value — not prefixed with 'Bearer'. The format is exactly the key string.",
+    "Customer IDs returned by Notch Pay are opaque strings. Do not apply encodeURIComponent to these IDs when constructing path-based URLs — pass them as-is.",
+    "The address object uses 'address_line1' / 'address_line2' (and optional 'state'), not 'street'. Sending 'street' silently drops the field."
+  ]
+}

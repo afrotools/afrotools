@@ -1,0 +1,110 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "list_customer_payments",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.notchpay.co/customers/{id}/payments"
+  },
+  "example_prompt": "List all payments associated with a specific Notch Pay customer, paginated.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Unique identifier of the customer. Interpolated into the URL path."
+      },
+      "limit": {
+        "type": "integer",
+        "description": "Number of results per page."
+      },
+      "page": {
+        "type": "integer",
+        "description": "Page number to retrieve (1-based)."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "code": {
+        "type": "integer",
+        "description": "200 on success."
+      },
+      "payments": {
+        "type": "array",
+        "description": "Array of payment objects associated with the customer. Note: top-level array is named 'payments', not 'items'.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "reference": { "type": "string" },
+            "amount": { "type": "number" },
+            "currency": { "type": "string" },
+            "status": { "type": "string" },
+            "customer": { "type": "string" },
+            "created_at": { "type": "string", "format": "date-time" },
+            "completed_at": { "type": ["string", "null"], "format": "date-time" },
+            "payment_method": { "type": ["string", "null"] }
+          }
+        }
+      },
+      "totals": {
+        "type": "integer",
+        "description": "Total number of payments for this customer."
+      },
+      "selected": {
+        "type": "integer",
+        "description": "Number of items selected/returned per page."
+      },
+      "current_page": {
+        "type": "integer"
+      },
+      "last_page": {
+        "type": "integer"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "code": {
+        "type": "integer"
+      },
+      "message": {
+        "type": "string"
+      }
+    }
+  },
+  "gotchas": [
+    "A 404 is returned if the customer ID does not exist. Verify the customer exists via get_customer before listing their payments.",
+    "Pagination query parameters (limit, page) are passed as URL query string parameters. The customer ID is in the URL path, not the query string.",
+    "The payments array may be empty if the customer has no payments yet — this is not an error condition. Always check payments.length before iterating.",
+    "The top-level array is named 'payments' (not 'items') and pagination uses 'totals' (not 'total') and 'selected' (not 'per_page'). Reading the wrong field name silently returns undefined."
+  ]
+}

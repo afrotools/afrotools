@@ -1,0 +1,153 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "list_channels",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.notchpay.co/channels"
+  },
+  "example_prompt": "List available payment channels in Cameroon to offer MTN MoMo and Orange Money to users.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "country": {
+        "type": "string",
+        "description": "ISO 3166-1 alpha-2 country code to filter channels by country, e.g. \"CM\"."
+      },
+      "amount": {
+        "type": "number",
+        "description": "Filter channels that accept this specific amount."
+      },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code to filter channels, e.g. \"XAF\"."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, always \"OK\" on success."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP-like code, 200 on success."
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Human-readable channel name, e.g. \"MTN Mobile Money\"."
+            },
+            "desc": {
+              "type": "string",
+              "description": "Short description of the channel, e.g. \"Pay with MTN MoMo\"."
+            },
+            "active": {
+              "type": "boolean",
+              "description": "Whether the channel is currently active."
+            },
+            "countries": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of ISO 3166-1 alpha-2 country codes where this channel is available."
+            },
+            "id": {
+              "type": "string",
+              "description": "Unique channel identifier. Same value as slug (e.g. \"cm.mtn\")."
+            },
+            "slug": {
+              "type": "string",
+              "description": "Machine-readable channel slug used when initiating payments (e.g. \"cm.mtn\")."
+            },
+            "type": {
+              "type": "string",
+              "description": "Channel type, e.g. \"mobile\"."
+            },
+            "reference": {
+              "type": "string",
+              "description": "Internal identifier in chn.xxx format. Do not confuse with the payment reference."
+            },
+            "delivery": {
+              "description": "Delivery information. Null in most cases."
+            },
+            "payment_delivery": {
+              "description": "Payment delivery information. Null in most cases."
+            },
+            "live": {
+              "type": "boolean",
+              "description": "Whether this channel is available in live mode."
+            },
+            "min_amount": {
+              "type": "number",
+              "description": "Minimum transaction amount accepted by this channel."
+            },
+            "max_amount": {
+              "type": "number",
+              "description": "Maximum transaction amount accepted by this channel."
+            },
+            "payout": {
+              "type": "integer",
+              "description": "Whether this channel supports payouts (1 = yes)."
+            },
+            "charge": {
+              "type": "integer",
+              "description": "Whether this channel supports charges (1 = yes)."
+            },
+            "collect": {
+              "type": "integer",
+              "description": "Whether this channel supports collection (1 = yes)."
+            },
+            "currency": {
+              "type": "string",
+              "description": "ISO 4217 currency code accepted by this channel."
+            }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "Always filter by country and currency before displaying channels to users — not all channels are available in every country, and showing irrelevant options degrades UX.",
+    "Use min_amount and max_amount to validate the user's payment amount before initiating a transaction; submitting an out-of-range amount will result in a rejected payment.",
+    "Store the channel slug (not the id or name) when initiating a payment — it is the required identifier in subsequent API calls.",
+    "Cache the response — channel data changes rarely, but min/max amounts can be updated by Notch Pay without notice. A daily refresh is sufficient.",
+    "The Authorization header uses your public key with no 'Bearer ' prefix."
+  ]
+}

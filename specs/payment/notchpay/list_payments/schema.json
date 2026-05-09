@@ -1,0 +1,109 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "list_payments",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.notchpay.co/payments"
+  },
+  "example_prompt": "List all Notch Pay payments for the last 30 days, filtered by status completed.",
+  "input_schema": {
+    "type": "object",
+    "required": [],
+    "properties": {
+      "limit": {
+        "type": "integer",
+        "description": "Number of payments per page."
+      },
+      "page": {
+        "type": "integer",
+        "description": "Page number for pagination."
+      },
+      "search": {
+        "type": "string",
+        "description": "Search term to filter payments by reference, customer, or other fields."
+      },
+      "status": {
+        "type": "string",
+        "description": "Filter by payment status, e.g. \"complete\", \"pending\", \"failed\", \"canceled\"."
+      },
+      "channels": {
+        "type": "string",
+        "description": "Comma-separated list of channel slugs to filter by, e.g. \"cm.mtn,cm.orange\"."
+      },
+      "date_start": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 start date for filtering payments by creation date."
+      },
+      "date_end": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 end date for filtering payments by creation date."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string" },
+      "message": { "type": "string" },
+      "code": { "type": "integer", "description": "200 on success." },
+      "totals": { "type": "integer", "description": "Total number of matching records." },
+      "current_page": { "type": "integer" },
+      "last_page": { "type": "integer" },
+      "selected": { "type": "integer", "description": "Number of records returned in this page (equivalent to per_page)." },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "reference": { "type": "string" },
+            "amount": { "type": "number" },
+            "currency": { "type": "string" },
+            "status": { "type": "string" },
+            "description": { "type": "string" },
+            "customer": { "type": "string" },
+            "created_at": { "type": "string", "format": "date-time" }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (401, 422)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "All query parameters are optional — omitting all of them returns the full paginated list with the API default page size.",
+    "date_start and date_end must be ISO 8601 strings. Passing plain dates without a time component (e.g. \"2024-01-01\") may be rejected or interpreted differently by the API.",
+    "The Authorization header uses your public key with no 'Bearer ' prefix.",
+    "Iterate through pages using the page param and stop when current_page equals last_page to avoid requesting beyond the last page.",
+    "Pagination uses 'totals' (not 'total') and 'selected' (not 'per_page') — using the wrong field name will silently return undefined."
+  ]
+}

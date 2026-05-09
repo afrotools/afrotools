@@ -1,0 +1,99 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "get_balance",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PRIVATE_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.notchpay.co/balance"
+  },
+  "example_prompt": "Check my Notch Pay account balance before initiating a transfer.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code to filter by. Defaults to XAF if omitted."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, e.g. \"OK\"."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable message."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP-like code, 200 on success."
+      },
+      "balance": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "description": "Total balance including reserved and pending amounts."
+          },
+          "available": {
+            "type": "number",
+            "description": "Immediately usable balance for transfers."
+          },
+          "pending": {
+            "type": "number",
+            "description": "Amount from payments not yet settled."
+          },
+          "reserved": {
+            "type": "number",
+            "description": "Amount held for ongoing operations."
+          },
+          "currency": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string",
+            "description": "\"live\" or \"sandbox\" depending on the API key used."
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (401)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "Use balance.available (not balance.total) to determine whether you have enough funds to initiate a transfer. total includes reserved and pending amounts that are not yet usable.",
+    "The response includes an environment field — verify it matches your expected mode (\"live\" vs \"sandbox\") to avoid acting on test data in production.",
+    "The Authorization header uses your public key with no 'Bearer ' prefix.",
+    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
+  ]
+}

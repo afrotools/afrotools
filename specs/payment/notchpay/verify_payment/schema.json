@@ -1,0 +1,89 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "verify_payment",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.notchpay.co/payments/{reference}"
+  },
+  "example_prompt": "Check a Notch Pay transaction status before fulfilling an order.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "reference"
+    ],
+    "properties": {
+      "reference": {
+        "type": "string",
+        "description": "The transaction reference returned by create_payment (transaction.reference)."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string", "description": "\"OK\" on success." },
+      "message": { "type": "string", "description": "\"Transaction retrieved\"." },
+      "code": { "type": "integer", "description": "200 on success." },
+      "transaction": {
+        "type": "object",
+        "properties": {
+          "reference": { "type": "string" },
+          "amount": { "type": "number" },
+          "currency": { "type": "string" },
+          "status": { "type": "string", "description": "Payment status: \"pending\", \"complete\", \"failed\", \"canceled\"." },
+          "description": { "type": "string" },
+          "customer": { "type": "string" },
+          "charge": { "type": "string" },
+          "callback": { "type": ["string", "null"] },
+          "sandbox": { "type": "integer", "description": "1 in sandbox mode, 0 in live." },
+          "fees": { "type": "array" },
+          "amounts": {
+            "type": "object",
+            "properties": {
+              "total": { "type": "number" },
+              "converted": { "type": "number" },
+              "currency": { "type": "string" },
+              "rate": { "type": "number" }
+            }
+          },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (401, 404)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "Only fulfill an order when transaction.status is \"complete\" — \"pending\" means the user has not paid yet.",
+    "The reference must come from the transaction object returned by create_payment. Do not use values from the callback URL parameters, which can be tampered with.",
+    "Use your public key in the Authorization header with no 'Bearer ' prefix — same key as create_payment."
+  ]
+}

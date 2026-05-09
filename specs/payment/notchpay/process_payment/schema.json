@@ -1,0 +1,125 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "process_payment",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.notchpay.co/payments/{reference}"
+  },
+  "example_prompt": "Trigger a mobile money payment directly on the MTN channel for a customer in Cameroon.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "reference",
+      "channel"
+    ],
+    "properties": {
+      "reference": {
+        "type": "string",
+        "description": "The transaction reference returned by create_payment (transaction.reference). Used as a path parameter."
+      },
+      "channel": {
+        "type": "string",
+        "description": "Slug of the payment channel to use, e.g. \"cm.mtn\" or \"cm.orange\"."
+      },
+      "data": {
+        "type": "object",
+        "description": "Optional channel-specific payer data. Required in practice for mobile money channels (provide phone). Optional for hosted-redirect channels.",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "description": "Customer phone number in E.164 format, e.g. \"+237670000000\". Required for mobile money channels."
+          },
+          "account_number": {
+            "type": "string",
+            "description": "Account number for non-mobile-money channels (e.g. card last-four or bank account). Channel-dependent."
+          },
+          "country": {
+            "type": "string",
+            "description": "Optional ISO 3166-1 alpha-2 country code of the payer. Inferred from the channel when omitted."
+          }
+        }
+      },
+      "client_ip": {
+        "type": "string",
+        "description": "Optional IP address of the end-user initiating the payment. Used by Notch Pay for fraud screening; pass the request's `x-forwarded-for` value when available."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, e.g. \"Accepted\"."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable confirmation, e.g. \"Payment processing\"."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP-like code, 200 on success."
+      },
+      "transaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "Payment status immediately after processing, typically \"pending\"."
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (401, 404, 422)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "process_payment must be called after create_payment — it requires the reference from the created transaction and will return 404 if the reference does not exist.",
+    "A 200 response with status \"Accepted\" means the payment was submitted to the mobile operator, not that it has been confirmed. Always use verify_payment afterwards to check the final status before fulfilling an order.",
+    "The phone number in data.phone must be in E.164 format (e.g. \"+237670000000\"). Passing a local format without the country code will cause the mobile operator to reject the request.",
+    "The channel slug is country-and-operator specific (e.g. \"cm.mtn\", \"cm.orange\"). Using a slug that does not match the customer's operator will result in a failed payment.",
+    "Calling process_payment on a transaction that is already 'complete', 'canceled', or 'failed' returns 422 with message 'Payment cannot be processed'.",
+    "The Authorization header uses your public key with no 'Bearer ' prefix.",
+    "The API also accepts PUT /payments/{reference} with the same body and response — this is a legacy alias. Prefer POST."
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "list_webhooks",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PRIVATE_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.notchpay.co/webhooks"
+  },
+  "example_prompt": "List all registered Notch Pay webhook endpoints for my account.",
+  "input_schema": {
+    "type": "object",
+    "required": [],
+    "properties": {
+      "limit": {
+        "type": "integer",
+        "description": "Number of webhook endpoints per page."
+      },
+      "page": {
+        "type": "integer",
+        "description": "Page number for pagination."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, e.g. \"OK\"."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP-like code, 200 on success."
+      },
+      "endpoints": {
+        "type": "array",
+        "description": "Array of registered webhook endpoint objects. Note: top-level array is named 'endpoints', not 'items'.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "events": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": {
+              "type": "string"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      },
+      "totals": {
+        "type": "integer",
+        "description": "Total number of registered webhook endpoints."
+      },
+      "selected": {
+        "type": "integer",
+        "description": "Number of endpoints returned in this page."
+      },
+      "current_page": {
+        "type": "integer",
+        "description": "Current page number."
+      },
+      "last_page": {
+        "type": "integer",
+        "description": "Last available page number."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (401)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "The Authorization header uses your public key with no 'Bearer ' prefix.",
+    "All query parameters are optional. Omitting them returns the full paginated list with the API default page size.",
+    "The top-level array is named 'endpoints' (not 'items'). Pagination uses 'totals' (not 'total') and 'selected' (not 'per_page'). Reading the wrong field name silently returns undefined.",
+    "Iterate through pages by incrementing the page param and stop when current_page equals last_page.",
+    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
+  ]
+}

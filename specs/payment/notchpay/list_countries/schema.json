@@ -1,0 +1,77 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "list_countries",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.notchpay.co/countries"
+  },
+  "example_prompt": "Validate a country code entered by the user before passing it to create_payment.",
+  "input_schema": {
+    "type": "object",
+    "properties": {}
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, always \"OK\" on success."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP-like code, 200 on success."
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Full country name, e.g. \"Cameroon\"."
+            },
+            "code": {
+              "type": "string",
+              "description": "ISO 3166-1 alpha-2 country code, e.g. \"CM\"."
+            }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "This endpoint returns ALL 249 ISO 3166-1 countries — it is a reference/validation list, NOT a list of countries where Notch Pay operates. To find where Notch Pay actually has active channels, call GET /channels filtered by country instead.",
+    "Use the country code (not the country name) when filtering channels or initiating payments; the name is for display purposes only.",
+    "The Authorization header uses your public key with no 'Bearer ' prefix."
+  ]
+}

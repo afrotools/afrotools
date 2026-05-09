@@ -1,0 +1,174 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "list_transfers",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PRIVATE_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.notchpay.co/transfers"
+  },
+  "example_prompt": "List all Notch Pay transfers with their status and amounts, optionally filtered by status or date range.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "limit": {
+        "type": "integer",
+        "description": "Number of transfers to return per page."
+      },
+      "page": {
+        "type": "integer",
+        "description": "Page number for pagination, starting at 1."
+      },
+      "search": {
+        "type": "string",
+        "description": "Search keyword to filter transfers by reference or beneficiary."
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "complete",
+          "failed"
+        ],
+        "description": "Filter transfers by status."
+      },
+      "channels": {
+        "type": "string",
+        "description": "Filter transfers by channel (e.g. mobile money channel slug)."
+      },
+      "date_start": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 start date to filter transfers (inclusive)."
+      },
+      "date_end": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 end date to filter transfers (inclusive)."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, e.g. \"OK\"."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable confirmation, e.g. \"Transfers retrieved\"."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP-like code, 200 on success."
+      },
+      "items": {
+        "type": "array",
+        "description": "List of transfer objects.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Unique identifier for the transfer."
+            },
+            "reference": {
+              "type": "string",
+              "description": "Transfer reference, either generated or provided at creation."
+            },
+            "amount": {
+              "type": "number",
+              "description": "Amount transferred."
+            },
+            "currency": {
+              "type": "string",
+              "description": "ISO 4217 currency code."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "complete",
+                "failed"
+              ],
+              "description": "Current transfer status."
+            },
+            "beneficiary": {
+              "type": "string",
+              "description": "Recipient identifier (phone number or account reference)."
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO 8601 timestamp when the transfer was created."
+            },
+            "completed_at": {
+              "type": "string",
+              "format": "date-time",
+              "description": "ISO 8601 timestamp when the transfer completed. Null if not yet complete."
+            },
+            "payment_method": {
+              "type": "string",
+              "description": "Payment method used for the transfer (e.g. MTN MoMo channel slug)."
+            }
+          }
+        }
+      },
+      "totals": {
+        "type": "integer",
+        "description": "Total number of transfers matching the query across all pages."
+      },
+      "selected": {
+        "type": "integer",
+        "description": "Number of transfers returned in this page."
+      },
+      "current_page": {
+        "type": "integer",
+        "description": "Current page number."
+      },
+      "last_page": {
+        "type": "integer",
+        "description": "Last available page number."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (401, 403, 429)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "The Authorization header value is your public key with no prefix — do not add 'Bearer ' before it.",
+    "All transfer endpoints require an additional `X-Grant` header for enhanced security. Pass the grant token generated in your Notch Pay dashboard as `X-Grant: {token}`. Requests without this header return 401.",
+    "Pagination starts at page 1, not page 0. Passing page=0 may return an unexpected result or an error.",
+    "date_start and date_end must be ISO 8601 formatted strings. Passing plain date strings (e.g. '2024-01-01') without time and timezone may be rejected or silently ignored.",
+    "A transfer with status 'pending' is still in progress — do not treat it as completed. Only 'complete' status confirms a successful payout.",
+    "Pagination uses 'totals' (not 'total') and 'selected' (not 'per_page'). Reading the wrong field name silently returns undefined.",
+    "The totals field reflects the count across all pages, not just the current page. Use last_page to know when you have fetched all records.",
+    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "verify_transfer",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PRIVATE_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.notchpay.co/transfers/{reference}"
+  },
+  "example_prompt": "Check the status of a Notch Pay transfer after initiating a disbursement.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "reference"
+    ],
+    "properties": {
+      "reference": {
+        "type": "string",
+        "description": "The transfer reference returned by send_transfer (transfer.reference)."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, e.g. \"Accepted\"."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable message, e.g. \"Transfer retrieved\"."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP-like code, 202 on success."
+      },
+      "transfer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "Transfer status: \"pending\", \"complete\", \"failed\"."
+          },
+          "beneficiary": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (401, 404)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "Only record a disbursement as successful when transfer.status is \"complete\". \"pending\" means the mobile money network has not yet confirmed delivery.",
+    "All transfer endpoints require an additional `X-Grant` header for enhanced security. Pass the grant token generated in your Notch Pay dashboard as `X-Grant: {token}`. Requests without this header return 401.",
+    "The Authorization header uses your public key with no 'Bearer ' prefix.",
+    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
+  ]
+}

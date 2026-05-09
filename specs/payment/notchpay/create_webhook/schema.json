@@ -1,0 +1,130 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "create_webhook",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PRIVATE_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.notchpay.co/webhooks"
+  },
+  "example_prompt": "Register a Notch Pay webhook to receive payment.complete and payment.failed events at my endpoint.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "url",
+      "events"
+    ],
+    "properties": {
+      "url": {
+        "type": "string",
+        "format": "uri",
+        "description": "HTTPS endpoint URL that will receive webhook event payloads."
+      },
+      "events": {
+        "type": "array",
+        "description": "List of event types to subscribe to.",
+        "items": {
+          "type": "string",
+          "enum": [
+            "payment.created",
+            "payment.complete",
+            "payment.failed",
+            "payment.canceled",
+            "payment.expired",
+            "transfer.created",
+            "transfer.complete",
+            "transfer.failed",
+            "customer.created",
+            "customer.updated",
+            "customer.deleted",
+            "customer.blocked",
+            "customer.unblocked"
+          ]
+        }
+      },
+      "description": {
+        "type": "string",
+        "description": "Optional human-readable label for this webhook endpoint."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, e.g. \"Created\"."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP-like code, 201 on success."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable confirmation, e.g. \"Webhook created\"."
+      },
+      "endpoint": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique webhook endpoint ID. Store this to update or delete the webhook later."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (400, 401, 422)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "The webhook URL must be HTTPS. HTTP URLs are rejected with a 422 error.",
+    "Store the endpoint.id from the response — it is required to call update_webhook or delete_webhook later.",
+    "The events array must not be empty. Subscribing to no events is rejected. Only subscribe to event types your server actually handles.",
+    "The Authorization header uses your public key with no 'Bearer ' prefix.",
+    "This API registers the webhook configuration on the Notch Pay side. To validate incoming payloads, you must verify the X-Notch-Signature header on your receiving endpoint.",
+    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
+  ]
+}

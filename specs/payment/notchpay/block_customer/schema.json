@@ -1,0 +1,109 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "block_customer",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.notchpay.co/customers/{id}/block"
+  },
+  "example_prompt": "Block a Notch Pay customer to prevent them from initiating new payments.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Unique identifier of the customer to block. Interpolated into the URL path."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response status label, e.g. 'Accepted'."
+      },
+      "code": {
+        "type": "integer",
+        "description": "202 on success."
+      },
+      "message": {
+        "type": "string",
+        "description": "Confirmation message, e.g. 'Customer blocked successfully'."
+      },
+      "customer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique customer identifier."
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": ["string", "null"]
+          },
+          "name": {
+            "type": "string"
+          },
+          "company_name": {
+            "type": ["string", "null"]
+          },
+          "tax_number": {
+            "type": ["string", "null"]
+          },
+          "metadata": {
+            "type": ["object", "null"]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "code": {
+        "type": "integer"
+      },
+      "message": {
+        "type": "string"
+      }
+    }
+  },
+  "gotchas": [
+    "Blocking a customer is reversible — use unblock_customer to restore access. However, blocking does not cancel any payments already in progress at the time of the block.",
+    "The request body must be empty or omitted entirely. Sending a non-empty JSON body may cause unexpected behavior.",
+    "Calling block_customer on an already-blocked customer may return 200 without error. Do not rely on the response to determine whether the customer was previously unblocked."
+  ]
+}
