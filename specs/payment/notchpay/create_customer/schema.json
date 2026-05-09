@@ -21,40 +21,74 @@
   "example_prompt": "Create a new customer on Notch Pay with their name, email and phone number.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "name"
-    ],
     "properties": {
-      "name": {
-        "type": "string",
-        "description": "Full name of the customer. Required."
-      },
       "email": {
         "type": "string",
         "format": "email",
-        "description": "Email address of the customer. Required if phone is not provided."
+        "description": "Email address of the customer. At least one of email or phone is required."
       },
       "phone": {
         "type": "string",
-        "description": "Phone number of the customer. Required if email is not provided."
+        "description": "Phone number of the customer. At least one of email or phone is required."
+      },
+      "name": {
+        "type": "string",
+        "description": "Optional full name of the customer."
       },
       "company_name": {
         "type": "string",
-        "description": "Company name of the customer."
+        "description": "Optional company name of the customer."
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Free-form key/value metadata stored on the customer. Returned as-is in subsequent reads.",
+        "additionalProperties": true
       },
       "address": {
         "type": "object",
+        "description": "Postal address of the customer.",
         "properties": {
-          "street": {
+          "country": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2 country code."
+          },
+          "state": {
             "type": "string"
           },
           "city": {
             "type": "string"
           },
+          "postal_code": {
+            "type": "string"
+          },
+          "address_line1": {
+            "type": "string"
+          },
+          "address_line2": {
+            "type": "string"
+          }
+        }
+      },
+      "billing": {
+        "type": "object",
+        "description": "Optional billing address (same shape as address). Used when distinct from the postal address.",
+        "properties": {
           "country": {
             "type": "string"
           },
+          "state": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
           "postal_code": {
+            "type": "string"
+          },
+          "address_line1": {
+            "type": "string"
+          },
+          "address_line2": {
             "type": "string"
           }
         }
@@ -129,8 +163,9 @@
     }
   },
   "gotchas": [
-    "At least one of email or phone must be provided alongside name, even though only name is strictly required by the schema. Submitting name alone may result in a 422 validation error.",
+    "At least one of email or phone is required. Submitting only name returns a 422 validation error — the Notch Pay docs make 'name' look mandatory but the API really enforces 'one of email/phone'.",
     "The Authorization header must contain the public key directly as the token value — not prefixed with 'Bearer'. The format is exactly the key string.",
-    "Customer IDs returned by Notch Pay are opaque strings. Do not apply encodeURIComponent to these IDs when constructing path-based URLs — pass them as-is."
+    "Customer IDs returned by Notch Pay are opaque strings. Do not apply encodeURIComponent to these IDs when constructing path-based URLs — pass them as-is.",
+    "The address object uses 'address_line1' / 'address_line2' (and optional 'state'), not 'street'. Sending 'street' silently drops the field."
   ]
 }

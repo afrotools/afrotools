@@ -28,8 +28,8 @@ interface ListBeneficiariesResponse {
   status: string;
   code: number;
   items: NotchPayBeneficiary[];
-  total: number;
-  per_page: number;
+  totals: number;
+  selected: number;
   current_page: number;
   last_page: number;
 }

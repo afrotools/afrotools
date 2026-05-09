@@ -23,8 +23,7 @@
     "type": "object",
     "required": [
       "amount",
-      "currency",
-      "email"
+      "currency"
     ],
     "properties": {
       "amount": {
@@ -45,8 +44,22 @@
         "description": "Customer phone number (e.g. +237XXXXXXXXX). One of email, phone, or customer is required."
       },
       "customer": {
-        "type": "string",
-        "description": "Existing customer ID. One of email, phone, or customer is required."
+        "oneOf": [
+          {
+            "type": "string",
+            "description": "Existing customer ID (e.g. \"cus.xxx\")."
+          },
+          {
+            "type": "object",
+            "description": "Inline customer object — Notch Pay creates or matches the customer based on these fields.",
+            "properties": {
+              "name": { "type": "string" },
+              "email": { "type": "string", "format": "email" },
+              "phone": { "type": "string" }
+            }
+          }
+        ],
+        "description": "Existing customer ID OR inline customer object. One of email, phone, or customer is required."
       },
       "description": {
         "type": "string",
@@ -60,6 +73,61 @@
         "type": "string",
         "format": "uri",
         "description": "URL to redirect the user to after payment completion."
+      },
+      "locked_currency": {
+        "type": "string",
+        "description": "Force the checkout to only accept this currency (e.g. \"XAF\"). Prevents the user from selecting a different one in the hosted page."
+      },
+      "locked_channel": {
+        "type": "string",
+        "description": "Force the checkout to only accept this channel (e.g. \"cm.mtn\"). The user cannot pick a different operator."
+      },
+      "locked_country": {
+        "type": "string",
+        "description": "Force the checkout to only accept channels available in this ISO 3166-1 alpha-2 country (e.g. \"CM\")."
+      },
+      "items": {
+        "type": "array",
+        "description": "Optional line items for the order, displayed on the hosted checkout.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "quantity": { "type": "integer" },
+            "amount": { "type": "number" },
+            "description": { "type": "string" }
+          }
+        }
+      },
+      "shipping": {
+        "type": "object",
+        "description": "Optional shipping information attached to the payment.",
+        "properties": {
+          "name": { "type": "string" },
+          "amount": { "type": "number" },
+          "country": { "type": "string" },
+          "city": { "type": "string" },
+          "address_line1": { "type": "string" },
+          "address_line2": { "type": "string" },
+          "postal_code": { "type": "string" }
+        }
+      },
+      "address": {
+        "type": "object",
+        "description": "Optional billing address.",
+        "properties": {
+          "country": { "type": "string" },
+          "state": { "type": "string" },
+          "city": { "type": "string" },
+          "postal_code": { "type": "string" },
+          "address_line1": { "type": "string" },
+          "address_line2": { "type": "string" }
+        }
+      },
+      "customer_meta": {
+        "type": "object",
+        "description": "Free-form metadata stored on the customer record. Stored as-is and returned in webhook payloads.",
+        "additionalProperties": true
       }
     }
   },

@@ -14,6 +14,9 @@ interface CreateBeneficiaryInput {
   account_number: string;
   email?: string;
   phone?: string;
+  description?: string;
+  country?: string;
+  reference?: string;
 }
 
 interface NotchPayBeneficiary {

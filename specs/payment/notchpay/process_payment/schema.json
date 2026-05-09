@@ -23,8 +23,7 @@
     "type": "object",
     "required": [
       "reference",
-      "channel",
-      "data"
+      "channel"
     ],
     "properties": {
       "reference": {
@@ -37,13 +36,25 @@
       },
       "data": {
         "type": "object",
-        "description": "Channel-specific data. For mobile money channels, provide the customer's phone number as { \"phone\": \"+237670000000\" }.",
+        "description": "Optional channel-specific payer data. Required in practice for mobile money channels (provide phone). Optional for hosted-redirect channels.",
         "properties": {
           "phone": {
             "type": "string",
-            "description": "Customer phone number in E.164 format, e.g. \"+237670000000\"."
+            "description": "Customer phone number in E.164 format, e.g. \"+237670000000\". Required for mobile money channels."
+          },
+          "account_number": {
+            "type": "string",
+            "description": "Account number for non-mobile-money channels (e.g. card last-four or bank account). Channel-dependent."
+          },
+          "country": {
+            "type": "string",
+            "description": "Optional ISO 3166-1 alpha-2 country code of the payer. Inferred from the channel when omitted."
           }
         }
+      },
+      "client_ip": {
+        "type": "string",
+        "description": "Optional IP address of the end-user initiating the payment. Used by Notch Pay for fraud screening; pass the request's `x-forwarded-for` value when available."
       }
     }
   },

@@ -79,13 +79,13 @@
           }
         }
       },
-      "total": {
+      "totals": {
         "type": "integer",
         "description": "Total number of beneficiaries across all pages."
       },
-      "per_page": {
+      "selected": {
         "type": "integer",
-        "description": "Number of items returned per page."
+        "description": "Number of items returned in this page."
       },
       "current_page": {
         "type": "integer",
@@ -114,7 +114,8 @@
     "The Authorization header value is your public key with no prefix — do not add 'Bearer ' before it.",
     "Query parameters (limit, page, search) must be appended to the URL as a query string — they are not sent in the request body.",
     "When current_page equals last_page, you have reached the end of the list. Requesting beyond last_page returns an empty items array rather than an error.",
-    "The total field reflects the count at the time of the request; concurrent creates or deletes can cause inconsistencies when paginating large lists.",
+    "Pagination uses 'totals' (not 'total') and 'selected' (not 'per_page'). Reading the wrong field name silently returns undefined.",
+    "The totals field reflects the count at the time of the request; concurrent creates or deletes can cause inconsistencies when paginating large lists.",
     "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
   ]
 }

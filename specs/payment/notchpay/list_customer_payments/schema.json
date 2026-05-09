@@ -49,11 +49,22 @@
         "type": "integer",
         "description": "200 on success."
       },
-      "items": {
+      "payments": {
         "type": "array",
+        "description": "Array of payment objects associated with the customer. Note: top-level array is named 'payments', not 'items'.",
         "items": {
           "type": "object",
-          "description": "Payment object associated with the customer."
+          "properties": {
+            "id": { "type": "string" },
+            "reference": { "type": "string" },
+            "amount": { "type": "number" },
+            "currency": { "type": "string" },
+            "status": { "type": "string" },
+            "customer": { "type": "string" },
+            "created_at": { "type": "string", "format": "date-time" },
+            "completed_at": { "type": ["string", "null"], "format": "date-time" },
+            "payment_method": { "type": ["string", "null"] }
+          }
         }
       },
       "totals": {
@@ -89,7 +100,7 @@
   "gotchas": [
     "A 404 is returned if the customer ID does not exist. Verify the customer exists via get_customer before listing their payments.",
     "Pagination query parameters (limit, page) are passed as URL query string parameters. The customer ID is in the URL path, not the query string.",
-    "The items array may be empty if the customer has no payments yet — this is not an error condition. Always check items.length before iterating.",
-    "Pagination uses 'totals' (not 'total') and 'selected' (not 'per_page'). Using 'total' or 'per_page' will return undefined."
+    "The payments array may be empty if the customer has no payments yet — this is not an error condition. Always check payments.length before iterating.",
+    "The top-level array is named 'payments' (not 'items') and pagination uses 'totals' (not 'total') and 'selected' (not 'per_page'). Reading the wrong field name silently returns undefined."
   ]
 }

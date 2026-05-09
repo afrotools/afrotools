@@ -37,8 +37,8 @@ interface ListTransfersResponse {
   message: string;
   code: number;
   items: NotchPayTransfer[];
-  total: number;
-  per_page: number;
+  totals: number;
+  selected: number;
   current_page: number;
   last_page: number;
 }
@@ -86,7 +86,7 @@ Usage example:
 // Fetch first page of all transfers
 const result = await listTransfers({ limit: 20, page: 1 });
 
-console.log(`${result.total} total transfers, page ${result.current_page} of ${result.last_page}`);
+console.log(`${result.totals} total transfers, page ${result.current_page} of ${result.last_page}`);
 for (const transfer of result.items) {
   console.log(`${transfer.reference}: ${transfer.amount} ${transfer.currency} — ${transfer.status}`);
 }

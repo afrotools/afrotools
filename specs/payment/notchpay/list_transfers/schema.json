@@ -126,13 +126,13 @@
           }
         }
       },
-      "total": {
+      "totals": {
         "type": "integer",
         "description": "Total number of transfers matching the query across all pages."
       },
-      "per_page": {
+      "selected": {
         "type": "integer",
-        "description": "Number of transfers returned per page."
+        "description": "Number of transfers returned in this page."
       },
       "current_page": {
         "type": "integer",
@@ -163,7 +163,8 @@
     "Pagination starts at page 1, not page 0. Passing page=0 may return an unexpected result or an error.",
     "date_start and date_end must be ISO 8601 formatted strings. Passing plain date strings (e.g. '2024-01-01') without time and timezone may be rejected or silently ignored.",
     "A transfer with status 'pending' is still in progress — do not treat it as completed. Only 'complete' status confirms a successful payout.",
-    "The total field reflects the count across all pages, not just the current page. Use last_page to know when you have fetched all records.",
+    "Pagination uses 'totals' (not 'total') and 'selected' (not 'per_page'). Reading the wrong field name silently returns undefined.",
+    "The totals field reflects the count across all pages, not just the current page. Use last_page to know when you have fetched all records.",
     "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
   ]
 }

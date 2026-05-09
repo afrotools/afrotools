@@ -46,19 +46,56 @@
         "type": "string",
         "description": "New company name."
       },
+      "metadata": {
+        "type": "object",
+        "description": "Free-form key/value metadata stored on the customer. Replaces previous metadata.",
+        "additionalProperties": true
+      },
       "address": {
         "type": "object",
+        "description": "Postal address.",
         "properties": {
-          "street": {
+          "country": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2 country code."
+          },
+          "state": {
             "type": "string"
           },
           "city": {
             "type": "string"
           },
+          "postal_code": {
+            "type": "string"
+          },
+          "address_line1": {
+            "type": "string"
+          },
+          "address_line2": {
+            "type": "string"
+          }
+        }
+      },
+      "billing": {
+        "type": "object",
+        "description": "Optional billing address (same shape as address).",
+        "properties": {
           "country": {
             "type": "string"
           },
+          "state": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
           "postal_code": {
+            "type": "string"
+          },
+          "address_line1": {
+            "type": "string"
+          },
+          "address_line2": {
             "type": "string"
           }
         }
@@ -132,6 +169,7 @@
   "gotchas": [
     "Notch Pay uses POST (not PATCH or PUT) for partial updates. Only the fields included in the body are updated; omitted fields retain their current values.",
     "Sending an empty body or only the id field will return a 422 validation error — include at least one field to update in the request body.",
-    "Customer IDs are opaque strings — pass them as-is into the URL path without any encoding."
+    "Customer IDs are opaque strings — pass them as-is into the URL path without any encoding.",
+    "The address object uses 'address_line1' / 'address_line2' (and optional 'state'), not 'street'. Sending 'street' silently drops the field."
   ]
 }

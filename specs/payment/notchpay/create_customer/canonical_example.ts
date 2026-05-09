@@ -9,18 +9,22 @@ const NOTCHPAY_PUBLIC_KEY = process.env.NOTCHPAY_PUBLIC_KEY;
 if (!NOTCHPAY_PUBLIC_KEY) throw new Error("Missing env: NOTCHPAY_PUBLIC_KEY");
 
 interface CustomerAddress {
-  street?: string;
-  city?: string;
   country?: string;
+  state?: string;
+  city?: string;
   postal_code?: string;
+  address_line1?: string;
+  address_line2?: string;
 }
 
 interface CreateCustomerInput {
-  name: string;
   email?: string;
   phone?: string;
+  name?: string;
   company_name?: string;
+  metadata?: Record<string, unknown>;
   address?: CustomerAddress;
+  billing?: CustomerAddress;
 }
 
 interface NotchPayCustomer {

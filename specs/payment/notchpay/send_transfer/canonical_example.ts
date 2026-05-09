@@ -17,6 +17,7 @@ interface SendTransferInput {
   beneficiary?: string;
   recipient?: string;
   channel?: string;
+  reference?: string;
 }
 
 interface NotchPayTransfer {

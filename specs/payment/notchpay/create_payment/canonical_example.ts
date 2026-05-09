@@ -8,14 +8,54 @@
 const NOTCHPAY_PUBLIC_KEY = process.env.NOTCHPAY_PUBLIC_KEY;
 if (!NOTCHPAY_PUBLIC_KEY) throw new Error("Missing env: NOTCHPAY_PUBLIC_KEY");
 
+interface PaymentItem {
+  name: string;
+  quantity?: number;
+  amount?: number;
+  description?: string;
+}
+
+interface PaymentShipping {
+  name?: string;
+  amount?: number;
+  country?: string;
+  city?: string;
+  address_line1?: string;
+  address_line2?: string;
+  postal_code?: string;
+}
+
+interface PaymentAddress {
+  country?: string;
+  state?: string;
+  city?: string;
+  postal_code?: string;
+  address_line1?: string;
+  address_line2?: string;
+}
+
+interface InlineCustomer {
+  name?: string;
+  email?: string;
+  phone?: string;
+}
+
 interface CreatePaymentInput {
   amount: number;
   currency: string;
-  email: string;
+  email?: string;
   phone?: string;
+  customer?: string | InlineCustomer;
   description?: string;
   reference?: string;
   callback?: string;
+  locked_currency?: string;
+  locked_channel?: string;
+  locked_country?: string;
+  items?: PaymentItem[];
+  shipping?: PaymentShipping;
+  address?: PaymentAddress;
+  customer_meta?: Record<string, unknown>;
 }
 
 interface NotchPayTransaction {

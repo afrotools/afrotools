@@ -14,15 +14,23 @@ interface ListCustomerPaymentsInput {
 }
 
 interface NotchPayPayment {
-  [key: string]: unknown;
+  id: string;
+  reference: string;
+  amount: number;
+  currency: string;
+  status: string;
+  customer: string;
+  created_at: string;
+  completed_at: string | null;
+  payment_method: string | null;
 }
 
 interface ListCustomerPaymentsResponse {
   status: string;
   code: number;
-  items: NotchPayPayment[];
-  total: number;
-  per_page: number;
+  payments: NotchPayPayment[];
+  totals: number;
+  selected: number;
   current_page: number;
   last_page: number;
 }
@@ -64,11 +72,11 @@ Usage example:
 
 const result = await listCustomerPayments("cus_abc123", { limit: 10, page: 1 });
 
-if (result.items.length === 0) {
+if (result.payments.length === 0) {
   console.log("No payments found for this customer.");
 } else {
-  for (const payment of result.items) {
-    console.log(payment);
+  for (const payment of result.payments) {
+    console.log(payment.reference, payment.amount, payment.status);
   }
 }
 

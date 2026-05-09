@@ -19,14 +19,15 @@ interface NotchPayWebhookEndpoint {
   events: string[];
   description: string;
   created_at: string;
+  updated_at?: string;
 }
 
 interface ListWebhooksResponse {
   status: string;
   code: number;
-  items: NotchPayWebhookEndpoint[];
-  total: number;
-  per_page: number;
+  endpoints: NotchPayWebhookEndpoint[];
+  totals: number;
+  selected: number;
   current_page: number;
   last_page: number;
 }
@@ -67,7 +68,7 @@ Usage example:
 const result = await listWebhooks({ limit: 20, page: 1 });
 
 console.log(`Page ${result.current_page} of ${result.last_page}`);
-for (const endpoint of result.items) {
+for (const endpoint of result.endpoints) {
   console.log(endpoint.id, endpoint.url, endpoint.events);
 }
 

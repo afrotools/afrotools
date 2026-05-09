@@ -47,6 +47,18 @@
       "phone": {
         "type": "string",
         "description": "Optional phone number of the beneficiary."
+      },
+      "description": {
+        "type": "string",
+        "description": "Optional free-form description for the beneficiary, useful for internal labelling (e.g. \"Payroll - Marketing team\")."
+      },
+      "country": {
+        "type": "string",
+        "description": "Optional ISO 3166-1 alpha-2 country code (e.g. \"CM\"). When omitted, Notch Pay infers the country from the channel slug."
+      },
+      "reference": {
+        "type": "string",
+        "description": "Optional unique reference you assign to this beneficiary for reconciliation. Notch Pay rejects duplicates."
       }
     }
   },

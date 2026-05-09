@@ -8,13 +8,17 @@
 const NOTCHPAY_PUBLIC_KEY = process.env.NOTCHPAY_PUBLIC_KEY;
 if (!NOTCHPAY_PUBLIC_KEY) throw new Error("Missing env: NOTCHPAY_PUBLIC_KEY");
 
+interface ProcessPaymentData {
+  phone?: string;
+  account_number?: string;
+  country?: string;
+}
+
 interface ProcessPaymentInput {
   reference: string;
   channel: string;
-  data: {
-    phone: string;
-    [key: string]: string;
-  };
+  data?: ProcessPaymentData;
+  client_ip?: string;
 }
 
 interface NotchPayTransaction {
@@ -40,7 +44,7 @@ interface NotchPayError {
 export async function processPayment(
   input: ProcessPaymentInput
 ): Promise<ProcessPaymentResponse> {
-  const { reference, channel, data } = input;
+  const { reference, channel, data, client_ip } = input;
 
   const response = await fetch(
     `https://api.notchpay.co/payments/${reference}`,
@@ -50,7 +54,7 @@ export async function processPayment(
         Authorization: NOTCHPAY_PUBLIC_KEY!,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ channel, data }),
+      body: JSON.stringify({ channel, data, client_ip }),
     }
   );
 

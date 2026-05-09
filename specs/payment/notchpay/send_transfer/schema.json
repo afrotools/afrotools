@@ -50,6 +50,10 @@
       "channel": {
         "type": "string",
         "description": "Payment channel slug (e.g. \"cm.mtn\", \"cm.orange\"). Required when using recipient instead of beneficiary."
+      },
+      "reference": {
+        "type": "string",
+        "description": "Optional unique reference you assign to this transfer for reconciliation. Auto-generated if omitted; reusing a reference returns a 422 conflict."
       }
     }
   },

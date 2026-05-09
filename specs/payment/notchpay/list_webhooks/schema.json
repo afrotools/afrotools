@@ -44,9 +44,9 @@
         "type": "integer",
         "description": "HTTP-like code, 200 on success."
       },
-      "items": {
+      "endpoints": {
         "type": "array",
-        "description": "Array of registered webhook endpoint objects.",
+        "description": "Array of registered webhook endpoint objects. Note: top-level array is named 'endpoints', not 'items'.",
         "items": {
           "type": "object",
           "properties": {
@@ -69,17 +69,21 @@
             "created_at": {
               "type": "string",
               "format": "date-time"
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
             }
           }
         }
       },
-      "total": {
+      "totals": {
         "type": "integer",
         "description": "Total number of registered webhook endpoints."
       },
-      "per_page": {
+      "selected": {
         "type": "integer",
-        "description": "Number of items per page."
+        "description": "Number of endpoints returned in this page."
       },
       "current_page": {
         "type": "integer",
@@ -107,6 +111,7 @@
   "gotchas": [
     "The Authorization header uses your public key with no 'Bearer ' prefix.",
     "All query parameters are optional. Omitting them returns the full paginated list with the API default page size.",
+    "The top-level array is named 'endpoints' (not 'items'). Pagination uses 'totals' (not 'total') and 'selected' (not 'per_page'). Reading the wrong field name silently returns undefined.",
     "Iterate through pages by incrementing the page param and stop when current_page equals last_page.",
     "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
   ]
