@@ -39,11 +39,14 @@ jobs:
       - name: Validate all specs (push to main)
         if: github.event_name == 'push'
         run: npm run validate
-      - name: Trigger MCP redeploy
+      - name: Trigger downstream redeploys
         if: github.event_name == 'push' && success()
         run: |
-          gh api repos/afrotools/mcp/dispatches \
-            --method POST --field event_type=specs-updated
+          for repo in afrotools/mcp afrotools/core; do
+            echo "Dispatching specs-updated to $repo..."
+            gh api repos/$repo/dispatches \
+              --method POST --field event_type=specs-updated
+          done
         env:
           GH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
 
