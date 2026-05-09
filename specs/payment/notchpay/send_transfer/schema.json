@@ -3,9 +3,13 @@
   "provider_api_version": "2024-01-01",
   "capability": "send_transfer",
   "capability_type": "synchronous",
-  "status": "draft",
+  "status": "ready",
   "currency": [
-    "XAF"
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
   ],
   "auth": {
     "type": "api_key",
@@ -126,6 +130,7 @@
     "All transfer endpoints require an additional `X-Grant` header for enhanced security. Generate this grant token in your Notch Pay dashboard and pass it as `X-Grant: {token}`. Requests without this header return 401.",
     "Your server's IP address must be whitelisted in the Notch Pay dashboard before API transfers will be accepted. Requests from non-whitelisted IPs are rejected regardless of valid API credentials.",
     "The Authorization header uses your public key with no 'Bearer ' prefix.",
-    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
+    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable.",
+    "The currency must match the channel's country: XAF for cm.* channels (Cameroon), XOF for ci.*/sn.* (Côte d'Ivoire/Senegal), KES for ke.* (Kenya), UGX for ug.* (Uganda), GHS for gh.* (Ghana). A mismatch returns 422."
   ]
 }

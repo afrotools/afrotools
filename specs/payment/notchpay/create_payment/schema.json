@@ -3,9 +3,13 @@
   "provider_api_version": "2024-01-01",
   "capability": "create_payment",
   "capability_type": "synchronous",
-  "status": "draft",
+  "status": "ready",
   "currency": [
-    "XAF"
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
   ],
   "auth": {
     "type": "api_key",
@@ -184,6 +188,7 @@
     "Use a unique, idempotent reference per payment. Reusing a reference across different transactions will cause reconciliation errors.",
     "The Authorization header value is your public key with no prefix — do not add 'Bearer ' before it.",
     "For sandbox testing, use a public key containing 'test_' in its value. The same API endpoint is used for both test and live keys.",
-    "At least one of email, phone, or customer is required. Omitting all three returns a 422 error."
+    "At least one of email, phone, or customer is required. Omitting all three returns a 422 error.",
+    "The currency must match the channel's country: XAF for cm.* channels (Cameroon), XOF for ci.*/sn.* (Côte d'Ivoire/Senegal), KES for ke.* (Kenya), UGX for ug.* (Uganda), GHS for gh.* (Ghana). A mismatch between currency and channel returns 422."
   ]
 }

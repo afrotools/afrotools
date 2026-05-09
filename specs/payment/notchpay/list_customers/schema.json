@@ -3,9 +3,13 @@
   "provider_api_version": "2024-01-01",
   "capability": "list_customers",
   "capability_type": "synchronous",
-  "status": "draft",
+  "status": "ready",
   "currency": [
-    "XAF"
+    "XAF",
+    "XOF",
+    "KES",
+    "UGX",
+    "GHS"
   ],
   "auth": {
     "type": "api_key",
