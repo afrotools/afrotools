@@ -118,6 +118,7 @@ We use [Conventional Commits](https://www.conventionalcommits.org/):
 | `feat(provider)` | Adding a new spec |
 | `fix(provider)` | Correcting a spec |
 | `docs` | Documentation changes |
+| `plugin(skill)` | Updating a skill in `plugin/skills/` |
 | `chore` | Tooling, CI, deps |
 
 Examples:
@@ -125,7 +126,50 @@ Examples:
 feat(wave): add create_checkout_session spec
 fix(wave): correct webhook auth field
 docs: update ATSS gotcha writing guide
+plugin(new): add live API verification phase
 ```
+
+---
+
+## Updating plugin skills
+
+The Claude Code plugin is distributed via the marketplace. When a user installs it,
+the skill files are **frozen in a local cache** at that git commit. Updates pushed to
+the repo do not propagate automatically — users keep running the cached version until
+they explicitly refresh.
+
+### If your PR touches `plugin/skills/`
+
+After your PR is merged, anyone using the plugin must refresh their cache to get
+the new skill version:
+
+```bash
+claude plugin update afrotools
+```
+
+Until they do, their agent will run the old skill. Document this in your PR description
+so reviewers know to update.
+
+### For contributors working in this repo
+
+If you pull changes that include skill updates (any commit with type `plugin(skill)`),
+run the update command before your next `/afrotools:*` invocation:
+
+```bash
+git pull origin main
+claude plugin update afrotools   # refresh cache to match current repo
+```
+
+### Long-term solution (not yet implemented)
+
+The proper fix is a `plugin/plugin.json` manifest with a `version` field. Every PR
+that touches `plugin/skills/` should bump that version — Claude Code will then detect
+the version mismatch and prompt users to update automatically, without any manual step.
+
+This is tracked as a future improvement. When implemented:
+1. Add `plugin/plugin.json` with `{ "version": "x.y.z" }`
+2. Any PR touching `plugin/skills/` must bump the version as part of the change
+3. CI should fail if skills changed but version was not bumped
 
 ---
 

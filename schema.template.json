@@ -1,29 +1,36 @@
 {
   "spec_version": "1.0",
-  "provider_slug": "",
-  "provider_name": "",
   "provider_api_version": "",
-  "category": "",
   "capability": "",
   "capability_type": "",
   "status": "draft",
-  "country_code": [],
   "currency": [],
-  "sandbox": false,
-  "docs_url": "",
-  "docs_public": false,
   "auth": {
     "type": "",
-    "header": "",
-    "format": "",
+    "location": "header",
+    "field": "",
+    "format": "{token}",
     "env_var": ""
   },
   "endpoint": {
     "method": "",
     "url": ""
   },
-  "input_schema": {},
-  "response_schema": {},
-  "error_schema": {},
+  "example_prompt": "",
+  "input_schema": {
+    "type": "object",
+    "properties": {}
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {}
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": { "type": "integer" },
+      "message": { "type": "string" }
+    }
+  },
   "gotchas": []
 }
