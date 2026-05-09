@@ -1,0 +1,137 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "update_customer",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": [
+    "XAF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.notchpay.co/customers/{id}"
+  },
+  "example_prompt": "Update the phone number and address of an existing Notch Pay customer.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Unique identifier of the customer. Interpolated into the URL path."
+      },
+      "name": {
+        "type": "string",
+        "description": "New full name of the customer."
+      },
+      "email": {
+        "type": "string",
+        "format": "email",
+        "description": "New email address."
+      },
+      "phone": {
+        "type": "string",
+        "description": "New phone number."
+      },
+      "company_name": {
+        "type": "string",
+        "description": "New company name."
+      },
+      "address": {
+        "type": "object",
+        "properties": {
+          "street": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "postal_code": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "code": {
+        "type": "integer",
+        "description": "200 on success."
+      },
+      "message": {
+        "type": "string"
+      },
+      "customer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique customer identifier, e.g. 'cus.test_xxx'."
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": ["string", "null"]
+          },
+          "name": {
+            "type": "string"
+          },
+          "company_name": {
+            "type": ["string", "null"]
+          },
+          "tax_number": {
+            "type": ["string", "null"]
+          },
+          "metadata": {
+            "type": ["object", "null"]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "code": {
+        "type": "integer"
+      },
+      "message": {
+        "type": "string"
+      }
+    }
+  },
+  "gotchas": [
+    "Notch Pay uses POST (not PATCH or PUT) for partial updates. Only the fields included in the body are updated; omitted fields retain their current values.",
+    "Sending an empty body or only the id field will return a 422 validation error — include at least one field to update in the request body.",
+    "Customer IDs are opaque strings — pass them as-is into the URL path without any encoding."
+  ]
+}

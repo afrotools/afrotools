@@ -1,0 +1,71 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "delete_webhook",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": [
+    "XAF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PRIVATE_KEY"
+  },
+  "endpoint": {
+    "method": "DELETE",
+    "url": "https://api.notchpay.co/webhooks/{endpoint}"
+  },
+  "example_prompt": "Delete a Notch Pay webhook endpoint that is no longer needed.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "endpoint"
+    ],
+    "properties": {
+      "endpoint": {
+        "type": "string",
+        "description": "The webhook endpoint ID to delete."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, e.g. \"OK\"."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP-like code, 200 on success."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable confirmation, e.g. \"Webhook deleted\"."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (401, 404)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "Deletion is immediate and irreversible. Notch Pay will stop delivering events to the endpoint right away.",
+    "The endpoint path parameter is the webhook endpoint ID, not its URL.",
+    "A 404 is returned if the endpoint ID does not exist or belongs to a different account.",
+    "The Authorization header uses your public key with no 'Bearer ' prefix.",
+    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "get_customer",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": [
+    "XAF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.notchpay.co/customers/{id}"
+  },
+  "example_prompt": "Retrieve a single Notch Pay customer by their ID.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Unique identifier of the customer. Interpolated into the URL path."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "code": {
+        "type": "integer",
+        "description": "200 on success."
+      },
+      "customer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique customer identifier, e.g. 'cus.test_xxx'."
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": ["string", "null"]
+          },
+          "name": {
+            "type": "string"
+          },
+          "company_name": {
+            "type": ["string", "null"]
+          },
+          "tax_number": {
+            "type": ["string", "null"]
+          },
+          "metadata": {
+            "type": ["object", "null"]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "code": {
+        "type": "integer"
+      },
+      "message": {
+        "type": "string"
+      }
+    }
+  },
+  "gotchas": [
+    "A 404 is returned when the customer ID does not exist or does not belong to your account. Always handle 404 explicitly rather than treating it as a generic error.",
+    "Customer IDs are opaque strings — pass them as-is into the URL path. Do not apply any encoding transformation to the ID.",
+    "The customer object does not include a 'blocked' or 'address' field — these are not returned by the API. Use block_customer / unblock_customer endpoints to manage block status."
+  ]
+}

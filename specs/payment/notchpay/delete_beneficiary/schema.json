@@ -1,0 +1,71 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "delete_beneficiary",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": [
+    "XAF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PRIVATE_KEY"
+  },
+  "endpoint": {
+    "method": "DELETE",
+    "url": "https://api.notchpay.co/beneficiaries/{id}"
+  },
+  "example_prompt": "Delete a Notch Pay beneficiary by ID.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "The unique beneficiary ID to delete."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, e.g. \"OK\"."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP-like code, 200 on success."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable confirmation, e.g. \"Beneficiary deleted\"."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (401, 404)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "The Authorization header value is your public key with no prefix — do not add 'Bearer ' before it.",
+    "Deletion is permanent and irreversible. There is no archive or soft-delete — once deleted, the beneficiary ID cannot be recovered.",
+    "A 404 response means either the beneficiary does not exist or it belongs to a different API key. Beneficiaries are scoped to the account that created them.",
+    "Do not URL-encode the beneficiary ID when inserting it into the path — pass it as-is.",
+    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
+  ]
+}

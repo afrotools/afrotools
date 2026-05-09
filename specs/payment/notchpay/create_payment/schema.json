@@ -1,0 +1,121 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "create_payment",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": [
+    "XAF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.notchpay.co/payments"
+  },
+  "example_prompt": "Initialize a Notch Pay payment in XAF and redirect the user to complete via MTN MoMo or Orange Money.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "amount",
+      "currency",
+      "email"
+    ],
+    "properties": {
+      "amount": {
+        "type": "number",
+        "description": "Amount to charge. Integer for XAF (no decimals allowed)."
+      },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code, e.g. \"XAF\"."
+      },
+      "email": {
+        "type": "string",
+        "format": "email",
+        "description": "Customer email address. One of email, phone, or customer is required."
+      },
+      "phone": {
+        "type": "string",
+        "description": "Customer phone number (e.g. +237XXXXXXXXX). One of email, phone, or customer is required."
+      },
+      "customer": {
+        "type": "string",
+        "description": "Existing customer ID. One of email, phone, or customer is required."
+      },
+      "description": {
+        "type": "string",
+        "description": "Human-readable description of the payment."
+      },
+      "reference": {
+        "type": "string",
+        "description": "Your own unique reference for this transaction. Auto-generated if omitted."
+      },
+      "callback": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to redirect the user to after payment completion."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string", "description": "\"Accepted\" on success." },
+      "message": { "type": "string", "description": "\"Payment initialized\"." },
+      "code": { "type": "integer", "description": "201 on success." },
+      "transaction": {
+        "type": "object",
+        "properties": {
+          "reference": { "type": "string", "description": "Transaction reference. Store this before redirecting — required to call verify_payment. Format: trx.{id}" },
+          "amount": { "type": "number" },
+          "currency": { "type": "string" },
+          "status": { "type": "string", "description": "\"pending\" initially." },
+          "description": { "type": "string" },
+          "customer": { "type": "string", "description": "Customer ID (cus.xxx format)." },
+          "charge": { "type": "string", "description": "Who bears the fees: \"business\" or \"customer\"." },
+          "callback": { "type": ["string", "null"], "description": "Callback URL or null if not set." },
+          "sandbox": { "type": "integer", "description": "1 in test/sandbox mode, 0 in live." },
+          "fees": { "type": "array", "description": "Array of applied fee objects (empty if no fees)." },
+          "amounts": {
+            "type": "object",
+            "properties": {
+              "total": { "type": "number" },
+              "converted": { "type": "number" },
+              "currency": { "type": "string" },
+              "rate": { "type": "number" }
+            }
+          },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "authorization_url": { "type": "string", "format": "uri", "description": "URL to redirect the user to complete the payment." }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (400, 401, 422)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "Always verify payment status server-side by calling verify_payment (GET /payments/{reference}) before fulfilling an order. The callback redirect can be forged by the user.",
+    "The transaction object has no 'id' field — use 'reference' (format: trx.xxx) as the unique identifier. The 'sandbox' field is an integer (1 = sandbox, 0 = live), not a boolean.",
+    "Use a unique, idempotent reference per payment. Reusing a reference across different transactions will cause reconciliation errors.",
+    "The Authorization header value is your public key with no prefix — do not add 'Bearer ' before it.",
+    "For sandbox testing, use a public key containing 'test_' in its value. The same API endpoint is used for both test and live keys.",
+    "At least one of email, phone, or customer is required. Omitting all three returns a 422 error."
+  ]
+}

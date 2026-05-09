@@ -1,0 +1,128 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "update_webhook",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": [
+    "XAF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PRIVATE_KEY"
+  },
+  "endpoint": {
+    "method": "PUT",
+    "url": "https://api.notchpay.co/webhooks/{endpoint}"
+  },
+  "example_prompt": "Update a Notch Pay webhook endpoint to change its URL or the list of subscribed events.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "endpoint"
+    ],
+    "properties": {
+      "endpoint": {
+        "type": "string",
+        "description": "The webhook endpoint ID to update."
+      },
+      "url": {
+        "type": "string",
+        "format": "uri",
+        "description": "New HTTPS URL for the webhook endpoint."
+      },
+      "events": {
+        "type": "array",
+        "description": "New list of event types to subscribe to. Replaces the existing events list entirely.",
+        "items": {
+          "type": "string",
+          "enum": [
+            "payment.created",
+            "payment.complete",
+            "payment.failed",
+            "payment.canceled",
+            "payment.expired",
+            "transfer.created",
+            "transfer.complete",
+            "transfer.failed",
+            "customer.created",
+            "customer.updated",
+            "customer.deleted",
+            "customer.blocked",
+            "customer.unblocked"
+          ]
+        }
+      },
+      "description": {
+        "type": "string",
+        "description": "New human-readable label for this webhook endpoint."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, e.g. \"OK\"."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP-like code, 200 on success."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable confirmation, e.g. \"Webhook updated\"."
+      },
+      "endpoint": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (400, 401, 404, 422)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "Updating the events field replaces the entire list — it is not a merge. To add a single event type, fetch the current list via get_webhook first, append the new event, then send the full updated array.",
+    "The endpoint path parameter is the webhook endpoint ID, not its URL.",
+    "At least one body field (url, events, or description) must be provided; sending an empty body may return a 422.",
+    "The new URL must be HTTPS. HTTP URLs are rejected.",
+    "The Authorization header uses your public key with no 'Bearer ' prefix.",
+    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
+  ]
+}

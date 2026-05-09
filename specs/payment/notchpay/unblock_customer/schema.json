@@ -1,0 +1,105 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "unblock_customer",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": [
+    "XAF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.notchpay.co/customers/{id}/unblock"
+  },
+  "example_prompt": "Unblock a previously blocked Notch Pay customer to restore their payment access.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Unique identifier of the customer to unblock. Interpolated into the URL path."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response status label, e.g. 'Accepted'."
+      },
+      "code": {
+        "type": "integer",
+        "description": "202 on success."
+      },
+      "message": {
+        "type": "string",
+        "description": "Confirmation message, e.g. 'Customer unblocked successfully'."
+      },
+      "customer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique customer identifier."
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": ["string", "null"]
+          },
+          "name": {
+            "type": "string"
+          },
+          "company_name": {
+            "type": ["string", "null"]
+          },
+          "tax_number": {
+            "type": ["string", "null"]
+          },
+          "metadata": {
+            "type": ["object", "null"]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "code": {
+        "type": "integer"
+      },
+      "message": {
+        "type": "string"
+      }
+    }
+  },
+  "gotchas": [
+    "Calling unblock_customer on a customer that is not currently blocked may return 200 without error. Use get_customer to check the blocked field before unblocking if idempotency matters.",
+    "The request body must be empty or omitted entirely. Sending a non-empty JSON body may cause unexpected behavior.",
+    "After unblocking, the customer can immediately initiate new payments. Ensure any fraud review or compliance checks are completed before calling unblock_customer."
+  ]
+}

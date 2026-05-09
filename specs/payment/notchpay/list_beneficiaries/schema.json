@@ -1,0 +1,120 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "list_beneficiaries",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": [
+    "XAF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PRIVATE_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.notchpay.co/beneficiaries"
+  },
+  "example_prompt": "Fetch all Notch Pay beneficiaries with pagination support.",
+  "input_schema": {
+    "type": "object",
+    "required": [],
+    "properties": {
+      "limit": {
+        "type": "integer",
+        "description": "Number of results per page."
+      },
+      "page": {
+        "type": "integer",
+        "description": "Page number to retrieve (1-indexed)."
+      },
+      "search": {
+        "type": "string",
+        "description": "Optional search string to filter beneficiaries by name, email, or account number."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, e.g. \"OK\"."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP-like code, 200 on success."
+      },
+      "items": {
+        "type": "array",
+        "description": "Array of beneficiary objects.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string"
+            },
+            "phone": {
+              "type": "string"
+            },
+            "country": {
+              "type": "string"
+            },
+            "payment_method": {
+              "type": "string"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      },
+      "total": {
+        "type": "integer",
+        "description": "Total number of beneficiaries across all pages."
+      },
+      "per_page": {
+        "type": "integer",
+        "description": "Number of items returned per page."
+      },
+      "current_page": {
+        "type": "integer",
+        "description": "Current page number."
+      },
+      "last_page": {
+        "type": "integer",
+        "description": "Last available page number. Use to detect end of pagination."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (401)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "The Authorization header value is your public key with no prefix — do not add 'Bearer ' before it.",
+    "Query parameters (limit, page, search) must be appended to the URL as a query string — they are not sent in the request body.",
+    "When current_page equals last_page, you have reached the end of the list. Requesting beyond last_page returns an empty items array rather than an error.",
+    "The total field reflects the count at the time of the request; concurrent creates or deletes can cause inconsistencies when paginating large lists.",
+    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
+  ]
+}

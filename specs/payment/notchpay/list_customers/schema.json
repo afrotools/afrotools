@@ -1,0 +1,123 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "list_customers",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": [
+    "XAF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.notchpay.co/customers"
+  },
+  "example_prompt": "Fetch the paginated list of Notch Pay customers, filtering by a search term.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "limit": {
+        "type": "integer",
+        "description": "Number of results per page."
+      },
+      "page": {
+        "type": "integer",
+        "description": "Page number to retrieve (1-based)."
+      },
+      "search": {
+        "type": "string",
+        "description": "Search term to filter customers by name, email, or phone."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response status label, e.g. 'OK'."
+      },
+      "code": {
+        "type": "integer",
+        "description": "HTTP status code, 200 on success."
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string"
+            },
+            "phone": {
+              "type": ["string", "null"]
+            },
+            "name": {
+              "type": "string"
+            },
+            "company_name": {
+              "type": ["string", "null"]
+            },
+            "tax_number": {
+              "type": ["string", "null"]
+            },
+            "metadata": {
+              "type": ["object", "null"]
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      },
+      "totals": {
+        "type": "integer",
+        "description": "Total number of customers matching the query."
+      },
+      "selected": {
+        "type": "integer",
+        "description": "Number of items selected/returned per page."
+      },
+      "current_page": {
+        "type": "integer"
+      },
+      "last_page": {
+        "type": "integer"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "code": {
+        "type": "integer"
+      },
+      "message": {
+        "type": "string"
+      }
+    }
+  },
+  "gotchas": [
+    "Query parameters (limit, page, search) are passed as URL query string parameters, not in the request body. A GET request body is ignored.",
+    "Pagination is 1-based: the first page is page=1. Passing page=0 may return an empty result set or an error.",
+    "The 'totals' field (not 'total') returns the count of all matching customers. The 'selected' field (not 'per_page') indicates how many items were returned in this page. Using 'total' or 'per_page' will return undefined.",
+    "Pagination uses 'totals' (not 'total') and 'selected' (not 'per_page')."
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "list_customer_payment_methods",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": [
+    "XAF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.notchpay.co/customers/{id}/payment_methods"
+  },
+  "example_prompt": "List the saved payment methods (mobile money accounts) for a Notch Pay customer before showing a checkout form.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Unique identifier of the customer (from create_customer or list_customers). Interpolated into the URL path."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Response label, e.g. \"OK\" on success."
+      },
+      "code": {
+        "type": "integer",
+        "description": "200 on success."
+      },
+      "items": {
+        "type": "array",
+        "description": "List of payment methods saved for this customer.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Unique payment method identifier."
+            },
+            "channel": {
+              "type": "string",
+              "description": "Channel slug this method belongs to, e.g. \"cm.mtn\"."
+            },
+            "data": {
+              "type": "object",
+              "description": "Channel-specific data, e.g. { \"phone\": \"+237670000000\" } for mobile money."
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (401, 404)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "A 404 is returned if the customer ID does not exist. The customer ID must come from create_customer or list_customers — do not use a payment reference or beneficiary ID.",
+    "The items array may be empty if the customer has no saved payment methods — this is not an error. A customer only accumulates payment methods after completing at least one process_payment call.",
+    "The response schema for this endpoint was not live-tested (May 2026) — field names and structure are based on the OpenAPI spec and may differ from actual responses. Treat as draft.",
+    "The Authorization header uses your public key with no 'Bearer ' prefix."
+  ]
+}

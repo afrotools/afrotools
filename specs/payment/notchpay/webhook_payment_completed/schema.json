@@ -1,0 +1,88 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "webhook_payment_completed",
+  "capability_type": "webhook",
+  "status": "draft",
+  "currency": [
+    "XAF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "X-Notch-Signature",
+    "format": "{signature}",
+    "env_var": "NOTCHPAY_WEBHOOK_SECRET"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://{your-domain}/webhooks/notchpay"
+  },
+  "example_prompt": "Handle a Notch Pay payment.complete webhook to fulfill orders automatically.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "event",
+      "data"
+    ],
+    "properties": {
+      "event": {
+        "type": "string",
+        "description": "Event type. One of: payment.created, payment.processing, payment.complete, payment.failed, payment.canceled, payment.expired, transfer.created, transfer.processing, transfer.complete, transfer.failed, customer.created, customer.updated, beneficiary.created, beneficiary.updated, beneficiary.deleted."
+      },
+      "data": {
+        "type": "object",
+        "description": "The transaction object at the time of the event.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "Your endpoint must return HTTP 200. The response body is ignored by Notch Pay.",
+    "properties": {}
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "Any non-2xx response causes Notch Pay to retry the webhook delivery."
+      }
+    }
+  },
+  "gotchas": [
+    "Never fulfill an order based solely on receiving a webhook — always call verify_payment (GET /payments/{reference}) server-side to confirm the transaction status before acting.",
+    "Verify the signature using `crypto.timingSafeEqual` against the raw request body BEFORE parsing JSON. A simple string comparison (`===`) is vulnerable to timing attacks.",
+    "Webhook handlers must be idempotent — Notch Pay retries on non-2xx responses with increasing delays, which can cause duplicate event delivery. Store processed event IDs in your database and skip already-processed events.",
+    "The `payment.processing` status means the payment is in progress on the mobile money network — do not fulfill the order yet. Only act on `payment.complete`.",
+    "Register your webhook URL in the Notch Pay dashboard and select the events to subscribe to (e.g. payment.complete). The endpoint URL must be HTTPS."
+  ]
+}

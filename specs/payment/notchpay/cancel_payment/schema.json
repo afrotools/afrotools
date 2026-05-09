@@ -1,0 +1,60 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "cancel_payment",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": [
+    "XAF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "{token}",
+    "env_var": "NOTCHPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "DELETE",
+    "url": "https://api.notchpay.co/payments/{reference}"
+  },
+  "example_prompt": "Cancel a pending Notch Pay payment before the user completes it.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "reference"
+    ],
+    "properties": {
+      "reference": {
+        "type": "string",
+        "description": "The transaction reference returned by create_payment (transaction.reference)."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string", "description": "\"Accepted\" on success." },
+      "message": { "type": "string", "description": "\"Your payment has been canceled\"." },
+      "code": { "type": "integer", "description": "202 on success (not 200)." }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "integer",
+        "description": "HTTP error code (401, 404, 422)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error description."
+      }
+    }
+  },
+  "gotchas": [
+    "Only payments with status 'pending' can be canceled. Payments that are 'processing', 'complete', or 'failed' cannot be canceled and return a 422 error.",
+    "Cancellation is irreversible. Once canceled, the reference cannot be reused to restart the payment — create a new payment instead.",
+    "The Authorization header uses your public key with no 'Bearer ' prefix."
+  ]
+}
