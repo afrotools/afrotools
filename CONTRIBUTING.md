@@ -175,7 +175,7 @@ Key fixture fields:
 - `oauth2_token_url` — required when `auth.type == "oauth2"`
 - `sandbox_base_url` — replaces the production host with the sandbox host for all requests
 - `store_as` — stores the full response under a name so later steps can reference it
-- `$step_name.field.nested` — references a value from a previous step's stored response
+- `$store_as_value.field.nested` — references a value from a previous step's stored response
 - `auth_secondary_env` — required when `auth.type == "basic"` needs two env vars
 
 **Run it:**
