@@ -140,6 +140,12 @@ and their payloads. The generic `scripts/test_live.py` script reads this file, a
 using `auth` config from each `schema.json`, calls the actual API, and diffs the response
 against the spec's `response_schema`.
 
+You do not need to write this file by hand — ask an AI agent to generate it from the
+`schema.json` files and the capability folder list. Ask it to order steps so resources are
+created before they are referenced, use `$ts` for unique values (references, emails), and
+wire cross-step dependencies with `$step_name.data.field`. Review the result, fill in any
+provider-specific test values (phone numbers, bank codes, amounts), then commit it.
+
 Fixture format:
 
 ```json
@@ -187,16 +193,6 @@ Output:
 - ❌ Required field missing from response → fix the spec or the fixture
 - 〰  Optional field absent from response → likely conditional; add a description to the field
 - ⚠️  Field present in response, absent from spec → add it to `response_schema`
-
-**Generating `live_test_fixtures.json`:**
-
-You do not need to write the fixture by hand. Ask an AI agent to generate it for you —
-share the list of capabilities (folder names under `specs/{category}/{provider_slug}/`)
-and the `schema.json` files. Ask it to produce a `live_test_fixtures.json` that covers
-all capabilities in the right order (creates resources before using them), uses `$ts` for
-unique references, and wires cross-step references with `$step_name.data.field`. Review
-the result, fill in any provider-specific test values (phone numbers, bank codes, etc.),
-then commit it.
 
 **Tips:**
 - Use a sandbox key or minimal test amounts — never a production key with real funds.
