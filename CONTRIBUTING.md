@@ -46,10 +46,9 @@ local file instead:
 /afrotools:new ./my-provider-docs.html
 ```
 
-To create the local file, ask an AI agent to generate it from the schemas or Postman
-collection the provider gave you — paste the raw content and ask it to produce a single
-Markdown file covering all endpoints, request/response fields, and auth details. The skill
-reads that file exactly as it would a public URL.
+The local file can be any documentation format the provider gave you — an OpenAPI/Swagger
+JSON or YAML file, a PDF, an exported HTML page, or a Postman collection. Save it locally
+and point the skill at it directly.
 
 Whether you use the skill or work manually, the live API verification step (§ 7 below)
 applies to both.
