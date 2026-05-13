@@ -1,0 +1,188 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v4",
+  "capability": "webhook_event",
+  "capability_type": "webhook",
+  "status": "draft",
+  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "flutterwave-signature",
+    "format": "{token}",
+    "env_var": "FLUTTERWAVE_WEBHOOK_SECRET"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_webhook_url}"
+  },
+  "example_prompt": "Receive any Flutterwave webhook event (charge.completed, refund.completed, transfer.disburse, transfer.reversal, order.authorization), verify the HMAC-SHA256 signature, then dispatch to the appropriate handler.",
+  "input_schema": {
+    "type": "object",
+    "required": ["type", "timestamp", "data"],
+    "description": "Flutterwave webhook envelope. All event types share this top-level structure; the `data` object is discriminated by `type`.",
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": ["charge.completed", "refund.completed", "transfer.disburse", "transfer.reversal", "order.authorization"],
+        "description": "Event type. Dispatch on this field in your handler."
+      },
+      "id": {
+        "type": "string",
+        "description": "Top-level event id. Present on charge.completed deliveries (e.g. \"wbk_W5p6ktwU0jQ8RO4By860\"). Use for deduplication."
+      },
+      "webhook_id": {
+        "type": "string",
+        "description": "Alternative top-level event id. Present on refund.completed, transfer.disburse, transfer.reversal deliveries instead of `id`. Flutterwave is inconsistent — always read whichever is present."
+      },
+      "timestamp": {
+        "type": "integer",
+        "description": "Unix epoch timestamp (milliseconds for charge.completed, seconds for other types) when the event was emitted."
+      },
+      "data": {
+        "type": "object",
+        "description": "Event payload. Shape varies by type — see oneOf branches below.",
+        "additionalProperties": true
+      }
+    },
+    "oneOf": [
+      {
+        "title": "charge.completed",
+        "properties": {
+          "type": { "const": "charge.completed" },
+          "data": {
+            "type": "object",
+            "required": ["id", "status", "amount", "currency", "reference", "customer_id"],
+            "properties": {
+              "id": { "type": "string", "description": "Charge id. Re-fetch via GET /charges/{id} server-side before fulfilling." },
+              "status": { "type": "string", "enum": ["succeeded", "pending", "failed", "voided"], "description": "Charge lifecycle state. Always check explicitly — failed/voided charges also trigger this event." },
+              "amount": { "type": "number" },
+              "currency": { "type": "string" },
+              "reference": { "type": "string" },
+              "customer_id": { "type": "string" },
+              "payment_method_id": { "type": "string" },
+              "payment_method": { "type": "object", "additionalProperties": true },
+              "processor_response": { "type": "object", "additionalProperties": true },
+              "order_id": { "type": ["string", "null"] },
+              "meta": { "type": ["object", "null"], "additionalProperties": true },
+              "created_datetime": { "type": "string", "format": "date-time" },
+              "updated_datetime": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      },
+      {
+        "title": "refund.completed",
+        "properties": {
+          "type": { "const": "refund.completed" },
+          "data": {
+            "type": "object",
+            "required": ["id", "charge_id", "status"],
+            "properties": {
+              "id": { "type": "string", "description": "Refund id." },
+              "charge_id": { "type": "string", "description": "Id of the original charge being refunded." },
+              "amount_refunded": { "type": "number", "description": "Amount refunded (may be less than original for partial refunds)." },
+              "reason": {
+                "type": "string",
+                "enum": ["duplicate", "fraudulent", "requested_by_customer", "expired_uncaptured_charge"]
+              },
+              "status": {
+                "type": "string",
+                "enum": ["pending", "requires_action", "succeeded", "failed", "cancelled", "completed", "new"]
+              },
+              "meta": { "type": ["object", "null"], "additionalProperties": { "type": "string" } },
+              "created_datetime": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      },
+      {
+        "title": "transfer.disburse",
+        "properties": {
+          "type": { "const": "transfer.disburse" },
+          "data": {
+            "type": "object",
+            "required": ["id", "status"],
+            "description": "Transfer disbursement details. Re-fetch via GET /transfers/{id} server-side.",
+            "properties": {
+              "id": { "type": "string", "description": "Transfer id." },
+              "amount": { "type": "number" },
+              "currency": { "type": "string" },
+              "reference": { "type": "string" },
+              "status": { "type": "string", "description": "succeeded | failed | pending" },
+              "narration": { "type": "string" },
+              "meta": { "type": ["object", "null"], "additionalProperties": true },
+              "created_datetime": { "type": "string", "format": "date-time" }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      {
+        "title": "transfer.reversal",
+        "properties": {
+          "type": { "const": "transfer.reversal" },
+          "data": {
+            "type": "object",
+            "required": ["id", "status"],
+            "description": "Transfer reversal details. Re-fetch via GET /transfers/{id} server-side.",
+            "properties": {
+              "id": { "type": "string", "description": "Transfer id that was reversed." },
+              "amount": { "type": "number" },
+              "currency": { "type": "string" },
+              "reference": { "type": "string" },
+              "status": { "type": "string" },
+              "meta": { "type": ["object", "null"], "additionalProperties": true },
+              "created_datetime": { "type": "string", "format": "date-time" }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      {
+        "title": "order.authorization",
+        "properties": {
+          "type": { "const": "order.authorization" },
+          "data": {
+            "type": "object",
+            "required": ["id", "status"],
+            "description": "Order authorization details (pre-auth/capture flow). Re-fetch via GET /orders/{id} server-side.",
+            "properties": {
+              "id": { "type": "string", "description": "Order id." },
+              "status": { "type": "string" },
+              "amount": { "type": "number" },
+              "currency": { "type": "string" },
+              "reference": { "type": "string" },
+              "customer_id": { "type": "string" },
+              "meta": { "type": ["object", "null"], "additionalProperties": true },
+              "created_datetime": { "type": "string", "format": "date-time" }
+            },
+            "additionalProperties": true
+          }
+        }
+      }
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "Your endpoint must respond with HTTP 200 and an (optionally empty) body within 60 seconds.",
+    "properties": {}
+  },
+  "error_schema": {
+    "type": "object",
+    "description": "Webhooks do not return errors to Flutterwave. Any non-2xx response triggers retries.",
+    "properties": {}
+  },
+  "gotchas": [
+    "The signature header is 'flutterwave-signature' (v4). The old v3 header 'verif-hash' is no longer used.",
+    "Flutterwave signs the raw request body with HMAC-SHA256 and encodes the result as base64 — not hex. Compute: `crypto.createHmac('sha256', secret).update(rawBody).digest('base64')` and compare with the 'flutterwave-signature' header. A hex digest will never match.",
+    "Always use the raw request body (string or Buffer) for HMAC computation — never re-serialise parsed JSON, as key order may change and break verification.",
+    "Use a constant-time comparison (e.g. node:crypto timingSafeEqual) instead of === to prevent timing-side-channel attacks.",
+    "The top-level event id field differs by type: charge.completed uses 'id', while refund.completed, transfer.disburse, and transfer.reversal use 'webhook_id'. Always read whichever is present for deduplication.",
+    "Always re-verify the resource server-side via the corresponding GET endpoint before fulfilling or adjusting ledgers — never trust webhook payload data alone.",
+    "Deduplicate on the event id/webhook_id — Flutterwave may redeliver the same event after a transient failure on your side.",
+    "Respond with HTTP 200 within 60 seconds. Any non-2xx response or timeout triggers automatic retries (3 attempts at 30-minute intervals). Offload heavy processing to a background job.",
+    "data.status for charge.completed is not always 'succeeded' — failed and voided charges also trigger the event. Always check the status field explicitly.",
+    "The payload schemas for transfer.disburse, transfer.reversal, and order.authorization are documented from the Flutterwave reference but not verified against live deliveries — treat additionalProperties as likely."
+  ]
+}
