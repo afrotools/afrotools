@@ -15,11 +15,23 @@ Thank you for helping expand AI-ready coverage for African APIs.
 ## Prerequisites
 
 - Node.js 20+
+- Python 3.9+ (for live API verification)
 - `npm install` at the repo root
 
 ---
 
 ## Adding a spec
+
+You can add a spec manually (steps below) or use the `/afrotools:new` skill to automate
+the process. The skill reads the provider's API documentation and scaffolds `provider.json`,
+`schema.json`, and `canonical_example.ts` for every capability it finds, then runs validation.
+
+```
+/afrotools:new https://docs.example.com/api payment myprovider
+```
+
+Whether you use the skill or work manually, the live API verification step (§ 7 below)
+applies to both.
 
 ### 1. Create a branch
 
@@ -94,16 +106,91 @@ npm run validate           # full registry check — run before opening a PR
 
 Must pass with zero errors.
 
-### 7. Set status
+### 7. Verify response schemas against the live API (strongly recommended)
+
+Static validation checks structure and compilation, but it cannot catch mismatched field
+names, wrong types, or sandbox-specific gaps in `response_schema`. Live verification
+catches real discrepancies before they mislead AI agents.
+
+**How it works:**
+
+Create a `live_test_fixtures.json` file in the provider directory
+(`specs/{category}/{provider_slug}/live_test_fixtures.json`) that describes the test steps
+and their payloads. The generic `scripts/test_live.py` script reads this file, authenticates
+using `auth` config from each `schema.json`, calls the actual API, and diffs the response
+against the spec's `response_schema`.
+
+Fixture format:
+
+```json
+{
+  "oauth2_token_url": "https://idp.example.com/token",
+  "sandbox_base_url": "https://sandbox-api.example.com",
+  "steps": [
+    {
+      "capability": "list_customers",
+      "query_params": { "page": 1, "size": 10 }
+    },
+    {
+      "capability": "create_customer",
+      "body": { "email": "test@afrotools.dev", "name": { "first": "Test", "last": "User" } },
+      "store_as": "customer"
+    },
+    {
+      "capability": "create_charge",
+      "body": {
+        "customer_id": "$customer.data.id",
+        "amount": 1,
+        "currency": "GHS"
+      }
+    }
+  ]
+}
+```
+
+Key fixture fields:
+- `oauth2_token_url` — required when `auth.type == "oauth2"`
+- `sandbox_base_url` — replaces the production host with the sandbox host for all requests
+- `store_as` — stores the full response under a name so later steps can reference it
+- `$step_name.field.nested` — references a value from a previous step's stored response
+- `auth_secondary_env` — required when `auth.type == "basic"` needs two env vars
+
+**Run it:**
+
+```bash
+export PROVIDER_CREDENTIALS="..."   # the env var declared in auth.env_var
+npm run test:live -- --provider {slug}
+```
+
+Output:
+- ✅ Field present in spec and response
+- ❌ Required field missing from response → fix the spec or the fixture
+- 〰  Optional field absent from response → likely conditional; add a description to the field
+- ⚠️  Field present in response, absent from spec → add it to `response_schema`
+
+**Tips:**
+- Use a sandbox key or minimal test amounts — never a production key with real funds.
+- If the provider has no sandbox (`"sandbox": false` in `provider.json`), the script prints a
+  warning before running. Proceed with care.
+- Commit `live_test_fixtures.json` alongside `provider.json` — it contains no credentials,
+  only test shapes and sequencing logic. Other contributors benefit from it.
+
+If you skip live verification, add this gotcha to every spec whose response was not verified:
+
+```
+"response_schema not verified against live API — validate field names and types before shipping."
+```
+
+### 8. Set status
 
 Set `"status": "draft"` while working, `"ready"` once validation passes and you are satisfied
 with the spec. Never set `"verified"` — that is reserved for maintainers.
 
-### 8. Open a PR
+### 9. Open a PR
 
 Fill in the PR template. The CI workflow will re-run validation.
 
-### 9. After merge
+### 10. After merge
 
 Update `CHANGELOG.md` under `## [Unreleased]`.
 
