@@ -140,11 +140,8 @@ and their payloads. The generic `scripts/test_live.py` script reads this file, a
 using `auth` config from each `schema.json`, calls the actual API, and diffs the response
 against the spec's `response_schema`.
 
-You do not need to write this file by hand — ask an AI agent to generate it from the
-`schema.json` files and the capability folder list. Ask it to order steps so resources are
-created before they are referenced, use `$ts` for unique values (references, emails), and
-wire cross-step dependencies with `$step_name.data.field`. Review the result, fill in any
-provider-specific test values (phone numbers, bank codes, amounts), then commit it.
+You do not need to write this file by hand — ask an AI agent to generate it. Share the
+`schema.json` files and the list of capability folders, then review the result and commit it.
 
 Fixture format:
 
