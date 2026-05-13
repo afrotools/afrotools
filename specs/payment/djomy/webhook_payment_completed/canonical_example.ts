@@ -10,6 +10,8 @@ if (!DJOMY_CLIENT_SECRET) throw new Error("Missing env: DJOMY_CLIENT_SECRET");
 
 type WebhookEventType =
   | "payment.created"
+  | "payment.redirected"
+  | "payment.cancelled"
   | "payment.pending"
   | "payment.success"
   | "payment.failed";
@@ -43,8 +45,10 @@ async function verifyWebhookSignature(
   rawBody: string,
   receivedSignature: string
 ): Promise<boolean> {
+  const [version, sig] = receivedSignature.split(":");
+  if (version !== "v1" || !sig) throw new Error("Invalid signature format — expected v1:<hex>");
   const expectedSignature = await computeHmacHex(rawBody, DJOMY_CLIENT_SECRET!);
-  return expectedSignature === receivedSignature;
+  return expectedSignature === sig;
 }
 
 export async function handleDjomyWebhook(

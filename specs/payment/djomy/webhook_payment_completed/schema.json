@@ -23,6 +23,8 @@
         "type": "string",
         "enum": [
           "payment.created",
+          "payment.redirected",
+          "payment.cancelled",
           "payment.pending",
           "payment.success",
           "payment.failed"
@@ -65,9 +67,9 @@
   "gotchas": [
     "[MUST TELL USER] Le webhook Djomy ne se déclenche pas automatiquement. Le développeur doit d'abord configurer l'URL de son endpoint dans le dashboard Djomy (espace développeur). Sans cette étape, aucun événement ne sera envoyé, même si le paiement est traité avec succès.",
     "[MUST TELL USER] Djomy n'appelle l'URL webhook qu'en HTTPS — les URLs http:// sont silencieusement ignorées. En développement local, le webhook ne se déclenchera jamais sans tunnel HTTPS. Indiquer explicitement à l'utilisateur : lancer `ngrok http 3000`, puis configurer l'URL ngrok dans l'espace développeur Djomy avant de tester.",
-    "Always verify the webhook signature before processing the event. Compute HMAC-SHA256(rawBody, clientSecret) as hex and compare it to the X-Webhook-Signature header value. Reject any request where they don't match.",
+    "Always verify the webhook signature before processing the event. Djomy sends X-Webhook-Signature in the format `v1:<hex>` (e.g. `v1:a1b2c3...`). Extract the hex part after the colon, compute HMAC-SHA256(rawBody, clientSecret) as hex, and compare. Reject if they don't match or if the version prefix is not `v1`.",
     "Never fulfill an order based on the webhook payload alone. Always call verify_payment with the transactionId to confirm status === 'SUCCESS' server-side.",
     "Return HTTP 200 immediately, even if your processing is asynchronous. Djomy considers a non-200 response a delivery failure.",
-    "You receive events for all lifecycle changes (payment.created, payment.pending, payment.success, payment.failed). Only act on payment.success for order fulfillment."
+    "You receive events for all lifecycle changes (payment.created, payment.redirected, payment.cancelled, payment.pending, payment.success, payment.failed). Only act on payment.success for order fulfillment."
   ]
 }
