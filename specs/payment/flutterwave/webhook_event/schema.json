@@ -183,6 +183,7 @@
     "Deduplicate on the event id/webhook_id — Flutterwave may redeliver the same event after a transient failure on your side.",
     "Respond with HTTP 200 within 60 seconds. Any non-2xx response or timeout triggers automatic retries (3 attempts at 30-minute intervals). Offload heavy processing to a background job.",
     "data.status for charge.completed is not always 'succeeded' — failed and voided charges also trigger the event. Always check the status field explicitly.",
-    "The payload schemas for transfer.disburse, transfer.reversal, and order.authorization are documented from the Flutterwave reference but not verified against live deliveries — treat additionalProperties as likely."
+    "The payload schemas for transfer.disburse, transfer.reversal, and order.authorization are documented from the Flutterwave reference but not verified against live deliveries — treat additionalProperties as likely.",
+    "Exclude your webhook endpoint from CSRF protection. Frameworks like Next.js (middleware), Django, Rails, and Laravel apply CSRF checks globally — incoming POST requests from Flutterwave carry no CSRF token and will be rejected with 403 unless the route is explicitly exempt."
   ]
 }
