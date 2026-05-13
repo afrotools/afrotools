@@ -26,7 +26,7 @@
       "body": {
         "email": "live-$ts@afrotools.dev",
         "name": { "first": "Live", "last": "Test" },
-        "phone": { "country_code": "234", "number": "80$ts" }
+        "phone": { "country_code": "234", "number": "8012345678" }
       },
       "headers": { "X-Idempotency-Key": "cus-$ts" },
       "store_as": "customer"
