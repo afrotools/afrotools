@@ -243,6 +243,6 @@
     "applepay.card_holder_name / googlepay.card_holder_name accept 2-50 chars of letters, spaces, commas, periods, apostrophes and hyphens only.",
     "bank_account and opay sub-objects are documented as reserved for future expansion — pass {} when registering those types.",
     "Send X-Idempotency-Key (12-255 chars) when retrying creation to avoid duplicate stored instruments.",
-    "Successful response is 201 Created with the same per-type key echoed back plus device_fingerprint, client_ip, and created_datetime."
+    "Successful response is 201 Created with the same per-type key echoed back plus created_datetime. customer_id, client_ip, and device_fingerprint are documented in the API but absent from sandbox responses — they may only be populated in production or for specific payment method types. Do not assume their absence means the creation failed."
   ]
 }

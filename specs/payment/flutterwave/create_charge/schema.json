@@ -271,6 +271,7 @@
               "customer_id": { "type": "string" },
               "device_fingerprint": { "type": "string" },
               "client_ip": { "type": "string" },
+              "meta": { "type": "object", "additionalProperties": true },
               "created_datetime": { "type": "string", "format": "date-time" }
             },
             "additionalProperties": true
@@ -332,6 +333,7 @@
     "When the charge needs customer action, the response status is \"pending\" and data.next_action carries a discriminated object. Handle every next_action.type explicitly — redirect_url (open url), requires_otp / requires_pin (collect from user, call update_charge), payment_instruction (display note), requires_bank_transfer (show virtual account), qr_code (render base64 image), requires_capture (call create_charge with order_id), requires_requery (poll get_charge), requires_additional_fields (collect listed fields).",
     "fees[] is an array containing vat / app / merchant / stamp_duty entries — not a single number. Sum them client-side if you need a grand total.",
     "Pass X-Idempotency-Key on retry-prone networks; replays return the original response instead of creating a duplicate charge.",
-    "customer_id and payment_method_id must already exist. Create the customer and tokenise the payment method via their dedicated endpoints first."
+    "customer_id and payment_method_id must already exist. Create the customer and tokenise the payment method via their dedicated endpoints first.",
+    "disputed and refunded are documented fields but absent from the response when false — they only appear when there is an active dispute or refund. Do not test for their absence to infer state; poll get_charge or listen to webhook events instead."
   ]
 }

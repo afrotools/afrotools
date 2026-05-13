@@ -79,7 +79,7 @@
         "type": "object",
         "required": ["id", "rate"],
         "properties": {
-          "id": { "type": "string", "description": "Rate quote id (e.g. \"rte_r2B1d3\"). Store this — required to call get_transfer_rate and to lock the rate on a transfer." },
+          "id": { "type": "string", "description": "Rate quote id (e.g. \"rex_iq0wkX8NE4uQ\" in sandbox). Store this — required to call get_transfer_rate and to lock the rate on a transfer." },
           "rate": { "type": "string", "description": "Conversion rate from source to destination currency, returned as a string." },
           "source": {
             "type": "object",

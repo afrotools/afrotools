@@ -55,6 +55,7 @@
           "email": { "type": "string", "format": "email" },
           "name": {
             "type": "object",
+            "description": "Present only when provided as nested object during customer creation.",
             "properties": {
               "first": { "type": "string" },
               "middle": { "type": ["string", "null"] },
@@ -63,6 +64,7 @@
           },
           "phone": {
             "type": "object",
+            "description": "Present only when provided as nested object during customer creation.",
             "properties": {
               "country_code": { "type": "string" },
               "number": { "type": "string" }
@@ -70,6 +72,7 @@
           },
           "address": {
             "type": ["object", "null"],
+            "description": "Present only when provided during customer creation.",
             "properties": {
               "line1": { "type": "string" },
               "line2": { "type": ["string", "null"] },
