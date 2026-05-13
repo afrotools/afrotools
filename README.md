@@ -56,6 +56,7 @@ See [ATSS.md](./ATSS.md) for the full specification.
 | Paycard | payment | 🇬🇳 | 3 | ✅ AI Ready |
 | Djomy | payment | 🇬🇳 | 7 | 4 verified · 3 ready |
 | LengoPay | payment | 🇬🇳 | 8 | 2 verified · 6 ready |
+| Flutterwave | payment | 🇳🇬 🇬🇭 🇰🇪 +10 | 57 | 📋 Ready |
 | NimbaSMS | sms | 🇬🇳 | 11 | 📋 Ready |
 | Notch Pay | payment | 🇨🇲 🇨🇮 🇸🇳 +3 | 31 | 📋 Ready |
 | Orange Money Mali | payment | 🇲🇱 | 2 | 📋 Ready |
