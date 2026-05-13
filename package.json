@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "validate": "node scripts/validate.js",
-    "validate:changed": "node scripts/validate.js --changed"
+    "validate:changed": "node scripts/validate.js --changed",
+    "test:live": "python3 scripts/test_live.py"
   },
   "devDependencies": {
     "typescript": "^6.0.2",
