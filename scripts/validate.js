@@ -42,7 +42,7 @@ const REQUIRED_FIELDS = [
   "gotchas",
 ];
 
-const VALID_CAPABILITY_TYPES = ["synchronous", "asynchronous", "webhook"];
+const VALID_CAPABILITY_TYPES = ["synchronous", "asynchronous", "webhook", "sdk"];
 const VALID_STATUSES = ["draft", "ready", "verified", "deprecated", "archived"];
 
 // ---------------------------------------------------------------------------

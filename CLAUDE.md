@@ -84,12 +84,12 @@ afrotools/afrotools/
 ## Spec status lifecycle
 
 ```
-draft → compliant → verified → deprecated → archived
+draft → ready → verified → deprecated → archived
 ```
 
 - `draft` — work in progress, not yet validated
-- `compliant` — schema valid, canonical_example compiles, gotchas present. Visible in MCP.
-- `verified` — compliant + working example in afrotools/examples. Earns "AI Ready" badge.
+- `ready` — schema valid, canonical_example compiles, gotchas present. Visible in MCP.
+- `verified` — ready + working example in afrotools/examples. Earns "AI Ready" badge.
 - Only maintainers can set `verified`, `deprecated`, or `archived`.
 
 ## Running validation
@@ -127,7 +127,7 @@ afrotools/examples uses specs as the reference for its integration layer.
 3. Add `schema.json` following `schema.template.json`
 4. Add `canonical_example.ts` following ATSS rules in `specs/CLAUDE.md`
 5. Run `npm run validate` — must pass with zero errors
-6. Set `status` to `draft` or `compliant` in `schema.json`
+6. Set `status` to `draft` or `ready` in `schema.json`
 7. Open a PR with the template filled in
 8. After merge: update `CHANGELOG.md`
 
@@ -140,3 +140,4 @@ afrotools/examples uses specs as the reference for its integration layer.
 - Never add MCP server code to this repo
 - Never put real API keys or secrets in `plugin/.mcp.json`
 - Never push directly to main — always use a branch and PR
+- Never apply `encodeURIComponent` to path parameters in `canonical_example.ts` unless the provider documentation explicitly requires it — API references (transaction IDs, payment link references, etc.) use safe characters by design; encoding them silently breaks the request

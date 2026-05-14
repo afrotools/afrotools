@@ -1,0 +1,73 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "webhook_payment_success",
+  "capability_type": "webhook",
+  "status": "ready",
+  "currency": ["XOF"],
+  "auth": {
+    "type": "none",
+    "location": "header",
+    "field": "x-kadevpay-signature",
+    "format": "{token}",
+    "env_var": "KADEVPAY_WEBHOOK_SECRET"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_webhook_url}"
+  },
+  "example_prompt": "Receive and verify a KadevPay payment.success webhook event before fulfilling an order.",
+  "input_schema": {
+    "type": "object",
+    "required": ["event", "data"],
+    "properties": {
+      "event": {
+        "type": "string",
+        "enum": ["payment.success"]
+      },
+      "data": {
+        "type": "object",
+        "required": ["reference", "amount", "currency", "status"],
+        "properties": {
+          "reference": { "type": "string" },
+          "amount": {
+            "type": "number",
+            "description": "Gross amount in XOF"
+          },
+          "net_amount": {
+            "type": "number",
+            "description": "Amount after KadevPay 3% fee in XOF"
+          },
+          "currency": {
+            "type": "string",
+            "enum": ["XOF"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["paid"]
+          },
+          "customer": {
+            "type": "object",
+            "properties": {
+              "full_name": { "type": "string" },
+              "email": { "type": "string" },
+              "phone": { "type": "string" }
+            }
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  },
+  "response_schema": {},
+  "error_schema": {},
+  "gotchas": [
+    "Verify the signature: compute HMAC-SHA512(JSON.stringify(req.body), KADEVPAY_WEBHOOK_SECRET) and compare with the x-kadevpay-signature header — hash the re-serialized parsed body, not the raw request string. Use SHA-512, not SHA-256.",
+    "Only act on event === 'payment.success' — other event types may be added by KadevPay in the future.",
+    "net_amount is the actual revenue after KadevPay's 3% fee — use it for accounting, not amount.",
+    "Always call verify_payment server-side after receiving the webhook — never fulfill based on the webhook payload alone.",
+    "Return HTTP 200 immediately; process the event asynchronously. The webhook URL must be HTTPS and configured in the KadevPay dashboard."
+  ]
+}

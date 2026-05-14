@@ -1,0 +1,87 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "verify_payment",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": ["XOF"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "KADEVPAY_SECRET_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://pay.kadev.ci/api/v1/transactions/verify/{reference}"
+  },
+  "example_prompt": "Verify a KadevPay transaction server-side and confirm its status before fulfilling an order.",
+  "input_schema": {
+    "type": "object",
+    "required": ["reference"],
+    "properties": {
+      "reference": {
+        "type": "string",
+        "description": "Transaction reference from the checkout onSuccess callback, e.g. KDV-1775413916000 — passed as path parameter"
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": ["status", "data"],
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Top-level result, e.g. 'success'"
+      },
+      "mode": {
+        "type": "string",
+        "enum": ["test", "live"]
+      },
+      "data": {
+        "type": "object",
+        "required": ["reference", "status", "amount", "currency"],
+        "properties": {
+          "reference": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["paid", "pending", "failed"]
+          },
+          "amount": {
+            "type": "number",
+            "description": "Gross amount in XOF"
+          },
+          "currency": {
+            "type": "string",
+            "enum": ["XOF"]
+          },
+          "customer": {
+            "type": "object",
+            "properties": {
+              "full_name": { "type": "string" },
+              "email": { "type": "string" }
+            }
+          },
+          "paid_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "message": { "type": "string" }
+    }
+  },
+  "gotchas": [
+    "Use the SECRET key (kdvs_*), not the public key — using the wrong key returns 401.",
+    "reference is passed as a path parameter: GET /api/v1/transactions/verify/{reference}, not in the request body.",
+    "Check both conditions before fulfilling: top-level status === 'success' AND data.status === 'paid'. Checking only data.status is not sufficient — an invalid reference can return a non-success top-level status.",
+    "Pass the reference directly as a path segment — do not URL-encode it. The format KDV-* contains only safe characters.",
+    "mode: 'test' appears in sandbox responses — check this field to distinguish test vs live transactions."
+  ]
+}

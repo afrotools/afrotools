@@ -100,7 +100,7 @@ One `provider.json` per provider directory. Carries provider-level metadata migr
 | spec_version | string | Always "1.0" |
 | provider_api_version | string | YYYY-MM-DD if provider has no version string |
 | capability | string | snake_case — matches the directory name |
-| capability_type | enum | `synchronous`, `asynchronous`, or `webhook` |
+| capability_type | enum | `synchronous`, `asynchronous`, `webhook`, or `sdk` |
 | status | enum | `draft`, `ready`, `verified`, `deprecated`, `archived` |
 | currency | string[] | ISO 4217 codes |
 | sandbox | boolean | true if provider has a sandbox environment |
@@ -121,6 +121,7 @@ One `provider.json` per provider directory. Carries provider-level metadata migr
 - `synchronous` — request/response, result available immediately in the HTTP response
 - `asynchronous` — provider processes in background, poll a separate endpoint for result
 - `webhook` — provider sends an HTTP POST to your endpoint when an event occurs
+- `sdk` — capability delivered through a client-side SDK script (no direct HTTP endpoint). `endpoint.url` holds the CDN URL of the SDK script; `endpoint.method` is `null`. The `canonical_example.ts` exports a server-side configuration helper; the actual SDK invocation is shown in the usage comment block. Auth credential goes in `auth.location: "sdk_param"` (the SDK's config object).
 
 ---
 
@@ -268,3 +269,4 @@ Gotchas must be: specific, actionable, based on real integration experience.
 | Wave | payment | wave | SN, CI, ML, GN, UG, BF, GM, NE, CM, SL, CD | create_checkout_session, create_payout_batch, expire_checkout, get_balance, get_payout, get_transactions, refund_checkout, search_checkouts, send_payout, verify_payment, verify_recipient, webhook_payment_completed | ready (12/12) |
 | NimbaSMS | sms | nimbasms | GN | create_contact, get_balance, get_message, list_contacts, list_groups, list_messages, list_sendernames, send_message, send_verification, verify_code, webhook_sms_status | ready (11/11) |
 | Bictorys | payment | bictorys | — | — | planned |
+| KadevPay | payment | kadevpay | CI | create_checkout_session, verify_payment, webhook_payment_success | draft (0/3) |

@@ -1,0 +1,61 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "create_checkout_session",
+  "capability_type": "sdk",
+  "status": "ready",
+  "currency": ["XOF"],
+  "auth": {
+    "type": "api_key",
+    "location": "sdk_param",
+    "field": "public_key",
+    "format": "{token}",
+    "env_var": "KADEVPAY_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": null,
+    "url": "https://pay.kadev.ci/js/v1/kadev-pay.js"
+  },
+  "example_prompt": "Initialize a KadevPay checkout session and redirect the customer to complete a mobile money or card payment.",
+  "input_schema": {
+    "type": "object",
+    "required": ["amount", "email", "method"],
+    "properties": {
+      "amount": {
+        "type": "number",
+        "description": "Amount in XOF (FCFA), e.g. 5000"
+      },
+      "email": {
+        "type": "string",
+        "format": "email"
+      },
+      "method": {
+        "type": "string",
+        "enum": ["momo", "card"]
+      },
+      "name": {
+        "type": "string"
+      },
+      "phone": {
+        "type": "string"
+      },
+      "callback_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to redirect after payment"
+      },
+      "metadata": {
+        "type": "object"
+      }
+    }
+  },
+  "response_schema": {},
+  "error_schema": {},
+  "gotchas": [
+    "Use the PUBLIC key (kdvp_*) in KadevPay.checkout(), not the secret key — the secret key is only for server-side verify_payment calls.",
+    "amount is a number in XOF (FCFA), not a string — e.g. 5000 for 5000 FCFA.",
+    "Save the transaction reference returned via the onSuccess callback — you need it to call verify_payment before fulfilling the order.",
+    "For method: 'card', KadevPay processes payments via Paystack internally — no additional Paystack integration is needed.",
+    "Always call verify_payment server-side after checkout — the onSuccess callback can be spoofed."
+  ]
+}
