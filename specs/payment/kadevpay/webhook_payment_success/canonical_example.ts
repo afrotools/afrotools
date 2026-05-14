@@ -31,9 +31,12 @@ interface KadevPayWebhookPayload {
   data: WebhookData;
 }
 
-export function verifyWebhookSignature(rawBody: string, signature: string): boolean {
+export function verifyWebhookSignature(
+  body: KadevPayWebhookPayload,
+  signature: string
+): boolean {
   const expected = createHmac("sha512", KADEVPAY_WEBHOOK_SECRET as string)
-    .update(rawBody)
+    .update(JSON.stringify(body))
     .digest("hex");
   try {
     return timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
@@ -52,21 +55,18 @@ export function handleWebhook(payload: KadevPayWebhookPayload): void {
 /*
 Usage example (Express.js handler):
 
-app.post("/webhooks/kadevpay", express.raw({ type: "application/json" }), (req, res) => {
-  // Return 200 immediately — process asynchronously
-  res.sendStatus(200);
+app.post("/webhooks/kadevpay", express.json(), (req, res) => {
+  const signature = req.headers["x-kadevpay-signature"] as string;
+  const payload: KadevPayWebhookPayload = req.body;
 
-  const rawBody = req.body.toString();
-  const signature = req.headers["x_kadevpay_signature"] as string;
-
-  if (!verifyWebhookSignature(rawBody, signature)) {
-    console.error("Invalid KadevPay webhook signature — request rejected");
-    return;
+  if (!verifyWebhookSignature(payload, signature)) {
+    return res.status(401).send("Signature invalide");
   }
 
-  const payload: KadevPayWebhookPayload = JSON.parse(rawBody);
+  // Return 200 immediately — process asynchronously
+  res.status(200).send("Webhook traité");
 
-  if (payload.event !== "payment.success") return;
+  if (payload.event !== "payment.success" || payload.data.status !== "paid") return;
 
   // Always verify server-side before fulfilling the order
   verifyPayment(payload.data.reference).then((result) => {

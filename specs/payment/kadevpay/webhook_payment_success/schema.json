@@ -8,7 +8,7 @@
   "auth": {
     "type": "none",
     "location": "header",
-    "field": "X_KADEVPAY_SIGNATURE",
+    "field": "x-kadevpay-signature",
     "format": "{token}",
     "env_var": "KADEVPAY_WEBHOOK_SECRET"
   },
@@ -64,7 +64,7 @@
   "response_schema": {},
   "error_schema": {},
   "gotchas": [
-    "Verify the signature: compute HMAC-SHA512(rawBody, KADEVPAY_WEBHOOK_SECRET) and compare with the X_KADEVPAY_SIGNATURE header — use SHA-512, not SHA-256.",
+    "Verify the signature: compute HMAC-SHA512(JSON.stringify(req.body), KADEVPAY_WEBHOOK_SECRET) and compare with the x-kadevpay-signature header — hash the re-serialized parsed body, not the raw request string. Use SHA-512, not SHA-256.",
     "Only act on event === 'payment.success' — other event types may be added by KadevPay in the future.",
     "net_amount is the actual revenue after KadevPay's 3% fee — use it for accounting, not amount.",
     "Always call verify_payment server-side after receiving the webhook — never fulfill based on the webhook payload alone.",
