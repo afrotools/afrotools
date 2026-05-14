@@ -140,3 +140,4 @@ afrotools/examples uses specs as the reference for its integration layer.
 - Never add MCP server code to this repo
 - Never put real API keys or secrets in `plugin/.mcp.json`
 - Never push directly to main — always use a branch and PR
+- Never apply `encodeURIComponent` to path parameters in `canonical_example.ts` unless the provider documentation explicitly requires it — API references (transaction IDs, payment link references, etc.) use safe characters by design; encoding them silently breaks the request
