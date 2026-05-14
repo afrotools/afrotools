@@ -84,7 +84,7 @@ export async function getPaymentLink(
   const accessToken = await getAccessToken();
 
   const response = await fetch(
-    `${DJOMY_BASE_URL}/v1/links/${encodeURIComponent(paymentLinkReference)}`,
+    `${DJOMY_BASE_URL}/v1/links/${paymentLinkReference}`,
     {
       method: "GET",
       headers: {
