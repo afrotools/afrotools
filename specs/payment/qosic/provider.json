@@ -1,0 +1,14 @@
+{
+  "slug": "qosic",
+  "name": "Qosic",
+  "category": "payment",
+  "country_code": [
+    "TG"
+  ],
+  "website": "https://qosic.com",
+  "docs_url": "https://docs.qosic.com",
+  "docs_public": true,
+  "sandbox": true,
+  "description": "Qosic (QOSPAY) is a West African payment aggregator for mobile money collection, disbursement and card checkout. This spec set covers Togo (Togocel / Yas and Moov Togo). Qosic also supports Benin (MTN, Moov, Celtiis) and card payments via a separate Checkout product not covered here.",
+  "example_prompt": "Add Qosic / QOSPAY to my Togolese app so I can collect mobile money payments from Togocel and Moov customers and disburse payouts to mobile money numbers."
+}

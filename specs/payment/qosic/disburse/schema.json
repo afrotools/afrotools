@@ -1,0 +1,112 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "disburse",
+  "capability_type": "asynchronous",
+  "status": "ready",
+  "currency": [
+    "XOF"
+  ],
+  "auth": {
+    "type": "basic",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic base64({username}:{password})",
+    "env_var": "QOSIC_USERNAME"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.qosic.net/QosicBridge/tm/v1/deposit"
+  },
+  "example_prompt": "Use Qosic to credit a customer's Togocel or Moov Togo mobile money wallet (payout / refund / seller payout).",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "msisdn",
+      "amount",
+      "transref",
+      "clientid",
+      "network"
+    ],
+    "properties": {
+      "msisdn": {
+        "type": "string",
+        "description": "Recipient phone number in international format with no '+' (Togo = 228xxxxxxxx)."
+      },
+      "amount": {
+        "type": "string",
+        "description": "Amount to credit as a string, in XOF, no decimals. Example: '5000'."
+      },
+      "transref": {
+        "type": "string",
+        "description": "Your unique merchant transaction reference. Must be unique across all your transactions."
+      },
+      "clientid": {
+        "type": "string",
+        "description": "Operator-specific Client ID matching the target network. Same convention as initiate_payment."
+      },
+      "network": {
+        "type": "string",
+        "enum": [
+          "TOGOCEL",
+          "MOOV"
+        ],
+        "description": "Mobile money network of the recipient. Determines URL: TOGOCEL -> /tm/v1/deposit, MOOV -> /tg/v1/deposit."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "responsecode": {
+        "type": "string",
+        "description": "'00' = credit acknowledged. '01' = pending. The actual settlement on the recipient wallet is asynchronous — confirm with check_payment_status."
+      },
+      "responsemsg": {
+        "type": "string"
+      },
+      "transref": {
+        "type": "string"
+      },
+      "serviceref": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Qosic-side reference. May be null/'0' on Togo and at initial response."
+      },
+      "comment": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "responsecode": {
+        "type": "string"
+      },
+      "responsemsg": {
+        "type": "string"
+      },
+      "transref": {
+        "type": "string"
+      },
+      "comment": {
+        "type": "string"
+      }
+    }
+  },
+  "gotchas": [
+    "responsecode '00' on deposit means Qosic ACCEPTED the disbursement, not that the recipient's wallet has been credited. The actual operator credit is asynchronous — poll check_payment_status with the same transref until it returns a terminal state.",
+    "Successful synchronous responses return HTTP 202 (Accepted), not 200. Treat both 200 and 202 as 'request accepted'.",
+    "[MUST TELL USER] Disbursement endpoints require IP whitelisting in the Qosic dashboard. Without it, requests from your production server are rejected with 401 regardless of credentials.",
+    "[MUST TELL USER] Disbursement requires a funded merchant wallet on Qosic. Check your dashboard balance before scheduling a payout — Qosic does not have a separate balance API; you reconcile via the dashboard.",
+    "[MUST TELL USER] Qosic mandates two-factor authentication (Authenticator app + QR code) for withdrawals from the merchant balance. This is on the dashboard side, not API-driven, but you need to enable it before disbursing in production.",
+    "Same URL routing as initiate_payment: TOGOCEL -> /tm/v1/deposit, MOOV -> /tg/v1/deposit. Each operator has its own clientid in the dashboard.",
+    "transref MUST be unique. Reusing a transref across an initiate_payment and a disburse breaks status lookups."
+  ]
+}
