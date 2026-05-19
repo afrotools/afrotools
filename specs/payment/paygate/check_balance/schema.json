@@ -1,0 +1,62 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "check_balance",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XOF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "body",
+    "field": "auth_token",
+    "format": "{token}",
+    "env_var": "PAYGATE_AUTH_TOKEN"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://paygateglobal.com/api/v1/check-balance"
+  },
+  "example_prompt": "Show me my PayGate merchant balance on Flooz and T-Money before triggering a disbursement.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "auth_token"
+    ],
+    "properties": {
+      "auth_token": {
+        "type": "string",
+        "description": "Merchant API key from the PayGate dashboard."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "integer",
+        "description": "Response code. 0 means the balance fetch succeeded. Non-zero indicates an error (e.g. invalid auth token, IP not whitelisted)."
+      },
+      "flooz": {
+        "type": "number",
+        "description": "Available balance on the Flooz (Moov) merchant wallet, in XOF. Present when status = 0."
+      },
+      "tmoney": {
+        "type": "number",
+        "description": "Available balance on the T-Money (Mixx Togo) merchant wallet, in XOF. Present when status = 0."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "description": "If the IP is not whitelisted or auth_token is invalid, the endpoint returns an error response instead of the balance object."
+  },
+  "gotchas": [
+    "[MUST TELL USER] /v1/check-balance requires IP whitelisting on PayGate's side. Only requests originating from IPs registered in the merchant dashboard are accepted. Make sure your production server IP is whitelisted before going live.",
+    "Flooz and T-Money balances are completely separate accounts. A disburse on TMONEY consumes only the `tmoney` balance, even if your `flooz` balance is plentiful — and vice versa. Always check the matching network before calling disburse.",
+    "Balances are returned as numbers without a currency field — they are always in XOF (FCFA), with no decimals.",
+    "Do not poll this endpoint at high frequency. Use it before disbursements and at low cadence for monitoring.",
+    "[MUST TELL USER] PayGate API documentation is private. Confirm response field types in your dashboard if you observe schema mismatches."
+  ]
+}

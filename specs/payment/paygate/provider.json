@@ -1,0 +1,14 @@
+{
+  "slug": "paygate",
+  "name": "PayGate",
+  "category": "payment",
+  "country_code": [
+    "TG"
+  ],
+  "website": "https://paygateglobal.com",
+  "docs_url": "https://paygateglobal.com",
+  "docs_public": false,
+  "sandbox": false,
+  "description": "PayGate is a Togolese payment gateway for collecting mobile money payments and disbursing funds via Mixx Togo (T-Money) and Moov (Flooz). API documentation is private and only accessible to authenticated merchants from their PayGate dashboard.",
+  "example_prompt": "Add PayGate to my Togolese app so I can collect mobile money payments via T-Money and Flooz, and disburse funds to mobile money numbers."
+}

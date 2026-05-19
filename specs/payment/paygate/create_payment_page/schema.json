@@ -1,0 +1,89 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "create_payment_page",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XOF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "query",
+    "field": "token",
+    "format": "{token}",
+    "env_var": "PAYGATE_AUTH_TOKEN"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://paygateglobal.com/v1/page"
+  },
+  "example_prompt": "Generate a PayGate hosted payment page URL and redirect my customer to it instead of pushing a USSD directly.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "token",
+      "amount",
+      "identifier",
+      "url"
+    ],
+    "properties": {
+      "token": {
+        "type": "string",
+        "description": "Merchant API key (Clé API) from the PayGate dashboard. Sent as a query string parameter."
+      },
+      "amount": {
+        "type": "integer",
+        "description": "Transaction amount as an integer in the default currency (FCFA / XOF). No decimals."
+      },
+      "description": {
+        "type": "string",
+        "description": "Optional human-readable description of the transaction."
+      },
+      "identifier": {
+        "type": "string",
+        "description": "Your own unique reference for this transaction (e.g. an order ID). Must be unique."
+      },
+      "url": {
+        "type": "string",
+        "format": "uri",
+        "description": "Callback URL where PayGate redirects the customer after the payment attempt."
+      },
+      "phone": {
+        "type": "string",
+        "description": "Optional. Pre-fills the customer phone number on the hosted page."
+      },
+      "network": {
+        "type": "string",
+        "enum": [
+          "MOOV",
+          "TOGOCEL"
+        ],
+        "description": "Optional. Pre-selects the network on the hosted page. MOOV = Moov / Flooz. TOGOCEL = Togocom / T-Money. If omitted, the customer chooses manually. Note: these values differ from the FLOOZ/TMONEY enum used by /v1/pay and /v1/disburse."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "GET /v1/page returns the hosted payment HTML page itself — there is no JSON response. Use this capability to build the redirect URL and send the user there.",
+    "properties": {
+      "redirect_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "The fully-built URL to redirect the customer to. Constructed locally from the query parameters."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "description": "Errors are displayed on the hosted page itself. There is no structured error response."
+  },
+  "gotchas": [
+    "This is NOT a JSON API — it's a hosted page. The 'response' is an HTML page rendered to the customer's browser. The capability just builds the redirect URL.",
+    "The network enum is DIFFERENT from /v1/pay and /v1/disburse: here it's 'MOOV' or 'TOGOCEL'. On /v1/pay and /v1/disburse the same concept is encoded as 'FLOOZ' / 'TMONEY'. Do not pass FLOOZ or TMONEY to /v1/page — they are silently ignored.",
+    "After the customer completes (or abandons) the payment, PayGate redirects to the url query parameter. The redirect URL alone is NOT proof of payment — always re-verify server-side with check_payment_status before fulfilling.",
+    "If you also configured a webhook in your dashboard, you will receive the webhook on success regardless of whether the customer made it back to the redirect URL. The webhook is the more reliable signal.",
+    "Use this capability instead of initiate_payment when you want to let the customer choose their operator on a PayGate-hosted page rather than knowing the network upfront.",
+    "[MUST TELL USER] PayGate API documentation is private and only visible from inside the merchant dashboard. The query parameters and behavior of /v1/page may evolve — cross-check with the current docs in your account."
+  ]
+}
