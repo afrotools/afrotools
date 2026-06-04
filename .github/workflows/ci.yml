@@ -42,11 +42,9 @@ jobs:
       - name: Trigger downstream redeploys
         if: github.event_name == 'push' && success()
         run: |
-          for repo in afrotools/mcp afrotools/core; do
-            echo "Dispatching specs-updated to $repo..."
-            gh api repos/$repo/dispatches \
-              --method POST --field event_type=specs-updated
-          done
+          echo "Dispatching specs-updated to afrotools/core ..."
+          gh api repos/afrotools/core/dispatches \
+            --method POST --field event_type=specs-updated
         env:
           GH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}
 

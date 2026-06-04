@@ -8,7 +8,7 @@ Contains only static files — no build step, no compiled output.
 **Org:** `afrotools` on GitHub
 **This repo:** `afrotools/afrotools`
 
-The MCP server (`afrotools/mcp`, private) reads specs remotely via GitHub raw URLs.
+The MCP server (`afrotools/core/apps/mcp`) reads specs remotely via GitHub raw URLs.
 The `plugin/` folder is the Claude Code plugin users install to get Afro.tools in their editor.
 
 ## Repo map
@@ -16,9 +16,8 @@ The `plugin/` folder is the Claude Code plugin users install to get Afro.tools i
 | Repo | Visibility | Role |
 |---|---|---|
 | afrotools/afrotools | **Public** | Specs + Claude Code plugin |
-| afrotools/mcp | **Private** (MVP) | MCP server — Streamable HTTP |
+| afrotools/core | **Private** | Monorepo — web + mcp + infra (Turborepo) |
 | afrotools/examples | **Public** | Working Next.js 16 examples |
-| afrotools/core | **Private** | Landing page + infra |
 
 ## Structure
 
@@ -114,11 +113,11 @@ Validation checks:
 
 ## Dependency graph
 
-This repo has NO runtime dependencies on afrotools/mcp, afrotools/examples, or afrotools/core.
+This repo has NO runtime dependencies on afrotools/core, afrotools/examples.
 It is a fully standalone static registry.
 
-afrotools/mcp reads from this repo via GitHub raw URLs.
-afrotools/examples uses specs as the reference for its integration layer.
+`afrotools/core/apps/mcp` reads from this repo via GitHub raw URLs (via `packages/registry` build step).
+`afrotools/examples` uses specs as the reference for its integration layer.
 
 ## Adding a spec — contributor checklist
 
