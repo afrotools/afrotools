@@ -94,7 +94,6 @@
     "Querying an UNKNOWN transref returns HTTP 200 with responsecode '-1', responsemsg 'FAILED', serviceref '0'. Do not interpret this as 'transaction failed' — it can also mean 'transaction not yet known to Qosic' shortly after initiate_payment. Re-poll a few times before declaring failure.",
     "The sandbox auto-completes paid transactions immediately (responsecode '00') without any USSD validation. Production REQUIRES the customer to validate on their phone — expect responsecode '01' for 30-120s.",
     "Togocel and Moov Togo use the same body schema for status but DIFFERENT URLs (TOGOCEL -> /tm/v1/, MOOV -> /tg/v1/). Pass the same network value you used at initiation.",
-    "Benin's MTN has a V2 endpoint (/user/gettransactionstatusV2) for pending transactions and Moov Benin requires an extra 'specialfield1' (SMS transaction id). Neither applies to Togo — only mentioned here for completeness if you ever extend to Benin.",
-    "'02' on Togo means FAILED (not PENDING — that's '01'). The Togo code mapping differs slightly from MTN Benin. See docs.qosic.com for the full per-country error code list."
+    "'02' on Togo means FAILED (not PENDING — that's '01'). See docs.qosic.com for the full Togo error code list."
   ]
 }

@@ -32,7 +32,11 @@ interface QosicWebhookPayload {
 
 interface VerifiedPayment {
   transref: string;
-  amount: string;
+  // The amount comes straight from the UNSIGNED webhook and is NOT confirmed by
+  // /gettransactionstatus (which returns no amount field). Never fulfill based on
+  // this value — reconcile against the amount you stored at initiate_payment time,
+  // keyed by transref. Kept here only for logging / comparison.
+  untrustedAmount: string;
   responsecode: string;
   responsemsg: string;
   network: QosicNetwork;
@@ -97,7 +101,7 @@ export async function handleQosicWebhook(
 
   return {
     transref: payload.transRef,
-    amount: payload.amount,
+    untrustedAmount: payload.amount,
     responsecode: verified.responsecode,
     responsemsg: verified.responsemsg,
     network,
@@ -112,7 +116,14 @@ app.post("/webhooks/qosic/togocel", express.text({ type: "*\/*" }), async (req, 
   try {
     const payment = await handleQosicWebhook(req.body as string, "TOGOCEL");
     if (payment) {
-      await fulfillOrder(payment.transref, payment);
+      // The webhook is unsigned and /gettransactionstatus returns no amount, so
+      // verify the AMOUNT against what you stored when you called initiate_payment.
+      const order = await getOrderByTransref(payment.transref);
+      if (order && order.amount === payment.untrustedAmount) {
+        await fulfillOrder(payment.transref, payment);
+      } else {
+        console.warn("Amount mismatch — refusing to fulfill:", payment.transref);
+      }
     }
   } catch (err) {
     console.error("Qosic webhook handler failed:", err);
@@ -121,4 +132,7 @@ app.post("/webhooks/qosic/togocel", express.text({ type: "*\/*" }), async (req, 
 
 // Qosic webhooks are NOT cryptographically signed — handleQosicWebhook always
 // re-verifies via /gettransactionstatus before treating a payment as completed.
+// That confirms the payment SUCCEEDED but NOT the amount (no amount field in the
+// status response), so always reconcile payment.untrustedAmount against your
+// stored order amount before fulfilling.
 */
