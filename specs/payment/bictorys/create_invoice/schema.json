@@ -1,0 +1,132 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-06-05",
+  "capability": "create_invoice",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "X-API-Key",
+    "format": "{token}",
+    "env_var": "BICTORYS_SECRET_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.bictorys.com/invoice-management/v1/invoices"
+  },
+  "example_prompt": "Create an invoice for a customer with line items, then share the payment URL so they can pay online.",
+  "input_schema": {
+    "type": "object",
+    "required": ["currency", "dueDate", "orderDetails"],
+    "properties": {
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code. Example: \"XOF\", \"GNF\", \"NGN\"."
+      },
+      "dueDate": {
+        "type": "string",
+        "format": "date",
+        "description": "Payment deadline in YYYY-MM-DD format."
+      },
+      "orderDetails": {
+        "type": "array",
+        "description": "Line items included in the invoice.",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "required": ["name", "price", "quantity"],
+          "properties": {
+            "name": { "type": "string", "description": "Item name." },
+            "price": { "type": "number", "description": "Unit price." },
+            "quantity": { "type": "number", "description": "Quantity." },
+            "reference": { "type": "string", "description": "SKU or product reference." },
+            "discount": { "type": "number", "description": "Discount amount. Default: 0." },
+            "taxRate": { "type": "number", "description": "Tax rate as a percentage. Default: 0." }
+          }
+        }
+      },
+      "customerId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Existing customer UUID. Required if not providing customer contact fields."
+      },
+      "reference": {
+        "type": "string",
+        "description": "Your internal invoice reference number."
+      },
+      "deliveryCharges": {
+        "type": "number",
+        "description": "Shipping or delivery costs added to the invoice total. Default: 0."
+      },
+      "deductedAmount": {
+        "type": "number",
+        "description": "Global discount applied to the invoice total. Default: 0."
+      },
+      "enableMultiplePayment": {
+        "type": "boolean",
+        "description": "Allow the customer to pay in multiple installments. Default: false."
+      },
+      "redirectUrlAfterPayment": {
+        "type": "string",
+        "format": "uri",
+        "description": "HTTPS URL to redirect the customer after successful payment."
+      },
+      "deviceId": {
+        "type": "string",
+        "description": "Device identifier for terminal-initiated invoices."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Unique invoice identifier (24-digit string)."
+      },
+      "paymentUrl": {
+        "type": "string",
+        "format": "uri",
+        "description": "Customer-facing payment URL. Share this link for the customer to complete payment."
+      },
+      "downloadUrl": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to download the invoice as a PDF."
+      },
+      "finalAmount": {
+        "type": "number",
+        "description": "Total invoice amount including taxes, delivery charges, and discounts."
+      },
+      "status": {
+        "type": "string",
+        "enum": ["opened", "paid", "paid_in_cash", "expired"],
+        "description": "Invoice status. 'opened' means awaiting payment."
+      },
+      "currency": { "type": "string" },
+      "dueDate": { "type": "string", "format": "date" },
+      "reference": { "type": "string" }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string" },
+      "title": { "type": "string" },
+      "details": {
+        "type": "string",
+        "description": "Bictorys error code. Example: \"E400-31: Due date is required\", \"E400-29: product price is missing in a Item line Object\"."
+      }
+    }
+  },
+  "gotchas": [
+    "This endpoint uses the invoice-management microservice. The base URL is https://api.bictorys.com/invoice-management/v1 — not https://api.bictorys.com/pay/v1. Using the wrong base URL returns 404.",
+    "orderDetails is required and must contain at least one item with name, price, and quantity. An empty array or missing field returns E400-29: product price is missing.",
+    "dueDate is required and must be in YYYY-MM-DD format. Missing or wrong format returns E400-31: Due date is required.",
+    "To charge an invoice via the API (instead of having the customer open paymentUrl in a browser), use the create_charge spec with invoiceId set to the returned id.",
+    "send_notification is a query parameter (not a body field) that controls whether Bictorys emails the customer. It defaults to true — set ?send_notification=false to suppress the notification.",
+    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com."
+  ]
+}

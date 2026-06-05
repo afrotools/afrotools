@@ -1,0 +1,52 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-06-05",
+  "capability": "refund_transaction",
+  "capability_type": "asynchronous",
+  "status": "draft",
+  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "X-API-Key",
+    "format": "{token}",
+    "env_var": "BICTORYS_SECRET_KEY"
+  },
+  "endpoint": {
+    "method": "PUT",
+    "url": "https://api.bictorys.com/pay/v1/transactions/{transactionId}/refund"
+  },
+  "example_prompt": "Initiate a refund for a completed payment transaction.",
+  "input_schema": {
+    "type": "object",
+    "required": ["transactionId"],
+    "properties": {
+      "transactionId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "UUID of the original payment transaction to refund. Must be in 'succeeded' status."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "HTTP 202 — refund accepted and queued for processing. No body is returned. Monitor completion via webhook (type: refund, status: SUCCEEDED) or by calling verify_transaction with the original transactionId."
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string" },
+      "title": { "type": "string" },
+      "details": {
+        "type": "string",
+        "description": "Bictorys error code. Examples: \"E404-1: Cannot find resource\", \"E400-0: Bad transactionId is passed\"."
+      }
+    }
+  },
+  "gotchas": [
+    "This endpoint returns HTTP 202 (accepted), not 200. The refund is processed asynchronously — Bictorys fires a webhook event with type 'refund' and status 'SUCCEEDED' when the refund completes. Do not treat 202 as confirmation of completion.",
+    "The transactionId must refer to a succeeded payment transaction. Attempting to refund a pending, failed, or already-refunded transaction will return a 400 error.",
+    "Refunds may take time depending on the mobile money operator or card network. Timelines vary by provider.",
+    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com."
+  ]
+}

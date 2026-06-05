@@ -1,0 +1,69 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-06-05",
+  "capability": "get_balance",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "X-API-Key",
+    "format": "{token}",
+    "env_var": "BICTORYS_SECRET_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.bictorys.com/balance-management/v1/balance/me"
+  },
+  "example_prompt": "Retrieve the current merchant account balance and pending amount before initiating a payout.",
+  "input_schema": {
+    "type": "object",
+    "properties": {},
+    "description": "No request body or query parameters required."
+  },
+  "response_schema": {
+    "type": "object",
+    "required": ["amount", "currency"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "type": {
+        "type": "string",
+        "enum": ["payment", "transfer", "refund", "settlement"]
+      },
+      "amount": {
+        "type": "number",
+        "description": "Available balance — funds that can be transferred immediately."
+      },
+      "pendingAmount": {
+        "type": "number",
+        "description": "Pending balance — typically corresponds to card payments awaiting settlement."
+      },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code. Defaults to XOF."
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 timestamp of when the balance was recorded."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string" },
+      "title": { "type": "string" },
+      "details": { "type": "string" }
+    }
+  },
+  "gotchas": [
+    "This endpoint uses the balance-management microservice, not the pay microservice. The base URL is https://api.bictorys.com/balance-management/v1 — not https://api.bictorys.com/pay/v1. Using the wrong base URL returns 404.",
+    "amount is the available balance (withdrawable immediately). pendingAmount is separately tracked and may include card payments waiting for settlement — it is not yet available for payout.",
+    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com."
+  ]
+}
