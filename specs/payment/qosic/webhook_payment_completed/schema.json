@@ -1,0 +1,66 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "webhook_payment_completed",
+  "capability_type": "webhook",
+  "status": "ready",
+  "currency": [
+    "XOF"
+  ],
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_webhook_url}"
+  },
+  "example_prompt": "Add a Qosic webhook handler so my server is notified when a Togocel or Moov Togo payment completes.",
+  "input_schema": {
+    "type": "object",
+    "description": "Payload Qosic POSTs to the callback URL configured per operator in your dashboard (Settings -> API Keys & Callback URL).",
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": [
+          "SUCCESSFUL",
+          "FAILED"
+        ],
+        "description": "Terminal status of the transaction."
+      },
+      "transRef": {
+        "type": "string",
+        "description": "Merchant transaction reference originally sent to initiate_payment / disburse. Note the capitalization: transRef (camelCase) on webhooks vs transref (lowercase) on REST responses."
+      },
+      "specialfield1": {
+        "type": "string",
+        "description": "Mirrors `status`: 'SUCCESSFUL' or 'FAILED'."
+      },
+      "amount": {
+        "type": "string",
+        "description": "Transaction amount as a string."
+      },
+      "serviceRef": {
+        "type": "string",
+        "description": "Qosic-side reference. Note the capitalization: serviceRef on webhooks vs serviceref on REST responses (and absent altogether on Togo REST responses)."
+      },
+      "code": {
+        "type": "string",
+        "description": "'200' = success, '-1' = failure. Distinct from the REST responsecode (which uses '00' / '02' / etc)."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "Your endpoint must return HTTP 200 quickly. The response body is ignored by Qosic."
+  },
+  "error_schema": {},
+  "gotchas": [
+    "[MUST TELL USER] The Qosic webhook does NOT fire by default. You must configure the callback URL per operator (Togocel, Moov, etc.) in dashboard -> Settings -> API Keys & Callback URL. Without this, no callback is ever delivered.",
+    "[MUST TELL USER] Qosic public documentation does NOT describe any signature, HMAC or shared-secret mechanism for verifying webhook payloads. Treat the payload as UNTRUSTED — any party that knows your URL can forge a webhook. ALWAYS call check_payment_status with the received `transRef` (and the matching network) before fulfilling the order.",
+    "[MUST TELL USER] The webhook `amount` is NOT verifiable server-side: check_payment_status / gettransactionstatus returns responsecode and responsemsg but NO amount field, so re-verification confirms the payment happened but cannot confirm how much. Never fulfill based on the webhook `amount` — look up the amount you stored when you called initiate_payment (keyed by transRef) and use that. A forged webhook could otherwise inflate the amount.",
+    "[MUST TELL USER] Qosic requires the callback URL to be HTTPS and browser-loadable. http:// URLs are silently ignored. For local development, use ngrok (or similar) and put the HTTPS tunnel URL in the dashboard.",
+    "Field NAME CASING DIFFERS between REST and webhook: REST returns transref / serviceref / responsecode (lowercase); webhook posts transRef / serviceRef / code (camelCase, different field for the code). Mapping the two requires care.",
+    "The `code` field on webhooks ('200' / '-1') is NOT the same as the REST responsecode ('00' / '02' / ...). Do not pass one where the other is expected.",
+    "Return HTTP 200 quickly. Qosic does not document a documented retry mechanism, so you may have a single delivery attempt — implement a reconciliation job that re-polls check_payment_status for any transaction left in PENDING beyond a few minutes."
+  ]
+}

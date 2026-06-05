@@ -1,0 +1,126 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "initiate_payment",
+  "capability_type": "asynchronous",
+  "status": "ready",
+  "currency": [
+    "XOF"
+  ],
+  "auth": {
+    "type": "basic",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic base64({username}:{password})",
+    "env_var": "QOSIC_USERNAME"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.qosic.net/QosicBridge/tm/v1/requestpayment"
+  },
+  "example_prompt": "Push a Togocel or Moov Togo mobile money debit request to a customer's phone via Qosic.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "msisdn",
+      "amount",
+      "transref",
+      "clientid",
+      "network"
+    ],
+    "properties": {
+      "msisdn": {
+        "type": "string",
+        "description": "Customer phone number in international format with no '+' (Togo = 228xxxxxxxx)."
+      },
+      "amount": {
+        "type": "string",
+        "description": "Amount as a string, in XOF, no decimals. Example: '100'."
+      },
+      "transref": {
+        "type": "string",
+        "description": "Your unique merchant transaction reference. Must be unique across all your transactions."
+      },
+      "clientid": {
+        "type": "string",
+        "description": "Operator-specific Client ID from your Qosic dashboard (Settings -> API Keys & Callback URL). Different per operator: e.g. TG_CREPiNL for Togocel, TG_CREPCaT for Moov Togo."
+      },
+      "network": {
+        "type": "string",
+        "enum": [
+          "TOGOCEL",
+          "MOOV"
+        ],
+        "description": "Mobile money network. TOGOCEL = Togocel / Yas. MOOV = Moov Togo. Determines which Qosic URL is called (TOGOCEL -> /tm/v1/, MOOV -> /tg/v1/)."
+      },
+      "firstname": {
+        "type": "string",
+        "description": "Optional customer first name."
+      },
+      "lastname": {
+        "type": "string",
+        "description": "Optional customer last name."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "responsecode": {
+        "type": "string",
+        "description": "Outcome code. '00' = successful synchronous debit. '01' = pending (customer must validate the USSD push). Code is a STRING, not an integer."
+      },
+      "responsemsg": {
+        "type": "string",
+        "description": "Human-readable status. Common values: 'SUCCESSFUL', 'PENDING', 'demande en cours', plus error labels."
+      },
+      "transref": {
+        "type": "string",
+        "description": "Your merchant transaction reference echoed back."
+      },
+      "serviceref": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Qosic-side reference. Can be null at initiation (filled in once Qosic finishes routing), and is set to null/'0' for Togo and for unknown transactions."
+      },
+      "comment": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Free-form comment. Observed values include 'payment' for collections, null otherwise."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "responsecode": {
+        "type": "string",
+        "description": "Error code. '02' / '-1' / '-2' = failed. '401' = auth failed. '529' = insufficient funds. '527' = network issue. '515' = wrong network for that number. '580' = receiver limit exceeded. '849' = validation failed. '682' = internal error. Many other codes documented at docs.qosic.com."
+      },
+      "responsemsg": {
+        "type": "string"
+      },
+      "transref": {
+        "type": "string"
+      },
+      "comment": {
+        "type": "string"
+      }
+    }
+  },
+  "gotchas": [
+    "responsecode '01' (pending) is the NORMAL initial response — the customer still has to validate the USSD push. Poll check_payment_status with the SAME transref until you reach a terminal state ('00' success, '02'/'-1' failure).",
+    "Successful synchronous responses return HTTP 202 (Accepted), not 200. Treat both 200 and 202 as 'request accepted'; the real outcome is in the JSON body's responsecode.",
+    "serviceref can be null on the initial response (filled in later) and is generally null/'0' for Togo. Do not assume it is a non-null string — type it as string | null.",
+    "The URL depends on the network: TOGOCEL -> /QosicBridge/tm/v1/requestpayment, MOOV -> /QosicBridge/tg/v1/requestpayment. The canonical_example handles this switch; do not hard-code one URL for both.",
+    "Each operator has a DIFFERENT clientid (visible in your dashboard, Settings -> API Keys & Callback URL). Sending the Togocel clientid to the Moov URL (or vice-versa) fails. Manage them as separate env vars (e.g. QOSIC_CLIENT_ID_TOGOCEL, QOSIC_CLIENT_ID_MOOV).",
+    "Auth is HTTP Basic with merchant username:password (NOT the clientid). Username/password are in the dashboard. Set QOSIC_USERNAME and QOSIC_PASSWORD env vars.",
+    "Sandbox is on staging.qosic.net:9010 over HTTPS. The public docs say http:// but the server now redirects/rejects plain HTTP with a 400; always use https://staging.qosic.net:9010. Public test credentials: USR01 / YG739G5XFVPYYV4ADJVW with the shared sandbox clientid MTNTEST (or MOOVTEST). These are Qosic's generic sandbox test clientids — in production each Togo operator (Togocel, Moov) has its own clientid from your dashboard. The sandbox does NOT actually send USSD pushes; production only.",
+    "[MUST TELL USER] Configure your server IP in Qosic dashboard -> IP Whitelist before calling any API in production. Requests from non-whitelisted IPs are rejected.",
+    "transref must be globally unique. Reusing a transref returns an error and breaks idempotency on your side."
+  ]
+}

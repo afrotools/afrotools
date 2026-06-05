@@ -1,0 +1,99 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "check_payment_status",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XOF"
+  ],
+  "auth": {
+    "type": "basic",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Basic base64({username}:{password})",
+    "env_var": "QOSIC_USERNAME"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.qosic.net/QosicBridge/tm/v1/gettransactionstatus"
+  },
+  "example_prompt": "Poll Qosic to check whether a Togocel or Moov Togo mobile money transaction completed.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "transref",
+      "clientid",
+      "network"
+    ],
+    "properties": {
+      "transref": {
+        "type": "string",
+        "description": "Merchant transaction reference originally passed to initiate_payment or disburse."
+      },
+      "clientid": {
+        "type": "string",
+        "description": "Operator-specific Client ID matching the network. Same value you used on initiate_payment."
+      },
+      "network": {
+        "type": "string",
+        "enum": [
+          "TOGOCEL",
+          "MOOV"
+        ],
+        "description": "Mobile money network used by the original transaction. Determines the URL: TOGOCEL -> /tm/v1/, MOOV -> /tg/v1/."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "responsecode": {
+        "type": "string",
+        "description": "Current outcome. '00' = paid. '01' = still pending. '02' / '-1' / '-2' = failed / expired / cancelled."
+      },
+      "responsemsg": {
+        "type": "string",
+        "description": "'SUCCESSFUL', 'PENDING', 'demande en cours', 'FAILED', or other error label."
+      },
+      "transref": {
+        "type": "string"
+      },
+      "serviceref": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Qosic-side reference. Often null or '0' on Togo. For unknown transrefs, returned as '0'."
+      },
+      "comment": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "responsecode": {
+        "type": "string"
+      },
+      "responsemsg": {
+        "type": "string"
+      },
+      "transref": {
+        "type": "string"
+      }
+    }
+  },
+  "gotchas": [
+    "Poll on a backoff: don't query check_payment_status more than once per second. Customer validates the USSD over 30-120 seconds typically. Common cadence: 3s -> 5s -> 10s -> 20s, give up after ~3 minutes and mark as expired.",
+    "responsecode is a STRING, not an integer. '00' != 0 in JavaScript without a cast. Compare as strings.",
+    "Querying an UNKNOWN transref returns HTTP 200 with responsecode '-1', responsemsg 'FAILED', serviceref '0'. Do not interpret this as 'transaction failed' — it can also mean 'transaction not yet known to Qosic' shortly after initiate_payment. Re-poll a few times before declaring failure.",
+    "The sandbox auto-completes paid transactions immediately (responsecode '00') without any USSD validation. Production REQUIRES the customer to validate on their phone — expect responsecode '01' for 30-120s.",
+    "Togocel and Moov Togo use the same body schema for status but DIFFERENT URLs (TOGOCEL -> /tm/v1/, MOOV -> /tg/v1/). Pass the same network value you used at initiation.",
+    "'02' on Togo means FAILED (not PENDING — that's '01'). See docs.qosic.com for the full Togo error code list."
+  ]
+}

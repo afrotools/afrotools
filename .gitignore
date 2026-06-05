@@ -4,3 +4,5 @@ dist/
 .env.local
 *.js.map
 .DS_Store
+.test/
+tasks/
