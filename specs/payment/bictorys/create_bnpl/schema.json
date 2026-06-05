@@ -1,0 +1,135 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-06-05",
+  "capability": "create_bnpl",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "X-API-Key",
+    "format": "{token}",
+    "env_var": "BICTORYS_SECRET_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.bictorys.com/billing/v1/bnpl"
+  },
+  "example_prompt": "Let a customer pay for a purchase in installments — for example, a phone in 3 monthly payments with an optional deposit.",
+  "input_schema": {
+    "type": "object",
+    "required": ["currency", "startDate", "nbrInstallments", "customerId"],
+    "properties": {
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code. Example: \"XOF\", \"GNF\", \"NGN\"."
+      },
+      "startDate": {
+        "type": "string",
+        "format": "date",
+        "description": "Date of the first installment in YYYY-MM-DD format. Must be today or a future date."
+      },
+      "nbrInstallments": {
+        "type": "integer",
+        "description": "Total number of installment payments. Required (unlike subscriptions which can be indefinite)."
+      },
+      "customerId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "UUID of the customer making the purchase."
+      },
+      "reference": {
+        "type": "string",
+        "description": "Your internal order or purchase reference."
+      },
+      "amount": {
+        "type": "number",
+        "description": "Total purchase amount to split across installments. The installment amount is calculated as (amount - deposit) / nbrInstallments."
+      },
+      "orderDetails": {
+        "type": "array",
+        "description": "Line items of the purchase. Optional if amount is provided directly.",
+        "items": {
+          "type": "object",
+          "required": ["name", "price", "quantity"],
+          "properties": {
+            "name": { "type": "string" },
+            "price": { "type": "number" },
+            "quantity": { "type": "number" },
+            "reference": { "type": "string" },
+            "taxRate": { "type": "number" },
+            "discount": { "type": "number" }
+          }
+        }
+      },
+      "deposit": {
+        "type": "number",
+        "description": "Optional upfront payment collected immediately (down payment). Remaining balance is split across installments. Default: 0."
+      },
+      "installmentIntervalDays": {
+        "type": "integer",
+        "description": "Days between installment charges. Default: 30."
+      },
+      "customerMessage": {
+        "type": "string",
+        "description": "Payment instruction sent to the customer with each installment reminder."
+      },
+      "notificationChannel": {
+        "type": "string",
+        "enum": ["email", "sms", "whatsApp", "none"],
+        "description": "How Bictorys notifies the customer before each installment. Default: email."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": ["id"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Unique BNPL plan identifier."
+      },
+      "nextInstallmentDueDate": {
+        "type": "string",
+        "format": "date",
+        "description": "Date of the next scheduled installment charge."
+      },
+      "nbrPaidInstallments": {
+        "type": "integer",
+        "description": "Number of installments already paid."
+      },
+      "nbrUnpaidInstallments": {
+        "type": "integer",
+        "description": "Number of installments still outstanding."
+      },
+      "customerName": {
+        "type": "string",
+        "description": "Name of the customer enrolled in the plan."
+      },
+      "currentInstallmentStatus": {
+        "type": "string",
+        "description": "Status of the current installment: pending, succeeded, failed, etc."
+      },
+      "createdAt": { "type": "string", "format": "date-time" },
+      "updatedAt": { "type": "string", "format": "date-time" }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string" },
+      "title": { "type": "string" },
+      "details": { "type": "string" }
+    }
+  },
+  "gotchas": [
+    "This endpoint uses the billing microservice. The base URL is https://api.bictorys.com/billing/v1 — not https://api.bictorys.com/pay/v1. Using the wrong base URL returns 404.",
+    "BNPL is for splitting a one-time purchase into installments (e.g. a phone in 3 payments). It is not for recurring services — use create_subscription_plan + create_subscription for that.",
+    "The deposit field collects an upfront payment immediately. The remaining balance (amount - deposit) is then divided equally across nbrInstallments. If no deposit is set, the full amount is split evenly.",
+    "nbrInstallments is required and must be a positive integer — unlike subscription plans which can be indefinite (no nbrInstallments needed).",
+    "Bictorys triggers installment charges automatically on each due date. You do not initiate them manually.",
+    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com."
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-06-05",
+  "capability": "create_customer",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "X-API-Key",
+    "format": "{token}",
+    "env_var": "BICTORYS_SECRET_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.bictorys.com/customer-management/v1/customers"
+  },
+  "example_prompt": "Create or upsert a customer profile in Bictorys to associate with payments, subscriptions, or BNPL plans.",
+  "input_schema": {
+    "type": "object",
+    "required": ["country"],
+    "properties": {
+      "country": {
+        "type": "string",
+        "description": "ISO 3166-1 alpha-2 country code of the customer. Example: \"SN\", \"CI\", \"GN\"."
+      },
+      "name": {
+        "type": "string",
+        "description": "Full name of the customer."
+      },
+      "phone": {
+        "type": "string",
+        "description": "Customer phone number in E.164 format (e.g. \"+221770001234\")."
+      },
+      "email": {
+        "type": "string",
+        "format": "email",
+        "description": "Customer email address."
+      },
+      "address": {
+        "type": "string",
+        "description": "Street address of the customer."
+      },
+      "city": {
+        "type": "string",
+        "description": "City of the customer."
+      },
+      "postalCode": {
+        "type": "string",
+        "description": "Postal code of the customer."
+      },
+      "locale": {
+        "type": "string",
+        "description": "Preferred locale for customer communications (e.g. \"fr\", \"en\"). Affects notification language."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": ["id"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Unique customer identifier. Use this UUID in create_subscription, create_bnpl, or create_payout."
+      },
+      "name": { "type": "string" },
+      "phone": { "type": "string" },
+      "email": { "type": "string" },
+      "country": { "type": "string" },
+      "address": { "type": "string" },
+      "city": { "type": "string" },
+      "postalCode": { "type": "string" },
+      "locale": { "type": "string" },
+      "createdAt": { "type": "string", "format": "date-time" },
+      "updatedAt": { "type": "string", "format": "date-time" }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string" },
+      "title": { "type": "string" },
+      "details": { "type": "string" }
+    }
+  },
+  "gotchas": [
+    "This endpoint uses the customer-management microservice. The base URL is https://api.bictorys.com/customer-management/v1 — not https://api.bictorys.com/pay/v1. Using the wrong base URL returns 404.",
+    "Pass the query parameter createOrUpdate=true to upsert: if a customer with the same phone or email already exists, it is updated rather than creating a duplicate. Without this flag, a duplicate conflict may be returned.",
+    "The customer id UUID returned here is required when creating subscriptions (create_subscription), BNPL plans (create_bnpl), or payouts (create_payout) for a known customer. Store it in your own database.",
+    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com."
+  ]
+}

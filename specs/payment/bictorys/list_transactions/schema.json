@@ -1,0 +1,154 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-06-05",
+  "capability": "list_transactions",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "X-API-Key",
+    "format": "{token}",
+    "env_var": "BICTORYS_SECRET_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.bictorys.com/pay/v1/transactions"
+  },
+  "example_prompt": "List recent transactions, optionally filtered by date range, type, or customer.",
+  "input_schema": {
+    "type": "object",
+    "required": [],
+    "properties": {
+      "start_date": {
+        "type": "string",
+        "format": "date",
+        "description": "Filter transactions from this date (inclusive). Format: YYYY-MM-DD."
+      },
+      "end_date": {
+        "type": "string",
+        "format": "date",
+        "description": "Filter transactions up to this date (inclusive). Format: YYYY-MM-DD."
+      },
+      "type": {
+        "type": "string",
+        "enum": ["checkout", "payout", "refund"],
+        "description": "Filter by transaction type."
+      },
+      "customer_id": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Filter transactions for a specific customer UUID."
+      },
+      "customer_phone": {
+        "type": "string",
+        "description": "Filter transactions by customer phone number (E.164 format, e.g. \"+221770001234\")."
+      },
+      "device_id": {
+        "type": "string",
+        "description": "Filter transactions by device identifier (point-of-sale or app device)."
+      },
+      "payment_reference": {
+        "type": "string",
+        "description": "Filter by your internal payment reference passed at charge creation."
+      },
+      "page_offset": {
+        "type": "integer",
+        "description": "Zero-based page index for pagination. Default: 0."
+      },
+      "page_size": {
+        "type": "integer",
+        "description": "Number of transactions to return per page. Default: 20."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": ["data"],
+    "properties": {
+      "data": {
+        "type": "array",
+        "description": "List of transactions matching the filters.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique transaction identifier."
+            },
+            "status": {
+              "type": "string",
+              "enum": ["succeeded", "failed", "cancelled", "pending", "processing", "reversed", "authorized"],
+              "description": "Current transaction status."
+            },
+            "amount": {
+              "type": "number",
+              "description": "Transaction amount in the smallest currency unit."
+            },
+            "currency": {
+              "type": "string",
+              "description": "ISO 4217 currency code."
+            },
+            "type": {
+              "type": "string",
+              "description": "Transaction type: checkout, payout, or refund."
+            },
+            "paymentMethod": {
+              "type": "string",
+              "description": "Payment method used (e.g. wave_money, orange_money, card)."
+            },
+            "customerName": {
+              "type": "string",
+              "description": "Name of the customer associated with the transaction."
+            },
+            "customerPhone": {
+              "type": "string",
+              "description": "Phone number of the customer."
+            },
+            "reference": {
+              "type": "string",
+              "description": "Your internal payment reference."
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      },
+      "total": {
+        "type": "integer",
+        "description": "Total number of transactions matching the query (for pagination)."
+      },
+      "page": {
+        "type": "integer",
+        "description": "Current page index."
+      },
+      "pageSize": {
+        "type": "integer",
+        "description": "Number of results per page."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string" },
+      "title": { "type": "string" },
+      "details": { "type": "string" }
+    }
+  },
+  "gotchas": [
+    "All filters are query parameters — there is no request body for this GET endpoint.",
+    "page_offset is zero-based: page_offset=0 returns the first page, page_offset=1 the second, etc. Default is 0.",
+    "The type filter accepts lowercase values: 'checkout', 'payout', 'refund'. Transaction status in the response is also lowercase.",
+    "Dates (start_date, end_date) filter on the transaction createdAt timestamp, not the settlement date.",
+    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com."
+  ]
+}

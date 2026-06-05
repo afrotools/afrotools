@@ -1,0 +1,137 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-06-05",
+  "capability": "create_order",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "X-API-Key",
+    "format": "{token}",
+    "env_var": "BICTORYS_SECRET_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.bictorys.com/order-management/v1/orders"
+  },
+  "example_prompt": "Create a structured order with line items in Bictorys to track purchases before or alongside payment.",
+  "input_schema": {
+    "type": "object",
+    "required": ["reference", "currency", "orderDetails"],
+    "properties": {
+      "reference": {
+        "type": "string",
+        "description": "Your unique internal order reference (e.g. \"ORDER-2026-001\")."
+      },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code for the order. Example: \"XOF\", \"GNF\"."
+      },
+      "orderDetails": {
+        "type": "array",
+        "description": "Line items of the order. At least one item is required.",
+        "items": {
+          "type": "object",
+          "required": ["name", "price", "quantity"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Product or service name."
+            },
+            "price": {
+              "type": "number",
+              "description": "Unit price of the item."
+            },
+            "quantity": {
+              "type": "number",
+              "description": "Quantity ordered."
+            },
+            "reference": {
+              "type": "string",
+              "description": "Internal product or SKU reference."
+            },
+            "taxRate": {
+              "type": "number",
+              "description": "Tax rate applied to this item (as a percentage, e.g. 18 for 18%)."
+            },
+            "discount": {
+              "type": "number",
+              "description": "Discount amount applied to this item."
+            }
+          }
+        }
+      },
+      "customerId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "UUID of the customer placing the order. Optional — links the order to a known customer profile."
+      },
+      "amount": {
+        "type": "number",
+        "description": "Override total order amount. If omitted, Bictorys calculates from orderDetails (price × quantity − discount + tax)."
+      },
+      "deliveryCharges": {
+        "type": "number",
+        "description": "Additional delivery or shipping fees added to the order total."
+      },
+      "deductedAmount": {
+        "type": "number",
+        "description": "Amount deducted from the total (e.g. a voucher or loyalty credit)."
+      },
+      "deviceId": {
+        "type": "string",
+        "description": "Point-of-sale or app device identifier for the order."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": ["id"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Unique order identifier."
+      },
+      "reference": {
+        "type": "string",
+        "description": "Your internal order reference."
+      },
+      "subTotalAmount": {
+        "type": "number",
+        "description": "Sum of (price × quantity) for all line items before taxes and discounts."
+      },
+      "totalTax": {
+        "type": "number",
+        "description": "Total tax amount computed from line item taxRate values."
+      },
+      "finalAmount": {
+        "type": "number",
+        "description": "Total amount due: subTotal + totalTax + deliveryCharges − deductedAmount."
+      },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code."
+      },
+      "createdAt": { "type": "string", "format": "date-time" },
+      "updatedAt": { "type": "string", "format": "date-time" }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string" },
+      "title": { "type": "string" },
+      "details": { "type": "string" }
+    }
+  },
+  "gotchas": [
+    "This endpoint uses the order-management microservice. The base URL is https://api.bictorys.com/order-management/v1 — not https://api.bictorys.com/pay/v1. Using the wrong base URL returns 404.",
+    "orderDetails is required and must contain at least one item. Each item requires name, price, and quantity.",
+    "finalAmount is computed by Bictorys as: sum(price × quantity) + totalTax + deliveryCharges − deductedAmount. You can override the total by passing amount explicitly — otherwise trust Bictorys's calculation.",
+    "create_order does NOT trigger a payment. It creates an order record. To charge the customer, call create_charge or create_invoice separately and link by reference.",
+    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com."
+  ]
+}

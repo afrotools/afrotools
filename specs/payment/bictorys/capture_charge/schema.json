@@ -1,0 +1,61 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-06-05",
+  "capability": "capture_charge",
+  "capability_type": "asynchronous",
+  "status": "draft",
+  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "X-API-Key",
+    "format": "{token}",
+    "env_var": "BICTORYS_SECRET_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.bictorys.com/pay/v1/captures"
+  },
+  "example_prompt": "Capture an authorized (pre-authorized) payment transaction, fully or partially, to finalize the charge.",
+  "input_schema": {
+    "type": "object",
+    "required": ["transactionId", "amount", "currency"],
+    "properties": {
+      "transactionId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "UUID of the transaction in 'authorized' status to capture. Passed as a query parameter, not in the request body."
+      },
+      "amount": {
+        "type": "number",
+        "description": "Amount to capture. Must not exceed the originally authorized amount. Pass the full authorized amount for a full capture, or a smaller amount for a partial capture."
+      },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code matching the original authorization. Example: \"XOF\", \"GNF\"."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "HTTP 202 — capture request accepted and queued for processing. No body returned. Monitor completion via webhook (status: SUCCEEDED or CAPTURED) or by calling verify_transaction."
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string" },
+      "title": { "type": "string" },
+      "details": {
+        "type": "string",
+        "description": "Bictorys error code. Example: \"E400-50: Amount exceed available capture\"."
+      }
+    }
+  },
+  "gotchas": [
+    "transactionId is a query parameter, not a path segment or body field. The URL must be: POST /pay/v1/captures?transactionId={uuid}. Sending transactionId in the body will be ignored.",
+    "The transaction must be in 'authorized' status (created with authorization: true in create_charge). Attempting to capture a 'succeeded' or 'failed' transaction returns an error.",
+    "This endpoint returns HTTP 202 (accepted), not 200. The capture is processed asynchronously. Monitor the final status via webhook or by calling verify_transaction and checking for status 'succeeded' or 'captured'.",
+    "The capture amount must not exceed the originally authorized amount — E400-50: Amount exceed available capture. For a full capture, pass the exact authorized amount.",
+    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com."
+  ]
+}
