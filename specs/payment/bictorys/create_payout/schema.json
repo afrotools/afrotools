@@ -1,0 +1,112 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-06-05",
+  "capability": "create_payout",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "X-API-Key",
+    "format": "{token}",
+    "env_var": "BICTORYS_SECRET_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.bictorys.com/pay/v1/payouts"
+  },
+  "example_prompt": "Send money to a mobile money account (Wave, Orange Money, MTN Money, etc.) as a single payout.",
+  "input_schema": {
+    "type": "object",
+    "required": ["amount", "currency"],
+    "properties": {
+      "amount": {
+        "type": "number",
+        "description": "Amount to send."
+      },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code. Example: \"XOF\", \"GNF\", \"NGN\"."
+      },
+      "country": {
+        "type": "string",
+        "description": "ISO 3166-1 alpha-2 country code. Mandatory except for card payouts. Example: \"SN\", \"CI\", \"GN\"."
+      },
+      "customerId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Existing customer UUID. Takes precedence over customerObject when provided."
+      },
+      "customerObject": {
+        "type": "object",
+        "description": "Recipient details when no customerId is available.",
+        "required": ["country"],
+        "properties": {
+          "name": { "type": "string" },
+          "phone": {
+            "type": "string",
+            "description": "Recipient mobile number in international format. Example: \"+221700000000\"."
+          },
+          "email": { "type": "string" },
+          "country": { "type": "string", "description": "ISO 3166-1 alpha-2. Required." },
+          "locale": { "type": "string" }
+        }
+      },
+      "transactionType": {
+        "type": "string",
+        "enum": ["payment", "transfer", "refund", "settlement"],
+        "description": "Purpose of the payout. Use \"transfer\" for standard disbursements."
+      },
+      "paymentReason": {
+        "type": "string",
+        "description": "Optional message sent to the recipient as the reason for the transfer."
+      },
+      "merchantReference": {
+        "type": "string",
+        "description": "Your internal reference for this payout."
+      },
+      "merchant": {
+        "type": "object",
+        "description": "Merchant authorization object. Required when your Bictorys account is configured to require a secret code for transfers.",
+        "properties": {
+          "secretCode": {
+            "type": "string",
+            "pattern": "^\\d{4}$",
+            "description": "4-digit merchant authorization code set in your Bictorys dashboard."
+          }
+        }
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": ["id"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Unique identifier of the created payout transaction."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string" },
+      "title": { "type": "string" },
+      "details": {
+        "type": "string",
+        "description": "Bictorys error code. Examples: \"E400-37: Secret code is missing\", \"E400-38: Insufficient balance\", \"E400-28: Money transfer is not authorized for this merchant\"."
+      }
+    }
+  },
+  "gotchas": [
+    "payment_type is a required query parameter specifying the recipient's mobile money provider. Append it to the URL: POST /pay/v1/payouts?payment_type=wave_money. Supported values: wave_money, orange_money, maxit, mtn_money, free_money, moov, mobicash, togocell, bictorys, card.",
+    "merchant.secretCode is a 4-digit code (not a password or API key) that the merchant sets in the Bictorys dashboard. If your account requires it, omitting it returns E400-37: Secret code is missing. If you have never set one, you will receive E400-34: User does not have a secret Code.",
+    "Money transfer must be explicitly enabled for your merchant account. If it is not, Bictorys returns E400-28: Money transfer is not authorized for this merchant. Contact Bictorys support to enable this capability.",
+    "Use the idempotency-key header (UUID format) on retry attempts to prevent duplicate payouts. Bictorys returns E400-0: Same Idempotency is passed if the same key is submitted twice successfully.",
+    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com. Sandbox payouts do not send real money.",
+    "Bulk payouts (create_bulk_payout) require a separate secret key obtained from Bictorys support — it is not available in the standard dashboard. Use this single-payout endpoint until bulk access is granted."
+  ]
+}
