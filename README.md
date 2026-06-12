@@ -61,6 +61,7 @@ See [ATSS.md](./ATSS.md) for the full specification.
 | NimbaSMS | sms | 🇬🇳 | 11 | 📋 Ready |
 | Notch Pay | payment | 🇨🇲 🇨🇮 🇸🇳 +3 | 31 | 📋 Ready |
 | Orange Money Mali | payment | 🇲🇱 | 2 | 📋 Ready |
+| PayGate | payment | 🇹🇬 | 6 | 📋 Ready |
 | Qosic | payment | 🇹🇬 | 4 | 📋 Ready |
 | Wave | payment | 🇸🇳 🇨🇮 🇲🇱 +8 | 12 | 📋 Ready |
 <!-- fin du tableau -->
