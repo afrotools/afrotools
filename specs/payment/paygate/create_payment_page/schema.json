@@ -84,6 +84,7 @@
     "After the customer completes (or abandons) the payment, PayGate redirects to the url query parameter. The redirect URL alone is NOT proof of payment — always re-verify server-side with check_payment_status before fulfilling.",
     "If you also configured a webhook in your dashboard, you will receive the webhook on success regardless of whether the customer made it back to the redirect URL. The webhook is the more reliable signal.",
     "Use this capability instead of initiate_payment when you want to let the customer choose their operator on a PayGate-hosted page rather than knowing the network upfront.",
-    "[MUST TELL USER] PayGate API documentation is private and only visible from inside the merchant dashboard. The query parameters and behavior of /v1/page may evolve — cross-check with the current docs in your account."
+    "[MUST TELL USER] PayGate API documentation is private and only visible from inside the merchant dashboard. The query parameters and behavior of /v1/page may evolve — cross-check with the current docs in your account.",
+    "This endpoint uses /v1/page (no /api/ prefix), unlike all other PayGate endpoints which go through /api/. If you centralize BASE_URL as 'https://paygateglobal.com/api', this call will break silently."
   ]
 }

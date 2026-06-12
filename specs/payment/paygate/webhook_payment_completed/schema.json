@@ -64,6 +64,7 @@
     "PayGate may retry or drop webhooks in case of timeouts or 5xx responses. Implement a reconciliation job that re-polls /v2/status for any PENDING transaction older than a few minutes.",
     "Return HTTP 200 immediately and process asynchronously if your handler is slow. Anything other than 200 is treated as a delivery failure.",
     "payment_method on this payload uses 'T-Money' (with hyphen), NOT 'TMONEY'. Same caveat as on the /v2/status response — do not assume it matches the value you sent on /v1/pay.",
-    "Restrict the webhook endpoint to PayGate's outbound IP range if possible, and rate-limit it — there is no other defense-in-depth available since there is no signature."
+    "Restrict the webhook endpoint to PayGate's outbound IP range if possible, and rate-limit it — there is no other defense-in-depth available since there is no signature.",
+    "The `amount` field in the webhook payload cannot be verified against the API — /v2/status does not return an amount. Always compare against the amount stored in your database at order creation, never trust the webhook value directly."
   ]
 }

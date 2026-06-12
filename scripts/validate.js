@@ -643,8 +643,8 @@ function runCrossSpecChecks(loadedSchemas) {
         );
       }
       if (schema.provider_api_version !== majApiVer) {
-        errors.push(
-          `[CROSS-SPEC] provider_api_version: "${schema.provider_api_version}" (majoritaire: "${majApiVer}")`
+        console.warn(
+          `        [WARN] provider_api_version: "${schema.provider_api_version}" diffère de la valeur majoritaire "${majApiVer}" — normal si le provider a des endpoints v1/v2 en parallèle`
         );
       }
       if (String(providerManifest.sandbox) !== majSandbox) {

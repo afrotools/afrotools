@@ -1,6 +1,6 @@
 {
   "spec_version": "1.0",
-  "provider_api_version": "v1",
+  "provider_api_version": "v2",
   "capability": "check_payment_status",
   "capability_type": "synchronous",
   "status": "ready",
