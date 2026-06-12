@@ -26,7 +26,11 @@ interface VerifiedPayment {
   identifier: string;
   tx_reference: string;
   payment_reference: string;
-  amount: number;
+  // The amount comes straight from the UNSIGNED webhook and is NOT confirmed by
+  // /v2/status (which returns no amount field). Never fulfill based on this value —
+  // reconcile against the amount you stored at initiate_payment time, keyed by
+  // identifier. Kept here only for logging / comparison.
+  untrustedAmount: number;
   payment_method: PayGatePaymentMethod;
   datetime: string;
 }
@@ -84,7 +88,7 @@ export async function handlePayGateWebhook(
     identifier: payload.identifier,
     tx_reference: String(verified.tx_reference ?? payload.tx_reference),
     payment_reference: String(verified.payment_reference ?? payload.payment_reference),
-    amount: payload.amount,
+    untrustedAmount: payload.amount,
     payment_method: verified.payment_method ?? payload.payment_method,
     datetime: verified.datetime ?? payload.datetime,
   };
@@ -98,14 +102,23 @@ app.post("/webhooks/paygate", express.text({ type: "*\/*" }), async (req, res) =
   try {
     const payment = await handlePayGateWebhook(req.body as string);
     if (payment) {
-      // payment.status was verified server-side as paid — safe to fulfill the order
-      await fulfillOrder(payment.identifier, payment);
+      // The webhook is unsigned and /v2/status returns no amount, so
+      // verify the AMOUNT against what you stored when you called initiate_payment.
+      const order = await getOrderByIdentifier(payment.identifier);
+      if (order && order.amount === payment.untrustedAmount) {
+        await fulfillOrder(payment.identifier, payment);
+      } else {
+        console.warn("Amount mismatch — refusing to fulfill:", payment.identifier);
+      }
     }
   } catch (err) {
     console.error("PayGate webhook handler failed:", err);
   }
 });
 
-// Always re-verify with check_payment_status before fulfilling — PayGate webhooks
-// are NOT cryptographically signed, so the payload alone is not proof of payment.
+// PayGate webhooks are NOT cryptographically signed — handlePayGateWebhook always
+// re-verifies via /v2/status before treating a payment as completed.
+// That confirms the payment SUCCEEDED but NOT the amount (no amount field in the
+// status response), so always reconcile payment.untrustedAmount against your
+// stored order amount before fulfilling.
 */
