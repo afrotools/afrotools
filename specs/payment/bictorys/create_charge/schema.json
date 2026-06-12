@@ -1,0 +1,205 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-06-05",
+  "capability": "create_charge",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "X-Api-Key",
+    "format": "{token}",
+    "env_var": "BICTORYS_PUBLIC_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.bictorys.com/pay/v1/charges"
+  },
+  "example_prompt": "Initiate a mobile money or card payment and redirect the customer to complete checkout.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "amount": {
+        "type": "number",
+        "description": "Amount to collect. Required when not paying an existing invoice, payment link, or order."
+      },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code. Example: \"XOF\", \"XAF\", \"GNF\", \"NGN\"."
+      },
+      "country": {
+        "type": "string",
+        "description": "ISO 3166-1 alpha-2 country code. Strongly recommended. Example: \"SN\", \"CI\", \"GN\", \"CM\", \"NG\"."
+      },
+      "paymentReference": {
+        "type": "string",
+        "description": "Your internal order reference. Returned in webhook and verify_transaction so you can match the payment to your order."
+      },
+      "merchantReference": {
+        "type": "string",
+        "description": "Optional idempotency or trace reference (UUID format recommended)."
+      },
+      "successRedirectUrl": {
+        "type": "string",
+        "format": "uri",
+        "description": "HTTPS URL to redirect the customer after successful payment."
+      },
+      "errorRedirectUrl": {
+        "type": "string",
+        "format": "uri",
+        "description": "HTTPS URL to redirect the customer on payment failure."
+      },
+      "invoiceId": {
+        "type": "string",
+        "description": "24-digit invoice ID. Pass only when collecting payment for an existing Bictorys invoice."
+      },
+      "paymentLinkId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "UUID of an existing payment link. Pass only when collecting via a payment link."
+      },
+      "orderId": {
+        "type": "string",
+        "description": "24-digit order ID. Pass only when collecting payment for an existing Bictorys order."
+      },
+      "customerId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Existing customer UUID. Takes precedence over customerObject when provided."
+      },
+      "customerObject": {
+        "type": "object",
+        "description": "Customer details when no customerId is available.",
+        "required": ["country"],
+        "properties": {
+          "name": { "type": "string" },
+          "phone": {
+            "type": "number",
+            "description": "International-format phone number as a numeric value. Example: 221700000000."
+          },
+          "email": { "type": "string", "format": "email" },
+          "country": { "type": "string", "description": "ISO 3166-1 alpha-2. Required inside customerObject." },
+          "locale": { "type": "string", "description": "BCP-47 locale tag. Default: \"en-US\"." }
+        }
+      },
+      "authorization": {
+        "type": "boolean",
+        "description": "Set true to reserve (authorize) funds without immediate capture. Requires a separate capture call."
+      },
+      "allowUpdateCustomer": {
+        "type": "boolean",
+        "description": "If true, updates the existing customer profile with data from customerObject. Default: false."
+      },
+      "deviceId": {
+        "type": "string",
+        "description": "Device serial number. Required when initiating a payment from a Bictorys physical terminal."
+      },
+      "otp": {
+        "type": "string",
+        "description": "One-time password for Orange Money Côte d'Ivoire. The customer must dial #144*82# on their Orange CI phone to generate a 6-8 digit code before submitting the charge."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "Response shape depends on whether payment_type is specified in the query string. HTTP 201 (payment_type given) returns ConfirmationLinkObject for the direct flow. HTTP 202 (no payment_type) returns CheckoutLinkObject for the hosted-checkout flow.",
+    "oneOf": [
+      {
+        "title": "ConfirmationLinkObject — HTTP 201, direct flow",
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique transaction identifier. Store before redirecting — required for verify_transaction."
+          },
+          "redirectUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to redirect the customer (mobile money confirmation page or card 3DS flow)."
+          },
+          "merchantReference": {
+            "type": "string",
+            "description": "Echo of your merchantReference if provided."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["MobilePaymentObject", "CardPaymentObject"]
+          },
+          "link": {
+            "type": "string",
+            "description": "Mobile money confirmation URL or deep link."
+          },
+          "qrCode": {
+            "type": "string",
+            "description": "Base64-encoded QR code image for mobile money confirmation."
+          },
+          "message": {
+            "type": "string",
+            "description": "Optional human-readable instruction sent to the customer (e.g. \"You will receive an SMS with instructions\")."
+          },
+          "state": {
+            "type": "string",
+            "enum": ["AWAIT_3DS", "PURCHASED", "CAPTURED", "AUTHORIZED", "FAILED", "DECLINED"],
+            "description": "Card payment state. Present only for CardPaymentObject."
+          }
+        }
+      },
+      {
+        "title": "CheckoutLinkObject — HTTP 202, hosted-checkout flow",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["CheckoutLinkObject"]
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Bictorys-hosted checkout page. Redirect the customer here to select their payment method."
+          },
+          "chargeId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique charge identifier. Store before redirecting."
+          },
+          "opToken": {
+            "type": "string",
+            "description": "Operation token embedded in the checkout link."
+          }
+        }
+      }
+    ]
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "HTTP status code as a string. Example: \"400\"."
+      },
+      "title": {
+        "type": "string",
+        "description": "Short error summary. Default: \"Bad request.\""
+      },
+      "details": {
+        "type": "string",
+        "description": "Bictorys-specific error code and message. Examples: \"E400-6: Amount is missing\", \"E400-24: Selected Currency is not yet supported for this country\", \"E400-33: Wrong payment type or disabled\"."
+      }
+    }
+  },
+  "gotchas": [
+    "payment_type is a query parameter, not a request body field. Append it to the URL: POST /pay/v1/charges?payment_type=wave_money. Omitting it returns HTTP 202 with a hosted-checkout link instead of a direct 201 response.",
+    "The response HTTP status determines the flow: 201 means the direct payment was initiated (use response.transactionId and response.redirectUrl); 202 means the customer must be sent to response.link on the Bictorys-hosted checkout page.",
+    "Store transactionId (201 flow) or chargeId (202 flow) before redirecting the customer. Both are required to verify the payment server-side via verify_transaction.",
+    "Always verify the transaction server-side via verify_transaction before fulfilling any order. Redirect callbacks and webhooks can be spoofed.",
+    "successRedirectUrl and errorRedirectUrl must start with https:// — HTTP URLs are rejected with E400-0: redirectUrl must start with https://.",
+    "Sandbox base URL is https://api.test.bictorys.com — the production base URL is https://api.bictorys.com. Sandbox and production use separate API keys obtained from the Bictorys dashboard.",
+    "Card payments via the direct API (payment_type=card with a cardObject in the body) require PCI-DSS certification. Mobile money payments have no certification requirement.",
+    "create_charge uses the PUBLIC API key (env BICTORYS_PUBLIC_KEY, header X-Api-Key). Using the private/secret key for charges returns 403. Payouts use the private key (BICTORYS_SECRET_KEY, header X-API-Key).",
+    "Orange Money Côte d'Ivoire requires an OTP: the customer must dial #144*82# on their phone to generate a 6-8 digit code, then pass it as the 'otp' field in the request body. The OTP expires quickly — if the charge fails with an OTP error, ask the user to redial.",
+    "The request body field is 'errorRedirectUrl' (lowercase e), but Bictorys echoes it back as 'ErrorRedirectUrl' (capital E) in some response and webhook contexts. Use lowercase when building the request.",
+    "HTTP 403 with an HTML body (not JSON) means AWS WAF is rate-limiting your requests. Implement exponential backoff with at least 5-second spacing between retries."
+  ]
+}
