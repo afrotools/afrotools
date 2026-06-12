@@ -14,7 +14,7 @@
   },
   "endpoint": {
     "method": "GET",
-    "url": "https://api.bictorys.com/pay/v1/transactions/{transactionId}"
+    "url": "https://api.bictorys.com/pay/v1/transactions/{transactionId}/status"
   },
   "example_prompt": "Verify the status of a payment transaction to confirm it succeeded before fulfilling an order.",
   "input_schema": {
@@ -132,6 +132,7 @@
     "Always call this endpoint server-side to verify the transaction before fulfilling any order. Never rely solely on redirect query parameters or webhook payloads — both can be forged.",
     "Only status === \"succeeded\" means the payment is fully complete and funds are captured. \"authorized\" means funds are reserved but not yet captured. \"pending\" and \"processing\" mean the payment is still in progress.",
     "The transactionId to pass here is the id field from the webhook payload, or the transactionId / chargeId field from the create_charge response — they refer to the same transaction UUID.",
-    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com."
+    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com.",
+    "In the Bictorys sandbox, GET /pay/v1/transactions/{id}/status is known to return HTTP 500 intermittently. For sandbox testing, rely on webhook events instead of polling this endpoint."
   ]
 }

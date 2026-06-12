@@ -5,8 +5,8 @@
  * @capability_type synchronous
  */
 
-const BICTORYS_SECRET_KEY = process.env.BICTORYS_SECRET_KEY;
-if (!BICTORYS_SECRET_KEY) throw new Error("Missing env: BICTORYS_SECRET_KEY");
+const BICTORYS_PUBLIC_KEY = process.env.BICTORYS_PUBLIC_KEY;
+if (!BICTORYS_PUBLIC_KEY) throw new Error("Missing env: BICTORYS_PUBLIC_KEY");
 
 interface CustomerObject {
   name?: string;
@@ -32,6 +32,7 @@ interface CreateChargeInput {
   authorization?: boolean;
   allowUpdateCustomer?: boolean;
   deviceId?: string;
+  otp?: string;
 }
 
 interface ConfirmationLinkObject {
@@ -70,7 +71,7 @@ export async function createCharge(
   const response = await fetch(url, {
     method: "POST",
     headers: {
-      "X-API-Key": BICTORYS_SECRET_KEY!,
+      "X-Api-Key": BICTORYS_PUBLIC_KEY!,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(input),

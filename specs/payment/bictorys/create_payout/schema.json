@@ -107,6 +107,8 @@
     "Money transfer must be explicitly enabled for your merchant account. If it is not, Bictorys returns E400-28: Money transfer is not authorized for this merchant. Contact Bictorys support to enable this capability.",
     "Use the idempotency-key header (UUID format) on retry attempts to prevent duplicate payouts. Bictorys returns E400-0: Same Idempotency is passed if the same key is submitted twice successfully.",
     "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com. Sandbox payouts do not send real money.",
-    "Bulk payouts (create_bulk_payout) require a separate secret key obtained from Bictorys support — it is not available in the standard dashboard. Use this single-payout endpoint until bulk access is granted."
+    "Always include the idempotency-key header (a UUID v4) for every payout request. Without it, a network retry can trigger a duplicate transfer.",
+    "Set your HTTP client timeout to at least 30 seconds for payout requests — payout processing is slower than charge creation.",
+    "The amount field in the payout response is a negative integer representing money leaving your merchant account. This is expected — use Math.abs() if you need to display it as a positive value."
   ]
 }

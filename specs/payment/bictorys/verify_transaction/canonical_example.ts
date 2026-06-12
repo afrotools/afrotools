@@ -42,7 +42,7 @@ interface BictorysError {
 
 export async function verifyTransaction(transactionId: string): Promise<TransactionResponse> {
   const response = await fetch(
-    "https://api.bictorys.com/pay/v1/transactions/" + transactionId,
+    "https://api.bictorys.com/pay/v1/transactions/" + transactionId + "/status",
     {
       method: "GET",
       headers: {

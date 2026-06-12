@@ -128,11 +128,13 @@
   },
   "error_schema": {},
   "gotchas": [
-    "Validate the X-Secret-Key header on every incoming webhook request: compare it with your BICTORYS_WEBHOOK_SECRET (from Bictorys dashboard → Developers → API Keys & Webhooks). Reject any request where the header is missing or does not match. Bictorys does not use HMAC — it sends the raw secret.",
-    "Return HTTP 200 immediately before performing any async work (database writes, calls to verify_transaction). Bictorys retries on non-200 responses, and a slow handler risks duplicate processing.",
+    "Bictorys sends two validation headers: X-Secret-Key (raw shared secret, always present) and optionally X-Webhook-Signature (HMAC-SHA256 hex) + X-Webhook-Timestamp (Unix seconds). When X-Webhook-Signature is present, verify it with HMAC-SHA256(BICTORYS_WEBHOOK_SECRET, '${timestamp}.${rawBody}') and reject payloads whose timestamp is more than 5 minutes old.",
+    "Always use crypto.timingSafeEqual() when comparing X-Secret-Key or HMAC values — never use === or ==. String equality comparison is vulnerable to timing attacks.",
+    "Bictorys retries the webhook up to 3 times if your endpoint returns a non-2xx status. Always respond HTTP 200 immediately, even if your internal processing fails — then handle errors asynchronously.",
+    "Express users: mount express.raw({ type: 'application/json' }) before express.json() on the webhook route. The raw string body is required to compute the HMAC; JSON.parse() loses it.",
     "Never fulfill an order based on the webhook payload status alone. Always call verify_transaction server-side with the payload's id field to confirm the payment before marking an order as paid.",
     "The status field in the webhook payload is UPPERCASE (SUCCEEDED, FAILED) whereas verify_transaction returns lowercase (succeeded, failed). Do not compare these directly without normalizing case.",
     "Implement idempotency using the transaction id field. Bictorys may deliver the same webhook event more than once; processing the same id twice must not double-fulfill an order.",
-    "Your webhook URL must be publicly reachable over HTTPS. During local development, use a tunnel (e.g. ngrok) and update the webhook URL in your Bictorys dashboard."
+    "Your webhook URL must be publicly reachable over HTTPS. Webhook configuration is separate for test vs. production environments in the Bictorys dashboard."
   ]
 }
