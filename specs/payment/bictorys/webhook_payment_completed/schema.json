@@ -108,8 +108,8 @@
       },
       "status": {
         "type": "string",
-        "enum": ["SUCCEEDED", "AUTHORIZED", "FAILED", "PENDING"],
-        "description": "Payment outcome. Note: uppercase in webhook payloads (vs lowercase in verify_transaction responses)."
+        "enum": ["SUCCEEDED", "AUTHORIZED", "FAILED", "CANCELLED", "REVERSED", "PENDING"],
+        "description": "Payment outcome. Uppercase in webhook payloads — unlike verify_transaction which returns lowercase. SUCCEEDED = paid; FAILED / CANCELLED = not paid; REVERSED = refunded/reversed; AUTHORIZED = pre-authorized, not yet captured."
       },
       "originIp": {
         "type": "string",
@@ -128,7 +128,7 @@
   },
   "error_schema": {},
   "gotchas": [
-    "Bictorys sends two validation headers: X-Secret-Key (raw shared secret, always present) and optionally X-Webhook-Signature (HMAC-SHA256 hex) + X-Webhook-Timestamp (Unix seconds). When X-Webhook-Signature is present, verify it with HMAC-SHA256(BICTORYS_WEBHOOK_SECRET, '${timestamp}.${rawBody}') and reject payloads whose timestamp is more than 5 minutes old.",
+    "Bictorys sends two validation headers: X-Secret-Key (raw shared secret, always present) and optionally X-Webhook-Signature (HMAC-SHA256 hex) + X-Webhook-Timestamp (Unix milliseconds). When X-Webhook-Signature is present, verify with HMAC-SHA256(BICTORYS_WEBHOOK_SECRET, '${timestamp}.${rawBody}') and reject payloads where Math.abs(Date.now() - timestamp) > 300_000.",
     "Always use crypto.timingSafeEqual() when comparing X-Secret-Key or HMAC values — never use === or ==. String equality comparison is vulnerable to timing attacks.",
     "Bictorys retries the webhook up to 3 times if your endpoint returns a non-2xx status. Always respond HTTP 200 immediately, even if your internal processing fails — then handle errors asynchronously.",
     "Express users: mount express.raw({ type: 'application/json' }) before express.json() on the webhook route. The raw string body is required to compute the HMAC; JSON.parse() loses it.",

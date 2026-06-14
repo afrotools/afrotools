@@ -39,7 +39,7 @@ interface BictorysWebhookPayload {
   orderType?: string;
   orderId?: string;
   orderDetails?: object[];
-  status: "SUCCEEDED" | "AUTHORIZED" | "FAILED" | "PENDING";
+  status: "SUCCEEDED" | "AUTHORIZED" | "FAILED" | "CANCELLED" | "REVERSED" | "PENDING";
   originIp?: string;
   timestamp: string;
 }
@@ -70,8 +70,8 @@ export async function handleBictorysWebhook(
 
   if (signature && timestamp) {
     // HMAC path — preferred when Bictorys sends X-Webhook-Signature + X-Webhook-Timestamp
-    const nowSec = Math.floor(Date.now() / 1000);
-    if (Math.abs(nowSec - Number(timestamp)) > 300) {
+    const nowMs = Date.now();
+    if (Math.abs(nowMs - Number(timestamp)) > 300_000) {
       sendResponse(401); // reject replays older than 5 minutes
       return;
     }
