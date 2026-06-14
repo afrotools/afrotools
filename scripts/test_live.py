@@ -387,8 +387,15 @@ def run(provider_slug, only_capability=None, raw_capability=None):
 
         actual = get_data_node(resp, schema)
 
+        acceptable_error_codes = step.get("acceptable_error_codes", [])
+        details = resp.get("details", "") if isinstance(resp, dict) else ""
+        is_acceptable_error = any(details.startswith(code) for code in acceptable_error_codes)
+
         if resp.get("status") == "success" or status_code in (200, 201, 202):
             rm, om, e = compare(actual, props, req_keys, exclude_keys)
+        elif is_acceptable_error:
+            print(f"  {YELLOW}Expected sandbox error → {details}{RESET}")
+            rm, om, e = 0, 0, 0
         else:
             print(f"  {RED}API error → {json.dumps(resp)}{RESET}")
             rm, om, e = len(req_keys - exclude_keys), 0, 0

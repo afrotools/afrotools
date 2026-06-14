@@ -10,7 +10,7 @@ if (!BICTORYS_SECRET_KEY) throw new Error("Missing env: BICTORYS_SECRET_KEY");
 
 interface CustomerObject {
   name?: string;
-  phone?: number;
+  phone?: string;
   email?: string;
   country: string;
   locale?: string;
@@ -80,7 +80,7 @@ const payout = await createPayout(
     country: "SN",
     customerObject: {
       name: "Fatou Sow",
-      phone: 221770000000,
+      phone: "221770000000",
       country: "SN",
     },
     transactionType: "payment",

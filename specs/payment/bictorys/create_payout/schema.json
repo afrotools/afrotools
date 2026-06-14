@@ -45,8 +45,8 @@
         "properties": {
           "name": { "type": "string", "description": "Recipient full name." },
           "phone": {
-            "type": "number",
-            "description": "Recipient mobile number as a numeric value with country code prefix, no + sign, no spaces. Example: 221770000000 for Senegal."
+            "type": "string",
+            "description": "Recipient mobile number as a string with country code prefix, no + sign, no spaces. Example: \"221770000000\" for Senegal."
           },
           "email": { "type": "string" },
           "country": { "type": "string", "description": "ISO 3166-1 alpha-2. Required." },
@@ -122,12 +122,13 @@
   "error_schema": {
     "type": "object",
     "properties": {
-      "status": { "type": "string" },
+      "status": { "type": "integer" },
       "title": { "type": "string" },
       "details": {
         "type": "string",
         "description": "Bictorys error code. Examples: \"E400-37: Secret code is missing\", \"E400-38: Insufficient balance\", \"E400-28: Money transfer is not authorized for this merchant\"."
-      }
+      },
+      "source": { "type": "string", "description": "Bictorys service name. Example: \"pay\"." }
     }
   },
   "gotchas": [
@@ -135,7 +136,7 @@
     "transactionType is required — omitting it causes a 500. Use \"payment\" for standard disbursements.",
     "idempotency-key header is effectively required — a missing idempotency-key is a known cause of 500 errors. Always send a UUID per request.",
     "merchant.secretCode is the operator-issued merchant PIN (e.g. your Orange Money or MTN merchant code) registered in Bictorys Dashboard → Entreprise → Préférences. Required when configured on your account — omitting it returns E400-37: Secret code is missing.",
-    "customerObject.phone is a numeric value (no + prefix, no spaces): country code + number. Example: 221770000000 for Senegal. Passing a string with a + prefix causes a 400 phone error.",
+    "customerObject.phone is a string with country code prefix, no + sign, no spaces. Example: \"221770000000\" for Senegal. Using a + prefix or a numeric type causes a 400 phone error.",
     "The response amount is a negative integer — money leaving the merchant account. Use Math.abs() if displaying to the user.",
     "The response status field is an integer (0 = success), not a string like other Bictorys endpoints.",
     "Money transfer must be explicitly enabled for your merchant account. If not, Bictorys returns E400-28: Money transfer is not authorized for this merchant. Contact Bictorys support.",
