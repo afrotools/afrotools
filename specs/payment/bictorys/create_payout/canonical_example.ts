@@ -26,7 +26,7 @@ interface CreatePayoutInput {
   country?: string;
   customerId?: string;
   customerObject?: CustomerObject;
-  transactionType?: "payment" | "transfer" | "refund" | "settlement";
+  transactionType: "payment" | "transfer" | "refund" | "settlement";
   paymentReason?: string;
   merchantReference?: string;
   merchant?: MerchantAuth;

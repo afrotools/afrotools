@@ -19,11 +19,11 @@
   "example_prompt": "Send money to a mobile money account (Wave, Orange Money, MTN Money, etc.) as a single payout.",
   "input_schema": {
     "type": "object",
-    "required": ["amount", "currency"],
+    "required": ["amount", "currency", "country", "customerObject", "transactionType", "paymentReason", "merchantReference"],
     "properties": {
       "amount": {
         "type": "number",
-        "description": "Amount to send."
+        "description": "Amount to send. Integer only — no decimals."
       },
       "currency": {
         "type": "string",
@@ -31,7 +31,7 @@
       },
       "country": {
         "type": "string",
-        "description": "ISO 3166-1 alpha-2 country code. Mandatory except for card payouts. Example: \"SN\", \"CI\", \"GN\"."
+        "description": "ISO 3166-1 alpha-2 country code of the recipient. Example: \"SN\", \"CI\", \"ML\", \"TG\", \"BJ\", \"BF\"."
       },
       "customerId": {
         "type": "string",
@@ -40,40 +40,40 @@
       },
       "customerObject": {
         "type": "object",
-        "description": "Recipient details when no customerId is available.",
-        "required": ["country"],
+        "description": "Recipient details. Required unless customerId is provided.",
+        "required": ["name", "phone", "country"],
         "properties": {
-          "name": { "type": "string" },
+          "name": { "type": "string", "description": "Recipient full name." },
           "phone": {
             "type": "string",
-            "description": "Recipient mobile number in international format. Example: \"+221700000000\"."
+            "description": "Recipient mobile number. Format: +COUNTRYCODE+NUMBER with no spaces. Example: \"+221771234567\"."
           },
           "email": { "type": "string" },
           "country": { "type": "string", "description": "ISO 3166-1 alpha-2. Required." },
-          "locale": { "type": "string" }
+          "locale": { "type": "string", "description": "Language locale, e.g. \"fr-FR\"." }
         }
       },
       "transactionType": {
         "type": "string",
         "enum": ["payment", "transfer", "refund", "settlement"],
-        "description": "Purpose of the payout. Use \"transfer\" for standard disbursements."
+        "description": "Purpose of the payout. Use \"payment\" for standard disbursements."
       },
       "paymentReason": {
         "type": "string",
-        "description": "Optional message sent to the recipient as the reason for the transfer."
+        "description": "Message displayed on the recipient's receipt explaining the transfer."
       },
       "merchantReference": {
         "type": "string",
-        "description": "Your internal reference for this payout."
+        "description": "Your unique internal reference for this payout."
       },
       "merchant": {
         "type": "object",
-        "description": "Merchant authorization object. Required when your Bictorys account is configured to require a secret code for transfers.",
+        "description": "Merchant authorization. Required when your account has a secretCode configured.",
         "properties": {
           "secretCode": {
             "type": "string",
             "pattern": "^\\d{4}$",
-            "description": "4-digit merchant authorization code set in your Bictorys dashboard."
+            "description": "4-digit merchant secret code from Bictorys Dashboard → Entreprise → Préférences. This is the operator-issued merchant PIN (e.g. Orange Money or MTN merchant code) that you register in your Bictorys account."
           }
         }
       }
@@ -85,9 +85,39 @@
     "properties": {
       "id": {
         "type": "string",
-        "format": "uuid",
         "description": "Unique identifier of the created payout transaction."
-      }
+      },
+      "merchantId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "amount": {
+        "type": "number",
+        "description": "Payout amount as a negative integer (money leaving the merchant account). Use Math.abs() to display as positive."
+      },
+      "merchantFee": {
+        "type": "number",
+        "description": "Fee charged to the merchant for this payout."
+      },
+      "customerFee": {
+        "type": "number",
+        "description": "Fee charged to the recipient (if any)."
+      },
+      "currency": { "type": "string" },
+      "paymentReference": { "type": "string" },
+      "customerName": { "type": "string" },
+      "customerPhone": { "type": "string" },
+      "customerCountry": { "type": "string" },
+      "pspName": {
+        "type": "string",
+        "description": "Payment provider used for the payout (e.g. wave_money, orange_money)."
+      },
+      "merchantReference": { "type": "string" },
+      "status": {
+        "type": "integer",
+        "description": "Payout status as an integer. 0 = success. Different from transaction status strings returned by verify_transaction."
+      },
+      "createdAt": { "type": "string", "format": "date-time" }
     }
   },
   "error_schema": {
@@ -102,13 +132,15 @@
     }
   },
   "gotchas": [
-    "payment_type is a required query parameter specifying the recipient's mobile money provider. Append it to the URL: POST /pay/v1/payouts?payment_type=wave_money. Supported values: wave_money, orange_money, maxit, mtn_money, free_money, moov, mobicash, togocell, bictorys, card.",
-    "merchant.secretCode is the operator-issued merchant secret code (e.g. your Orange Money or MTN Money merchant PIN assigned by the operator, not a Bictorys setting). Required only for operators that enforce it. Omitting it when required returns E400-37: Secret code is missing. Wave Money payouts do not require it.",
-    "Money transfer must be explicitly enabled for your merchant account. If it is not, Bictorys returns E400-28: Money transfer is not authorized for this merchant. Contact Bictorys support to enable this capability.",
-    "Use the idempotency-key header (UUID format) on retry attempts to prevent duplicate payouts. Bictorys returns E400-0: Same Idempotency is passed if the same key is submitted twice successfully.",
-    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com. Sandbox payouts do not send real money. Payout capability must be explicitly enabled on your sandbox account by Bictorys support — without activation the sandbox returns HTTP 500.",
-    "Always include the idempotency-key header (a UUID v4) for every payout request. Without it, a network retry can trigger a duplicate transfer.",
-    "Set your HTTP client timeout to at least 30 seconds for payout requests — payout processing is slower than charge creation.",
-    "The amount field in the payout response is a negative integer representing money leaving your merchant account. This is expected — use Math.abs() if you need to display it as a positive value."
+    "payment_type is a required query parameter. Append it to the URL: POST /pay/v1/payouts?payment_type=wave_money. Supported values: wave_money, orange_money, mtn_money, moov.",
+    "transactionType is required — omitting it causes a 500. Use \"payment\" for standard disbursements.",
+    "idempotency-key header is effectively required — a missing idempotency-key is a known cause of 500 errors. Always send a UUID per request.",
+    "merchant.secretCode is the operator-issued merchant PIN (e.g. your Orange Money or MTN merchant code) registered in Bictorys Dashboard → Entreprise → Préférences. Required when configured on your account — omitting it returns E400-37: Secret code is missing.",
+    "customerObject.phone must be in E.164 format with no spaces: +COUNTRYCODE+NUMBER. Example: \"+221771234567\". Missing + prefix or spaces cause a 400 phone error.",
+    "The response amount is a negative integer — money leaving the merchant account. Use Math.abs() if displaying to the user.",
+    "The response status field is an integer (0 = success), not a string like other Bictorys endpoints.",
+    "Money transfer must be explicitly enabled for your merchant account. If not, Bictorys returns E400-28: Money transfer is not authorized for this merchant. Contact Bictorys support.",
+    "Set your HTTP client timeout to at least 30 seconds — payout processing is slower than charge creation.",
+    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com. Sandbox payouts do not send real money."
   ]
 }

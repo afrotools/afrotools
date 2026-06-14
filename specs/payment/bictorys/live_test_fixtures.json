@@ -36,6 +36,7 @@
           "phone": "+221700000001",
           "country": "SN"
         },
+        "transactionType": "transfer",
         "paymentReason": "Live test payout",
         "merchantReference": "payout-$ts"
       },
