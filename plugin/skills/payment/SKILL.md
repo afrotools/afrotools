@@ -16,7 +16,8 @@ for the target provider and capability before writing any implementation code.
 ## Workflow
 
 1. Identify the provider slug and capability from the user's request.
-   - Providers with specs available: `paycard`, `lengopay`, `wave`, `djomy`, `orangemoney-mali`, `bictorys`
+   - Providers with specs available: `paycard`, `lengopay`, `wave`, `djomy`, `orangemoney-mali`
+   - Providers planned (no spec yet): `bictorys`
    - If the requested provider has no spec yet:
      1. Call `afrotools.request_spec({ provider: "<slug>", capability: "<capability>" })`
         so the maintainers are notified of the demand.
@@ -30,8 +31,8 @@ for the target provider and capability before writing any implementation code.
    ```
    If the user is building a full payment flow (checkout + verification + webhook),
    fetch all three capabilities upfront:
-   - `create_payment` / `create_charge` — to initiate a payment and get the payment URL
-   - `verify_payment` / `verify_transaction` — to confirm payment status server-side
+   - `create_payment` — to initiate a payment and get the payment URL
+   - `verify_payment` — to confirm payment status server-side
    - `webhook_payment_completed` — to handle async callbacks
 
 3. Read the spec carefully before writing code:
