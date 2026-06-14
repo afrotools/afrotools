@@ -28,17 +28,20 @@
       "capability": "create_payout",
       "query_params": { "payment_type": "wave_money" },
       "body": {
-        "amount": 100,
+        "amount": 10,
         "currency": "XOF",
         "country": "SN",
         "customerObject": {
           "name": "Test Recipient",
-          "phone": "+221700000001",
+          "phone": 221770000001,
           "country": "SN"
         },
-        "transactionType": "transfer",
+        "transactionType": "payment",
         "paymentReason": "Live test payout",
-        "merchantReference": "payout-$ts"
+        "merchantReference": "payout-$ts",
+        "merchant": {
+          "secretCode": 1234
+        }
       },
       "headers": {
         "X-API-Key": "$env:BICTORYS_SECRET_KEY",

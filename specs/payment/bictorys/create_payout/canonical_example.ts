@@ -10,14 +10,14 @@ if (!BICTORYS_SECRET_KEY) throw new Error("Missing env: BICTORYS_SECRET_KEY");
 
 interface CustomerObject {
   name?: string;
-  phone?: string;
+  phone?: number;
   email?: string;
   country: string;
   locale?: string;
 }
 
 interface MerchantAuth {
-  secretCode: string;
+  secretCode: number;
 }
 
 interface CreatePayoutInput {
@@ -80,12 +80,12 @@ const payout = await createPayout(
     country: "SN",
     customerObject: {
       name: "Fatou Sow",
-      phone: "+221770000000",
+      phone: 221770000000,
       country: "SN",
     },
-    transactionType: "transfer",
+    transactionType: "payment",
     paymentReason: "Remboursement commande #1234",
-    merchant: { secretCode: "1234" }, // Set in Bictorys dashboard; omit if not required
+    merchant: { secretCode: 1234 }, // Operator-issued PIN registered in Bictorys dashboard; omit if not required
   },
   "wave_money",
   "a1b2c3d4-e5f6-7890-abcd-ef1234567890" // idempotency key for safe retries
