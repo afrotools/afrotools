@@ -124,7 +124,13 @@ def http_call(method, url, auth_headers, body=None, extra_headers=None):
     }
     headers.update(auth_headers)
     if extra_headers:
-        headers.update(extra_headers)
+        # Case-insensitive merge so per-step headers override the global auth key
+        # even when the two keys differ only in capitalisation (e.g. X-Api-Key vs X-API-Key).
+        for k, v in extra_headers.items():
+            for existing_k in list(headers.keys()):
+                if existing_k.lower() == k.lower():
+                    del headers[existing_k]
+            headers[k] = v
     data = None
     if body is not None:
         data = json.dumps(body).encode()
