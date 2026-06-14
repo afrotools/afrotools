@@ -1,0 +1,12 @@
+{
+  "slug": "bictorys",
+  "name": "Bictorys",
+  "category": "payment",
+  "country_code": ["SN", "CI", "GN", "ML", "TG", "BJ", "BF", "NE", "CM", "NG"],
+  "website": "https://bictorys.com",
+  "docs_url": "https://docs.bictorys.com",
+  "docs_public": true,
+  "sandbox": true,
+  "description": "Bictorys is a payment infrastructure provider serving West and Central Africa, supporting mobile money and card payments across multiple countries through a unified API.",
+  "example_prompt": "Accept mobile money and card payments across West and Central Africa using a single unified API — covering checkout flows, disbursements, invoicing, and recurring billing."
+}

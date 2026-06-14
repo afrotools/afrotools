@@ -1,0 +1,139 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-06-05",
+  "capability": "verify_transaction",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "X-API-Key",
+    "format": "{token}",
+    "env_var": "BICTORYS_SECRET_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.bictorys.com/pay/v1/transactions/{transactionId}/status"
+  },
+  "example_prompt": "Verify the status of a payment transaction to confirm it succeeded before fulfilling an order.",
+  "input_schema": {
+    "type": "object",
+    "required": ["transactionId"],
+    "properties": {
+      "transactionId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "UUID of the transaction to verify. Obtained from create_charge (transactionId or chargeId field) or from the webhook payload (id field)."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": ["id", "status"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Transaction identifier."
+      },
+      "merchantId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "customerId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "type": {
+        "type": "string",
+        "enum": ["payment", "transfer", "refund", "settlement"],
+        "description": "Transaction type."
+      },
+      "pspName": {
+        "type": "string",
+        "enum": ["wave_money", "orange_money", "maxit", "mtn_money", "free_money", "moov", "mobicash", "togocell", "bictorys", "card"],
+        "description": "Payment method used."
+      },
+      "paymentMeans": {
+        "type": "string",
+        "description": "Partially masked payment identifier, e.g. a masked phone number."
+      },
+      "paymentChannel": {
+        "type": "string",
+        "enum": ["Terminal", "Online"]
+      },
+      "amount": {
+        "type": "number",
+        "description": "Net amount received after fees."
+      },
+      "merchantFees": {
+        "type": "number",
+        "description": "Fee amount charged to the merchant."
+      },
+      "customerFees": {
+        "type": "number",
+        "description": "Fee amount charged to the customer."
+      },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code. Defaults to XOF."
+      },
+      "paymentReference": {
+        "type": "string",
+        "description": "Your paymentReference echoed from create_charge."
+      },
+      "merchantReference": {
+        "type": "string",
+        "description": "Your merchantReference echoed from create_charge."
+      },
+      "orderType": {
+        "type": "string",
+        "enum": ["flat", "order", "invoice", "paymentlink"],
+        "description": "Origin of the charge."
+      },
+      "orderId": {
+        "type": "string",
+        "description": "ID of the associated invoice, order, or payment link."
+      },
+      "status": {
+        "type": "string",
+        "enum": ["succeeded", "failed", "cancelled", "pending", "processing", "reversed", "authorized"],
+        "description": "Transaction status. Only \"succeeded\" means the payment is complete and funds are captured."
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 creation timestamp."
+      },
+      "customerObject": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "phone": { "type": "number" },
+          "country": { "type": "string" }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string" },
+      "title": { "type": "string" },
+      "details": {
+        "type": "string",
+        "description": "Bictorys error code. Examples: \"E400-0: Bad transactionId is passed\", \"E404-1: Cannot find resource\"."
+      }
+    }
+  },
+  "gotchas": [
+    "Always call this endpoint server-side to verify the transaction before fulfilling any order. Never rely solely on redirect query parameters or webhook payloads — both can be forged.",
+    "Only status === \"succeeded\" means the payment is fully complete and funds are captured. \"authorized\" means funds are reserved but not yet captured. \"pending\" and \"processing\" mean the payment is still in progress.",
+    "The transactionId to pass here is the id field from the webhook payload, or the transactionId / chargeId field from the create_charge response — they refer to the same transaction UUID.",
+    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com.",
+    "The /status endpoint returns a minimal response in sandbox: only {id, status} when the transaction is pending. Fields like pspName, amount, timestamp, and customer info are populated once the payment completes. In production, the full object is returned.",
+    "In the Bictorys sandbox, GET /pay/v1/transactions/{id}/status is known to return HTTP 500 intermittently. For sandbox testing, rely on webhook events instead of polling this endpoint."
+  ]
+}

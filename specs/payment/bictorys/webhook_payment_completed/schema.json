@@ -1,0 +1,140 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-06-05",
+  "capability": "webhook_payment_completed",
+  "capability_type": "webhook",
+  "status": "draft",
+  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "auth": {
+    "type": "none",
+    "env_var": "BICTORYS_WEBHOOK_SECRET"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_webhook_url}"
+  },
+  "example_prompt": "Handle Bictorys payment webhook notifications to automatically confirm orders when a payment succeeds.",
+  "input_schema": {
+    "type": "object",
+    "description": "Payload Bictorys POSTs to your webhook URL when a payment event occurs.",
+    "required": ["id", "status", "pspName", "timestamp"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Unique transaction identifier. Pass to verify_transaction for server-side confirmation."
+      },
+      "merchantId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "subMerchantId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Present only for sub-merchant flows."
+      },
+      "type": {
+        "type": "string",
+        "description": "Transaction type. Example: \"payment\", \"refund\"."
+      },
+      "customerId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "customerObject": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "phone": { "type": "number" },
+          "country": { "type": "string" },
+          "locale": { "type": "string" }
+        }
+      },
+      "pspName": {
+        "type": "string",
+        "enum": ["wave_money", "orange_money", "maxit", "mtn_money", "free_money", "moov", "mobicash", "togocell", "bictorys", "card"],
+        "description": "Payment method used."
+      },
+      "paymentMeans": {
+        "type": "string",
+        "description": "Partially masked payment identifier."
+      },
+      "paymentChannel": {
+        "type": "string",
+        "enum": ["Online", "Terminal"]
+      },
+      "amount": {
+        "type": "number",
+        "description": "Amount paid by the customer in the stated currency."
+      },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code."
+      },
+      "settledAmount": {
+        "type": "number",
+        "description": "Amount received after currency conversion, in settledCurrency."
+      },
+      "settledCurrency": {
+        "type": "string",
+        "description": "Merchant settlement currency."
+      },
+      "merchantFees": { "type": "number" },
+      "customerFees": { "type": "number" },
+      "transactionFeeAmountHT": { "type": "number" },
+      "transactionFeeAmountTax": { "type": "number" },
+      "paymentReference": {
+        "type": "string",
+        "description": "Your paymentReference from create_charge. Use this to match the webhook to your order."
+      },
+      "merchantReference": {
+        "type": "string",
+        "description": "Your merchantReference from create_charge, if provided."
+      },
+      "cashier": { "type": "string" },
+      "orderType": {
+        "type": "string",
+        "description": "Origin of the charge: invoice, paymentlink, flat, order."
+      },
+      "orderId": {
+        "type": "string",
+        "description": "Associated invoice, order, or payment link identifier."
+      },
+      "orderDetails": {
+        "type": "array",
+        "description": "Line items if the charge included an itemized order.",
+        "items": { "type": "object" }
+      },
+      "status": {
+        "type": "string",
+        "enum": ["SUCCEEDED", "AUTHORIZED", "FAILED", "CANCELLED", "REVERSED", "PENDING"],
+        "description": "Payment outcome. Uppercase in webhook payloads — unlike verify_transaction which returns lowercase. SUCCEEDED = paid; FAILED / CANCELLED = not paid; REVERSED = refunded/reversed; AUTHORIZED = pre-authorized, not yet captured."
+      },
+      "originIp": {
+        "type": "string",
+        "description": "Customer IP address."
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 transaction creation timestamp."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "Your endpoint must return HTTP 200. The response body is ignored by Bictorys."
+  },
+  "error_schema": {},
+  "gotchas": [
+    "Bictorys sends two validation headers: X-Secret-Key (raw shared secret, always present) and optionally X-Webhook-Signature (HMAC-SHA256 hex) + X-Webhook-Timestamp (Unix milliseconds). When X-Webhook-Signature is present, verify with HMAC-SHA256(BICTORYS_WEBHOOK_SECRET, '${timestamp}.${rawBody}') and reject payloads where Math.abs(Date.now() - timestamp) > 300_000.",
+    "Always use crypto.timingSafeEqual() when comparing X-Secret-Key or HMAC values — never use === or ==. String equality comparison is vulnerable to timing attacks.",
+    "Bictorys retries the webhook up to 3 times if your endpoint returns a non-2xx status. Always respond HTTP 200 immediately, even if your internal processing fails — then handle errors asynchronously.",
+    "Express users: mount express.raw({ type: 'application/json' }) before express.json() on the webhook route. The raw string body is required to compute the HMAC; JSON.parse() loses it.",
+    "Never fulfill an order based on the webhook payload status alone. Always call verify_transaction server-side with the payload's id field to confirm the payment before marking an order as paid.",
+    "The status field in the webhook payload is UPPERCASE (SUCCEEDED, FAILED) whereas verify_transaction returns lowercase (succeeded, failed). Do not compare these directly without normalizing case.",
+    "Implement idempotency using the transaction id field. Bictorys may deliver the same webhook event more than once; processing the same id twice must not double-fulfill an order.",
+    "Your webhook URL must be publicly reachable over HTTPS. Webhook configuration is separate for test vs. production environments in the Bictorys dashboard."
+  ]
+}

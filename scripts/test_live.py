@@ -124,7 +124,13 @@ def http_call(method, url, auth_headers, body=None, extra_headers=None):
     }
     headers.update(auth_headers)
     if extra_headers:
-        headers.update(extra_headers)
+        # Case-insensitive merge so per-step headers override the global auth key
+        # even when the two keys differ only in capitalisation (e.g. X-Api-Key vs X-API-Key).
+        for k, v in extra_headers.items():
+            for existing_k in list(headers.keys()):
+                if existing_k.lower() == k.lower():
+                    del headers[existing_k]
+            headers[k] = v
     data = None
     if body is not None:
         data = json.dumps(body).encode()
@@ -148,6 +154,8 @@ def _resolve_scalar(val, stored, ts):
         return val
     if val == "$ts":
         return ts
+    if val.startswith("$env:"):
+        return os.environ.get(val[5:], "")
     if val.startswith("$"):
         path = val[1:].split(".")
         node = stored.get(path[0])
@@ -193,6 +201,13 @@ def build_url(endpoint_url, sandbox_base_url, path_params, query_params, stored,
 def get_response_props(schema):
     """Return (properties_dict, required_set) for the data node in response_schema."""
     rs = schema.get("response_schema", {})
+    if "oneOf" in rs:
+        merged_props = {}
+        merged_req = set()
+        for variant in rs["oneOf"]:
+            merged_props.update(variant.get("properties", {}))
+            merged_req.update(variant.get("required", []))
+        return merged_props, merged_req
     data_schema = rs.get("properties", {}).get("data", {})
     if data_schema:
         if data_schema.get("type") == "array":
@@ -207,7 +222,11 @@ def get_response_props(schema):
 def get_data_node(resp, schema):
     """Extract the object to compare from a live response."""
     rs = schema.get("response_schema", {})
+    if "oneOf" in rs:
+        return resp
     data_schema = rs.get("properties", {}).get("data", {})
+    if not data_schema:
+        return resp
     raw = resp.get("data")
     if data_schema.get("type") == "array":
         return raw[0] if isinstance(raw, list) and raw else None
@@ -368,8 +387,15 @@ def run(provider_slug, only_capability=None, raw_capability=None):
 
         actual = get_data_node(resp, schema)
 
-        if resp.get("status") == "success" or status_code in (200, 201):
+        acceptable_error_codes = step.get("acceptable_error_codes", [])
+        details = resp.get("details", "") if isinstance(resp, dict) else ""
+        is_acceptable_error = any(details.startswith(code) for code in acceptable_error_codes)
+
+        if resp.get("status") == "success" or status_code in (200, 201, 202):
             rm, om, e = compare(actual, props, req_keys, exclude_keys)
+        elif is_acceptable_error:
+            print(f"  {YELLOW}Expected sandbox error → {details}{RESET}")
+            rm, om, e = 0, 0, 0
         else:
             print(f"  {RED}API error → {json.dumps(resp)}{RESET}")
             rm, om, e = len(req_keys - exclude_keys), 0, 0
