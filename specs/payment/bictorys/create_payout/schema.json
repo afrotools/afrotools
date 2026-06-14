@@ -103,10 +103,10 @@
   },
   "gotchas": [
     "payment_type is a required query parameter specifying the recipient's mobile money provider. Append it to the URL: POST /pay/v1/payouts?payment_type=wave_money. Supported values: wave_money, orange_money, maxit, mtn_money, free_money, moov, mobicash, togocell, bictorys, card.",
-    "merchant.secretCode is a 4-digit code (not a password or API key) that the merchant sets in the Bictorys dashboard. If your account requires it, omitting it returns E400-37: Secret code is missing. If you have never set one, you will receive E400-34: User does not have a secret Code.",
+    "merchant.secretCode is the operator-issued merchant secret code (e.g. your Orange Money or MTN Money merchant PIN assigned by the operator, not a Bictorys setting). Required only for operators that enforce it. Omitting it when required returns E400-37: Secret code is missing. Wave Money payouts do not require it.",
     "Money transfer must be explicitly enabled for your merchant account. If it is not, Bictorys returns E400-28: Money transfer is not authorized for this merchant. Contact Bictorys support to enable this capability.",
     "Use the idempotency-key header (UUID format) on retry attempts to prevent duplicate payouts. Bictorys returns E400-0: Same Idempotency is passed if the same key is submitted twice successfully.",
-    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com. Sandbox payouts do not send real money.",
+    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com. Sandbox payouts do not send real money. Payout capability must be explicitly enabled on your sandbox account by Bictorys support — without activation the sandbox returns HTTP 500.",
     "Always include the idempotency-key header (a UUID v4) for every payout request. Without it, a network retry can trigger a duplicate transfer.",
     "Set your HTTP client timeout to at least 30 seconds for payout requests — payout processing is slower than charge creation.",
     "The amount field in the payout response is a negative integer representing money leaving your merchant account. This is expected — use Math.abs() if you need to display it as a positive value."

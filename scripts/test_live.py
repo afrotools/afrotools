@@ -148,6 +148,8 @@ def _resolve_scalar(val, stored, ts):
         return val
     if val == "$ts":
         return ts
+    if val.startswith("$env:"):
+        return os.environ.get(val[5:], "")
     if val.startswith("$"):
         path = val[1:].split(".")
         node = stored.get(path[0])
@@ -193,6 +195,13 @@ def build_url(endpoint_url, sandbox_base_url, path_params, query_params, stored,
 def get_response_props(schema):
     """Return (properties_dict, required_set) for the data node in response_schema."""
     rs = schema.get("response_schema", {})
+    if "oneOf" in rs:
+        merged_props = {}
+        merged_req = set()
+        for variant in rs["oneOf"]:
+            merged_props.update(variant.get("properties", {}))
+            merged_req.update(variant.get("required", []))
+        return merged_props, merged_req
     data_schema = rs.get("properties", {}).get("data", {})
     if data_schema:
         if data_schema.get("type") == "array":
@@ -207,7 +216,11 @@ def get_response_props(schema):
 def get_data_node(resp, schema):
     """Extract the object to compare from a live response."""
     rs = schema.get("response_schema", {})
+    if "oneOf" in rs:
+        return resp
     data_schema = rs.get("properties", {}).get("data", {})
+    if not data_schema:
+        return resp
     raw = resp.get("data")
     if data_schema.get("type") == "array":
         return raw[0] if isinstance(raw, list) and raw else None
@@ -368,7 +381,7 @@ def run(provider_slug, only_capability=None, raw_capability=None):
 
         actual = get_data_node(resp, schema)
 
-        if resp.get("status") == "success" or status_code in (200, 201):
+        if resp.get("status") == "success" or status_code in (200, 201, 202):
             rm, om, e = compare(actual, props, req_keys, exclude_keys)
         else:
             print(f"  {RED}API error → {json.dumps(resp)}{RESET}")

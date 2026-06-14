@@ -143,6 +143,12 @@
             "type": "string",
             "enum": ["AWAIT_3DS", "PURCHASED", "CAPTURED", "AUTHORIZED", "FAILED", "DECLINED"],
             "description": "Card payment state. Present only for CardPaymentObject."
+          },
+          "3ds": {
+            "description": "3D Secure authentication data for card payments. Null for mobile money payments."
+          },
+          "3ds2": {
+            "description": "3D Secure 2 authentication data for card payments. Null for mobile money payments."
           }
         }
       },

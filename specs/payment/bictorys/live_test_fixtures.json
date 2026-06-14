@@ -1,0 +1,48 @@
+{
+  "sandbox_base_url": "https://api.test.bictorys.com",
+  "steps": [
+    {
+      "capability": "create_charge",
+      "query_params": { "payment_type": "wave_money" },
+      "body": {
+        "amount": 100,
+        "currency": "XOF",
+        "country": "SN",
+        "paymentReference": "live-test-$ts",
+        "successRedirectUrl": "https://example.com/success",
+        "errorRedirectUrl": "https://example.com/error",
+        "customerObject": {
+          "name": "Live Test",
+          "phone": 221700000001,
+          "country": "SN"
+        }
+      },
+      "store_as": "charge"
+    },
+    {
+      "capability": "verify_transaction",
+      "path_params": { "transactionId": "$charge.transactionId" },
+      "headers": { "X-API-Key": "$env:BICTORYS_SECRET_KEY" }
+    },
+    {
+      "capability": "create_payout",
+      "query_params": { "payment_type": "wave_money" },
+      "body": {
+        "amount": 100,
+        "currency": "XOF",
+        "country": "SN",
+        "customerObject": {
+          "name": "Test Recipient",
+          "phone": "+221700000001",
+          "country": "SN"
+        },
+        "paymentReason": "Live test payout",
+        "merchantReference": "payout-$ts"
+      },
+      "headers": {
+        "X-API-Key": "$env:BICTORYS_SECRET_KEY",
+        "idempotency-key": "payout-$ts"
+      }
+    }
+  ]
+}

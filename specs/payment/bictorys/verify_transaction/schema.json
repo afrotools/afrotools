@@ -30,7 +30,7 @@
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "pspName", "timestamp"],
+    "required": ["id", "status"],
     "properties": {
       "id": {
         "type": "string",
@@ -133,6 +133,7 @@
     "Only status === \"succeeded\" means the payment is fully complete and funds are captured. \"authorized\" means funds are reserved but not yet captured. \"pending\" and \"processing\" mean the payment is still in progress.",
     "The transactionId to pass here is the id field from the webhook payload, or the transactionId / chargeId field from the create_charge response — they refer to the same transaction UUID.",
     "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com.",
+    "The /status endpoint returns a minimal response in sandbox: only {id, status} when the transaction is pending. Fields like pspName, amount, timestamp, and customer info are populated once the payment completes. In production, the full object is returned.",
     "In the Bictorys sandbox, GET /pay/v1/transactions/{id}/status is known to return HTTP 500 intermittently. For sandbox testing, rely on webhook events instead of polling this endpoint."
   ]
 }
