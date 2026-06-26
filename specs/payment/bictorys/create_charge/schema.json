@@ -3,7 +3,7 @@
   "provider_api_version": "2026-06-05",
   "capability": "create_charge",
   "capability_type": "synchronous",
-  "status": "draft",
+  "status": "ready",
   "currency": ["XOF", "XAF", "GNF", "NGN"],
   "auth": {
     "type": "api_key",
