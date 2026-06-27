@@ -4,7 +4,7 @@
   "capability": "webhook_incoming_sms",
   "capability_type": "webhook",
   "status": "draft",
-  "currency": ["KES", "MWK", "NGN", "RWF", "TZS", "UGX"],
+  "currency": ["EGP", "GHS", "KES", "LSL", "MWK", "NAD", "NGN", "RWF", "SZL", "TZS", "UGX", "XOF", "ZAR", "ZMW"],
   "auth": {
     "type": "none"
   },

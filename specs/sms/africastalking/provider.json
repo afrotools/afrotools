@@ -2,7 +2,7 @@
   "slug": "africastalking",
   "name": "Africa's Talking",
   "category": "sms",
-  "country_code": ["KE", "NG", "TZ", "UG", "RW", "MW"],
+  "country_code": ["BF", "BJ", "CI", "EG", "GH", "KE", "LS", "ML", "MW", "NA", "NE", "NG", "RW", "SN", "SZ", "TG", "TZ", "UG", "ZA", "ZM"],
   "website": "https://africastalking.com",
   "docs_url": "https://developers.africastalking.com/docs/sms/overview",
   "docs_public": true,

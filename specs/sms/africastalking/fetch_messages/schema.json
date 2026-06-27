@@ -4,7 +4,7 @@
   "capability": "fetch_messages",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["KES", "NGN", "TZS", "UGX", "RWF", "MWK"],
+  "currency": ["EGP", "GHS", "KES", "LSL", "MWK", "NAD", "NGN", "RWF", "SZL", "TZS", "UGX", "XOF", "ZAR", "ZMW"],
   "auth": {
     "type": "api_key",
     "location": "header",
