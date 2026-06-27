@@ -1,0 +1,67 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "webhook_delivery_report",
+  "capability_type": "webhook",
+  "status": "draft",
+  "currency": ["KES", "MWK", "NGN", "RWF", "TZS", "UGX"],
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_webhook_url}"
+  },
+  "example_prompt": "Handle Africa's Talking delivery report webhooks to track SMS delivery status.",
+  "input_schema": {},
+  "response_schema": {
+    "type": "object",
+    "required": ["id", "status", "phoneNumber", "networkCode"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Message ID — same value as messageId returned in the send_sms response."
+      },
+      "status": {
+        "type": "string",
+        "enum": ["Sent", "Submitted", "Buffered", "Rejected", "Success", "Failed", "AbsentSubscriber", "Expired"],
+        "description": "Final delivery status of the message on the handset."
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Recipient's phone number."
+      },
+      "networkCode": {
+        "type": "string",
+        "description": "Telco network code (e.g. 63902 for Safaricom, 99999 for Athena sandbox)."
+      },
+      "failureReason": {
+        "type": "string",
+        "enum": [
+          "InsufficientCredit",
+          "InvalidLinkId",
+          "UserIsInactive",
+          "UserInBlackList",
+          "UserAccountSuspended",
+          "NotNetworkSubcriber",
+          "UserNotSubscribedToProduct",
+          "UserDoesNotExist",
+          "DeliveryFailure",
+          "DoNotDisturbRejection"
+        ],
+        "description": "Only present when status is Rejected or Failed. Reason the message could not be delivered."
+      },
+      "retryCount": {
+        "type": "integer",
+        "description": "Number of delivery retries. Only present for premium SMS."
+      }
+    }
+  },
+  "error_schema": {},
+  "gotchas": [
+    "Configure the callback URL in the AT dashboard (SMS → SMS Callback URLs → Delivery Reports), not in the API call. There is no per-request callback URL parameter.",
+    "The status field here is the final delivery status (did it reach the handset?) — different from the status field in the send_sms response (was the request accepted?). Success here means delivered to handset.",
+    "failureReason is only present when status is Rejected or Failed. Do not expect it in other cases.",
+    "In sandbox, networkCode 99999 means Athena — Africa's Talking's test network. This code only appears in sandbox."
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "create_subscription",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": ["KES", "NGN", "TZS", "UGX", "RWF", "MWK"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "apiKey",
+    "format": "{token}",
+    "env_var": "AFRICASTALKING_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://content.africastalking.com/version1/subscription/safaricom"
+  },
+  "example_prompt": "Create a Safaricom premium SMS subscription for a Kenyan phone number using Africa's Talking.",
+  "input_schema": {
+    "type": "object",
+    "required": ["username", "shortCode"],
+    "properties": {
+      "username": {
+        "type": "string",
+        "description": "Africa's Talking application username."
+      },
+      "shortCode": {
+        "type": "string",
+        "description": "Valid shortcode registered with Africa's Talking for Safaricom."
+      },
+      "keyword": {
+        "type": "string",
+        "description": "Keyword associated with the shortcode."
+      },
+      "requestId": {
+        "type": "string",
+        "description": "Client-specified identifier echoed in the delivery report (DLR) callback."
+      },
+      "redirectUrl": {
+        "type": "string",
+        "description": "URL the user is redirected to after confirming the subscription."
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number to subscribe in E.164 format (e.g. +254711082282)."
+      },
+      "sourceIP": {
+        "type": "string",
+        "description": "IP address of the subscribing party."
+      },
+      "userAgent": {
+        "type": "string",
+        "description": "Browser user agent string of the subscribing party."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": ["responseCode", "status", "transactionId"],
+    "properties": {
+      "responseCode": {
+        "type": "string",
+        "description": "Result of the request. 'Success' indicates the subscription was initiated."
+      },
+      "status": {
+        "type": "string",
+        "description": "Subscription status. Typically 'Sent' when the request is accepted."
+      },
+      "transactionId": {
+        "type": "string",
+        "description": "Unique identifier for the subscription transaction."
+      },
+      "url": {
+        "type": "string",
+        "description": "Redirect URL returned only in HE (Header Enrichment) mode. Absent in Subscribe Manage mode."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "required": ["responseCode", "status"],
+    "properties": {
+      "responseCode": {
+        "type": "string",
+        "description": "Non-Success response code indicating why the request failed."
+      },
+      "status": {
+        "type": "string",
+        "description": "Error status description."
+      }
+    }
+  },
+  "gotchas": [
+    "This endpoint is Safaricom-specific (Kenya only). The URL path includes /safaricom — there is no generic subscription endpoint across all carriers.",
+    "Production uses content.africastalking.com, NOT api.africastalking.com. Sandbox uses api.sandbox.africastalking.com. The domain difference is a common integration mistake.",
+    "Two subscription modes exist: HE (Header Enrichment) requires the user to be on Safaricom mobile data and returns a redirect url; Subscribe Manage sends a USSD prompt. The mode is determined by Safaricom's routing — you cannot choose it explicitly. Only HE responses include the url field."
+  ]
+}

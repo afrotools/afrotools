@@ -1,0 +1,123 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "send_sms",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": ["KES", "NGN", "TZS", "UGX", "RWF", "MWK"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "apiKey",
+    "format": "{token}",
+    "env_var": "AFRICASTALKING_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.africastalking.com/version1/messaging"
+  },
+  "example_prompt": "Send a bulk SMS to one or more phone numbers using Africa's Talking legacy endpoint (supports sandbox).",
+  "input_schema": {
+    "type": "object",
+    "required": ["username", "to", "message"],
+    "properties": {
+      "username": {
+        "type": "string",
+        "description": "Your Africa's Talking app username. Must be the literal string \"sandbox\" when using the sandbox environment."
+      },
+      "to": {
+        "type": "string",
+        "description": "Comma-separated E.164 phone numbers (e.g. \"+254711XXXYYY,+254733YYYZZZ\"). Each number must include the + prefix."
+      },
+      "message": {
+        "type": "string",
+        "description": "SMS content to send. Must not contain % characters — they fail silently at the carrier level."
+      },
+      "from": {
+        "type": "string",
+        "description": "Registered shortcode or alphanumeric sender ID. Defaults to AFRICASTKNG if omitted."
+      },
+      "bulkSMSMode": {
+        "type": "integer",
+        "enum": [0, 1],
+        "default": 1,
+        "description": "Set to 1 for bulk SMS (default). Must be 1 when sending to multiple recipients."
+      },
+      "enqueue": {
+        "type": "integer",
+        "enum": [0, 1],
+        "default": 1,
+        "description": "Set to 1 to queue the message without waiting for telco acknowledgement (default)."
+      },
+      "keyword": {
+        "type": "string",
+        "description": "Keyword for premium SMS service."
+      },
+      "linkId": {
+        "type": "string",
+        "description": "Link ID for premium on-demand SMS."
+      },
+      "retryDurationInHours": {
+        "type": "integer",
+        "description": "Number of hours to retry delivery for premium SMS."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": ["SMSMessageData"],
+    "properties": {
+      "SMSMessageData": {
+        "type": "object",
+        "required": ["Message", "Recipients"],
+        "properties": {
+          "Message": {
+            "type": "string",
+            "description": "Summary message (e.g. \"Sent to 1/1 Total Cost: KES 0.8000\")."
+          },
+          "Recipients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["statusCode", "number", "status", "cost", "messageId"],
+              "properties": {
+                "statusCode": {
+                  "type": "integer",
+                  "description": "Per-recipient delivery status code. 101=Sent, 102=Queued, 100=Processed, 401=RiskHold, 402=InvalidSenderId, 403=InvalidPhoneNumber, 404=UnsupportedNumberType, 405=InsufficientBalance, 406=UserInBlacklist, 407=CouldNotRoute, 409=DoNotDisturbRejection, 500=InternalServerError, 501=GatewayError, 502=RejectedByGateway."
+                },
+                "number": {
+                  "type": "string",
+                  "description": "Recipient phone number in E.164 format."
+                },
+                "status": {
+                  "type": "string",
+                  "description": "Human-readable status (e.g. \"Success\", \"DeliveryFailure\")."
+                },
+                "cost": {
+                  "type": "string",
+                  "description": "Cost for this recipient (e.g. \"KES 0.8000\")."
+                },
+                "messageId": {
+                  "type": "string",
+                  "description": "Unique message ID assigned by Africa's Talking."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "string",
+    "description": "HTTP 4xx responses return a plain error message string."
+  },
+  "gotchas": [
+    "In sandbox, DeliveryFailure means the AT Simulator is not active or not logged in. Open https://simulator.africastalking.com and log in before testing — the API returns 200 but nothing is delivered without the simulator running.",
+    "The username field must be the literal string \"sandbox\" when using the sandbox environment — not your real username. Sandbox API keys are separate from production keys; both are in the AT dashboard.",
+    "Messages containing % fail silently at the carrier level. Strip or replace % characters before passing to message.",
+    "Request body must be application/x-www-form-urlencoded. Use URLSearchParams to encode the body — sending JSON.stringify() causes a 400 or silent failure.",
+    "The API always returns HTTP 200 even when messages fail per recipient. Check SMSMessageData.Recipients[].statusCode — 101 means Sent; anything else is a failure for that recipient.",
+    "Phone numbers must be full E.164 format with + prefix (e.g. +254712345678). Local formats without + return statusCode 403 (InvalidPhoneNumber)."
+  ]
+}

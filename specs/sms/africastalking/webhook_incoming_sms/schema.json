@@ -1,0 +1,60 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "webhook_incoming_sms",
+  "capability_type": "webhook",
+  "status": "draft",
+  "currency": ["KES", "MWK", "NGN", "RWF", "TZS", "UGX"],
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_webhook_url}"
+  },
+  "example_prompt": "Handle incoming SMS messages sent to your Africa's Talking shortcode.",
+  "input_schema": {},
+  "response_schema": {
+    "type": "object",
+    "required": ["date", "from", "id", "text", "to", "cost", "networkCode"],
+    "properties": {
+      "date": {
+        "type": "string",
+        "description": "ISO 8601 datetime when the message was received."
+      },
+      "from": {
+        "type": "string",
+        "description": "Sender's phone number."
+      },
+      "id": {
+        "type": "string",
+        "description": "Internal Africa's Talking message ID."
+      },
+      "linkId": {
+        "type": "string",
+        "description": "Only present for on-demand premium SMS responses. Pass this value in the linkId field of send_premium_sms when replying."
+      },
+      "text": {
+        "type": "string",
+        "description": "Message content sent by the user."
+      },
+      "to": {
+        "type": "string",
+        "description": "Your registered shortcode that received the message."
+      },
+      "cost": {
+        "type": "string",
+        "description": "Cost of the message in the format 'KES 1.00' (currency code + space + decimal amount)."
+      },
+      "networkCode": {
+        "type": "string",
+        "description": "Telco network code of the sender."
+      }
+    }
+  },
+  "error_schema": {},
+  "gotchas": [
+    "Configure the incoming messages callback URL in the AT dashboard, not in the API call. Africa's Talking strongly recommends this webhook over the fetch_messages polling endpoint.",
+    "linkId is only present for on-demand premium SMS — use its value in the linkId field of send_premium_sms when replying to the user's on-demand request."
+  ]
+}

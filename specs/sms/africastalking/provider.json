@@ -1,0 +1,12 @@
+{
+  "slug": "africastalking",
+  "name": "Africa's Talking",
+  "category": "sms",
+  "country_code": ["KE", "NG", "TZ", "UG", "RW", "MW"],
+  "website": "https://africastalking.com",
+  "docs_url": "https://developers.africastalking.com/docs/sms/overview",
+  "docs_public": true,
+  "sandbox": true,
+  "description": "Africa's Talking is a pan-African communications platform offering SMS, USSD, voice, and airtime APIs across multiple African countries.",
+  "example_prompt": "Send an SMS notification to a Kenyan phone number using Africa's Talking."
+}
