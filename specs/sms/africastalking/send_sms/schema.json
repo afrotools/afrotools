@@ -118,6 +118,7 @@
     "Messages containing % fail silently at the carrier level. Strip or replace % characters before passing to message.",
     "Request body must be application/x-www-form-urlencoded. Use URLSearchParams to encode the body — sending JSON.stringify() causes a 400 or silent failure.",
     "The API always returns HTTP 200 even when messages fail per recipient. Check SMSMessageData.Recipients[].statusCode — 101 means Sent; anything else is a failure for that recipient.",
-    "Phone numbers must be full E.164 format with + prefix (e.g. +254712345678). Local formats without + return statusCode 403 (InvalidPhoneNumber)."
+    "Phone numbers must be full E.164 format with + prefix (e.g. +254712345678). Local formats without + return statusCode 403 (InvalidPhoneNumber).",
+    "The default Africa's Talking sender ID only works in Kenya on Airtel numbers. For any other country or network, register a dedicated sender ID from the AT dashboard — otherwise messages will be rejected or undelivered."
   ]
 }

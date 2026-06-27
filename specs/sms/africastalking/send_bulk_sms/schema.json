@@ -42,6 +42,14 @@
         "enum": [0, 1],
         "default": 1,
         "description": "Set to 1 to queue the message without waiting for telco acknowledgement (default)."
+      },
+      "maskedNumber": {
+        "type": "string",
+        "description": "Hashed phone number for Safaricom Kenya. Use instead of phoneNumbers when sending to a masked subscriber. When set, phoneNumbers must be an empty array []."
+      },
+      "telco": {
+        "type": "string",
+        "description": "Service provider name when using maskedNumber. Example: 'Safaricom'. Required when maskedNumber is set."
       }
     }
   },
@@ -98,6 +106,7 @@
     "The recipient field is phoneNumbers (not to). Using to silently fails — this differs from the legacy send_sms endpoint.",
     "senderId is required for this endpoint, not optional. Omitting it returns an error. In the legacy endpoint (send_sms), the from field was optional.",
     "The sandbox URL is coming soon — this endpoint has no sandbox support yet. Use send_sms (legacy) for sandbox testing in the meantime.",
-    "This endpoint accepts both application/x-www-form-urlencoded and application/json. Set Content-Type: application/json when sending a JSON body."
+    "This endpoint accepts both application/x-www-form-urlencoded and application/json. Set Content-Type: application/json when sending a JSON body.",
+    "To send to a Safaricom hashed number, set maskedNumber to the hashed string, telco to 'Safaricom', and phoneNumbers to an empty array []. The senderId field becomes optional in this mode."
   ]
 }

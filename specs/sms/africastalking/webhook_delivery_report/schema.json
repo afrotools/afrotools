@@ -62,6 +62,7 @@
     "Configure the callback URL in the AT dashboard (SMS → SMS Callback URLs → Delivery Reports), not in the API call. There is no per-request callback URL parameter.",
     "The status field here is the final delivery status (did it reach the handset?) — different from the status field in the send_sms response (was the request accepted?). Success here means delivered to handset.",
     "failureReason is only present when status is Rejected or Failed. Do not expect it in other cases.",
-    "In sandbox, networkCode 99999 means Athena — Africa's Talking's test network. This code only appears in sandbox."
+    "In sandbox, networkCode 99999 means Athena — Africa's Talking's test network. This code only appears in sandbox.",
+    "DoNotDisturbRejection only applies to Nigeria: promotional sender IDs cannot send between 8am–8pm per NCC rules. AT returns HTTP 409 and statusCode 409 for those recipients — handle it separately from other failures."
   ]
 }
