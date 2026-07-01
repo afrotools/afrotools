@@ -1,0 +1,36 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "webhook_bulk_opt_out",
+  "capability_type": "webhook",
+  "status": "draft",
+  "currency": ["EGP", "GHS", "KES", "LSL", "MWK", "NAD", "NGN", "RWF", "SZL", "TZS", "UGX", "XOF", "ZAR", "ZMW"],
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_webhook_url}"
+  },
+  "example_prompt": "Handle bulk SMS opt-out notifications from Africa's Talking subscribers.",
+  "input_schema": {},
+  "response_schema": {
+    "type": "object",
+    "required": ["senderId", "phoneNumber"],
+    "properties": {
+      "senderId": {
+        "type": "string",
+        "description": "The shortcode or alphanumeric sender ID that the subscriber opted out from."
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number of the subscriber who opted out."
+      }
+    }
+  },
+  "error_schema": {},
+  "gotchas": [
+    "Africa's Talking automatically appends opt-out instructions to the first message you send to each subscriber. Subsequent messages are sent as-is without the instructions.",
+    "You must honor opt-outs. Store opted-out phone numbers and exclude them from future sends to avoid being flagged as a spammer."
+  ]
+}

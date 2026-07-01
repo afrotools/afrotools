@@ -1,0 +1,112 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "send_bulk_sms",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": ["EGP", "GHS", "KES", "LSL", "MWK", "NAD", "NGN", "RWF", "SZL", "TZS", "UGX", "XOF", "ZAR", "ZMW"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "apiKey",
+    "format": "{token}",
+    "env_var": "AFRICASTALKING_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.africastalking.com/version1/messaging/bulk"
+  },
+  "example_prompt": "Send bulk SMS using Africa's Talking new bulk endpoint (JSON-friendly, requires senderId).",
+  "input_schema": {
+    "type": "object",
+    "required": ["username", "phoneNumbers", "message", "senderId"],
+    "properties": {
+      "username": {
+        "type": "string",
+        "description": "Your Africa's Talking app username."
+      },
+      "phoneNumbers": {
+        "type": "string",
+        "description": "Comma-separated E.164 phone numbers. NOTE: this field is phoneNumbers, not to — using to silently fails."
+      },
+      "message": {
+        "type": "string",
+        "description": "SMS content to send."
+      },
+      "senderId": {
+        "type": "string",
+        "description": "Your registered sender ID (shortcode or alphanumeric). Required for this endpoint — unlike the legacy send_sms endpoint where from was optional."
+      },
+      "enqueue": {
+        "type": "integer",
+        "enum": [0, 1],
+        "default": 1,
+        "description": "Set to 1 to queue the message without waiting for telco acknowledgement (default)."
+      },
+      "maskedNumber": {
+        "type": "string",
+        "description": "Hashed phone number for Safaricom Kenya. Use instead of phoneNumbers when sending to a masked subscriber. When set, phoneNumbers must be an empty array []."
+      },
+      "telco": {
+        "type": "string",
+        "description": "Service provider name when using maskedNumber. Example: 'Safaricom'. Required when maskedNumber is set."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": ["SMSMessageData"],
+    "properties": {
+      "SMSMessageData": {
+        "type": "object",
+        "required": ["Message", "Recipients"],
+        "properties": {
+          "Message": {
+            "type": "string",
+            "description": "Summary message (e.g. \"Sent to 1/1 Total Cost: KES 0.8000\")."
+          },
+          "Recipients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["statusCode", "number", "status", "cost", "messageId"],
+              "properties": {
+                "statusCode": {
+                  "type": "integer",
+                  "description": "Per-recipient delivery status code. 101=Sent, 102=Queued, 100=Processed, 401=RiskHold, 402=InvalidSenderId, 403=InvalidPhoneNumber, 404=UnsupportedNumberType, 405=InsufficientBalance, 406=UserInBlacklist, 407=CouldNotRoute, 409=DoNotDisturbRejection, 500=InternalServerError, 501=GatewayError, 502=RejectedByGateway."
+                },
+                "number": {
+                  "type": "string",
+                  "description": "Recipient phone number in E.164 format."
+                },
+                "status": {
+                  "type": "string",
+                  "description": "Human-readable status (e.g. \"Success\", \"DeliveryFailure\")."
+                },
+                "cost": {
+                  "type": "string",
+                  "description": "Cost for this recipient (e.g. \"KES 0.8000\")."
+                },
+                "messageId": {
+                  "type": "string",
+                  "description": "Unique message ID assigned by Africa's Talking."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "string",
+    "description": "HTTP 4xx responses return a plain error message string."
+  },
+  "gotchas": [
+    "The recipient field is phoneNumbers (not to). Using to silently fails — this differs from the legacy send_sms endpoint.",
+    "senderId is required for this endpoint, not optional. Omitting it returns an error. In the legacy endpoint (send_sms), the from field was optional.",
+    "The sandbox URL is coming soon — this endpoint has no sandbox support yet. Use send_sms (legacy) for sandbox testing in the meantime.",
+    "This endpoint accepts both application/x-www-form-urlencoded and application/json. Set Content-Type: application/json when sending a JSON body.",
+    "To send to a Safaricom hashed number, set maskedNumber to the hashed string, telco to 'Safaricom', and phoneNumbers to an empty array []. The senderId field becomes optional in this mode."
+  ]
+}

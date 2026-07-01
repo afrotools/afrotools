@@ -1,0 +1,44 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "webhook_subscription",
+  "capability_type": "webhook",
+  "status": "draft",
+  "currency": ["EGP", "GHS", "KES", "LSL", "MWK", "NAD", "NGN", "RWF", "SZL", "TZS", "UGX", "XOF", "ZAR", "ZMW"],
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_webhook_url}"
+  },
+  "example_prompt": "Handle premium SMS subscription and unsubscription notifications from Africa's Talking.",
+  "input_schema": {},
+  "response_schema": {
+    "type": "object",
+    "required": ["phoneNumber", "shortCode", "keyword", "updateType"],
+    "properties": {
+      "phoneNumber": {
+        "type": "string",
+        "description": "Phone number that subscribed or unsubscribed."
+      },
+      "shortCode": {
+        "type": "string",
+        "description": "The short code with the product the subscriber acted on."
+      },
+      "keyword": {
+        "type": "string",
+        "description": "The keyword of the product the subscriber acted on."
+      },
+      "updateType": {
+        "type": "string",
+        "enum": ["addition", "deletion"],
+        "description": "addition = new subscriber, deletion = unsubscribe."
+      }
+    }
+  },
+  "error_schema": {},
+  "gotchas": [
+    "updateType is either addition (new subscriber) or deletion (unsubscribe). Maintain your own subscriber list and update it accordingly on each notification — Africa's Talking does not expose a subscriber list API."
+  ]
+}

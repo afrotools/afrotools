@@ -117,7 +117,7 @@ def build_auth(schema, fixture):
 
 # ── HTTP ──────────────────────────────────────────────────────────────────────
 
-def http_call(method, url, auth_headers, body=None, extra_headers=None):
+def http_call(method, url, auth_headers, body=None, extra_headers=None, content_type="application/json"):
     headers = {
         "Accept": "application/json",
         "X-Trace-Id": f"afrotools-live-{int(time.time() * 1000)}",
@@ -133,8 +133,12 @@ def http_call(method, url, auth_headers, body=None, extra_headers=None):
             headers[k] = v
     data = None
     if body is not None:
-        data = json.dumps(body).encode()
-        headers["Content-Type"] = "application/json"
+        if content_type == "application/x-www-form-urlencoded":
+            data = urllib.parse.urlencode({k: v for k, v in body.items() if v is not None}).encode()
+            headers["Content-Type"] = "application/x-www-form-urlencoded"
+        else:
+            data = json.dumps(body).encode()
+            headers["Content-Type"] = "application/json"
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
         with urllib.request.urlopen(req, context=_SSL_CTX) as r:
@@ -360,14 +364,15 @@ def run(provider_slug, only_capability=None, raw_capability=None):
             body[body_auth[0]] = body_auth[1]
 
         extra_headers = resolve(step.get("headers", {}), stored, ts)
+        content_type = step.get("content_type", "application/json")
 
         if raw_capability == cap_name:
-            _, resp = http_call(method, url, auth_headers, body, extra_headers)
+            _, resp = http_call(method, url, auth_headers, body, extra_headers, content_type)
             print(f"\n{BOLD}Raw response:{RESET}")
             print(json.dumps(resp, indent=2))
             return
 
-        status_code, resp = http_call(method, url, auth_headers, body, extra_headers)
+        status_code, resp = http_call(method, url, auth_headers, body, extra_headers, content_type)
 
         store_as = step.get("store_as")
         if store_as:

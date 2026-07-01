@@ -1,0 +1,118 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "send_premium_sms",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": ["EGP", "GHS", "KES", "LSL", "MWK", "NAD", "NGN", "RWF", "SZL", "TZS", "UGX", "XOF", "ZAR", "ZMW"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "apiKey",
+    "format": "{token}",
+    "env_var": "AFRICASTALKING_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://content.africastalking.com/version1/messaging"
+  },
+  "example_prompt": "Send a premium-rate SMS to subscribers using Africa's Talking premium SMS endpoint.",
+  "input_schema": {
+    "type": "object",
+    "required": ["username", "to", "message", "from"],
+    "properties": {
+      "username": {
+        "type": "string",
+        "description": "Your Africa's Talking app username. Must be the literal string \"sandbox\" in sandbox mode."
+      },
+      "to": {
+        "type": "string",
+        "description": "Comma-separated E.164 phone numbers. Each number must include the + prefix."
+      },
+      "message": {
+        "type": "string",
+        "description": "SMS content to send."
+      },
+      "from": {
+        "type": "string",
+        "description": "Your registered shortcode. Required for premium SMS — unlike bulk SMS where the sender ID was optional."
+      },
+      "keyword": {
+        "type": "string",
+        "description": "Keyword associated with your premium service."
+      },
+      "enqueue": {
+        "type": "integer",
+        "enum": [0, 1],
+        "default": 1,
+        "description": "Set to 1 to queue the message without waiting for telco acknowledgement (default)."
+      },
+      "linkId": {
+        "type": "string",
+        "description": "Link ID for on-demand premium SMS — echoed back in the delivery report callback."
+      },
+      "retryDurationInHours": {
+        "type": "integer",
+        "description": "Number of hours to retry delivery for premium SMS."
+      },
+      "requestId": {
+        "type": "string",
+        "description": "Optional correlation ID echoed back in the HTTP DLR callback. Use to match delivery reports to your sends."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": ["SMSMessageData"],
+    "properties": {
+      "SMSMessageData": {
+        "type": "object",
+        "required": ["Message", "Recipients"],
+        "properties": {
+          "Message": {
+            "type": "string",
+            "description": "Summary message (e.g. \"Sent to 1/1 Total Cost: KES 0.8000\")."
+          },
+          "Recipients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["statusCode", "number", "status", "cost", "messageId"],
+              "properties": {
+                "statusCode": {
+                  "type": "integer",
+                  "description": "Per-recipient delivery status code. 101=Sent, 102=Queued, 100=Processed, 401=RiskHold, 402=InvalidSenderId, 403=InvalidPhoneNumber, 404=UnsupportedNumberType, 405=InsufficientBalance, 406=UserInBlacklist, 407=CouldNotRoute, 409=DoNotDisturbRejection, 500=InternalServerError, 501=GatewayError, 502=RejectedByGateway."
+                },
+                "number": {
+                  "type": "string",
+                  "description": "Recipient phone number in E.164 format."
+                },
+                "status": {
+                  "type": "string",
+                  "description": "Human-readable status (e.g. \"Success\", \"DeliveryFailure\")."
+                },
+                "cost": {
+                  "type": "string",
+                  "description": "Cost for this recipient (e.g. \"KES 0.8000\")."
+                },
+                "messageId": {
+                  "type": "string",
+                  "description": "Unique message ID assigned by Africa's Talking."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "string",
+    "description": "HTTP 4xx responses return a plain error message string."
+  },
+  "gotchas": [
+    "Production URL is content.africastalking.com, NOT api.africastalking.com. Using the wrong domain will fail. Sandbox still uses api.sandbox.africastalking.com.",
+    "from (your registered shortcode) is required for premium SMS — unlike bulk SMS where the sender ID is optional.",
+    "Use requestId to correlate delivery reports with your sends. Africa's Talking echoes it back in the HTTP DLR callback."
+  ]
+}

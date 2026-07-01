@@ -1,0 +1,93 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2024-01-01",
+  "capability": "fetch_messages",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": ["EGP", "GHS", "KES", "LSL", "MWK", "NAD", "NGN", "RWF", "SZL", "TZS", "UGX", "XOF", "ZAR", "ZMW"],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "apiKey",
+    "format": "{token}",
+    "env_var": "AFRICASTALKING_API_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.africastalking.com/version1/messaging"
+  },
+  "example_prompt": "Fetch incoming SMS messages from your Africa's Talking inbox incrementally.",
+  "input_schema": {
+    "type": "object",
+    "required": ["username"],
+    "properties": {
+      "username": {
+        "type": "string",
+        "description": "Africa's Talking application username."
+      },
+      "lastReceivedId": {
+        "type": "string",
+        "description": "ID of the last processed message. Defaults to '0' to fetch from the beginning of the inbox. Pass the last id value from the previous response to paginate incrementally."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": ["SMSMessageData"],
+    "properties": {
+      "SMSMessageData": {
+        "type": "object",
+        "required": ["Messages"],
+        "properties": {
+          "Messages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["linkId", "text", "to", "id", "date", "from"],
+              "properties": {
+                "linkId": {
+                  "type": "string",
+                  "description": "Link identifier for the message."
+                },
+                "text": {
+                  "type": "string",
+                  "description": "Body of the received SMS."
+                },
+                "to": {
+                  "type": "string",
+                  "description": "Shortcode or phone number that received the message."
+                },
+                "id": {
+                  "type": "integer",
+                  "description": "Unique numeric ID for this message. Use as lastReceivedId in subsequent calls."
+                },
+                "date": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "ISO 8601 timestamp of when the message was received."
+                },
+                "from": {
+                  "type": "string",
+                  "description": "Phone number of the sender in E.164 format."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "Error message string returned on HTTP 4xx responses."
+      }
+    }
+  },
+  "gotchas": [
+    "Africa's Talking strongly recommends using webhook notifications (webhook_incoming_sms) instead of polling this endpoint. Configure SMS → SMS Callback URLs → Incoming Messages in the AT dashboard for real-time delivery.",
+    "lastReceivedId is a cursor. Store the last id value from each response and pass it on the next call — omitting it (or passing 0) returns messages from the beginning of your inbox and may return already-processed messages."
+  ]
+}

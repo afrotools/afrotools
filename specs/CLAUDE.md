@@ -74,7 +74,7 @@ Every spec folder must contain exactly these two files. Nothing else.
 | provider_slug | string | Lowercase, no dashes, no spaces |
 | provider_api_version | string | YYYY-MM-DD if provider has no version string |
 | capability_type | enum | `synchronous`, `asynchronous`, or `webhook` |
-| status | enum | `draft`, `compliant`, `verified`, `deprecated`, `archived` |
+| status | enum | `draft`, `ready`, `verified`, `deprecated`, `archived` |
 | country_code | string[] | ISO 3166-1 alpha-2 codes |
 | currency | string[] | ISO 4217 codes |
 | sandbox | boolean | true if provider has a sandbox environment |
