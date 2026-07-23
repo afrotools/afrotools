@@ -56,6 +56,7 @@ See [ATSS.md](./ATSS.md) for the full specification.
 | Paycard | payment | 🇬🇳 | 3 | ✅ AI Ready |
 | Djomy | payment | 🇬🇳 | 7 | 4 verified · 3 ready |
 | LengoPay | payment | 🇬🇳 | 8 | 2 verified · 6 ready |
+| Africa's Talking | sms | 🇧🇫 🇧🇯 🇨🇮 +17 | 2 | 📋 Ready |
 | Bictorys | payment | 🇸🇳 🇨🇮 🇬🇳 +7 | 4 | 📋 Ready |
 | Flutterwave | payment | 🇳🇬 🇬🇭 🇰🇪 +10 | 57 | 📋 Ready |
 | KadevPay | payment | 🇨🇮 | 3 | 📋 Ready |
