@@ -5,8 +5,8 @@
  * @capability_type synchronous
  */
 
-const BICTORYS_PUBLIC_KEY = process.env.BICTORYS_PUBLIC_KEY;
-if (!BICTORYS_PUBLIC_KEY) throw new Error("Missing env: BICTORYS_PUBLIC_KEY");
+const BICTORYS_API_KEY = process.env.BICTORYS_API_KEY;
+if (!BICTORYS_API_KEY) throw new Error("Missing env: BICTORYS_API_KEY");
 
 interface CustomerObject {
   name?: string;
@@ -71,7 +71,7 @@ export async function createCharge(
   const response = await fetch(url, {
     method: "POST",
     headers: {
-      "X-Api-Key": BICTORYS_PUBLIC_KEY!,
+      "X-Api-Key": BICTORYS_API_KEY!,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(input),

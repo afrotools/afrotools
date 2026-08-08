@@ -10,7 +10,7 @@
     "location": "header",
     "field": "X-Api-Key",
     "format": "{token}",
-    "env_var": "BICTORYS_PUBLIC_KEY"
+    "env_var": "BICTORYS_API_KEY"
   },
   "endpoint": {
     "method": "POST",
@@ -203,9 +203,9 @@
     "successRedirectUrl and errorRedirectUrl must start with https:// — HTTP URLs are rejected with E400-0: redirectUrl must start with https://.",
     "Sandbox base URL is https://api.test.bictorys.com — the production base URL is https://api.bictorys.com. Sandbox and production use separate API keys obtained from the Bictorys dashboard.",
     "Card payments via the direct API (payment_type=card with a cardObject in the body) require PCI-DSS certification. Mobile money payments have no certification requirement.",
-    "create_charge uses the PUBLIC API key (env BICTORYS_PUBLIC_KEY, header X-Api-Key). Using the private/secret key for charges returns 403. Payouts use the private key (BICTORYS_SECRET_KEY, header X-API-Key).",
+    "create_charge uses the PUBLIC API key (env BICTORYS_API_KEY, header X-Api-Key). verify_transaction and create_payout both use the PRIVATE key (env BICTORYS_PRIVATE_KEY, header X-API-Key) — despite Bictorys' documentation claiming verify_transaction needs the public key, a real sandbox call with the private key returns 200 successfully.",
     "Orange Money Côte d'Ivoire requires an OTP: the customer must dial #144*82# on their phone to generate a 6-8 digit code, then pass it as the 'otp' field in the request body. The OTP expires quickly — if the charge fails with an OTP error, ask the user to redial.",
-    "The request body field is 'errorRedirectUrl' (lowercase e), but Bictorys echoes it back as 'ErrorRedirectUrl' (capital E) in some response and webhook contexts. Use lowercase when building the request.",
+    "The request body field is 'errorRedirectUrl' (lowercase e) — Bictorys' own documentation example shows 'ErrorRedirectUrl' (capital E), which appears to be a doc typo; lowercase is confirmed working end-to-end in production (charge creation + successful webhook).",
     "HTTP 403 with an HTML body (not JSON) means AWS WAF is rate-limiting your requests. Implement exponential backoff with at least 5-second spacing between retries."
   ]
 }

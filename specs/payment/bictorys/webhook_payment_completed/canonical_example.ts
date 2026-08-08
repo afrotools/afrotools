@@ -11,11 +11,28 @@ const BICTORYS_WEBHOOK_SECRET = process.env.BICTORYS_WEBHOOK_SECRET;
 if (!BICTORYS_WEBHOOK_SECRET) throw new Error("Missing env: BICTORYS_WEBHOOK_SECRET");
 
 interface CustomerObject {
+  id?: string;
   name?: string;
   email?: string;
-  phone?: number;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postalCode?: number;
   country?: string;
   locale?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface OrderDetail {
+  id?: string;
+  name?: string;
+  reference?: string;
+  price?: number;
+  quantity?: number;
+  discount?: number;
+  taxRate?: number;
+  totalPrice?: number;
 }
 
 interface BictorysWebhookPayload {
@@ -38,8 +55,8 @@ interface BictorysWebhookPayload {
   merchantReference?: string;
   orderType?: string;
   orderId?: string;
-  orderDetails?: object[];
-  status: "SUCCEEDED" | "AUTHORIZED" | "FAILED" | "CANCELLED" | "REVERSED" | "PENDING";
+  orderDetails?: OrderDetail[];
+  status: "succeeded" | "authorized" | "failed" | "cancelled" | "reversed";
   originIp?: string;
   timestamp: string;
 }
@@ -104,7 +121,7 @@ export async function handleBictorysWebhook(
 
   try {
     const body = JSON.parse(rawBody) as BictorysWebhookPayload;
-    if (body.status === "SUCCEEDED") {
+    if (body.status === "succeeded") {
       // Never trust the webhook alone — verify server-side before fulfilling.
       // Call verifyTransaction(body.id) from verify_transaction spec and check status === "succeeded".
       await onPaymentSucceeded(body.id, body.paymentReference);

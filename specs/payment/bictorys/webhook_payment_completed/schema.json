@@ -1,6 +1,6 @@
 {
   "spec_version": "1.0",
-  "provider_api_version": "2026-06-05",
+  "provider_api_version": "2026-08-07",
   "capability": "webhook_payment_completed",
   "capability_type": "webhook",
   "status": "ready",
@@ -44,11 +44,17 @@
       "customerObject": {
         "type": "object",
         "properties": {
+          "id": { "type": "string", "format": "uuid" },
           "name": { "type": "string" },
           "email": { "type": "string" },
-          "phone": { "type": "number" },
+          "phone": { "type": "string", "description": "Digits only, no + prefix. Observed live: \"33665909237\"." },
+          "address": { "type": "string" },
+          "city": { "type": "string" },
+          "postalCode": { "type": "number" },
           "country": { "type": "string" },
-          "locale": { "type": "string" }
+          "locale": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
         }
       },
       "pspName": {
@@ -104,12 +110,24 @@
       "orderDetails": {
         "type": "array",
         "description": "Line items if the charge included an itemized order.",
-        "items": { "type": "object" }
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "reference": { "type": "string" },
+            "price": { "type": "number" },
+            "quantity": { "type": "number" },
+            "discount": { "type": "number" },
+            "taxRate": { "type": "number" },
+            "totalPrice": { "type": "number" }
+          }
+        }
       },
       "status": {
         "type": "string",
-        "enum": ["SUCCEEDED", "AUTHORIZED", "FAILED", "CANCELLED", "REVERSED", "PENDING"],
-        "description": "Payment outcome. Uppercase in webhook payloads — unlike verify_transaction which returns lowercase. SUCCEEDED = paid; FAILED / CANCELLED = not paid; REVERSED = refunded/reversed; AUTHORIZED = pre-authorized, not yet captured."
+        "enum": ["succeeded", "authorized", "failed", "cancelled", "reversed"],
+        "description": "Payment outcome, lowercase — same casing as verify_transaction. succeeded = paid; failed / cancelled = not paid; reversed = refunded/reversed; authorized = pre-authorized, not yet captured. \"pending\" and \"processing\" are intermediate states surfaced by verify_transaction polling, not delivered via this webhook."
       },
       "originIp": {
         "type": "string",
@@ -117,8 +135,7 @@
       },
       "timestamp": {
         "type": "string",
-        "format": "date-time",
-        "description": "ISO 8601 transaction creation timestamp."
+        "description": "Transaction creation timestamp. NOT strict ISO 8601 — observed live format is \"2026-08-08 18:45:44.10254\" (space separator, no timezone, non-standard fractional-second digit count). Parse defensively; do not assume Date-constructor-safe ISO input."
       }
     }
   },
@@ -133,8 +150,11 @@
     "Bictorys retries the webhook up to 3 times if your endpoint returns a non-2xx status. Always respond HTTP 200 immediately, even if your internal processing fails — then handle errors asynchronously.",
     "Express users: mount express.raw({ type: 'application/json' }) before express.json() on the webhook route. The raw string body is required to compute the HMAC; JSON.parse() loses it.",
     "Never fulfill an order based on the webhook payload status alone. Always call verify_transaction server-side with the payload's id field to confirm the payment before marking an order as paid.",
-    "The status field in the webhook payload is UPPERCASE (SUCCEEDED, FAILED) whereas verify_transaction returns lowercase (succeeded, failed). Do not compare these directly without normalizing case.",
+    "Anti-fraud check: before fulfilling, verify that the webhook's amount and currency match your own order records — a forged or replayed payload could otherwise pass signature checks with tampered amounts.",
+    "Log the raw webhook payload to a persistent store (DB table) immediately after signature verification and before any business logic runs — this gives you an audit trail even if downstream processing fails, and is the natural place to implement the idempotency check above.",
     "Implement idempotency using the transaction id field. Bictorys may deliver the same webhook event more than once; processing the same id twice must not double-fulfill an order.",
-    "Your webhook URL must be publicly reachable over HTTPS. Webhook configuration is separate for test vs. production environments in the Bictorys dashboard."
+    "Your webhook URL must be publicly reachable over HTTPS. Webhook configuration is separate for test vs. production environments in the Bictorys dashboard.",
+    "Bictorys recommends this webhook for apps with a backend server. For backend-less apps (e.g. static/mobile-only clients that can't expose a webhook endpoint), poll verify_transaction instead to check payment status.",
+    "The timestamp field is not strict ISO 8601 (space instead of 'T', no timezone, non-standard fractional-second precision — e.g. \"2026-08-08 18:45:44.10254\"). Don't rely on a strict ISO parser; use a lenient date library or normalize the string first."
   ]
 }
