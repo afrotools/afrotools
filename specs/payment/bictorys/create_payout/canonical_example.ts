@@ -5,8 +5,8 @@
  * @capability_type synchronous
  */
 
-const BICTORYS_SECRET_KEY = process.env.BICTORYS_SECRET_KEY;
-if (!BICTORYS_SECRET_KEY) throw new Error("Missing env: BICTORYS_SECRET_KEY");
+const BICTORYS_PRIVATE_KEY = process.env.BICTORYS_PRIVATE_KEY;
+if (!BICTORYS_PRIVATE_KEY) throw new Error("Missing env: BICTORYS_PRIVATE_KEY");
 
 interface CustomerObject {
   name?: string;
@@ -48,7 +48,7 @@ export async function createPayout(
   idempotencyKey?: string
 ): Promise<CreatePayoutResponse> {
   const headers: Record<string, string> = {
-    "X-API-Key": BICTORYS_SECRET_KEY!,
+    "X-API-Key": BICTORYS_PRIVATE_KEY!,
     "Content-Type": "application/json",
   };
   if (idempotencyKey) headers["idempotency-key"] = idempotencyKey;
@@ -80,7 +80,7 @@ const payout = await createPayout(
     country: "SN",
     customerObject: {
       name: "Fatou Sow",
-      phone: "221770000000",
+      phone: "+221771234567",
       country: "SN",
     },
     transactionType: "payment",

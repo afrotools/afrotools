@@ -10,7 +10,7 @@
     "location": "header",
     "field": "X-API-Key",
     "format": "{token}",
-    "env_var": "BICTORYS_SECRET_KEY"
+    "env_var": "BICTORYS_PRIVATE_KEY"
   },
   "endpoint": {
     "method": "GET",
@@ -129,11 +129,13 @@
     }
   },
   "gotchas": [
-    "Always call this endpoint server-side to verify the transaction before fulfilling any order. Never rely solely on redirect query parameters or webhook payloads — both can be forged.",
+    "Redirect query parameters are fully spoofable — never fulfill an order from them alone; call this endpoint server-side (or wait for the webhook) before trusting a redirect. A signature-verified webhook_payment_completed event, on the other hand, does not need this endpoint to be trusted — its HMAC/secret verification already proves authenticity, and gating fulfillment on a live call here risks losing an already-successful payment if this endpoint is briefly down (see the 500 gotcha below).",
+    "This endpoint requires the PRIVATE key (env BICTORYS_PRIVATE_KEY, same key as create_payout, header X-API-Key), not the public key used for create_charge. This contradicts Bictorys' own documentation, which claims the public key is required — confirmed against a real sandbox call returning 200 with the private key on 2026-08-08.",
     "Only status === \"succeeded\" means the payment is fully complete and funds are captured. \"authorized\" means funds are reserved but not yet captured. \"pending\" and \"processing\" mean the payment is still in progress.",
     "The transactionId to pass here is the id field from the webhook payload, or the transactionId / chargeId field from the create_charge response — they refer to the same transaction UUID.",
     "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com.",
-    "The /status endpoint returns a minimal response in sandbox: only {id, status} when the transaction is pending. Fields like pspName, amount, timestamp, and customer info are populated once the payment completes. In production, the full object is returned.",
-    "In the Bictorys sandbox, GET /pay/v1/transactions/{id}/status is known to return HTTP 500 intermittently. For sandbox testing, rely on webhook events instead of polling this endpoint."
+    "The /status endpoint is known to return a minimal response in sandbox — observed live: {\"id\": \"...\", \"status\": \"succeeded\"} with no other fields, even for a fully completed transaction. Don't assume pspName, amount, timestamp, or customer info will be present; treat everything beyond id/status as optional in sandbox. Production may return the full object.",
+    "In the Bictorys sandbox, GET /pay/v1/transactions/{id}/status is known to return HTTP 500 intermittently. For sandbox testing, rely on webhook events instead of polling this endpoint.",
+    "Bictorys recommends polling this endpoint for backend-less apps (e.g. static/mobile-only clients that can't expose a webhook endpoint). Apps with a backend server should treat webhook_payment_completed as the source of truth for fulfillment, and use this endpoint for the redirect-triggered UX check and for reconciliation (e.g. a periodic sweep of orders whose webhook never arrived) — not as a mandatory gate after every webhook."
   ]
 }

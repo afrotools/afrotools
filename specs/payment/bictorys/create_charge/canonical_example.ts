@@ -5,8 +5,8 @@
  * @capability_type synchronous
  */
 
-const BICTORYS_PUBLIC_KEY = process.env.BICTORYS_PUBLIC_KEY;
-if (!BICTORYS_PUBLIC_KEY) throw new Error("Missing env: BICTORYS_PUBLIC_KEY");
+const BICTORYS_API_KEY = process.env.BICTORYS_API_KEY;
+if (!BICTORYS_API_KEY) throw new Error("Missing env: BICTORYS_API_KEY");
 
 interface CustomerObject {
   name?: string;
@@ -71,7 +71,7 @@ export async function createCharge(
   const response = await fetch(url, {
     method: "POST",
     headers: {
-      "X-Api-Key": BICTORYS_PUBLIC_KEY!,
+      "X-Api-Key": BICTORYS_API_KEY!,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(input),
@@ -99,7 +99,8 @@ const result = await createCharge({
 });
 // result is CheckoutLinkObject (HTTP 202)
 // Store result.chargeId, then redirect customer to result.link
-// Verify server-side via verifyTransaction(result.chargeId) before fulfilling.
+// Nothing to verify yet — the customer hasn't paid. Fulfillment happens later,
+// driven by the signed webhook_payment_completed event (see that spec).
 
 ---
 
@@ -119,5 +120,6 @@ const result = await createCharge(
 );
 // result is ConfirmationLinkObject (HTTP 201)
 // Store result.transactionId, then redirect customer to result.redirectUrl
-// Verify server-side via verifyTransaction(result.transactionId) before fulfilling.
+// Nothing to verify yet — the customer hasn't paid. Fulfillment happens later,
+// driven by the signed webhook_payment_completed event (see that spec).
 */

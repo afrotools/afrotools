@@ -5,27 +5,30 @@
  * @capability_type synchronous
  */
 
-const BICTORYS_SECRET_KEY = process.env.BICTORYS_SECRET_KEY;
-if (!BICTORYS_SECRET_KEY) throw new Error("Missing env: BICTORYS_SECRET_KEY");
+const BICTORYS_PRIVATE_KEY = process.env.BICTORYS_PRIVATE_KEY;
+if (!BICTORYS_PRIVATE_KEY) throw new Error("Missing env: BICTORYS_PRIVATE_KEY");
 
 interface TransactionResponse {
+  // Only id and status are guaranteed. Bictorys sandbox is known to return just
+  // these two fields even for a fully completed ("succeeded") transaction —
+  // every other field below may be absent, not just when pending.
   id: string;
-  merchantId: string;
+  status: "succeeded" | "failed" | "cancelled" | "pending" | "processing" | "reversed" | "authorized";
+  merchantId?: string;
   customerId?: string;
-  type: "payment" | "transfer" | "refund" | "settlement";
-  pspName: "wave_money" | "orange_money" | "maxit" | "mtn_money" | "free_money" | "moov" | "mobicash" | "togocell" | "bictorys" | "card";
+  type?: "payment" | "transfer" | "refund" | "settlement";
+  pspName?: "wave_money" | "orange_money" | "maxit" | "mtn_money" | "free_money" | "moov" | "mobicash" | "togocell" | "bictorys" | "card";
   paymentMeans?: string;
   paymentChannel?: "Terminal" | "Online";
-  amount: number;
+  amount?: number;
   merchantFees?: number;
   customerFees?: number;
-  currency: string;
+  currency?: string;
   paymentReference?: string;
   merchantReference?: string;
   orderType?: "flat" | "order" | "invoice" | "paymentlink";
   orderId?: string;
-  status: "succeeded" | "failed" | "cancelled" | "pending" | "processing" | "reversed" | "authorized";
-  timestamp: string;
+  timestamp?: string;
   customerObject?: {
     name?: string;
     email?: string;
@@ -46,7 +49,7 @@ export async function verifyTransaction(transactionId: string): Promise<Transact
     {
       method: "GET",
       headers: {
-        "X-API-Key": BICTORYS_SECRET_KEY!,
+        "X-API-Key": BICTORYS_PRIVATE_KEY!,
       },
     }
   );
