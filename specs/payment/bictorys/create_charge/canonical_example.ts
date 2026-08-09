@@ -99,7 +99,8 @@ const result = await createCharge({
 });
 // result is CheckoutLinkObject (HTTP 202)
 // Store result.chargeId, then redirect customer to result.link
-// Verify server-side via verifyTransaction(result.chargeId) before fulfilling.
+// Nothing to verify yet — the customer hasn't paid. Fulfillment happens later,
+// driven by the signed webhook_payment_completed event (see that spec).
 
 ---
 
@@ -119,5 +120,6 @@ const result = await createCharge(
 );
 // result is ConfirmationLinkObject (HTTP 201)
 // Store result.transactionId, then redirect customer to result.redirectUrl
-// Verify server-side via verifyTransaction(result.transactionId) before fulfilling.
+// Nothing to verify yet — the customer hasn't paid. Fulfillment happens later,
+// driven by the signed webhook_payment_completed event (see that spec).
 */

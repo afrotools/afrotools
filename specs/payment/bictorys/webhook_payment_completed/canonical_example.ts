@@ -73,13 +73,25 @@ function getHeader(
  * Express-style handler for Bictorys payment webhook events.
  * Mount at the URL registered in your Bictorys dashboard under Developers → API Keys & Webhooks.
  *
+ * Implements Bictorys' full webhook checklist: raw-body signature verification,
+ * always-200 response, DB logging before processing (audit + idempotency), an
+ * anti-fraud amount/currency check, and idempotent handling of redelivered events.
+ *
  * IMPORTANT: Pass the raw request body string (before JSON.parse), not the parsed object.
  * Express: use express.raw({ type: 'application/json' }) before express.json() on this route.
  */
 export async function handleBictorysWebhook(
   headers: Record<string, string | string[] | undefined>,
   rawBody: string,
-  onPaymentSucceeded: (transactionId: string, paymentReference: string | undefined) => Promise<void>,
+  deps: {
+    // Logging + idempotency: persist the raw event before any business logic runs.
+    // Return true if this event id was already recorded (redelivery) so the caller can skip it.
+    logWebhookEvent: (eventId: string, payload: BictorysWebhookPayload) => Promise<boolean>;
+    // Anti-fraud: look up what YOU expect for this paymentReference (your own order/invoice).
+    getExpectedOrder: (paymentReference: string) => Promise<{ amount: number; currency: string } | null>;
+    // Called only after signature, idempotency, and anti-fraud checks all pass.
+    onPaymentSucceeded: (transactionId: string, paymentReference: string | undefined) => Promise<void>;
+  },
   sendResponse: (status: number) => void
 ): Promise<void> {
   const signature = getHeader(headers, "x-webhook-signature");
@@ -121,10 +133,26 @@ export async function handleBictorysWebhook(
 
   try {
     const body = JSON.parse(rawBody) as BictorysWebhookPayload;
-    if (body.status === "succeeded") {
-      // Never trust the webhook alone — verify server-side before fulfilling.
-      // Call verifyTransaction(body.id) from verify_transaction spec and check status === "succeeded".
-      await onPaymentSucceeded(body.id, body.paymentReference);
+
+    // Log to DB before any business logic — audit trail + idempotency in one step.
+    const alreadyProcessed = await deps.logWebhookEvent(body.id, body);
+    if (alreadyProcessed) return;
+
+    if (body.status === "succeeded" || body.status === "authorized") {
+      // Anti-fraud: the webhook's amount/currency must match your own order record.
+      if (body.paymentReference) {
+        const expected = await deps.getExpectedOrder(body.paymentReference);
+        if (!expected || expected.amount !== body.amount || expected.currency !== body.currency) {
+          return; // unknown order or amount/currency mismatch — do not fulfill
+        }
+      }
+
+      // Signature already verified above and amount/currency already matched against
+      // your own order record — that's sufficient to fulfill. Don't add a synchronous
+      // call to verify_transaction here: Bictorys' /status endpoint is known to be
+      // intermittently unavailable, and gating fulfillment on it risks losing an
+      // already-successful payment to a transient outage on their side, not yours.
+      await deps.onPaymentSucceeded(body.id, body.paymentReference);
     }
   } catch {
     // Log the error — do not rethrow. The 200 is already sent.
@@ -145,11 +173,22 @@ app.post(
     await handleBictorysWebhook(
       req.headers,
       req.body.toString(),  // Buffer → string
-      async (transactionId, paymentReference) => {
-        // Verify server-side before marking the order as paid:
-        // const tx = await verifyTransaction(transactionId);
-        // if (tx.status === "succeeded") { ... fulfill order ... }
-        await db.orders.update({ paymentReference }, { status: "verifying" });
+      {
+        logWebhookEvent: async (eventId, payload) => {
+          // INSERT ... ON CONFLICT (event_id) DO NOTHING, or check-then-insert in a transaction.
+          // Return true if a row for eventId already existed (redelivery).
+          const { inserted } = await db.webhookEvents.insertIfNew(eventId, payload);
+          return !inserted;
+        },
+        getExpectedOrder: async (paymentReference) => {
+          const order = await db.orders.findByReference(paymentReference);
+          return order ? { amount: order.amount, currency: order.currency } : null;
+        },
+        onPaymentSucceeded: async (transactionId, paymentReference) => {
+          // Signature + anti-fraud checks already passed — fulfill directly.
+          // No call to verifyTransaction here (see webhook gotchas for why).
+          await db.orders.update({ paymentReference }, { status: "paid" });
+        },
       },
       (status) => res.sendStatus(status)
     );
