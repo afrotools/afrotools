@@ -27,20 +27,17 @@ can't be found — same failure shape as test_live.py itself.
 """
 
 import argparse
+import importlib.util
 import json
 import sys
 from pathlib import Path
 
-SPECS_DIR = Path(__file__).parent.parent / "specs"
-
-
-def discover_provider_dir(slug):
-    for category in ("payment", "sms"):
-        d = SPECS_DIR / category / slug
-        if d.is_dir() and (d / "provider.json").exists():
-            return d
-    print(f"Provider '{slug}' not found under specs/ (no provider.json)", file=sys.stderr)
-    sys.exit(1)
+# Reuse test_live.py's own provider lookup instead of re-implementing it —
+# the two scripts must agree on which providers are discoverable, and a
+# second copy of this logic would silently drift from the original.
+_spec = importlib.util.spec_from_file_location("test_live", Path(__file__).parent / "test_live.py")
+test_live = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(test_live)
 
 
 def main():
@@ -48,7 +45,7 @@ def main():
     parser.add_argument("--provider", required=True, help="Provider slug (e.g. qosic)")
     args = parser.parse_args()
 
-    provider_dir = discover_provider_dir(args.provider)
+    provider_dir, _provider_json = test_live.discover_provider(args.provider)
 
     fixture_path = provider_dir / "live_test_fixtures.json"
     if not fixture_path.exists():

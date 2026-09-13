@@ -148,18 +148,25 @@ def http_call(method, url, auth_headers, body=None, extra_headers=None, content_
     try:
         with urllib.request.urlopen(req, context=_SSL_CTX) as r:
             return r.status, json.loads(r.read())
-    except ssl.SSLCertVerificationError:
-        print(f"{RED}TLS certificate verification failed for {url}.{RESET}")
-        print("This script verifies certificates and will not proceed on an untrusted chain.")
-        print(f"Fix: {BOLD}pip install certifi{RESET} (or, on macOS python.org builds,")
-        print("run the bundled 'Install Certificates.command').")
-        sys.exit(1)
+    # HTTPError is a subclass of URLError and must be caught first — urllib
+    # wraps every connection-level failure (including a TLS cert failure,
+    # itself an OSError subclass) into URLError before it reaches this code,
+    # so a bare `except ssl.SSLCertVerificationError` here never fires.
     except urllib.error.HTTPError as e:
         raw = e.read()
         try:
             return e.code, json.loads(raw)
         except Exception:
             return e.code, {"status": "failed", "error": {"message": raw.decode()}}
+    except urllib.error.URLError as e:
+        if isinstance(e.reason, ssl.SSLCertVerificationError):
+            print(f"{RED}TLS certificate verification failed for {url}.{RESET}")
+            print("This script verifies certificates and will not proceed on an untrusted chain.")
+            print(f"Fix: {BOLD}pip install certifi{RESET} (or, on macOS python.org builds,")
+            print("run the bundled 'Install Certificates.command').")
+        else:
+            print(f"{RED}Connection failed for {url}: {e.reason}{RESET}")
+        sys.exit(1)
 
 
 # ── Variable resolution ───────────────────────────────────────────────────────
