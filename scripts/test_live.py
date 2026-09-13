@@ -25,10 +25,15 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-# macOS Python.org builds don't bundle system certs.
-_SSL_CTX = ssl.create_default_context()
-_SSL_CTX.check_hostname = False
-_SSL_CTX.verify_mode = ssl.CERT_NONE
+# macOS Python.org builds don't bundle system certs. Prefer certifi's CA bundle
+# when available; otherwise fall back to the OS trust store. Never disable
+# verification — this script calls real payment APIs, some in production
+# with no sandbox, and a silently-unverified TLS connection is a live MITM risk.
+try:
+    import certifi
+    _SSL_CTX = ssl.create_default_context(cafile=certifi.where())
+except ImportError:
+    _SSL_CTX = ssl.create_default_context()
 
 SPECS_DIR = Path(__file__).parent.parent / "specs"
 
@@ -143,12 +148,25 @@ def http_call(method, url, auth_headers, body=None, extra_headers=None, content_
     try:
         with urllib.request.urlopen(req, context=_SSL_CTX) as r:
             return r.status, json.loads(r.read())
+    # HTTPError is a subclass of URLError and must be caught first — urllib
+    # wraps every connection-level failure (including a TLS cert failure,
+    # itself an OSError subclass) into URLError before it reaches this code,
+    # so a bare `except ssl.SSLCertVerificationError` here never fires.
     except urllib.error.HTTPError as e:
         raw = e.read()
         try:
             return e.code, json.loads(raw)
         except Exception:
             return e.code, {"status": "failed", "error": {"message": raw.decode()}}
+    except urllib.error.URLError as e:
+        if isinstance(e.reason, ssl.SSLCertVerificationError):
+            print(f"{RED}TLS certificate verification failed for {url}.{RESET}")
+            print("This script verifies certificates and will not proceed on an untrusted chain.")
+            print(f"Fix: {BOLD}pip install certifi{RESET} (or, on macOS python.org builds,")
+            print("run the bundled 'Install Certificates.command').")
+        else:
+            print(f"{RED}Connection failed for {url}: {e.reason}{RESET}")
+        sys.exit(1)
 
 
 # ── Variable resolution ───────────────────────────────────────────────────────
@@ -301,9 +319,17 @@ def load_capabilities(provider_dir):
 def run(provider_slug, only_capability=None, raw_capability=None):
     provider_dir, provider_json = discover_provider(provider_slug)
 
-    if not provider_json.get("sandbox", True):
-        print(f"{YELLOW}⚠️  {provider_json['name']} has no sandbox — "
-              f"requests hit production. Use minimal test amounts.{RESET}\n")
+    # Hard guard: this script only ever runs against a sandbox. A provider
+    # with no sandbox (or an unknown sandbox value) hits production —
+    # real transactions, real fraud-detection risk, no automated safety net.
+    # There is no override flag. Providers without a sandbox are verified
+    # through a working integration in afrotools/examples instead.
+    if provider_json.get("sandbox") is not True:
+        print(f"{RED}Refusing to run: {provider_json.get('name', provider_slug)} has no sandbox "
+              f"(provider.json sandbox={provider_json.get('sandbox')!r}).{RESET}")
+        print("This script never targets production. Verify this provider via a working")
+        print("integration in afrotools/examples instead.")
+        sys.exit(1)
 
     fixture_path = provider_dir / "live_test_fixtures.json"
     if not fixture_path.exists():
@@ -424,10 +450,15 @@ def run(provider_slug, only_capability=None, raw_capability=None):
     print()
     print(f"  Required keys absent from response (spec error or sandbox gap): {total_req_m}")
     print(f"  Extra keys in response not in spec (spec under-specified):       {total_extra}")
-    if total_req_m + total_extra == 0:
-        print(f"\n  {GREEN}{BOLD}All verified — live responses match specs ✓{RESET}")
+    if total_req_m == 0:
+        print(f"\n  {GREEN}{BOLD}All required fields present — live responses match the spec ✓{RESET}")
+        if total_extra:
+            print(f"  {YELLOW}({total_extra} extra key(s) in the response are undocumented in "
+                  f"schema.json — worth adding, not blocking){RESET}")
     else:
-        print(f"\n  {YELLOW}Review diffs above, update schema.json, then: npm run validate{RESET}")
+        print(f"\n  {RED}{BOLD}FAIL — {total_req_m} required field(s) missing from live responses.{RESET}")
+        print(f"  {YELLOW}Review diffs above, update schema.json, then: npm run validate{RESET}")
+        sys.exit(1)
 
 
 def main():
