@@ -4,13 +4,30 @@ name: Live test
 # credentials. Never run on push/PR: no automated trigger should be able to
 # spend rate limit, create sandbox transactions, or leak a secret via a
 # malicious PR from a fork.
+#
+# Credentials come from a GitHub Environment named after the provider slug
+# (Settings → Environments → New environment), never from workflow_dispatch
+# inputs — inputs are plain text, stored and visible in run history; on a
+# public repo that's equivalent to publishing the credential.
+#
+# Onboarding a new sandbox provider is a repo-settings action, not a YAML
+# edit:
+#   1. Settings → Environments → New environment, named exactly the
+#      provider's slug (e.g. "qosic")
+#   2. Add a secret called LIVE_TEST_CREDENTIAL with the real value
+#   3. If the provider's auth type is "basic", also add
+#      LIVE_TEST_CREDENTIAL_SECONDARY
+# scripts/ci_resolve_live_test_env.py reads live_test_fixtures.json +
+# schema.json to figure out which env var name test_live.py actually needs
+# (e.g. QOSIC_USERNAME) and exports the generic secret under that name —
+# so this file never needs a provider-specific line added to it.
 on:
   workflow_dispatch:
     inputs:
       provider:
-        description: "Provider slug (must have provider.json sandbox: true)"
+        description: "Provider slug — must have a matching GitHub Environment (see comments above)"
         required: true
-        type: string
+        type: environment
       capability:
         description: "Only test this capability (optional)"
         required: false
@@ -19,6 +36,10 @@ on:
 jobs:
   live-test:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.provider }}
+    env:
+      INPUT_PROVIDER: ${{ inputs.provider }}
+      INPUT_CAPABILITY: ${{ inputs.capability }}
     steps:
       - uses: actions/checkout@v6
 
@@ -28,33 +49,42 @@ jobs:
 
       - run: pip install certifi
 
-      - name: Run scripts/test_live.py
+      - name: Resolve which env var name(s) this provider needs
+        id: resolve
+        run: |
+          mapfile -t names < <(python3 scripts/ci_resolve_live_test_env.py --provider "$INPUT_PROVIDER")
+          if [ "${#names[@]}" -eq 0 ]; then
+            echo "::error::Could not resolve an env var name for provider '$INPUT_PROVIDER' — see the error above."
+            exit 1
+          fi
+          echo "primary=${names[0]}" >> "$GITHUB_OUTPUT"
+          if [ "${#names[@]}" -gt 1 ]; then
+            echo "secondary=${names[1]}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Export the environment's credential under that name
         env:
-          # Every sandbox-having provider's credential is present for every run,
-          # regardless of which --provider was requested — GitHub Actions can't
-          # dynamically select "just the secret this provider needs" at the
-          # workflow-YAML level (that mapping only exists at runtime, in
-          # schema.json). The script only ever reads the one env_var its
-          # target provider declares; the rest sit unused. Documented
-          # trade-off, not an oversight — tighten with a per-provider matrix
-          # if this repo ever wants stricter secret isolation.
-          #
-          # Add a line here (and a matching repo secret) whenever a new
-          # provider gets `"sandbox": true` and a live_test_fixtures.json.
-          BICTORYS_API_KEY: ${{ secrets.BICTORYS_API_KEY }}
-          BICTORYS_PRIVATE_KEY: ${{ secrets.BICTORYS_PRIVATE_KEY }}
-          DJOMY_CLIENT_ID: ${{ secrets.DJOMY_CLIENT_ID }}
-          FLUTTERWAVE_CLIENT_CREDENTIALS: ${{ secrets.FLUTTERWAVE_CLIENT_CREDENTIALS }}
-          KADEVPAY_PUBLIC_KEY: ${{ secrets.KADEVPAY_PUBLIC_KEY }}
-          KADEVPAY_SECRET_KEY: ${{ secrets.KADEVPAY_SECRET_KEY }}
-          NOTCHPAY_PRIVATE_KEY: ${{ secrets.NOTCHPAY_PRIVATE_KEY }}
-          QOSIC_USERNAME: ${{ secrets.QOSIC_USERNAME }}
-          AFRICASTALKING_API_KEY: ${{ secrets.AFRICASTALKING_API_KEY }}
-          # workflow_dispatch inputs, routed through env (never interpolated
-          # directly into `run:`) even though triggering this requires repo
-          # write access already.
-          INPUT_PROVIDER: ${{ inputs.provider }}
-          INPUT_CAPABILITY: ${{ inputs.capability }}
+          PRIMARY_NAME: ${{ steps.resolve.outputs.primary }}
+          SECONDARY_NAME: ${{ steps.resolve.outputs.secondary }}
+          PRIMARY_VALUE: ${{ secrets.LIVE_TEST_CREDENTIAL }}
+          SECONDARY_VALUE: ${{ secrets.LIVE_TEST_CREDENTIAL_SECONDARY }}
+        run: |
+          if [ -z "$PRIMARY_VALUE" ]; then
+            echo "::error::No LIVE_TEST_CREDENTIAL secret set on the '$INPUT_PROVIDER' Environment."
+            exit 1
+          fi
+          echo "::add-mask::$PRIMARY_VALUE"
+          echo "${PRIMARY_NAME}=${PRIMARY_VALUE}" >> "$GITHUB_ENV"
+          if [ -n "$SECONDARY_NAME" ]; then
+            if [ -z "$SECONDARY_VALUE" ]; then
+              echo "::error::This provider's auth needs a second credential — set LIVE_TEST_CREDENTIAL_SECONDARY on the '$INPUT_PROVIDER' Environment."
+              exit 1
+            fi
+            echo "::add-mask::$SECONDARY_VALUE"
+            echo "${SECONDARY_NAME}=${SECONDARY_VALUE}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Run scripts/test_live.py
         run: |
           if [ -n "$INPUT_CAPABILITY" ]; then
             python3 scripts/test_live.py --provider "$INPUT_PROVIDER" --capability "$INPUT_CAPABILITY"

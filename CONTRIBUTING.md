@@ -199,7 +199,11 @@ Output:
 - Commit `live_test_fixtures.json` alongside `provider.json` — it contains no credentials,
   only test shapes and sequencing logic. Other contributors benefit from it.
 - You can also trigger this from GitHub Actions (`Live test` workflow, manual dispatch) if
-  you'd rather not run it locally — see `.github/workflows/live-test.yml`.
+  you'd rather not run it locally. It only works for a provider that already has a GitHub
+  Environment set up with its credentials — that's a repo-settings action a maintainer does
+  once per provider (see the comment header in `.github/workflows/live-test.yml` for the exact
+  steps). If your provider doesn't have one yet, ask a maintainer to add it, or just run
+  `test:live` locally instead — you don't need to wait for it.
 
 If you skip live verification, add this gotcha to every spec whose response was not verified:
 
