@@ -79,6 +79,7 @@ afrotools/afrotools/
 - `plugin/skills/spec/SKILL.md` and `plugin/skills/list/SKILL.md` are manual-only (`disable-model-invocation: true`)
 - When adding a new category to `specs/`, add a corresponding `plugin/skills/{category}/SKILL.md`
 - Never embed API keys or credentials in plugin files
+- A skill's **workflow steps** must never hardcode a definitive/exhaustive list of "available" or "planned" providers — the registry changes independently of the skill file, and a stale list makes the agent wrongly refuse a provider that already has a spec (this happened: `payment`/`sms` said Bictorys/Africa's Talking had "no spec yet" long after they shipped). Always instruct the agent to call `list_providers`/`search_specs` to discover what exists. Provider names as illustrative examples in a skill's YAML `description` (for activation matching) are fine — the anti-pattern is a workflow step that gates behavior on a hardcoded enumeration.
 
 ## Spec status lifecycle
 

@@ -15,11 +15,10 @@ for the target provider and capability before writing any implementation code.
 ## Workflow
 
 1. Identify the provider slug and capability from the user's request.
-   - Provider slugs: `nimbasms`
-   - Capabilities: `send_message`, `send_verification`, `verify_code`, `get_balance`,
-     `get_message`, `list_messages`, `list_contacts`, `create_contact`, `list_groups`,
-     `list_sendernames`, `webhook_sms_status`
-   - If the requested provider has no spec yet:
+   - Discover what's actually available with `afrotools.search_specs({ category: "sms" })`
+     or `afrotools.list_providers()`. Never assume a provider has (or lacks) a spec from
+     memory or from a previous session — the registry grows independently of this skill.
+   - If the requested provider or capability isn't returned:
      1. Call `afrotools.request_spec({ provider: "<slug>", capability: "<capability>" })`
         so the maintainers are notified of the demand.
      2. Tell the user: "The spec for {provider} isn't available yet — I've logged
