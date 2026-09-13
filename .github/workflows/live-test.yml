@@ -1,0 +1,63 @@
+name: Live test
+
+# Manual only — this hits real provider APIs (sandbox environments) with real
+# credentials. Never run on push/PR: no automated trigger should be able to
+# spend rate limit, create sandbox transactions, or leak a secret via a
+# malicious PR from a fork.
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: "Provider slug (must have provider.json sandbox: true)"
+        required: true
+        type: string
+      capability:
+        description: "Only test this capability (optional)"
+        required: false
+        type: string
+
+jobs:
+  live-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install certifi
+
+      - name: Run scripts/test_live.py
+        env:
+          # Every sandbox-having provider's credential is present for every run,
+          # regardless of which --provider was requested — GitHub Actions can't
+          # dynamically select "just the secret this provider needs" at the
+          # workflow-YAML level (that mapping only exists at runtime, in
+          # schema.json). The script only ever reads the one env_var its
+          # target provider declares; the rest sit unused. Documented
+          # trade-off, not an oversight — tighten with a per-provider matrix
+          # if this repo ever wants stricter secret isolation.
+          #
+          # Add a line here (and a matching repo secret) whenever a new
+          # provider gets `"sandbox": true` and a live_test_fixtures.json.
+          BICTORYS_API_KEY: ${{ secrets.BICTORYS_API_KEY }}
+          BICTORYS_PRIVATE_KEY: ${{ secrets.BICTORYS_PRIVATE_KEY }}
+          DJOMY_CLIENT_ID: ${{ secrets.DJOMY_CLIENT_ID }}
+          FLUTTERWAVE_CLIENT_CREDENTIALS: ${{ secrets.FLUTTERWAVE_CLIENT_CREDENTIALS }}
+          KADEVPAY_PUBLIC_KEY: ${{ secrets.KADEVPAY_PUBLIC_KEY }}
+          KADEVPAY_SECRET_KEY: ${{ secrets.KADEVPAY_SECRET_KEY }}
+          NOTCHPAY_PRIVATE_KEY: ${{ secrets.NOTCHPAY_PRIVATE_KEY }}
+          QOSIC_USERNAME: ${{ secrets.QOSIC_USERNAME }}
+          AFRICASTALKING_API_KEY: ${{ secrets.AFRICASTALKING_API_KEY }}
+          # workflow_dispatch inputs, routed through env (never interpolated
+          # directly into `run:`) even though triggering this requires repo
+          # write access already.
+          INPUT_PROVIDER: ${{ inputs.provider }}
+          INPUT_CAPABILITY: ${{ inputs.capability }}
+        run: |
+          if [ -n "$INPUT_CAPABILITY" ]; then
+            python3 scripts/test_live.py --provider "$INPUT_PROVIDER" --capability "$INPUT_CAPABILITY"
+          else
+            python3 scripts/test_live.py --provider "$INPUT_PROVIDER"
+          fi

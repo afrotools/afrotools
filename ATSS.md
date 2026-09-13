@@ -231,8 +231,12 @@ A `ready` spec is visible in the MCP server.
 ### verified — criteria
 
 - [ ] All `ready` criteria met
-- [ ] Working example exists in `afrotools/examples`
+- [ ] **One of:**
+  - Working example exists in `afrotools/examples`, **or**
+  - The provider has a sandbox (`provider.json.sandbox: true`) and `npm run test:live -- --provider <slug>` passes (exit 0) against it — link the GitHub Actions run in the PR/commit as evidence
 - [ ] Maintainer has set status to `verified`
+
+`test:live` only ever targets a sandbox — it refuses to run against a provider with no sandbox (real production traffic, no automated safety net). Providers without a sandbox are verified through `afrotools/examples` only; see `CONTRIBUTING.md` § Live verification.
 
 A `verified` spec contributes to the provider's "AI Ready" badge.
 

@@ -15,7 +15,8 @@ Thank you for helping expand AI-ready coverage for African APIs.
 ## Prerequisites
 
 - Node.js 20+
-- Python 3.9+ (for live API verification)
+- Python 3.9+ (for live API verification) — `pip install certifi` if you hit a TLS
+  certificate error running `test:live` (common on macOS python.org builds)
 - `npm install` at the repo root
 
 ---
@@ -192,11 +193,13 @@ Output:
 - ⚠️  Field present in response, absent from spec → add it to `response_schema`
 
 **Tips:**
-- Use a sandbox key or minimal test amounts — never a production key with real funds.
-- If the provider has no sandbox (`"sandbox": false` in `provider.json`), the script prints a
-  warning before running. Proceed with care.
+- The script only ever targets a sandbox. If the provider has no sandbox
+  (`"sandbox": false` in `provider.json`), it **refuses to run** — there is no override.
+  Verify a no-sandbox provider through a working integration in `afrotools/examples` instead.
 - Commit `live_test_fixtures.json` alongside `provider.json` — it contains no credentials,
   only test shapes and sequencing logic. Other contributors benefit from it.
+- You can also trigger this from GitHub Actions (`Live test` workflow, manual dispatch) if
+  you'd rather not run it locally — see `.github/workflows/live-test.yml`.
 
 If you skip live verification, add this gotcha to every spec whose response was not verified:
 
@@ -208,6 +211,19 @@ If you skip live verification, add this gotcha to every spec whose response was 
 
 Set `"status": "draft"` while working, `"ready"` once validation passes and you are satisfied
 with the spec. Never set `"verified"` — that is reserved for maintainers.
+
+**How a `ready` spec becomes `verified` (this is not automatic — someone has to act):**
+
+- **Provider has a sandbox** (`provider.json.sandbox: true`) — write `live_test_fixtures.json`
+  (§ 7) and make sure `npm run test:live -- --provider {slug}` passes. Link the passing run
+  (local output or the GitHub Actions run URL) in your PR description. A maintainer reviews
+  and flips the status.
+- **Provider has no sandbox** — verification requires a working integration in
+  `afrotools/examples`. If you can't build one yourself, say so in the PR; it stays `ready`
+  (visible in the MCP, with an explicit "not yet verified" warning to agents) until someone does.
+
+If your PR adds a spec and neither path applies yet, that's fine — `ready` is a real, useful
+state. Don't block a spec's merge on getting it to `verified`.
 
 ### 9. Open a PR
 
