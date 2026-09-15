@@ -98,7 +98,7 @@
       },
       "status": {
         "type": "string",
-        "enum": ["succeeded", "failed", "cancelled", "pending", "processing", "reversed", "authorized"],
+        "enum": ["succeeded", "failed", "cancelled", "pending", "processing", "reversed", "authorized", "expired"],
         "description": "Transaction status. Only \"succeeded\" means the payment is complete and funds are captured."
       },
       "timestamp": {
@@ -130,11 +130,13 @@
   },
   "gotchas": [
     "Redirect query parameters are fully spoofable — never fulfill an order from them alone; call this endpoint server-side (or wait for the webhook) before trusting a redirect. A signature-verified webhook_payment_completed event, on the other hand, does not need this endpoint to be trusted — its HMAC/secret verification already proves authenticity, and gating fulfillment on a live call here risks losing an already-successful payment if this endpoint is briefly down (see the 500 gotcha below).",
-    "This endpoint requires the PRIVATE key (env BICTORYS_PRIVATE_KEY, same key as create_payout, header X-API-Key), not the public key used for create_charge. This contradicts Bictorys' own documentation, which claims the public key is required — confirmed against a real sandbox call returning 200 with the private key on 2026-08-08.",
+    "Use the PRIVATE key here (env BICTORYS_PRIVATE_KEY, same key as create_payout, header X-API-Key). Note that the sandbox currently accepts the PUBLIC key on this endpoint as well — measured 2026-09-14, both keys return 200 — so a sandbox-only test will not catch a wrong key. Do not rely on that permissiveness in production.",
     "Only status === \"succeeded\" means the payment is fully complete and funds are captured. \"authorized\" means funds are reserved but not yet captured. \"pending\" and \"processing\" mean the payment is still in progress.",
     "The transactionId to pass here is the id field from the webhook payload, or the transactionId / chargeId field from the create_charge response — they refer to the same transaction UUID.",
     "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com.",
-    "The /status endpoint is known to return a minimal response in sandbox — observed live: {\"id\": \"...\", \"status\": \"succeeded\"} with no other fields, even for a fully completed transaction. Don't assume pspName, amount, timestamp, or customer info will be present; treat everything beyond id/status as optional in sandbox. Production may return the full object.",
+    "On status 'succeeded', this endpoint returns NO amount and NO timestamp — observed live: {\"id\": \"…\", \"status\": \"succeeded\"} and nothing else. Reading status and amount from the same response therefore yields 0 for the amount ON THE SUCCESS PATH, which in a billing system means crediting nothing while everything reports success. Fall back to GET /pay/v1/transactions and match on paymentReference to obtain amount and timestamp.",
+    "A transaction left pending for more than TWO HOURS is automatically marked 'expired' (https://docs.bictorys.com/docs/status-responses-and-their-meanings). Handle 'expired' explicitly — a charge created in the evening is dead by morning.",
+    "The list endpoint GET /pay/v1/transactions (undocumented) only becomes non-empty once a transaction COMPLETES. It stays [] while a charge is merely pending, which makes reference-based lookup look untestable in sandbox until the first successful payment.",
     "In the Bictorys sandbox, GET /pay/v1/transactions/{id}/status is known to return HTTP 500 intermittently. For sandbox testing, rely on webhook events instead of polling this endpoint.",
     "Bictorys recommends polling this endpoint for backend-less apps (e.g. static/mobile-only clients that can't expose a webhook endpoint). Apps with a backend server should treat webhook_payment_completed as the source of truth for fulfillment, and use this endpoint for the redirect-triggered UX check and for reconciliation (e.g. a periodic sweep of orders whose webhook never arrived) — not as a mandatory gate after every webhook."
   ]
