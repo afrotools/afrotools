@@ -315,8 +315,8 @@ function validateEvidence(specPath, schema) {
   if (typeof evidence.source_reference !== "string" || !evidence.source_reference.trim()) {
     return fail(specPath, `evidence.source_reference must be a non-empty string`);
   }
-  if (Number.isNaN(Date.parse(evidence.extracted_at))) {
-    return fail(specPath, `evidence.extracted_at must be a valid ISO 8601 timestamp`);
+  if (typeof evidence.extracted_at !== "string" || new Date(evidence.extracted_at).toISOString() !== evidence.extracted_at) {
+    return fail(specPath, `evidence.extracted_at must be a valid ISO 8601 timestamp (e.g. "2026-09-15T10:00:00.000Z")`);
   }
   if (typeof evidence.snapshot_hash !== "string" || !evidence.snapshot_hash.trim()) {
     return fail(specPath, `evidence.snapshot_hash must be a non-empty string`);
@@ -326,6 +326,13 @@ function validateEvidence(specPath, schema) {
   }
   if (!evidence.spans.every((s) => typeof s === "string" && s.trim())) {
     return fail(specPath, `evidence.spans must contain only non-empty strings`);
+  }
+
+  // Check that no extra fields are present
+  const ALLOWED_EVIDENCE_FIELDS = new Set(REQUIRED_EVIDENCE_FIELDS);
+  const extraFields = Object.keys(evidence).filter((k) => !ALLOWED_EVIDENCE_FIELDS.has(k));
+  if (extraFields.length > 0) {
+    return fail(specPath, `evidence contains unexpected field(s): ${extraFields.join(", ")} — allowed fields are ${REQUIRED_EVIDENCE_FIELDS.join(", ")}`);
   }
 
   return true;

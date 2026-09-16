@@ -61,7 +61,7 @@ test("unverified status with well-formed evidence passes", () => {
     evidence: {
       source_url: "https://fixture.example/docs#create",
       source_reference: "Section 'Create a payment'",
-      extracted_at: "2026-09-15T10:00:00Z",
+      extracted_at: "2026-09-15T10:00:00.000Z",
       snapshot_hash: "a1b2c3",
       spans: ["POST /pay"],
     },
@@ -77,7 +77,7 @@ test("unverified status with empty evidence.spans fails validation", () => {
     evidence: {
       source_url: "https://fixture.example/docs#create",
       source_reference: "Section 'Create a payment'",
-      extracted_at: "2026-09-15T10:00:00Z",
+      extracted_at: "2026-09-15T10:00:00.000Z",
       snapshot_hash: "a1b2c3",
       spans: [],
     },
@@ -92,4 +92,39 @@ test("ready status is unaffected by the evidence rule", () => {
   writeFixtureSpec(dir, { status: "ready" });
   const { code } = runValidate(dir);
   assert.equal(code, 0);
+});
+
+test("unverified status with non-ISO-8601 extracted_at fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, {
+    status: "unverified",
+    evidence: {
+      source_url: "https://fixture.example/docs#create",
+      source_reference: "Section 'Create a payment'",
+      extracted_at: "09/15/2026",
+      snapshot_hash: "a1b2c3",
+      spans: ["POST /pay"],
+    },
+  });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /ISO 8601/i);
+});
+
+test("unverified status with extra evidence fields fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, {
+    status: "unverified",
+    evidence: {
+      source_url: "https://fixture.example/docs#create",
+      source_reference: "Section 'Create a payment'",
+      extracted_at: "2026-09-15T10:00:00.000Z",
+      snapshot_hash: "a1b2c3",
+      spans: ["POST /pay"],
+      confidence: 0.9,
+    },
+  });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /unexpected field/i);
 });
