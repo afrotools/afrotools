@@ -101,7 +101,7 @@ One `provider.json` per provider directory. Carries provider-level metadata migr
 | provider_api_version | string | YYYY-MM-DD if provider has no version string |
 | capability | string | snake_case — matches the directory name |
 | capability_type | enum | `synchronous`, `asynchronous`, `webhook`, or `sdk` |
-| status | enum | `draft`, `ready`, `verified`, `deprecated`, `archived` |
+| status | enum | `unverified`, `draft`, `ready`, `verified`, `deprecated`, `archived` |
 | currency | string[] | ISO 4217 codes |
 | sandbox | boolean | true if provider has a sandbox environment |
 | docs_url | string | Can be `""` — provider has no public docs URL |
@@ -115,6 +115,20 @@ One `provider.json` per provider directory. Carries provider-level metadata migr
 | gotchas | string[] | MANDATORY — minimum 1 entry, no exceptions |
 
 **Fields NOT in schema.json** (migrated to provider.json): `provider_slug`, `provider_name`, `category`, `country_code`.
+
+### `evidence` — required only when `status` is `"unverified"`
+
+```jsonc
+"evidence": {
+  "source_url": "https://provider.com/docs/create-payment",
+  "source_reference": "Section 'Create a payment'",
+  "extracted_at": "2026-09-15T10:00:00Z",
+  "snapshot_hash": "a1b2c3…",
+  "spans": ["POST /v1/payments", "Authorization: Bearer {api_key}"]
+}
+```
+
+Every entry in `spans[]` must appear literally (whitespace/case-normalized) in the source document at `source_url`. This is what lets a reviewer verify an `unverified` spec wasn't hallucinated without re-reading the provider's docs from scratch.
 
 ### capability_type definitions
 
@@ -214,8 +228,15 @@ const payment = await createPayment({
 ## Status lifecycle
 
 ```
-draft → ready → verified → deprecated → archived
+unverified → draft → ready → verified → deprecated → archived
 ```
+
+### unverified — criteria
+
+- [ ] `schema.json` passes `npm run validate` (structure + evidence block)
+- [ ] `evidence` block present with `source_url`, `source_reference`, `extracted_at`, `snapshot_hash`, and at least one grounded `spans[]` entry
+- [ ] Generated automatically by the discovery pipeline (`core/tools/discovery`) — contributors do not hand-write `unverified` specs
+- [ ] Not yet human-reviewed for correctness beyond the automated gates — a maintainer reviewing the PR promotes it to `draft` (needs more work) or `ready` (looks correct) by editing `status` and removing or keeping `evidence` as documentation
 
 ### ready — criteria
 

@@ -24,7 +24,11 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 
-const SPECS_ROOT = path.resolve(__dirname, "../specs");
+const SPECS_ROOT = (() => {
+  const cwdSpecs = path.resolve(process.cwd(), "specs");
+  if (fs.existsSync(cwdSpecs)) return cwdSpecs;
+  return path.resolve(__dirname, "../specs");
+})();
 
 const REQUIRED_FIELDS = [
   "spec_version",
@@ -43,7 +47,7 @@ const REQUIRED_FIELDS = [
 ];
 
 const VALID_CAPABILITY_TYPES = ["synchronous", "asynchronous", "webhook", "sdk"];
-const VALID_STATUSES = ["draft", "ready", "verified", "deprecated", "archived"];
+const VALID_STATUSES = ["unverified", "draft", "ready", "verified", "deprecated", "archived"];
 
 // ---------------------------------------------------------------------------
 // Cross-spec constants
@@ -286,6 +290,48 @@ function validateSchema(specPath) {
 }
 
 /**
+ * Check 2b: `evidence` is required and well-formed when status is "unverified".
+ * @param {string} specPath
+ * @param {any} schema
+ * @returns {boolean}
+ */
+function validateEvidence(specPath, schema) {
+  if (schema.status !== "unverified") return true;
+
+  const evidence = schema.evidence;
+  if (typeof evidence !== "object" || evidence === null || Array.isArray(evidence)) {
+    return fail(specPath, `schema.json status is "unverified" — "evidence" object is required`);
+  }
+
+  const REQUIRED_EVIDENCE_FIELDS = ["source_url", "source_reference", "extracted_at", "snapshot_hash", "spans"];
+  for (const field of REQUIRED_EVIDENCE_FIELDS) {
+    if (!(field in evidence)) {
+      return fail(specPath, `evidence missing required field: "${field}"`);
+    }
+  }
+  if (typeof evidence.source_url !== "string" || !evidence.source_url.trim()) {
+    return fail(specPath, `evidence.source_url must be a non-empty string`);
+  }
+  if (typeof evidence.source_reference !== "string" || !evidence.source_reference.trim()) {
+    return fail(specPath, `evidence.source_reference must be a non-empty string`);
+  }
+  if (Number.isNaN(Date.parse(evidence.extracted_at))) {
+    return fail(specPath, `evidence.extracted_at must be a valid ISO 8601 timestamp`);
+  }
+  if (typeof evidence.snapshot_hash !== "string" || !evidence.snapshot_hash.trim()) {
+    return fail(specPath, `evidence.snapshot_hash must be a non-empty string`);
+  }
+  if (!Array.isArray(evidence.spans) || evidence.spans.length === 0) {
+    return fail(specPath, `evidence.spans must be a non-empty array`);
+  }
+  if (!evidence.spans.every((s) => typeof s === "string" && s.trim())) {
+    return fail(specPath, `evidence.spans must contain only non-empty strings`);
+  }
+
+  return true;
+}
+
+/**
  * Check 3: canonical_example.ts must compile with tsc --noEmit.
  * @param {string} specPath
  * @returns {boolean}
@@ -299,8 +345,9 @@ function validateTypeScript(specPath) {
   }
 
   try {
+    const typeRoots = path.resolve(__dirname, "../node_modules/@types");
     execSync(
-      `"${tscBin}" --noEmit --ignoreConfig --strict --target ES2020 --module ESNext --moduleResolution bundler --lib ES2020,DOM --types node "${tsPath}"`,
+      `"${tscBin}" --noEmit --ignoreConfig --strict --target ES2020 --module ESNext --moduleResolution bundler --lib ES2020,DOM --typeRoots "${typeRoots}" --types node "${tsPath}"`,
       { stdio: "pipe" }
     );
   } catch (/** @type {any} */ err) {
@@ -709,6 +756,7 @@ for (const specPath of specs) {
   if (!isSecurityOnly) {
     if (!validateStructure(specPath))  { failures++; continue; }
     if (!validateSchema(specPath))     { failures++; continue; }
+    if (!validateEvidence(specPath, JSON.parse(fs.readFileSync(path.join(specPath, "schema.json"), "utf8")))) { failures++; continue; }
     if (!validateTypeScript(specPath)) { failures++; continue; }
 
     // Collect for cross-spec checks — only after all per-spec checks pass
