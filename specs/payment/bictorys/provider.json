@@ -2,7 +2,7 @@
   "slug": "bictorys",
   "name": "Bictorys",
   "category": "payment",
-  "country_code": ["SN", "CI", "GN", "ML", "TG", "BJ", "BF", "NE", "CM", "NG"],
+  "country_code": ["SN", "CI", "ML", "TG", "BJ", "BF"],
   "website": "https://bictorys.com",
   "docs_url": "https://docs.bictorys.com",
   "docs_public": true,

@@ -109,12 +109,12 @@ Usage example — direct mobile money (payment_type specified):
 const result = await createCharge(
   {
     amount: 100000,
-    currency: "GNF",
-    country: "GN",
+    currency: "XOF",
+    country: "CI",
     paymentReference: "order_456",
     successRedirectUrl: "https://myapp.com/payment/success",
     errorRedirectUrl: "https://myapp.com/payment/error",
-    customerObject: { name: "Aissatou Barry", phone: 224620000000, country: "GN" },
+    customerObject: { name: "Aissatou Konan", phone: 225070000000, country: "CI" },
   },
   "orange_money"
 );

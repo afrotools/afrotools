@@ -4,7 +4,7 @@
   "capability": "create_payout",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "currency": ["XOF"],
   "auth": {
     "type": "api_key",
     "location": "header",
@@ -27,7 +27,7 @@
       },
       "currency": {
         "type": "string",
-        "description": "ISO 4217 currency code. Example: \"XOF\", \"GNF\", \"NGN\"."
+        "description": "ISO 4217 currency code. Example: \"XOF\"."
       },
       "country": {
         "type": "string",
