@@ -4,7 +4,7 @@
   "capability": "create_charge",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "currency": ["XOF"],
   "auth": {
     "type": "api_key",
     "location": "header",
@@ -26,11 +26,11 @@
       },
       "currency": {
         "type": "string",
-        "description": "ISO 4217 currency code. Example: \"XOF\", \"XAF\", \"GNF\", \"NGN\"."
+        "description": "ISO 4217 currency code. Example: \"XOF\"."
       },
       "country": {
         "type": "string",
-        "description": "ISO 3166-1 alpha-2 country code. Strongly recommended. Example: \"SN\", \"CI\", \"GN\", \"CM\", \"NG\"."
+        "description": "ISO 3166-1 alpha-2 country code. Strongly recommended. Example: \"SN\", \"CI\", \"ML\", \"TG\", \"BJ\", \"BF\"."
       },
       "paymentReference": {
         "type": "string",
@@ -191,7 +191,7 @@
       },
       "details": {
         "type": "string",
-        "description": "Bictorys-specific error code and message. Examples: \"E400-6: Amount is missing\", \"E400-24: Selected Currency is not yet supported for this country\", \"E400-33: Wrong payment type or disabled\"."
+        "description": "Bictorys-specific error code and message. Examples: \"E400-6: Amount is missing\", \"E400-24: Selected Currency is not yet supported for this country\", \"E400-33: Wrong payment type or disabled\", \"E401-7: Card payment is not activated yet\"."
       }
     }
   },
@@ -203,6 +203,7 @@
     "successRedirectUrl and errorRedirectUrl must start with https:// — HTTP URLs are rejected with E400-0: redirectUrl must start with https://.",
     "Sandbox base URL is https://api.test.bictorys.com — the production base URL is https://api.bictorys.com. Sandbox and production use separate API keys obtained from the Bictorys dashboard.",
     "Card payments via the direct API (payment_type=card with a cardObject in the body) require PCI-DSS certification. Mobile money payments have no certification requirement.",
+    "Card payments return E401-7: Card payment is not activated yet in production until Bictorys manually activates card payments for your merchant account — reproduces both with an explicit payment_type=card and via the hosted-checkout flow (no payment_type, customer picks card from Bictorys' page). Sandbox does not reproduce this — test cards work there with no activation step, so this will not surface until you go live. Contact Bictorys support to enable card payments on your production account before launch; mobile money has no such gate.",
     "create_charge uses the PUBLIC API key (env BICTORYS_API_KEY, header X-Api-Key). verify_transaction and create_payout both use the PRIVATE key (env BICTORYS_PRIVATE_KEY, header X-API-Key) — despite Bictorys' documentation claiming verify_transaction needs the public key, a real sandbox call with the private key returns 200 successfully.",
     "Orange Money Côte d'Ivoire requires an OTP: the customer must dial #144*82# on their phone to generate a 6-8 digit code, then pass it as the 'otp' field in the request body. The OTP expires quickly — if the charge fails with an OTP error, ask the user to redial.",
     "The request body field is 'errorRedirectUrl' (lowercase e) — Bictorys' own documentation example shows 'ErrorRedirectUrl' (capital E), which appears to be a doc typo; lowercase is confirmed working end-to-end in production (charge creation + successful webhook).",

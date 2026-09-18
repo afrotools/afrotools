@@ -4,7 +4,7 @@
   "capability": "webhook_payment_completed",
   "capability_type": "webhook",
   "status": "ready",
-  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "currency": ["XOF"],
   "auth": {
     "type": "none",
     "env_var": "BICTORYS_WEBHOOK_SECRET"

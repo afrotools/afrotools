@@ -4,7 +4,7 @@
   "capability": "verify_transaction",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["XOF", "XAF", "GNF", "NGN"],
+  "currency": ["XOF"],
   "auth": {
     "type": "api_key",
     "location": "header",
