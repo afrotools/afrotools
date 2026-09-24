@@ -1,0 +1,12 @@
+{
+  "slug": "snippepythonsdk",
+  "name": "snippe-python-sdk",
+  "category": "payment",
+  "country_code": [],
+  "website": "https://www.snippe.sh",
+  "docs_url": "https://www.snippe.sh",
+  "docs_public": true,
+  "sandbox": false,
+  "description": "snippe-python-sdk — discovered automatically by the discovery pipeline from public documentation.",
+  "example_prompt": "Use snippe-python-sdk to process a payment for a customer."
+}
