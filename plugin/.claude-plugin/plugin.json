@@ -1,0 +1,29 @@
+{
+  "name": "afrotools",
+  "description": "Integrate African APIs with zero guesswork. Automatically fetches specs, surfaces gotchas, and scaffolds correct implementations for Paycard, LengoPay, NimbaSMS, and more.",
+  "version": "1.1.1",
+  "author": {
+    "name": "Afro.tools",
+    "url": "https://afro.tools"
+  },
+  "homepage": "https://afro.tools",
+  "repository": "https://github.com/afrotools/afrotools",
+  "license": "Apache-2.0",
+  "keywords": [
+    "africa",
+    "payment",
+    "sms",
+    "mobile-money",
+    "fintech",
+    "api",
+    "mcp",
+    "flutterwave",
+    "wave",
+    "africastalking",
+    "bictorys",
+    "checkout",
+    "otp",
+    "webhook",
+    "integration"
+  ]
+}

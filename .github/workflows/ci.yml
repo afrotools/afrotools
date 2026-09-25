@@ -107,22 +107,22 @@ jobs:
       - name: Require version bump when skills change
         run: |
           SKILLS_CHANGED=$(git diff --name-only origin/main...HEAD | grep '^plugin/skills/' || true)
-          VERSION_CHANGED=$(git diff --name-only origin/main...HEAD | grep '^plugin/plugin.json' || true)
+          VERSION_CHANGED=$(git diff --name-only origin/main...HEAD | grep '^plugin/.claude-plugin/plugin.json' || true)
 
           if [ -n "$SKILLS_CHANGED" ] && [ -z "$VERSION_CHANGED" ]; then
-            echo "❌  plugin/skills/ was modified but plugin/plugin.json was not updated."
+            echo "❌  plugin/skills/ was modified but plugin/.claude-plugin/plugin.json was not updated."
             echo ""
             echo "Changed skill files:"
             echo "$SKILLS_CHANGED"
             echo ""
-            echo "Bump the version in plugin/plugin.json before merging."
+            echo "Bump the version in plugin/.claude-plugin/plugin.json before merging."
             echo "Users with a cached install will not get the new skill until the version changes."
             exit 1
           fi
 
           if [ -n "$SKILLS_CHANGED" ]; then
-            VERSION=$(python3 -c "import json; print(json.load(open('plugin/plugin.json'))['version'])")
-            echo "✅  plugin/skills/ changed — plugin/plugin.json updated (version: $VERSION)"
+            VERSION=$(python3 -c "import json; print(json.load(open('plugin/.claude-plugin/plugin.json'))['version'])")
+            echo "✅  plugin/skills/ changed — plugin/.claude-plugin/plugin.json updated (version: $VERSION)"
           else
             echo "✅  No plugin/skills/ changes — no version bump required."
           fi
