@@ -5,50 +5,15 @@ body:
   - type: markdown
     attributes:
       value: |
-        Fill in the details below to propose a new ATSS spec.
-        See [ATSS.md](../ATSS.md) for field rules and the spec lifecycle.
+        Just the provider name and a link to its docs is enough to get started — the discovery
+        pipeline reads the real documentation to work out the rest (category, countries,
+        capabilities). See [ATSS.md](../ATSS.md) for field rules and the spec lifecycle.
 
   - type: input
     id: provider
     attributes:
       label: Provider name
       placeholder: e.g. Wave
-    validations:
-      required: true
-
-  - type: input
-    id: provider_slug
-    attributes:
-      label: Provider slug
-      description: Lowercase, no dashes, no spaces
-      placeholder: e.g. wave
-    validations:
-      required: true
-
-  - type: input
-    id: capability
-    attributes:
-      label: Capability
-      description: snake_case verb
-      placeholder: e.g. create_payment
-    validations:
-      required: true
-
-  - type: dropdown
-    id: category
-    attributes:
-      label: Category
-      options:
-        - payment
-        - sms
-    validations:
-      required: true
-
-  - type: input
-    id: country
-    attributes:
-      label: Country codes (ISO 3166-1 alpha-2)
-      placeholder: e.g. SN, CI, ML
     validations:
       required: true
 
@@ -64,9 +29,9 @@ body:
     id: gotchas
     attributes:
       label: Known gotchas
-      description: At least 1 specific, actionable entry based on real integration experience
+      description: Optional — anything from real integration experience the automated extraction can't find in the docs alone.
       placeholder: |
         - The payment URL expires after 30 minutes.
         - Always verify status server-side before fulfilling an order.
     validations:
-      required: true
+      required: false
