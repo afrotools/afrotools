@@ -81,6 +81,16 @@ const COUNTRY_CURRENCY_MAP = {
   DZ: "DZD",
   LR: "LRD",
   BJ: "XOF", TG: "XOF",
+  // Present in afrotools/core's own African-country allowlist (pre-filter.ts's
+  // AFRICAN_COUNTRY_NAMES) but missing here — a spec for one of these 6 countries would silently
+  // degrade checkCountryCurrencyCoherence's country->currency check to a console.warn (the
+  // "absent de COUNTRY_CURRENCY_MAP" branch) instead of a real coherence check.
+  BW: "BWP", NA: "NAD", MU: "MUR", SD: "SDG", SO: "SOS", BI: "BIF",
+  // Found live while verifying the fix above: sms/africastalking already lists LS and SZ in its
+  // country_code[] (and correctly includes LSL/SZL in every capability's currency[]) but neither
+  // was in this map — every africastalking spec logged 4 "absent de COUNTRY_CURRENCY_MAP"/
+  // "absente de CURRENCY_COUNTRIES_MAP" warnings per run for no reason other than this gap.
+  LS: "LSL", SZ: "SZL",
 };
 
 const VALID_ENDPOINT_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"]);
@@ -656,7 +666,7 @@ function runCrossSpecChecks(loadedSchemas) {
   const groupCount = loadedSchemas.size;
   console.log(`\nCross-spec consistency checks (${groupCount} provider(s))...\n`);
 
-  // Priority 1: provider-level consistency (majority-vote — no single spec is the oracle)
+  // Provider-level consistency (majority-vote — no single spec is the oracle)
   /** @param {string[]} arr @returns {string} */
   function mostCommon(arr) {
     /** @type {Record<string, number>} */ const counts = {};
@@ -717,16 +727,11 @@ function runCrossSpecChecks(loadedSchemas) {
     }
   }
 
-  // Priority 2: country/currency coherence per spec
-  // country_code is now read from provider.json; pass it alongside schema
-  for (const [, entries] of loadedSchemas) {
-    for (const { specPath, schema, providerManifest } of entries) {
-      // Build a merged view for checkCountryCurrencyCoherence which expects country_code on the object
-      if (!checkCountryCurrencyCoherence(specPath, { ...schema, country_code: providerManifest.country_code })) failures++;
-    }
-  }
+  // Country/currency coherence now runs unconditionally in the main per-spec loop below, in
+  // EVERY mode — see that loop's comment for why. Kept out of this function entirely rather than
+  // left as a second call site, to avoid ever running it twice in the same full run.
 
-  // Priority 3: enum values (warnings only — no failures)
+  // Enum values (warnings only — no failures)
   for (const [, entries] of loadedSchemas) {
     for (const { specPath, schema } of entries) {
       checkEnumValues(specPath, schema);
@@ -766,19 +771,34 @@ for (const specPath of specs) {
     if (!validateEvidence(specPath, JSON.parse(fs.readFileSync(path.join(specPath, "schema.json"), "utf8")))) { failures++; continue; }
     if (!validateTypeScript(specPath)) { failures++; continue; }
 
-    // Collect for cross-spec checks — only after all per-spec checks pass
-    if (!isChangedMode) {
-      try {
-        const schema = JSON.parse(fs.readFileSync(path.join(specPath, "schema.json"), "utf8"));
-        // Derive provider_slug from path: specs/{category}/{provider}/{capability}
-        const slug = path.basename(path.dirname(specPath));
-        // Load provider.json for cross-spec data (already validated above)
-        const providerDir = path.dirname(specPath);
-        const providerManifest = JSON.parse(fs.readFileSync(path.join(providerDir, "provider.json"), "utf-8"));
+    try {
+      const schema = JSON.parse(fs.readFileSync(path.join(specPath, "schema.json"), "utf8"));
+      // Derive provider_slug from path: specs/{category}/{provider}/{capability}
+      const slug = path.basename(path.dirname(specPath));
+      // Load provider.json (already validated above)
+      const providerDir = path.dirname(specPath);
+      const providerManifest = JSON.parse(fs.readFileSync(path.join(providerDir, "provider.json"), "utf-8"));
+
+      // Unlike the OTHER cross-spec checks below (majority-vote provider consistency, enum
+      // warnings), country/currency coherence has no cross-provider dependency at all — it only
+      // ever reads THIS spec's own schema.currency and its own provider.json's country_code.
+      // It used to run only as part of the full-run-only cross-spec pass (`--changed` mode
+      // explicitly skipped it, logged as "Cross-spec checks skippés"), which meant the exact
+      // kind of single-spec mistake this check exists to catch — a currency listed with no
+      // matching country, or vice versa — could pass CI on every PR (CI always runs in
+      // `--changed` mode) and only surface later, if anyone ever ran a full `npm run validate`
+      // locally. It now runs here, unconditionally, in every mode.
+      if (!checkCountryCurrencyCoherence(specPath, { ...schema, country_code: providerManifest.country_code })) {
+        failures++; continue;
+      }
+
+      // Collect for the REMAINING cross-spec checks — those genuinely need every sibling spec of
+      // a provider loaded at once (majority vote), so they still only run in a full run.
+      if (!isChangedMode) {
         if (!loadedSchemas.has(slug)) loadedSchemas.set(slug, []);
         loadedSchemas.get(slug).push({ specPath, schema, providerManifest });
-      } catch { /* parse errors already caught by validateSchema */ }
-    }
+      }
+    } catch { /* parse errors already caught by validateSchema */ }
   }
 
   if (!runSecurityScan(specPath)) { failures++; continue; }
@@ -786,12 +806,13 @@ for (const specPath of specs) {
   pass(rel);
 }
 
-// Cross-spec checks (full run only)
+// Multi-provider cross-spec checks (majority-vote consistency, enum warnings) — full run only.
+// Country/currency coherence already ran per-spec above in every mode, including --changed.
 if (isChangedMode || isSecurityOnly) {
   if (isChangedMode) {
-    console.log("\n  NOTE  Cross-spec checks skippés (mode --changed ; lancez npm run validate pour les checks complets)");
+    console.log("\n  NOTE  Checks multi-spec (cohérence inter-specs d'un même provider) skippés (mode --changed ; lancez npm run validate pour les checks complets)");
   } else {
-    console.log("\n  NOTE  Cross-spec checks skippés (mode --security-only)");
+    console.log("\n  NOTE  Checks multi-spec skippés (mode --security-only)");
   }
 } else {
   const crossResult = runCrossSpecChecks(loadedSchemas);
