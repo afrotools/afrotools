@@ -97,8 +97,103 @@
       }
     }
   },
-  "response_schema": {},
-  "error_schema": {},
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "merchant": {
+            "type": "string"
+          },
+          "created_by_member": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "checkout_url": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "customer_email": {
+            "type": "string"
+          },
+          "customer_name": {
+            "type": "string"
+          },
+          "customer_phone": {
+            "type": "string"
+          },
+          "return_url": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {}
+          },
+          "fee_charge_mode": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "expires_at": {},
+          "transaction": {},
+          "payment_link": {},
+          "paid_at": {},
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
   "gotchas": [
     "Idempotency-Key is not supported here: calling twice creates two separate sessions (nothing is charged until one is paid).",
     "fee_charge_mode is silently ignored unless the merchant account has ALLOW_CLIENT_OVERRIDE enabled.",

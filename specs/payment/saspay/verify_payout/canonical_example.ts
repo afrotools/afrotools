@@ -14,11 +14,45 @@ interface VerifyPayoutInput {
 }
 
 interface VerifyPayoutResponse {
-
+  success?: boolean;
+  data?: {
+  message?: string;
+  id?: string;
+  reference?: string;
+  merchant?: string;
+  customer?: string;
+  country?: string;
+  network?: string;
+  transaction_type?: string;
+  flow_direction?: string;
+  description?: string;
+  requested_amount?: string;
+  fee_charge_mode?: string;
+  client_fee?: string;
+  gateway_fee?: string;
+  platform_fee?: string;
+  pricing_rule?: unknown;
+  merchant_pricing_rule?: unknown;
+  debited_amount?: string;
+  net_amount?: string;
+  currency?: string;
+  status?: string;
+  current_gateway?: string;
+  external_reference?: string;
+  ip_address?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+  code?: number;
 }
 
 interface SaspayError {
-
+  success?: boolean;
+  error?: {
+  message?: string;
+  code?: string;
+};
+  code?: number;
 }
 
 export async function verifyPayout(

@@ -32,11 +32,41 @@ interface CreatePaymentLinkInput {
 }
 
 interface CreatePaymentLinkResponse {
-
+  success?: boolean;
+  data?: {
+  id?: string;
+  merchant?: string;
+  created_by_member?: string;
+  name?: string;
+  description?: string;
+  amount_type?: string;
+  amount?: string;
+  min_amount?: unknown;
+  currency?: string;
+  slug?: string;
+  is_active?: boolean;
+  expires_at?: unknown;
+  usage_limit?: number;
+  usage_count?: number;
+  require_phone?: boolean;
+  facebook_pixel_id?: string;
+  google_ads_id?: string;
+  custom_fields?: unknown[];
+  show_confirmation_page?: boolean;
+  redirect_url?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+  code?: number;
 }
 
 interface SaspayError {
-
+  success?: boolean;
+  error?: {
+  message?: string;
+  code?: string;
+};
+  code?: number;
 }
 
 export async function createPaymentLink(

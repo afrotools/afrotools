@@ -41,8 +41,53 @@
       }
     }
   },
-  "response_schema": {},
-  "error_schema": {},
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
   "gotchas": [
     "This is a second step, only for networks that require a customer-side confirmation after the initial push (e.g. Wizall Senegal, Coris Benin). On other networks it returns 400.",
     "A failed confirmation returns a deliberately generic 422 message: never expect the gateway's reason in it.",

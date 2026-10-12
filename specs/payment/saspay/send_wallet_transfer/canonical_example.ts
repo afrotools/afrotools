@@ -17,11 +17,39 @@ interface SendWalletTransferInput {
 }
 
 interface SendWalletTransferResponse {
-
+  success?: boolean;
+  data?: {
+  id?: string;
+  reference?: string;
+  merchant?: string;
+  requested_by_member?: unknown;
+  from_country?: string;
+  to_country?: string;
+  from_amount?: string;
+  from_currency?: string;
+  to_amount?: string;
+  to_currency?: string;
+  exchange_rate?: string;
+  fee_amount?: string;
+  fee_percent_applied?: string;
+  status?: string;
+  approved_by_admin?: unknown;
+  approved_at?: unknown;
+  completed_at?: unknown;
+  rejection_reason?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+  code?: number;
 }
 
 interface SaspayError {
-
+  success?: boolean;
+  error?: {
+  message?: string;
+  code?: string;
+};
+  code?: number;
 }
 
 export async function sendWalletTransfer(

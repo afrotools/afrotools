@@ -33,11 +33,21 @@ interface SendPayoutInput {
 }
 
 interface SendPayoutResponse {
-
+  success?: boolean;
+  data?: {
+  message?: string;
+  id?: string;
+};
+  code?: number;
 }
 
 interface SaspayError {
-
+  success?: boolean;
+  error?: {
+  message?: string;
+  code?: string;
+};
+  code?: number;
 }
 
 export async function sendPayout(

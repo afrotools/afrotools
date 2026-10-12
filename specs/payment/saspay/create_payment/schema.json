@@ -121,8 +121,56 @@
       }
     }
   },
-  "response_schema": {},
-  "error_schema": {},
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "checkout_url": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
   "gotchas": [
     "Always check checkout_url in the response: for Wave, Orange Money, Djamo and cards you must redirect the customer to it; only when it is empty was a request pushed to the customer's phone.",
     "Networks that need a pre-payment OTP (Orange Money Côte d'Ivoire and Burkina Faso: the customer dials a USSD code first) require the otp field, otherwise 422 prepayment_otp_missing. This is not the post-push SMS OTP, which goes through confirm_otp.",

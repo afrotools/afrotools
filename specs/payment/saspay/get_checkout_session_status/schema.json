@@ -30,8 +30,62 @@
   },
   "example_prompt": "",
   "input_schema": {},
-  "response_schema": {},
-  "error_schema": {},
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "transaction_id": {
+            "type": "string"
+          },
+          "transaction_status": {
+            "type": "string"
+          },
+          "transaction_reference": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
   "gotchas": [
     "Meant for polling when no webhook is configured: it re-checks the real gateway state on each call.",
     "Authenticated calls are limited to 300 requests per minute per account; beyond that the API returns 429, so space out polling."

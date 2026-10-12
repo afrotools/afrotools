@@ -120,8 +120,50 @@
       }
     }
   },
-  "response_schema": {},
-  "error_schema": {},
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
   "gotchas": [
     "With an API key, the calling server's IP must be whitelisted for the merchant, otherwise 403 ip_not_whitelisted.",
     "No automatic currency conversion on payouts (unlike payins): the currency must match the beneficiary's country, otherwise 422 currency_country_mismatch.",

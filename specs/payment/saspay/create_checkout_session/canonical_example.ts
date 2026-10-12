@@ -26,11 +26,43 @@ interface CreateCheckoutSessionInput {
 }
 
 interface CreateCheckoutSessionResponse {
+  success?: boolean;
+  data?: {
+  id?: string;
+  merchant?: string;
+  created_by_member?: string;
+  slug?: string;
+  checkout_url?: string;
+  amount?: string;
+  currency?: string;
+  description?: string;
+  country?: string;
+  customer_email?: string;
+  customer_name?: string;
+  customer_phone?: string;
+  return_url?: string;
+  metadata?: {
 
+};
+  fee_charge_mode?: string;
+  status?: string;
+  expires_at?: unknown;
+  transaction?: unknown;
+  payment_link?: unknown;
+  paid_at?: unknown;
+  created_at?: string;
+  updated_at?: string;
+};
+  code?: number;
 }
 
 interface SaspayError {
-
+  success?: boolean;
+  error?: {
+  message?: string;
+  code?: string;
+};
+  code?: number;
 }
 
 export async function createCheckoutSession(

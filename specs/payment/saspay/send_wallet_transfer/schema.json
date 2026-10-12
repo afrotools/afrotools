@@ -64,8 +64,96 @@
       }
     }
   },
-  "response_schema": {},
-  "error_schema": {},
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "merchant": {
+            "type": "string"
+          },
+          "requested_by_member": {},
+          "from_country": {
+            "type": "string"
+          },
+          "to_country": {
+            "type": "string"
+          },
+          "from_amount": {
+            "type": "string"
+          },
+          "from_currency": {
+            "type": "string"
+          },
+          "to_amount": {
+            "type": "string"
+          },
+          "to_currency": {
+            "type": "string"
+          },
+          "exchange_rate": {
+            "type": "string"
+          },
+          "fee_amount": {
+            "type": "string"
+          },
+          "fee_percent_applied": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "approved_by_admin": {},
+          "approved_at": {},
+          "completed_at": {},
+          "rejection_reason": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
   "gotchas": [
     "Only one PENDING transfer per merchant at a time: a new call while one awaits admin approval returns 422 transfer_already_pending.",
     "The transfer is COMPLETED immediately only if WALLET_TRANSFER_AUTO_APPROVE is enabled; otherwise it stays PENDING until an admin approves it, and the target wallet is not credited before then.",

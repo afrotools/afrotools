@@ -31,11 +31,23 @@ interface CreatePaymentInput {
 }
 
 interface CreatePaymentResponse {
-
+  success?: boolean;
+  data?: {
+  message?: string;
+  id?: string;
+  status?: string;
+  checkout_url?: string;
+};
+  code?: number;
 }
 
 interface SaspayError {
-
+  success?: boolean;
+  error?: {
+  message?: string;
+  code?: string;
+};
+  code?: number;
 }
 
 export async function createPayment(

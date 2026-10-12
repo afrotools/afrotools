@@ -14,11 +14,25 @@ interface GetCheckoutSessionStatusInput {
 }
 
 interface GetCheckoutSessionStatusResponse {
-
+  success?: boolean;
+  data?: {
+  id?: string;
+  slug?: string;
+  status?: string;
+  transaction_id?: string;
+  transaction_status?: string;
+  transaction_reference?: string;
+};
+  code?: number;
 }
 
 interface SaspayError {
-
+  success?: boolean;
+  error?: {
+  message?: string;
+  code?: string;
+};
+  code?: number;
 }
 
 export async function getCheckoutSessionStatus(

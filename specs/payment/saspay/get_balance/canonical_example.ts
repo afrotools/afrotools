@@ -14,12 +14,28 @@ interface GetBalanceInput {
 }
 
 interface GetBalanceResponse {
-
+  success?: boolean;
+  data?: {
+  id?: string;
+  merchant?: string;
+  country?: string;
+  currency?: string;
+  available_amount?: string;
+  pending_amount?: string;
+  is_frozen?: boolean;
+  created_at?: string;
+  updated_at?: string;
+};
+  code?: number;
 }
 
 interface SaspayError {
-  code?: number;
+  success?: boolean;
+  error?: {
   message?: string;
+  code?: string;
+};
+  code?: number;
 }
 
 export async function getBalance(

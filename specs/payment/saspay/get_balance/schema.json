@@ -30,15 +30,68 @@
   },
   "example_prompt": "",
   "input_schema": {},
-  "response_schema": {},
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "merchant": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "available_amount": {
+            "type": "string"
+          },
+          "pending_amount": {
+            "type": "string"
+          },
+          "is_frozen": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
   "error_schema": {
     "type": "object",
     "properties": {
-      "code": {
-        "type": "integer"
+      "success": {
+        "type": "boolean"
       },
-      "message": {
-        "type": "string"
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
       }
     }
   },

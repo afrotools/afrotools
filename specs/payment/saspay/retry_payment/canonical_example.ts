@@ -21,11 +21,22 @@ interface RetryPaymentInput {
 }
 
 interface RetryPaymentResponse {
-
+  success?: boolean;
+  data?: {
+  message?: string;
+  id?: string;
+  checkout_url?: string;
+};
+  code?: number;
 }
 
 interface SaspayError {
-
+  success?: boolean;
+  error?: {
+  message?: string;
+  code?: string;
+};
+  code?: number;
 }
 
 export async function retryPayment(

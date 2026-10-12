@@ -127,8 +127,107 @@
       }
     }
   },
-  "response_schema": {},
-  "error_schema": {},
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "merchant": {
+            "type": "string"
+          },
+          "created_by_member": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "amount_type": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "min_amount": {},
+          "currency": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "expires_at": {},
+          "usage_limit": {
+            "type": "number"
+          },
+          "usage_count": {
+            "type": "number"
+          },
+          "require_phone": {
+            "type": "boolean"
+          },
+          "facebook_pixel_id": {
+            "type": "string"
+          },
+          "google_ads_id": {
+            "type": "string"
+          },
+          "custom_fields": {
+            "type": "array",
+            "items": {}
+          },
+          "show_confirmation_page": {
+            "type": "boolean"
+          },
+          "redirect_url": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
   "gotchas": [
     "No server-side cross-validation: a FIXED link without amount is accepted, so always send amount with amount_type FIXED.",
     "redirect_url is required when show_confirmation_page is false, otherwise 400.",
