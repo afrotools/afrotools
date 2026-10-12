@@ -56,9 +56,11 @@ interface SaspayError {
 }
 
 export async function verifyPayment(
+  // Path parameters of /payments/{payment_id}/verify/
+  params: { payment_id: string },
   input: VerifyPaymentInput
 ): Promise<VerifyPaymentResponse> {
-  const response = await fetch("https://api.saspay.me/api/v1/payments/{payment_id}/verify/", {
+  const response = await fetch(`https://api.saspay.me/api/v1/payments/${encodeURIComponent(params.payment_id)}/verify/`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -68,7 +70,8 @@ export async function verifyPayment(
 
   if (!response.ok) {
     const error: SaspayError = await response.json();
-    const message = (error as { message?: string }).message ?? JSON.stringify(error);
+    // SasPay wraps errors: { success: false, error: { message, code }, code }.
+    const message = error.error?.message ?? JSON.stringify(error);
     throw new Error(`SasPay error ${response.status}: ${message}`);
   }
 
@@ -78,7 +81,7 @@ export async function verifyPayment(
 /*
 Usage example:
 
-const result = await verifyPayment({
+const result = await verifyPayment({ payment_id: "..." }, {
   // fill in fields matching VerifyPaymentInput
 } as VerifyPaymentInput);
 */

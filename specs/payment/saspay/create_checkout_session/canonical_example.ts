@@ -79,7 +79,8 @@ export async function createCheckoutSession(
 
   if (!response.ok) {
     const error: SaspayError = await response.json();
-    const message = (error as { message?: string }).message ?? JSON.stringify(error);
+    // SasPay wraps errors: { success: false, error: { message, code }, code }.
+    const message = error.error?.message ?? JSON.stringify(error);
     throw new Error(`SasPay error ${response.status}: ${message}`);
   }
 

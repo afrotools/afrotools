@@ -33,9 +33,11 @@ interface SaspayError {
 }
 
 export async function confirmOtp(
+  // Path parameters of /payments/{payment_id}/confirm-otp/
+  params: { payment_id: string },
   input: ConfirmOtpInput
 ): Promise<ConfirmOtpResponse> {
-  const response = await fetch("https://api.saspay.me/api/v1/payments/{payment_id}/confirm-otp/", {
+  const response = await fetch(`https://api.saspay.me/api/v1/payments/${encodeURIComponent(params.payment_id)}/confirm-otp/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -46,7 +48,8 @@ export async function confirmOtp(
 
   if (!response.ok) {
     const error: SaspayError = await response.json();
-    const message = (error as { message?: string }).message ?? JSON.stringify(error);
+    // SasPay wraps errors: { success: false, error: { message, code }, code }.
+    const message = error.error?.message ?? JSON.stringify(error);
     throw new Error(`SasPay error ${response.status}: ${message}`);
   }
 
@@ -56,7 +59,7 @@ export async function confirmOtp(
 /*
 Usage example:
 
-const result = await confirmOtp({
+const result = await confirmOtp({ payment_id: "..." }, {
   // fill in fields matching ConfirmOtpInput
 } as ConfirmOtpInput);
 */

@@ -22,7 +22,8 @@
     "type": "bearer",
     "format": "Bearer {token}",
     "header": "Authorization",
-    "location": "header"
+    "location": "header",
+    "env_var": "SASPAY_API_KEY"
   },
   "endpoint": {
     "url": "https://api.saspay.me/api/v1/merchant-balances/{id}/",

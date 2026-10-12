@@ -40,20 +40,26 @@ interface SaspayError {
 }
 
 export async function retryPayment(
-  input: RetryPaymentInput
+  // Path parameters of /payments/{payment_id}/retry/
+  params: { payment_id: string },
+  input: RetryPaymentInput,
+  // One key per payment intent, reused unchanged on every network retry of that intent.
+  idempotencyKey: string = crypto.randomUUID()
 ): Promise<RetryPaymentResponse> {
-  const response = await fetch("https://api.saspay.me/api/v1/payments/{payment_id}/retry/", {
+  const response = await fetch(`https://api.saspay.me/api/v1/payments/${encodeURIComponent(params.payment_id)}/retry/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${SASPAY_API_KEY}`,
+      "Idempotency-Key": idempotencyKey,
     },
     body: JSON.stringify(input),
   });
 
   if (!response.ok) {
     const error: SaspayError = await response.json();
-    const message = (error as { message?: string }).message ?? JSON.stringify(error);
+    // SasPay wraps errors: { success: false, error: { message, code }, code }.
+    const message = error.error?.message ?? JSON.stringify(error);
     throw new Error(`SasPay error ${response.status}: ${message}`);
   }
 
@@ -63,7 +69,7 @@ export async function retryPayment(
 /*
 Usage example:
 
-const result = await retryPayment({
+const result = await retryPayment({ payment_id: "..." }, {
   // fill in fields matching RetryPaymentInput
 } as RetryPaymentInput);
 */

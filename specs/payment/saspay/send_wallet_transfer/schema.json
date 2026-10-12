@@ -22,7 +22,8 @@
     "type": "bearer",
     "format": "Bearer {token}",
     "header": "Authorization",
-    "location": "header"
+    "location": "header",
+    "env_var": "SASPAY_API_KEY"
   },
   "endpoint": {
     "url": "https://api.saspay.me/api/v1/wallet-transfers/",
@@ -157,14 +158,15 @@
   "gotchas": [
     "Only one PENDING transfer per merchant at a time: a new call while one awaits admin approval returns 422 transfer_already_pending.",
     "The transfer is COMPLETED immediately only if WALLET_TRANSFER_AUTO_APPROVE is enabled; otherwise it stays PENDING until an admin approves it, and the target wallet is not credited before then.",
-    "Send an Idempotency-Key: without it a network retry reserves the amount a second time."
+    "Send an Idempotency-Key: without it a network retry reserves the amount a second time. Reusing a key with a different body, or while the first call is still running, returns 409."
   ],
   "evidence": {
     "spans": [
       "https://api.saspay.me/api/v1/wallet-transfers/",
       "Un seul transfert `PENDING` à la fois par marchand",
       "`PENDING` sinon (validation admin requise avant que le wallet cible ne soit crédité)",
-      "sans lui, un retry réseau réserve le montant une seconde fois"
+      "sans lui, un retry réseau réserve le montant une seconde fois",
+      "Même clé, 1<sup>er</sup> appel encore en cours"
     ],
     "source_url": "https://docs.saspay.me/api-reference/openapi.json",
     "extracted_at": "2026-10-12T11:06:35.701Z",

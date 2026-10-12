@@ -39,9 +39,11 @@ interface SaspayError {
 }
 
 export async function getBalance(
+  // Path parameters of /merchant-balances/{id}/
+  params: { id: string },
   input: GetBalanceInput
 ): Promise<GetBalanceResponse> {
-  const response = await fetch("https://api.saspay.me/api/v1/merchant-balances/{id}/", {
+  const response = await fetch(`https://api.saspay.me/api/v1/merchant-balances/${encodeURIComponent(params.id)}/`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -51,7 +53,8 @@ export async function getBalance(
 
   if (!response.ok) {
     const error: SaspayError = await response.json();
-    const message = (error as { message?: string }).message ?? JSON.stringify(error);
+    // SasPay wraps errors: { success: false, error: { message, code }, code }.
+    const message = error.error?.message ?? JSON.stringify(error);
     throw new Error(`SasPay error ${response.status}: ${message}`);
   }
 
@@ -61,7 +64,7 @@ export async function getBalance(
 /*
 Usage example:
 
-const result = await getBalance({
+const result = await getBalance({ id: "..." }, {
   // fill in fields matching GetBalanceInput
 } as GetBalanceInput);
 */

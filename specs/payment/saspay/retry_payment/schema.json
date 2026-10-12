@@ -22,7 +22,8 @@
     "type": "bearer",
     "format": "Bearer {token}",
     "header": "Authorization",
-    "location": "header"
+    "location": "header",
+    "env_var": "SASPAY_API_KEY"
   },
   "endpoint": {
     "url": "https://api.saspay.me/api/v1/payments/{payment_id}/retry/",
@@ -116,14 +117,15 @@
   "gotchas": [
     "Retrying reuses the same transaction and id; it never creates a new transaction.",
     "Only incoming payments can be retried: a payout returns 400, and a transaction already in a terminal state returns 409.",
-    "Send an Idempotency-Key: without it a network retry relaunches the payment a second time."
+    "Send an Idempotency-Key: without it a network retry relaunches the payment a second time. Reusing a key with a different body, or while the first call is still running, returns 409."
   ],
   "evidence": {
     "spans": [
       "https://api.saspay.me/api/v1/payments/{payment_id}/retry/",
       "ne crée jamais de nouvelle transaction, réutilise le même `id`.",
       "La transaction ciblée est un flux sortant (payout), non réessayable via cet endpoint",
-      "sans lui, un retry réseau relance une seconde fois le paiement."
+      "sans lui, un retry réseau relance une seconde fois le paiement.",
+      "Même clé, 1<sup>er</sup> appel encore en cours"
     ],
     "source_url": "https://docs.saspay.me/api-reference/openapi.json",
     "extracted_at": "2026-10-12T11:06:35.701Z",

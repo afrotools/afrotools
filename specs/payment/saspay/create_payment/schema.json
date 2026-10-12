@@ -22,7 +22,8 @@
     "type": "bearer",
     "format": "Bearer {token}",
     "header": "Authorization",
-    "location": "header"
+    "location": "header",
+    "env_var": "SASPAY_API_KEY"
   },
   "endpoint": {
     "url": "https://api.saspay.me/api/v1/payments/softpay/",
@@ -174,14 +175,23 @@
   "gotchas": [
     "Always check checkout_url in the response: for Wave, Orange Money, Djamo and cards you must redirect the customer to it; only when it is empty was a request pushed to the customer's phone.",
     "Networks that need a pre-payment OTP (Orange Money Côte d'Ivoire and Burkina Faso: the customer dials a USSD code first) require the otp field, otherwise 422 prepayment_otp_missing. This is not the post-push SMS OTP, which goes through confirm_otp.",
-    "Send an Idempotency-Key (one UUID per payment attempt, reused on retries): without it a network retry creates a second real payment."
+    "Send an Idempotency-Key (one UUID per payment attempt, reused on retries): without it a network retry creates a second real payment. Reusing a key with a different body, or while the first call is still running, returns 409.",
+    "Amounts are decimal strings (\"2500.00\"), never floats.",
+    "To know beforehand whether a network needs the pre-payment OTP (and show the right USSD instructions), read otp_required / otp_instructions from GET /pricing/my-rates/.",
+    "Valid network codes per country and the expected customer.phone format are listed on the docs' formats page (/api-reference/reference/formats).",
+    "A 400 validation error has another shape than business errors: error is a map of field names to messages ({\"field\": [\"message\"]}), not {message, code}."
   ],
   "evidence": {
     "spans": [
       "https://api.saspay.me/api/v1/payments/softpay/",
       "Testez toujours `checkout_url` avant de conclure au push.",
       "Sans lui sur un réseau qui l'exige : 422 prepayment_otp_missing.",
-      "sans lui, un retry réseau crée un second paiement réel."
+      "sans lui, un retry réseau crée un second paiement réel.",
+      "Montants : chaînes décimales (`\"2500.00\"`), jamais de flottants.",
+      "consultez `otp_required`/`otp_instructions` dans [`GET /pricing/my-rates/`](/api-reference/reference/my-rates)",
+      "pour la liste des codes `network` valides par pays et le format attendu de `customer.phone`",
+      "**Erreur de validation** (`{\"champ\": [\"message\"], \"autre_champ\": [\"message\"]}`)",
+      "Même clé, 1<sup>er</sup> appel encore en cours"
     ],
     "source_url": "https://docs.saspay.me/api-reference/openapi.json",
     "extracted_at": "2026-10-12T11:06:35.701Z",

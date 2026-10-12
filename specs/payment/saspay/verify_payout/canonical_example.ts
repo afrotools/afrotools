@@ -56,9 +56,11 @@ interface SaspayError {
 }
 
 export async function verifyPayout(
+  // Path parameters of /payouts/{payout_id}/verify/
+  params: { payout_id: string },
   input: VerifyPayoutInput
 ): Promise<VerifyPayoutResponse> {
-  const response = await fetch("https://api.saspay.me/api/v1/payouts/{payout_id}/verify/", {
+  const response = await fetch(`https://api.saspay.me/api/v1/payouts/${encodeURIComponent(params.payout_id)}/verify/`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -68,7 +70,8 @@ export async function verifyPayout(
 
   if (!response.ok) {
     const error: SaspayError = await response.json();
-    const message = (error as { message?: string }).message ?? JSON.stringify(error);
+    // SasPay wraps errors: { success: false, error: { message, code }, code }.
+    const message = error.error?.message ?? JSON.stringify(error);
     throw new Error(`SasPay error ${response.status}: ${message}`);
   }
 
@@ -78,7 +81,7 @@ export async function verifyPayout(
 /*
 Usage example:
 
-const result = await verifyPayout({
+const result = await verifyPayout({ payout_id: "..." }, {
   // fill in fields matching VerifyPayoutInput
 } as VerifyPayoutInput);
 */

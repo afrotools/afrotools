@@ -22,7 +22,8 @@
     "type": "bearer",
     "format": "Bearer {token}",
     "header": "Authorization",
-    "location": "header"
+    "location": "header",
+    "env_var": "SASPAY_API_KEY"
   },
   "endpoint": {
     "url": "https://api.saspay.me/api/v1/checkout-sessions/",
@@ -197,14 +198,18 @@
   "gotchas": [
     "Idempotency-Key is not supported here: calling twice creates two separate sessions (nothing is charged until one is paid).",
     "fee_charge_mode is silently ignored unless the merchant account has ALLOW_CLIENT_OVERRIDE enabled.",
-    "The API key needs the PAYIN or BOTH scope, otherwise the call returns 403."
+    "The API key needs the PAYIN or BOTH scope, otherwise the call returns 403.",
+    "return_url only brings the customer back after a successful payment: after a failed or cancelled one it is not used, the customer sees a Retry button and must close the tab, so don't depend on a redirect to your site for failures.",
+    "Amounts are decimal strings (\"5000.00\"), never floats."
   ],
   "evidence": {
     "spans": [
       "https://api.saspay.me/api/v1/checkout-sessions/",
       "Le header `Idempotency-Key` n'est pas pris en charge sur cet endpoint : un double appel crée deux sessions distinctes.",
       "sinon ignoré silencieusement",
-      "Scope de clé API insuffisant (PAYIN requis)"
+      "Scope de clé API insuffisant (PAYIN requis)",
+      "Sur un paiement échoué ou annulé, `return_url` n'est actuellement **pas** utilisée",
+      "Montants : chaînes décimales (`\"2500.00\"`), jamais de flottants."
     ],
     "source_url": "https://docs.saspay.me/api-reference/openapi.json",
     "extracted_at": "2026-10-12T11:06:35.701Z",

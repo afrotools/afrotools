@@ -1,0 +1,144 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "cancel_checkout_session",
+  "capability_type": "synchronous",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "CDF",
+    "XAF",
+    "GHS",
+    "GNF",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "TZS",
+    "UGX",
+    "ZMW"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header",
+    "env_var": "SASPAY_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.saspay.me/api/v1/checkout-sessions/{id}/cancel/"
+  },
+  "example_prompt": "Cancel the pending SasPay checkout session for order #1042 before the customer pays.",
+  "input_schema": {
+    "type": "object",
+    "properties": {}
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "merchant": {
+            "type": "string"
+          },
+          "created_by_member": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "checkout_url": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "customer_email": {
+            "type": "string"
+          },
+          "customer_name": {
+            "type": "string"
+          },
+          "customer_phone": {
+            "type": "string"
+          },
+          "return_url": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {}
+          },
+          "status": {
+            "type": "string"
+          },
+          "expires_at": {},
+          "transaction": {},
+          "payment_link": {},
+          "paid_at": {},
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "gotchas": [
+    "Only a PENDING session can be cancelled: a session already paid, expired or cancelled returns 409 not_pending."
+  ],
+  "evidence": {
+    "spans": [
+      "https://api.saspay.me/api/v1/checkout-sessions/{id}/cancel/",
+      "Une session déjà payée, expirée ou déjà annulée renvoie `409 not_pending`."
+    ],
+    "source_url": "https://docs.saspay.me/api-reference/openapi.json",
+    "extracted_at": "2026-10-12T16:21:58.477Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "source_reference": "Full OpenAPI document"
+  }
+}
