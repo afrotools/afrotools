@@ -6,8 +6,17 @@
   "status": "unverified",
   "currency": [
     "XOF",
+    "CDF",
     "XAF",
-    "TZS"
+    "GHS",
+    "GNF",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "TZS",
+    "UGX",
+    "ZMW"
   ],
   "auth": {
     "type": "bearer",
