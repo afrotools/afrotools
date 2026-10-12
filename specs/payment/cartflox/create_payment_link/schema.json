@@ -1,0 +1,143 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "create_payment_link",
+  "capability_type": "synchronous",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "GHS",
+    "NGN",
+    "GNF",
+    "SLE",
+    "GMD",
+    "MRU",
+    "XAF",
+    "CDF",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "BIF",
+    "ZMW",
+    "ETB",
+    "MAD",
+    "TND",
+    "DZD",
+    "EGP"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header"
+  },
+  "endpoint": {
+    "url": "https://cartflox.com/api/v1/payment-links",
+    "method": "POST"
+  },
+  "example_prompt": "Create a payment link for a customer.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "title",
+      "amount"
+    ],
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "Title shown to the customer."
+      },
+      "amount": {
+        "type": "number",
+        "description": "Fixed amount.",
+        "exclusiveMinimum": 0
+      },
+      "currency": {
+        "type": "string",
+        "default": "XOF"
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Accepted by the API but not stored on the link at the moment.",
+        "additionalProperties": true
+      },
+      "description": {
+        "type": "string",
+        "description": "Detail of the product or service."
+      }
+    },
+    "additionalProperties": true
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "success",
+      "id",
+      "url",
+      "slug",
+      "amount",
+      "currency"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Link identifier, to use with `/v1/payment-links/{id}/check`."
+      },
+      "url": {
+        "type": "string",
+        "format": "uri",
+        "description": "Hosted page to share."
+      },
+      "slug": {
+        "type": "string"
+      },
+      "amount": {
+        "type": "number"
+      },
+      "success": {
+        "type": "boolean",
+        "const": true
+      },
+      "currency": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "error"
+    ],
+    "properties": {
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
+      },
+      "error": {
+        "type": "string",
+        "description": "Human-readable message."
+      }
+    },
+    "description": "Error body. `code` is present on transfer endpoints.",
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "When creating a payment link, if using a test key, the API will return a `403` error with `test_mode` code because payment links only exist in production. Instead, create a test checkout session.",
+    "The `metadata` field is accepted by the API but currently not stored on the payment link. Avoid relying on it for storage.",
+    "Creating a payment link using the API results in an HTTP `200` status, not the typical `201` for resource creation."
+  ],
+  "evidence": {
+    "spans": [
+      "https://cartflox.com/api/v1/payment-links",
+      "responses.403: Test key: payment links live in production only (`code: test_mode`). Create a test checkout session instead.",
+      "requestBody.content.application/json.schema.properties.metadata: Accepted by the API but not stored on the link at the moment.",
+      "responses.200: Link created (the API answers `200`, not `201`)."
+    ],
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "extracted_at": "2026-10-12T16:15:57.115Z",
+    "snapshot_hash": "97a65520c2c663fb",
+    "source_reference": "Full OpenAPI document"
+  }
+}

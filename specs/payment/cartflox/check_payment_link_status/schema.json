@@ -1,0 +1,129 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "check_payment_link_status",
+  "capability_type": "synchronous",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "GHS",
+    "NGN",
+    "GNF",
+    "SLE",
+    "GMD",
+    "MRU",
+    "XAF",
+    "CDF",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "BIF",
+    "ZMW",
+    "ETB",
+    "MAD",
+    "TND",
+    "DZD",
+    "EGP"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header"
+  },
+  "endpoint": {
+    "url": "https://cartflox.com/api/v1/payment-links/{id}/check",
+    "method": "GET"
+  },
+  "example_prompt": "Check if a payment link has been paid.",
+  "input_schema": {},
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "success",
+      "paid",
+      "status"
+    ],
+    "properties": {
+      "paid": {
+        "type": "boolean"
+      },
+      "status": {
+        "enum": [
+          "SUCCESS",
+          "WAITING",
+          "PENDING",
+          "CANCELLED",
+          "REFUNDED"
+        ],
+        "type": "string",
+        "description": "`SUCCESS` when paid; otherwise `WAITING` (no attempt yet) or the status of the latest non-failed attempt (`PENDING`, `CANCELLED`, `REFUNDED`)."
+      },
+      "success": {
+        "type": "boolean",
+        "const": true
+      },
+      "transaction": {
+        "type": "object",
+        "required": [
+          "id",
+          "amount"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "customerName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "customerEmail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "Present when `paid` is `true`.",
+        "additionalProperties": true
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "error"
+    ],
+    "properties": {
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
+      },
+      "error": {
+        "type": "string",
+        "description": "Human-readable message."
+      }
+    },
+    "description": "Error body. `code` is present on transfer endpoints.",
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+  ],
+  "evidence": {
+    "spans": [
+      "https://cartflox.com/api/v1/payment-links/{id}/check"
+    ],
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "extracted_at": "2026-10-12T16:15:57.115Z",
+    "snapshot_hash": "97a65520c2c663fb",
+    "source_reference": "Full OpenAPI document"
+  }
+}
