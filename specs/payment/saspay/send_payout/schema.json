@@ -1,0 +1,128 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "send_payout",
+  "capability_type": "synchronous",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "XAF",
+    "TZS"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header"
+  },
+  "endpoint": {
+    "url": "https://api.saspay.me/api/v1/payouts/initialize/",
+    "method": "POST"
+  },
+  "example_prompt": "",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "amount",
+      "currency",
+      "country",
+      "customer",
+      "method",
+      "recipient"
+    ],
+    "properties": {
+      "amount": {
+        "type": "string",
+        "format": "decimal",
+        "example": "10000.00"
+      },
+      "method": {
+        "type": "string",
+        "example": "mtn_cm",
+        "description": "Code réseau du bénéficiaire"
+      },
+      "country": {
+        "type": "string",
+        "example": "CM",
+        "maxLength": 2,
+        "minLength": 2
+      },
+      "currency": {
+        "type": "string",
+        "example": "XAF",
+        "maxLength": 3,
+        "minLength": 3
+      },
+      "customer": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Format international, ex: +22997505050"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "first_name": {
+            "type": "string"
+          }
+        }
+      },
+      "merchant": {
+        "type": "string",
+        "format": "uuid",
+        "description": "UUID du marchand visé. Ignoré pour une clé API (toujours vous-même)."
+      },
+      "metadata": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "recipient": {
+        "type": "object",
+        "required": [
+          "msisdn"
+        ],
+        "properties": {
+          "msisdn": {
+            "type": "string",
+            "example": "677889900"
+          }
+        }
+      },
+      "description": {
+        "type": "string",
+        "example": "Remboursement commande #778"
+      },
+      "fee_charge_mode": {
+        "enum": [
+          "ADD_ON",
+          "DEDUCTED"
+        ],
+        "type": "string",
+        "nullable": true,
+        "description": "ADD_ON : les frais s'ajoutent au montant débité au client. DEDUCTED : les frais sont déduits du montant net reversé au marchand. Défaut : configuration du marchand."
+      },
+      "preferred_gateway": {
+        "type": "string"
+      }
+    }
+  },
+  "response_schema": {},
+  "error_schema": {},
+  "gotchas": [
+    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+  ],
+  "evidence": {
+    "spans": [
+      "https://api.saspay.me/api/v1/payouts/initialize/"
+    ],
+    "source_url": "https://docs.saspay.me/api-reference/openapi.json",
+    "extracted_at": "2026-10-12T11:06:35.701Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "source_reference": "Full OpenAPI document"
+  }
+}

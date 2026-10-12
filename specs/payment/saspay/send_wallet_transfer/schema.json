@@ -1,0 +1,72 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "send_wallet_transfer",
+  "capability_type": "synchronous",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "XAF",
+    "TZS"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header"
+  },
+  "endpoint": {
+    "url": "https://api.saspay.me/api/v1/wallet-transfers/",
+    "method": "POST"
+  },
+  "example_prompt": "",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "from_country",
+      "to_country",
+      "from_amount"
+    ],
+    "properties": {
+      "merchant": {
+        "type": "string",
+        "format": "uuid",
+        "description": "UUID du marchand visé. Ignoré pour une clé API (toujours vous-même)."
+      },
+      "to_country": {
+        "type": "string",
+        "example": "CM",
+        "maxLength": 2,
+        "minLength": 2,
+        "description": "Code ISO du wallet cible (crédité, après conversion si devise différente)."
+      },
+      "from_amount": {
+        "type": "string",
+        "format": "decimal",
+        "example": "50000.00",
+        "description": "Montant réservé sur le wallet source, dans sa devise."
+      },
+      "from_country": {
+        "type": "string",
+        "example": "BJ",
+        "maxLength": 2,
+        "minLength": 2,
+        "description": "Code ISO du wallet source (débité)."
+      }
+    }
+  },
+  "response_schema": {},
+  "error_schema": {},
+  "gotchas": [
+    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+  ],
+  "evidence": {
+    "spans": [
+      "https://api.saspay.me/api/v1/wallet-transfers/"
+    ],
+    "source_url": "https://docs.saspay.me/api-reference/openapi.json",
+    "extracted_at": "2026-10-12T11:06:35.701Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "source_reference": "Full OpenAPI document"
+  }
+}

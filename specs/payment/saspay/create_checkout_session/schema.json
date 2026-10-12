@@ -1,0 +1,105 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "create_checkout_session",
+  "capability_type": "synchronous",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "XAF",
+    "TZS"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header"
+  },
+  "endpoint": {
+    "url": "https://api.saspay.me/api/v1/checkout-sessions/",
+    "method": "POST"
+  },
+  "example_prompt": "",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "amount",
+      "currency",
+      "customer_email",
+      "customer_name"
+    ],
+    "properties": {
+      "amount": {
+        "type": "string",
+        "format": "decimal",
+        "example": "5000.00"
+      },
+      "country": {
+        "type": "string",
+        "example": "BJ",
+        "maxLength": 2,
+        "minLength": 2,
+        "description": "Code ISO2, optionnel — présélectionne le pays sur la page de paiement"
+      },
+      "currency": {
+        "type": "string",
+        "example": "XOF",
+        "maxLength": 3,
+        "minLength": 3
+      },
+      "metadata": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "return_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL vers laquelle rediriger le client une fois le paiement terminé"
+      },
+      "description": {
+        "type": "string",
+        "example": "Facture #1042"
+      },
+      "customer_name": {
+        "type": "string",
+        "example": "Awa Sossou"
+      },
+      "customer_email": {
+        "type": "string",
+        "format": "email",
+        "example": "client@example.com"
+      },
+      "customer_phone": {
+        "type": "string",
+        "example": ""
+      },
+      "fee_charge_mode": {
+        "enum": [
+          "ADD_ON",
+          "DEDUCTED"
+        ],
+        "type": "string",
+        "nullable": true,
+        "description": "ADD_ON : les frais s'ajoutent au montant débité au client. DEDUCTED : les frais sont déduits du montant net reversé au marchand. Défaut : configuration du marchand. Pris en compte SEULEMENT si l'option \"Autoriser le choix du mode de frais par l'API\" (ALLOW_CLIENT_OVERRIDE) est activée sur votre compte, sinon ignoré silencieusement — même garde que sur /payments/softpay/ et /payouts/initialize/."
+      }
+    }
+  },
+  "response_schema": {},
+  "error_schema": {},
+  "gotchas": [
+    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+  ],
+  "evidence": {
+    "spans": [
+      "https://api.saspay.me/api/v1/checkout-sessions/"
+    ],
+    "source_url": "https://docs.saspay.me/api-reference/openapi.json",
+    "extracted_at": "2026-10-12T11:06:35.701Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "source_reference": "Full OpenAPI document"
+  }
+}

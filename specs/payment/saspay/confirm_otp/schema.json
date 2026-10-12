@@ -1,0 +1,49 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "confirm_otp",
+  "capability_type": "synchronous",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "XAF",
+    "TZS"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header"
+  },
+  "endpoint": {
+    "url": "https://api.saspay.me/api/v1/payments/{payment_id}/confirm-otp/",
+    "method": "POST"
+  },
+  "example_prompt": "",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "otp"
+    ],
+    "properties": {
+      "otp": {
+        "type": "string",
+        "example": "482913"
+      }
+    }
+  },
+  "response_schema": {},
+  "error_schema": {},
+  "gotchas": [
+    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+  ],
+  "evidence": {
+    "spans": [
+      "https://api.saspay.me/api/v1/payments/{payment_id}/confirm-otp/"
+    ],
+    "source_url": "https://docs.saspay.me/api-reference/openapi.json",
+    "extracted_at": "2026-10-12T11:06:35.701Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "source_reference": "Full OpenAPI document"
+  }
+}

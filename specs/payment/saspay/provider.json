@@ -1,0 +1,16 @@
+{
+  "slug": "saspay",
+  "name": "SasPay",
+  "category": "payment",
+  "country_code": [
+    "ML",
+    "GA",
+    "TZ"
+  ],
+  "website": "",
+  "docs_url": "https://docs.saspay.me",
+  "docs_public": true,
+  "sandbox": false,
+  "description": "SasPay — discovered automatically by the discovery pipeline from public documentation.",
+  "example_prompt": "Use SasPay to process a payment for a customer."
+}

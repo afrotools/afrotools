@@ -1,0 +1,129 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "create_payment",
+  "capability_type": "synchronous",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "XAF",
+    "TZS"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header"
+  },
+  "endpoint": {
+    "url": "https://api.saspay.me/api/v1/payments/softpay/",
+    "method": "POST"
+  },
+  "example_prompt": "",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "amount",
+      "currency",
+      "country",
+      "customer",
+      "network"
+    ],
+    "properties": {
+      "otp": {
+        "type": "string",
+        "description": "OTP PRÉ-paiement, uniquement pour les réseaux qui l'exigent (Orange Money Côte d'Ivoire et Burkina Faso : le client compose un code USSD AVANT de payer, cf. GET /pricing/my-rates/). Sans lui sur un réseau qui l'exige : 422 prepayment_otp_missing. À ne pas confondre avec l'OTP reçu par SMS APRÈS le push (Coris Bénin, Wizall Sénégal), qui passe par /payments/{id}/confirm-otp/."
+      },
+      "amount": {
+        "type": "string",
+        "format": "decimal",
+        "example": "2500.00"
+      },
+      "country": {
+        "type": "string",
+        "example": "BJ",
+        "maxLength": 2,
+        "minLength": 2
+      },
+      "network": {
+        "type": "string",
+        "example": "mtn_bj",
+        "description": "Code réseau, cf. référentiel pays/réseaux"
+      },
+      "currency": {
+        "type": "string",
+        "example": "XOF",
+        "maxLength": 3,
+        "minLength": 3
+      },
+      "customer": {
+        "type": "object",
+        "required": [
+          "email",
+          "first_name",
+          "last_name",
+          "phone"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "client@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+22997505050"
+          },
+          "last_name": {
+            "type": "string",
+            "example": "Sossou"
+          },
+          "first_name": {
+            "type": "string",
+            "example": "Awa"
+          }
+        }
+      },
+      "merchant": {
+        "type": "string",
+        "format": "uuid",
+        "description": "UUID du marchand visé. Ignoré pour une clé API (toujours vous-même) ; pour un token dashboard gérant plusieurs marchands, résout la boutique visée si le header X-Merchant-Id n'est pas fourni."
+      },
+      "metadata": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": {
+        "type": "string",
+        "example": "Abonnement mensuel"
+      },
+      "fee_charge_mode": {
+        "enum": [
+          "ADD_ON",
+          "DEDUCTED"
+        ],
+        "type": "string",
+        "nullable": true,
+        "description": "ADD_ON : les frais s'ajoutent au montant débité au client. DEDUCTED : les frais sont déduits du montant net reversé au marchand. Défaut : configuration du marchand."
+      },
+      "preferred_gateway": {
+        "type": "string",
+        "description": "Code gateway à privilégier si plusieurs sont éligibles pour ce réseau"
+      }
+    }
+  },
+  "response_schema": {},
+  "error_schema": {},
+  "gotchas": [
+    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+  ],
+  "evidence": {
+    "spans": [
+      "https://api.saspay.me/api/v1/payments/softpay/"
+    ],
+    "source_url": "https://docs.saspay.me/api-reference/openapi.json",
+    "extracted_at": "2026-10-12T11:06:35.701Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "source_reference": "Full OpenAPI document"
+  }
+}

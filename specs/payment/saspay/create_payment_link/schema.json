@@ -1,0 +1,135 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "create_payment_link",
+  "capability_type": "synchronous",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "XAF",
+    "TZS"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header"
+  },
+  "endpoint": {
+    "url": "https://api.saspay.me/api/v1/payment-links/",
+    "method": "POST"
+  },
+  "example_prompt": "",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "name",
+      "currency"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "example": "Facture boutique",
+        "maxLength": 150
+      },
+      "amount": {
+        "type": "string",
+        "format": "decimal",
+        "example": "15000.00"
+      },
+      "currency": {
+        "type": "string",
+        "example": "XOF",
+        "maxLength": 3,
+        "minLength": 3
+      },
+      "is_active": {
+        "type": "boolean",
+        "default": true
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "min_amount": {
+        "type": "string",
+        "format": "decimal",
+        "description": "Pertinent si amount_type=FREE"
+      },
+      "amount_type": {
+        "enum": [
+          "FIXED",
+          "FREE"
+        ],
+        "type": "string",
+        "default": "FIXED",
+        "description": "FIXED : montant imposé (amount). FREE : le client choisit (min_amount optionnel comme plancher). Aucune validation croisée serveur — un lien FIXED sans amount est accepté."
+      },
+      "description": {
+        "type": "string",
+        "example": "Paiement en ligne",
+        "maxLength": 255
+      },
+      "usage_limit": {
+        "type": "integer",
+        "example": 100,
+        "minimum": 1
+      },
+      "redirect_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "Requis si show_confirmation_page=false (400 sinon)."
+      },
+      "custom_fields": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string",
+              "description": "Dérivée du label, jamais saisie directement."
+            },
+            "label": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            }
+          }
+        },
+        "description": "Champs additionnels demandés au client au moment du paiement — les VALEURS saisies atterrissent dans Transaction.metadata, jamais un nouveau modèle."
+      },
+      "google_ads_id": {
+        "type": "string",
+        "maxLength": 32
+      },
+      "require_phone": {
+        "type": "boolean",
+        "default": false,
+        "description": "Rend customer.phone obligatoire au checkout depuis ce lien — même pour card/crypto, qui ne le demandent pas par défaut."
+      },
+      "facebook_pixel_id": {
+        "type": "string",
+        "maxLength": 32
+      },
+      "show_confirmation_page": {
+        "type": "boolean",
+        "default": true
+      }
+    }
+  },
+  "response_schema": {},
+  "error_schema": {},
+  "gotchas": [
+    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+  ],
+  "evidence": {
+    "spans": [
+      "https://api.saspay.me/api/v1/payment-links/"
+    ],
+    "source_url": "https://docs.saspay.me/api-reference/openapi.json",
+    "extracted_at": "2026-10-12T11:06:35.701Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "source_reference": "Full OpenAPI document"
+  }
+}
