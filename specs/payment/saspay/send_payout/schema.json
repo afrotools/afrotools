@@ -123,11 +123,16 @@
   "response_schema": {},
   "error_schema": {},
   "gotchas": [
-    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+    "With an API key, the calling server's IP must be whitelisted for the merchant, otherwise 403 ip_not_whitelisted.",
+    "No automatic currency conversion on payouts (unlike payins): the currency must match the beneficiary's country, otherwise 422 currency_country_mismatch.",
+    "Send an Idempotency-Key: without it a network retry creates a second disbursement."
   ],
   "evidence": {
     "spans": [
-      "https://api.saspay.me/api/v1/payouts/initialize/"
+      "https://api.saspay.me/api/v1/payouts/initialize/",
+      "`ip_not_whitelisted` (aucune IP whitelistée pour ce marchand)",
+      "`currency_country_mismatch` (aucune conversion automatique côté payout, contrairement au payin)",
+      "sans lui, un retry réseau crée un second décaissement"
     ],
     "source_url": "https://docs.saspay.me/api-reference/openapi.json",
     "extracted_at": "2026-10-12T11:06:35.701Z",

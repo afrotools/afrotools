@@ -33,11 +33,14 @@
   "response_schema": {},
   "error_schema": {},
   "gotchas": [
-    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+    "Meant for polling when no webhook is configured: it re-checks the real gateway state on each call.",
+    "Authenticated calls are limited to 300 requests per minute per account; beyond that the API returns 429, so space out polling."
   ],
   "evidence": {
     "spans": [
-      "https://api.saspay.me/api/v1/checkout-sessions/{id}/status/"
+      "https://api.saspay.me/api/v1/checkout-sessions/{id}/status/",
+      "À utiliser en polling si vous n'avez pas encore de webhook configuré.",
+      "Les appels authentifiés (clé API ou dashboard) sont limités à **300 requêtes par minute** par compte par défaut."
     ],
     "source_url": "https://docs.saspay.me/api-reference/openapi.json",
     "extracted_at": "2026-10-12T11:06:35.701Z",

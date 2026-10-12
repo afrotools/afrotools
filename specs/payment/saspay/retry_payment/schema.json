@@ -69,11 +69,16 @@
   "response_schema": {},
   "error_schema": {},
   "gotchas": [
-    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+    "Retrying reuses the same transaction and id; it never creates a new transaction.",
+    "Only incoming payments can be retried: a payout returns 400, and a transaction already in a terminal state returns 409.",
+    "Send an Idempotency-Key: without it a network retry relaunches the payment a second time."
   ],
   "evidence": {
     "spans": [
-      "https://api.saspay.me/api/v1/payments/{payment_id}/retry/"
+      "https://api.saspay.me/api/v1/payments/{payment_id}/retry/",
+      "ne crée jamais de nouvelle transaction, réutilise le même `id`.",
+      "La transaction ciblée est un flux sortant (payout), non réessayable via cet endpoint",
+      "sans lui, un retry réseau relance une seconde fois le paiement."
     ],
     "source_url": "https://docs.saspay.me/api-reference/openapi.json",
     "extracted_at": "2026-10-12T11:06:35.701Z",

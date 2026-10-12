@@ -130,11 +130,16 @@
   "response_schema": {},
   "error_schema": {},
   "gotchas": [
-    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+    "No server-side cross-validation: a FIXED link without amount is accepted, so always send amount with amount_type FIXED.",
+    "redirect_url is required when show_confirmation_page is false, otherwise 400.",
+    "Idempotency-Key is not supported here: calling twice creates two separate links."
   ],
   "evidence": {
     "spans": [
-      "https://api.saspay.me/api/v1/payment-links/"
+      "https://api.saspay.me/api/v1/payment-links/",
+      "Aucune validation croisée serveur — un lien FIXED sans amount est accepté.",
+      "Requis si show_confirmation_page=false (400 sinon).",
+      "un double appel crée deux liens distincts."
     ],
     "source_url": "https://docs.saspay.me/api-reference/openapi.json",
     "extracted_at": "2026-10-12T11:06:35.701Z",

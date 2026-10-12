@@ -33,11 +33,12 @@
   "response_schema": {},
   "error_schema": {},
   "gotchas": [
-    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+    "A PENDING payout is re-checked against the gateway on each call, so the status can change between two calls."
   ],
   "evidence": {
     "spans": [
-      "https://api.saspay.me/api/v1/payouts/{payout_id}/verify/"
+      "https://api.saspay.me/api/v1/payouts/{payout_id}/verify/",
+      "Si le statut connu est `PENDING`, revérifie toujours l'état réel côté gateway avant de répondre."
     ],
     "source_url": "https://docs.saspay.me/api-reference/openapi.json",
     "extracted_at": "2026-10-12T11:06:35.701Z",

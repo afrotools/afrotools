@@ -100,11 +100,16 @@
   "response_schema": {},
   "error_schema": {},
   "gotchas": [
-    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+    "Idempotency-Key is not supported here: calling twice creates two separate sessions (nothing is charged until one is paid).",
+    "fee_charge_mode is silently ignored unless the merchant account has ALLOW_CLIENT_OVERRIDE enabled.",
+    "The API key needs the PAYIN or BOTH scope, otherwise the call returns 403."
   ],
   "evidence": {
     "spans": [
-      "https://api.saspay.me/api/v1/checkout-sessions/"
+      "https://api.saspay.me/api/v1/checkout-sessions/",
+      "Le header `Idempotency-Key` n'est pas pris en charge sur cet endpoint : un double appel crée deux sessions distinctes.",
+      "sinon ignoré silencieusement",
+      "Scope de clé API insuffisant (PAYIN requis)"
     ],
     "source_url": "https://docs.saspay.me/api-reference/openapi.json",
     "extracted_at": "2026-10-12T11:06:35.701Z",

@@ -43,11 +43,12 @@
     }
   },
   "gotchas": [
-    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+    "Balances are per country wallet: two countries with the same currency (e.g. Benin and Senegal, both XOF) still have separate balances."
   ],
   "evidence": {
     "spans": [
-      "https://api.saspay.me/api/v1/merchant-balances/{id}/"
+      "https://api.saspay.me/api/v1/merchant-balances/{id}/",
+      "un solde distinct, même devise"
     ],
     "source_url": "https://docs.saspay.me/api-reference/openapi.json",
     "extracted_at": "2026-10-12T11:06:35.701Z",

@@ -44,11 +44,16 @@
   "response_schema": {},
   "error_schema": {},
   "gotchas": [
-    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+    "This is a second step, only for networks that require a customer-side confirmation after the initial push (e.g. Wizall Senegal, Coris Benin). On other networks it returns 400.",
+    "A failed confirmation returns a deliberately generic 422 message: never expect the gateway's reason in it.",
+    "409 means the transaction cannot be confirmed in its current state (not_pending, no_gateway, no_attempt): check it with verify_payment instead of retrying the OTP."
   ],
   "evidence": {
     "spans": [
-      "https://api.saspay.me/api/v1/payments/{payment_id}/confirm-otp/"
+      "https://api.saspay.me/api/v1/payments/{payment_id}/confirm-otp/",
+      "Deuxième étape pour les réseaux qui exigent une confirmation côté client après le push initial",
+      "message volontairement générique, ne fuite jamais le détail gateway",
+      "Codes possibles : `not_pending`, `no_gateway`, `no_attempt`."
     ],
     "source_url": "https://docs.saspay.me/api-reference/openapi.json",
     "extracted_at": "2026-10-12T11:06:35.701Z",
