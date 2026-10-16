@@ -91,6 +91,9 @@ const COUNTRY_CURRENCY_MAP = {
   // was in this map — every africastalking spec logged 4 "absent de COUNTRY_CURRENCY_MAP"/
   // "absente de CURRENCY_COUNTRIES_MAP" warnings per run for no reason other than this gap.
   LS: "LSL", SZ: "SZL",
+  // Guinea-Bissau (WAEMU, so XOF) and Mauritania: on Cartflox's coverage page; every spec listing
+  // them logged "absent de COUNTRY_CURRENCY_MAP" / "absente de CURRENCY_COUNTRIES_MAP".
+  GW: "XOF", MR: "MRU",
 };
 
 const VALID_ENDPOINT_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"]);
