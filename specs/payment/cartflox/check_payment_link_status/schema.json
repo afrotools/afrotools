@@ -117,13 +117,14 @@
   },
   "gotchas": [
     "Use the link's id returned at creation for the check endpoint, not its public slug.",
-    "The transaction object is only present when paid is true; before that, the status may be WAITING, PENDING, CANCELLED or REFUNDED, so do not read transaction data while unpaid."
+    "The transaction object is only present once paid is true; until a payment succeeds the response is { paid: false, status: \"WAITING\" } or the last attempt's status, so do not read transaction data before that."
   ],
   "evidence": {
     "spans": [
       "https://cartflox.com/api/v1/payment-links/{id}/check",
       "Identifier of the payment link (`id` returned at creation, not the slug).",
-      "Present when `paid` is `true`."
+      "Present when `paid` is `true`.",
+      "Tant qu'aucun paiement n'a abouti, la réponse est `{ \"success\": true, \"paid\": false, \"status\": \"WAITING\" }` (ou le statut de la dernière tentative)."
     ],
     "source_url": "https://cartflox.com/docs/openapi.json",
     "extracted_at": "2026-10-16T21:48:59.995Z",

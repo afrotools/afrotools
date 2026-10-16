@@ -1,7 +1,7 @@
 {
   "spec_version": "1.0",
   "provider_api_version": "2026-10-16",
-  "capability": "payment_failed_webhook",
+  "capability": "webhook_payment_failed",
   "capability_type": "webhook",
   "status": "unverified",
   "currency": [
@@ -155,7 +155,7 @@
   "error_schema": {},
   "gotchas": [
     "A payment.failed event does not end the session, because the customer can retry on the same session, so do not permanently cancel the order on this event alone.",
-    "Verify the v1 HMAC-SHA256 signature over the timestamp and raw body with your secret key before acting on the failed payment.",
+    "The X-Afriflow-Signature header carries t=<timestamp>,v1=<hex>, where v1 is the HMAC-SHA256 of the string <timestamp>.<raw body> keyed with your secret key (test key for a test event); X-Afriflow-Timestamp carries the Unix timestamp. Verify it, in constant time, before acting on the event.",
     "Retries reuse the same delivery identifier, so use it to deduplicate repeated payment.failed deliveries.",
     "Verify webhook signatures with the secret key of the same mode as the event, since a test event is signed with the test secret key."
   ],
@@ -163,7 +163,7 @@
     "spans": [
       "{your_webhook_url}",
       "The customer can retry on the same session.",
-      "`t=<timestamp>,v1=<HMAC-SHA256 hex of \"<timestamp>.<raw body>\" with your secret key>`.",
+      "`X-Afriflow-Signature: t=<ts>,v1=<hex>` where `v1` is the HMAC-SHA256, with your secret",
       "Identifier of the delivery, identical from one attempt to the next. Use it to deduplicate.",
       "Verify webhook signatures with the secret key of the same mode."
     ],

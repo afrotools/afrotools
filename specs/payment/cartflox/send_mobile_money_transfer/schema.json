@@ -274,7 +274,7 @@
     "additionalProperties": true
   },
   "gotchas": [
-    "Transfers require the secret key: a public key is refused with a 401 (code unauthorized), so the widget's public key cannot send money.",
+    "Transfers require the secret key: a public key is refused with 401 unauthorized, so the widget's public key cannot send money.",
     "Send an Idempotency-Key header (or idempotency_key field) on every transfer: a replayed call returns the existing transfer with HTTP 200 instead of sending the money a second time.",
     "A transfer response is usually still processing, not succeeded, so after the call you must follow the status with GET /v1/transfers/{id} or the transfer webhooks rather than assuming the money arrived."
   ],
@@ -282,6 +282,7 @@
     "spans": [
       "https://cartflox.com/api/v1/transfers",
       "Requires the **secret** key: the public key is refused.",
+      "| 401 | `unauthorized` | Clé absente, invalide, ou clé publique |",
       "Send an `Idempotency-Key` header (or the `idempotency_key` field): a replayed call",
       "The status right after the call is most often `processing`."
     ],

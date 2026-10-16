@@ -210,7 +210,7 @@
   },
   "gotchas": [
     "Retrying a session creation with the same Idempotency-Key returns the existing session with HTTP 200 and an Idempotent-Replayed: true header instead of creating a second session, so send one unique key per order and treat the 200 replay as the same session.",
-    "The amount must be a whole positive integer for XOF and other currencies without minor units (5000 means 5,000 XOF, not 50.00); a missing or non-positive amount is rejected with 400.",
+    "The amount is a whole positive number for XOF and other currencies without minor units: 5000 means 5,000 XOF, not 50.00.",
     "A session created with a test key, or in a workspace not yet switched live, is a test transaction even if the key is live; check the livemode field of the response before treating the payment as real."
   ],
   "evidence": {

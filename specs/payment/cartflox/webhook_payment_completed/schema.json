@@ -1,7 +1,7 @@
 {
   "spec_version": "1.0",
   "provider_api_version": "2026-10-16",
-  "capability": "payment_completed_webhook",
+  "capability": "webhook_payment_completed",
   "capability_type": "webhook",
   "status": "unverified",
   "currency": [
@@ -154,7 +154,7 @@
   "response_schema": {},
   "error_schema": {},
   "gotchas": [
-    "The signature header carries a timestamp and a v1 HMAC-SHA256 hex value computed over the timestamp, a dot, and the raw body with your secret key; verify that value before acting on the event.",
+    "The X-Afriflow-Signature header carries t=<timestamp>,v1=<hex>, where v1 is the HMAC-SHA256 of the string <timestamp>.<raw body> keyed with your secret key (test key for a test event); X-Afriflow-Timestamp carries the Unix timestamp. Verify it, in constant time, before acting on the event.",
     "Verify the signature over the raw request body exactly as received; re-serializing the parsed JSON will change the bytes and make verification fail.",
     "Reject events whose timestamp is more than 5 minutes old, which protects against replayed requests.",
     "The same event can be delivered more than once, so make fulfilment idempotent keyed on data.id and data.status, or on the delivery identifier.",
@@ -163,7 +163,7 @@
   "evidence": {
     "spans": [
       "{your_webhook_url}",
-      "`t=<timestamp>,v1=<HMAC-SHA256 hex of \"<timestamp>.<raw body>\" with your secret key>`.",
+      "`X-Afriflow-Signature: t=<ts>,v1=<hex>` where `v1` is the HMAC-SHA256, with your secret",
       "Get the **raw** request body, exactly as received (not the JSON parsed and then re-serialized).",
       "Reject if the timestamp is more than 5 minutes old (replay protection).",
       "Handle it idempotently, keyed on `data.id` and `data.status`.",

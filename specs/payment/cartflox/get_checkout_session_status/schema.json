@@ -214,7 +214,7 @@
     "additionalProperties": true
   },
   "gotchas": [
-    "Do not treat the status endpoint as proof on its own when the customer returns: the redirect to success_url can happen before the operator confirms, so only a SUCCESS status (or the webhook) is authoritative.",
+    "The redirect to success_url can happen before the operator confirms: only this endpoint's status (or the webhook) is authoritative, so check it server-side before delivering.",
     "Polling is throttled: while the session is PENDING, Cartflox re-checks the aggregator at most once every 8 seconds per session, so polling more often does not give fresher payment information.",
     "FAILED is not a final state: the customer can retry on the same session, so a FAILED status should not cancel the order by itself."
   ],

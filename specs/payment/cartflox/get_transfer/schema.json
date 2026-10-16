@@ -1,0 +1,220 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-16",
+  "capability": "get_transfer",
+  "capability_type": "synchronous",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "GHS",
+    "NGN",
+    "GNF",
+    "SLE",
+    "GMD",
+    "MRU",
+    "XAF",
+    "CDF",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "BIF",
+    "ZMW",
+    "ETB",
+    "MAD",
+    "TND",
+    "DZD",
+    "EGP"
+  ],
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "header": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "CARTFLOX_API_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://cartflox.com/api/v1/transfers/{id}"
+  },
+  "example_prompt": "Check whether the Cartflox transfer salaire-2026-09-awa has reached the recipient.",
+  "input_schema": {},
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "id",
+      "reference",
+      "status",
+      "amount",
+      "currency",
+      "fee",
+      "country",
+      "operator",
+      "phone",
+      "livemode",
+      "created"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Cartflox identifier."
+      },
+      "reference": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Cartflox reference, sent to the provider. Also accepted by `GET /v1/transfers/{id}`."
+      },
+      "status": {
+        "type": "string",
+        "description": "`pending`: created, not handed to the provider yet. `processing`: handed to the provider, the operator is processing it (the most frequent state right after the call).\n`succeeded`: the money reached the recipient, `completed` carries the date. `failed`: refused by the operator or the provider, `failure` says why, nothing was debited.\n",
+        "enum": [
+          "pending",
+          "processing",
+          "succeeded",
+          "failed"
+        ]
+      },
+      "amount": {
+        "type": "number"
+      },
+      "currency": {
+        "type": "string"
+      },
+      "fee": {
+        "type": "number",
+        "description": "Cartflox fee. `0` with your own gateway keys."
+      },
+      "country": {
+        "type": "string"
+      },
+      "operator": {
+        "type": "string",
+        "description": "Cartflox operator code (`orange_money`...)."
+      },
+      "provider_operator": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Operator code as the provider names it (`ORANGE_CIV`)."
+      },
+      "phone": {
+        "type": "string",
+        "description": "Digits only, country code included (`2250712345678`)."
+      },
+      "recipient_name": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "description": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "provider": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Gateway that carries the transfer (`PawaPay`...)."
+      },
+      "provider_reference": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Reference at the provider, when it differs from `reference`."
+      },
+      "failure": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "message": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": true
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "description": "Set when `status` is `failed`."
+      },
+      "idempotency_key": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "livemode": {
+        "type": "boolean",
+        "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "completed": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time"
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "description": "Error body. `code` is present on transfer endpoints.",
+    "required": [
+      "error"
+    ],
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Human-readable message."
+      },
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
+      }
+    },
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "The id can be the Cartflox transfer id or your own reference.",
+    "Only succeeded and failed are final: pending means not yet handed to the provider, processing means the operator is still handling it, which is the usual state right after creation.",
+    "On failed, failure.code and failure.message say why, and nothing was debited."
+  ],
+  "evidence": {
+    "spans": [
+      "https://cartflox.com/api/v1/transfers/{id}",
+      "By Cartflox identifier (`id`) or by `reference`.",
+      "| `processing` | Confié au fournisseur, l'opérateur traite l'envoi. C'est le cas le plus fréquent juste après l'appel. |",
+      "`failure.code` et `failure.message` disent pourquoi. Rien n'a été débité."
+    ],
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "extracted_at": "2026-10-16T22:11:01.746Z",
+    "snapshot_hash": "97a65520c2c663fb",
+    "source_reference": "Full OpenAPI document"
+  }
+}

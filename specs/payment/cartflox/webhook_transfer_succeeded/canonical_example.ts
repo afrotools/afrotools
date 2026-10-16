@@ -1,6 +1,6 @@
 /**
  * @provider Cartflox
- * @capability payment_completed_webhook
+ * @capability webhook_transfer_succeeded
  * @atss 1.0
  * @capability_type webhook
  */
@@ -9,19 +9,26 @@
 const CARTFLOX_WEBHOOK_SECRET = process.env.CARTFLOX_WEBHOOK_SECRET;
 if (!CARTFLOX_WEBHOOK_SECRET) throw new Error("Missing env: CARTFLOX_WEBHOOK_SECRET");
 
-interface PaymentCompletedWebhookPayload {
+interface WebhookTransferSucceededPayload {
   data: {
   id: string;
+  fee: number;
+  phone: string;
   amount: number;
   status: string;
+  country: string;
+  created: string;
+  failure?: unknown;
   currency: string;
-  metadata?: unknown;
-  order_id: string;
+  livemode: boolean;
+  operator: string;
   provider?: unknown;
-  completed_at?: unknown;
-  customer_name?: unknown;
-  customer_email?: unknown;
-  customer_phone?: unknown;
+  completed?: unknown;
+  reference: string;
+  description?: unknown;
+  recipient_name?: unknown;
+  idempotency_key?: unknown;
+  provider_operator?: unknown;
   provider_reference?: unknown;
 };
   event: string;
@@ -34,6 +41,6 @@ interface PaymentCompletedWebhookPayload {
  * Verify the signature first, with CARTFLOX_WEBHOOK_SECRET, exactly as this capability's gotchas describe:
  * the scheme is provider-specific, so it is not guessed here.
  */
-export function parsePaymentCompletedWebhook(rawBody: string): PaymentCompletedWebhookPayload {
-  return JSON.parse(rawBody) as PaymentCompletedWebhookPayload;
+export function parseWebhookTransferSucceeded(rawBody: string): WebhookTransferSucceededPayload {
+  return JSON.parse(rawBody) as WebhookTransferSucceededPayload;
 }

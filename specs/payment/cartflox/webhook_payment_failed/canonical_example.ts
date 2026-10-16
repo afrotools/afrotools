@@ -1,6 +1,6 @@
 /**
  * @provider Cartflox
- * @capability transfer_failed_webhook
+ * @capability webhook_payment_failed
  * @atss 1.0
  * @capability_type webhook
  */
@@ -9,26 +9,19 @@
 const CARTFLOX_WEBHOOK_SECRET = process.env.CARTFLOX_WEBHOOK_SECRET;
 if (!CARTFLOX_WEBHOOK_SECRET) throw new Error("Missing env: CARTFLOX_WEBHOOK_SECRET");
 
-interface TransferFailedWebhookPayload {
+interface WebhookPaymentFailedPayload {
   data: {
   id: string;
-  fee: number;
-  phone: string;
   amount: number;
   status: string;
-  country: string;
-  created: string;
-  failure?: unknown;
   currency: string;
-  livemode: boolean;
-  operator: string;
+  metadata?: unknown;
+  order_id: string;
   provider?: unknown;
-  completed?: unknown;
-  reference: string;
-  description?: unknown;
-  recipient_name?: unknown;
-  idempotency_key?: unknown;
-  provider_operator?: unknown;
+  completed_at?: unknown;
+  customer_name?: unknown;
+  customer_email?: unknown;
+  customer_phone?: unknown;
   provider_reference?: unknown;
 };
   event: string;
@@ -41,6 +34,6 @@ interface TransferFailedWebhookPayload {
  * Verify the signature first, with CARTFLOX_WEBHOOK_SECRET, exactly as this capability's gotchas describe:
  * the scheme is provider-specific, so it is not guessed here.
  */
-export function parseTransferFailedWebhook(rawBody: string): TransferFailedWebhookPayload {
-  return JSON.parse(rawBody) as TransferFailedWebhookPayload;
+export function parseWebhookPaymentFailed(rawBody: string): WebhookPaymentFailedPayload {
+  return JSON.parse(rawBody) as WebhookPaymentFailedPayload;
 }

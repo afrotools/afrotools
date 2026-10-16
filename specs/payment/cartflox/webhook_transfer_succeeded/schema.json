@@ -1,7 +1,7 @@
 {
   "spec_version": "1.0",
   "provider_api_version": "2026-10-16",
-  "capability": "transfer_failed_webhook",
+  "capability": "webhook_transfer_succeeded",
   "capability_type": "webhook",
   "status": "unverified",
   "currency": [
@@ -34,7 +34,7 @@
     "url": "{your_webhook_url}",
     "method": "POST"
   },
-  "example_prompt": "Notify me when an outgoing transfer is refused.",
+  "example_prompt": "Notify me when an outgoing transfer successfully reaches the recipient.",
   "input_schema": {
     "type": "object",
     "required": [
@@ -208,14 +208,17 @@
   "response_schema": {},
   "error_schema": {},
   "gotchas": [
-    "On transfer.failed, the reason is in data.failure, and the money was not debited, so you can safely retry or refund the recipient without a double-debit risk.",
-    "Verify the signature over the timestamp and raw body with your secret key before acting on the failure event."
+    "data is the full transfer object, so the completion date is already in data.completed and no API call is needed to read it.",
+    "Verify the signature over the timestamp and raw body with your secret key before crediting or marking the transfer as delivered.",
+    "Deliveries are retried with the same identifier, so deduplicate on it to avoid counting a succeeded transfer twice."
   ],
   "evidence": {
     "spans": [
       "{your_webhook_url}",
-      "`data.failure` carries the code and the message. Nothing was debited.",
-      "`t=<timestamp>,v1=<HMAC-SHA256 hex of \"<timestamp>.<raw body>\" with your secret key>`."
+      "`data` is the full transfer object.",
+      "`completed` porte la date.",
+      "`t=<timestamp>,v1=<HMAC-SHA256 hex of \"<timestamp>.<raw body>\" with your secret key>`.",
+      "Identifier of the delivery, identical from one attempt to the next. Use it to deduplicate."
     ],
     "source_url": "https://cartflox.com/docs/openapi.json",
     "extracted_at": "2026-10-16T21:48:59.995Z",
