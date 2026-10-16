@@ -1,0 +1,225 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-16",
+  "capability": "transfer_failed_webhook",
+  "capability_type": "webhook",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "GHS",
+    "NGN",
+    "GNF",
+    "SLE",
+    "GMD",
+    "MRU",
+    "XAF",
+    "CDF",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "BIF",
+    "ZMW",
+    "ETB",
+    "MAD",
+    "TND",
+    "DZD",
+    "EGP"
+  ],
+  "auth": {
+    "type": "none",
+    "env_var": "CARTFLOX_WEBHOOK_SECRET"
+  },
+  "endpoint": {
+    "url": "{your_webhook_url}",
+    "method": "POST"
+  },
+  "example_prompt": "Notify me when an outgoing transfer is refused.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "event",
+      "livemode",
+      "data",
+      "timestamp"
+    ],
+    "properties": {
+      "data": {
+        "type": "object",
+        "required": [
+          "id",
+          "reference",
+          "status",
+          "amount",
+          "currency",
+          "fee",
+          "country",
+          "operator",
+          "phone",
+          "livemode",
+          "created"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Cartflox identifier."
+          },
+          "fee": {
+            "type": "number",
+            "description": "Cartflox fee. `0` with your own gateway keys."
+          },
+          "phone": {
+            "type": "string",
+            "description": "Digits only, country code included (`2250712345678`)."
+          },
+          "amount": {
+            "type": "number"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "processing",
+              "succeeded",
+              "failed"
+            ],
+            "type": "string",
+            "description": "`pending`: created, not handed to the provider yet. `processing`: handed to the provider, the operator is processing it (the most frequent state right after the call).\n`succeeded`: the money reached the recipient, `completed` carries the date. `failed`: refused by the operator or the provider, `failure` says why, nothing was debited.\n"
+          },
+          "country": {
+            "type": "string"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "failure": {
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "code",
+                  "message"
+                ],
+                "properties": {
+                  "code": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "message": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set when `status` is `failed`."
+          },
+          "currency": {
+            "type": "string"
+          },
+          "livemode": {
+            "type": "boolean",
+            "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
+          },
+          "operator": {
+            "type": "string",
+            "description": "Cartflox operator code (`orange_money`...)."
+          },
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Gateway that carries the transfer (`PawaPay`...)."
+          },
+          "completed": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "reference": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Cartflox reference, sent to the provider. Also accepted by `GET /v1/transfers/{id}`."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "recipient_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "idempotency_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "provider_operator": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Operator code as the provider names it (`ORANGE_CIV`)."
+          },
+          "provider_reference": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Reference at the provider, when it differs from `reference`."
+          }
+        },
+        "additionalProperties": true
+      },
+      "event": {
+        "enum": [
+          "transfer.succeeded",
+          "transfer.failed"
+        ],
+        "type": "string"
+      },
+      "livemode": {
+        "type": "boolean",
+        "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "additionalProperties": true
+  },
+  "response_schema": {},
+  "error_schema": {},
+  "gotchas": [
+    "On transfer.failed, the reason is in data.failure, and the money was not debited, so you can safely retry or refund the recipient without a double-debit risk.",
+    "Verify the signature over the timestamp and raw body with your secret key before acting on the failure event."
+  ],
+  "evidence": {
+    "spans": [
+      "{your_webhook_url}",
+      "`data.failure` carries the code and the message. Nothing was debited.",
+      "`t=<timestamp>,v1=<HMAC-SHA256 hex of \"<timestamp>.<raw body>\" with your secret key>`."
+    ],
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "extracted_at": "2026-10-16T21:48:59.995Z",
+    "snapshot_hash": "97a65520c2c663fb",
+    "source_reference": "Full OpenAPI document"
+  }
+}
