@@ -1,0 +1,289 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-16",
+  "capability": "send_money",
+  "capability_type": "synchronous",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "GHS",
+    "NGN",
+    "GNF",
+    "SLE",
+    "GMD",
+    "MRU",
+    "XAF",
+    "CDF",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "BIF",
+    "ZMW",
+    "ETB",
+    "MAD",
+    "TND",
+    "DZD",
+    "EGP"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header",
+    "env_var": "CARTFLOX_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://cartflox.com/api/v1/transfers",
+    "method": "POST"
+  },
+  "example_prompt": "Send 2000 XOF to a mobile money account.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "amount",
+      "country",
+      "operator",
+      "phone"
+    ],
+    "properties": {
+      "phone": {
+        "type": "string",
+        "description": "Recipient's number, as dialled in the country (`0712345678`) or international (`+2250712345678`). `recipient_phone` and `msisdn` are accepted as aliases of this field."
+      },
+      "amount": {
+        "type": "number",
+        "description": "Amount received by the recipient, a whole number for francs (5000 for 5 000 XOF).",
+        "exclusiveMinimum": 0
+      },
+      "country": {
+        "enum": [
+          "CI",
+          "SN",
+          "BJ",
+          "BF",
+          "TG",
+          "ML",
+          "NE",
+          "GN",
+          "CM",
+          "GA",
+          "CG",
+          "CD",
+          "GH",
+          "NG",
+          "KE",
+          "TZ",
+          "UG",
+          "RW",
+          "ZM"
+        ],
+        "type": "string",
+        "description": "Countries served for transfers (ISO 3166-1 alpha-2)."
+      },
+      "currency": {
+        "type": "string",
+        "description": "Inferred from the country (XOF, XAF, GHS, KES...). A currency that does not match the country is refused (`devise_invalide`)."
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Your own free-form data, kept with the transfer.",
+        "additionalProperties": true
+      },
+      "operator": {
+        "type": "string",
+        "description": "Recipient's operator (`orange_money`, `mtn_money`, `moov_money`, `wave`, `free_money`, `tmoney`, `mpesa`, `airtel_money`...). Aliases such as `mtn`, `orange`, `MTN_MOMO_CIV` are accepted. `method` and `network` are accepted as aliases of this field."
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 200,
+        "description": "Reason, forwarded when the operator shows it to the recipient."
+      },
+      "recipient_name": {
+        "type": "string",
+        "maxLength": 120,
+        "description": "Recipient name, for your statements and for the provider."
+      },
+      "idempotency_key": {
+        "type": "string",
+        "maxLength": 120,
+        "description": "Same role as the `Idempotency-Key` header."
+      }
+    },
+    "additionalProperties": true
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "id",
+      "reference",
+      "status",
+      "amount",
+      "currency",
+      "fee",
+      "country",
+      "operator",
+      "phone",
+      "livemode",
+      "created"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Cartflox identifier."
+      },
+      "fee": {
+        "type": "number",
+        "description": "Cartflox fee. `0` with your own gateway keys."
+      },
+      "phone": {
+        "type": "string",
+        "description": "Digits only, country code included (`2250712345678`)."
+      },
+      "amount": {
+        "type": "number"
+      },
+      "status": {
+        "enum": [
+          "pending",
+          "processing",
+          "succeeded",
+          "failed"
+        ],
+        "type": "string",
+        "description": "`pending`: created, not handed to the provider yet. `processing`: handed to the provider, the operator is processing it (the most frequent state right after the call).\n`succeeded`: the money reached the recipient, `completed` carries the date. `failed`: refused by the operator or the provider, `failure` says why, nothing was debited.\n"
+      },
+      "country": {
+        "type": "string"
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "failure": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "message": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": true
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "description": "Set when `status` is `failed`."
+      },
+      "currency": {
+        "type": "string"
+      },
+      "livemode": {
+        "type": "boolean",
+        "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
+      },
+      "operator": {
+        "type": "string",
+        "description": "Cartflox operator code (`orange_money`...)."
+      },
+      "provider": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Gateway that carries the transfer (`PawaPay`...)."
+      },
+      "completed": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time"
+      },
+      "reference": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Cartflox reference, sent to the provider. Also accepted by `GET /v1/transfers/{id}`."
+      },
+      "description": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "recipient_name": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "idempotency_key": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "provider_operator": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Operator code as the provider names it (`ORANGE_CIV`)."
+      },
+      "provider_reference": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Reference at the provider, when it differs from `reference`."
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "error"
+    ],
+    "properties": {
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
+      },
+      "error": {
+        "type": "string",
+        "description": "Human-readable message."
+      }
+    },
+    "description": "Error body. `code` is present on transfer endpoints.",
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "This operation requires a secret API key. Public API keys will be rejected."
+  ],
+  "evidence": {
+    "spans": [
+      "https://cartflox.com/api/v1/transfers",
+      "Requires the **secret** key: the public key is refused."
+    ],
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "extracted_at": "2026-10-16T21:04:12.495Z",
+    "snapshot_hash": "97a65520c2c663fb",
+    "source_reference": "Full OpenAPI document"
+  }
+}

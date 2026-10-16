@@ -1,0 +1,147 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-16",
+  "capability": "request_merchant_payout",
+  "capability_type": "synchronous",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "GHS",
+    "NGN",
+    "GNF",
+    "SLE",
+    "GMD",
+    "MRU",
+    "XAF",
+    "CDF",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "BIF",
+    "ZMW",
+    "ETB",
+    "MAD",
+    "TND",
+    "DZD",
+    "EGP"
+  ],
+  "auth": {
+    "type": "api_key",
+    "format": "{token}",
+    "header": "x-partner-secret",
+    "location": "header",
+    "env_var": "CARTFLOX_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://cartflox.com/api/v1/partner/merchants/{id}/payouts",
+    "method": "POST"
+  },
+  "example_prompt": "Request a payout for merchant ID 456.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "amount",
+      "method",
+      "recipient"
+    ],
+    "properties": {
+      "amount": {
+        "type": "number",
+        "minimum": 1000,
+        "description": "Whole number of francs, 1 000 at least, within the available balance."
+      },
+      "method": {
+        "enum": [
+          "wave",
+          "orange",
+          "mtn",
+          "moov",
+          "bank"
+        ],
+        "type": "string"
+      },
+      "recipient": {
+        "type": "string",
+        "maxLength": 60,
+        "description": "Mobile Money number (8 digits at least) or bank account."
+      }
+    },
+    "additionalProperties": true
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "id",
+      "status",
+      "amount",
+      "method",
+      "recipient",
+      "requested_at"
+    ],
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "amount": {
+        "type": "number"
+      },
+      "method": {
+        "enum": [
+          "wave",
+          "orange",
+          "mtn",
+          "moov",
+          "bank"
+        ],
+        "type": "string"
+      },
+      "status": {
+        "enum": [
+          "PENDING",
+          "PAID",
+          "REJECTED"
+        ],
+        "type": "string"
+      },
+      "recipient": {
+        "type": "string"
+      },
+      "requested_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "error"
+    ],
+    "properties": {
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
+      },
+      "error": {
+        "type": "string",
+        "description": "Human-readable message."
+      }
+    },
+    "description": "Error body. `code` is present on transfer endpoints.",
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "Generated from an OpenAPI spec — no narrative gotchas available; verify manually before promoting past unverified."
+  ],
+  "evidence": {
+    "spans": [
+      "https://cartflox.com/api/v1/partner/merchants/{id}/payouts"
+    ],
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "extracted_at": "2026-10-16T21:04:12.495Z",
+    "snapshot_hash": "97a65520c2c663fb",
+    "source_reference": "Full OpenAPI document"
+  }
+}

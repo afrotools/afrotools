@@ -1,0 +1,226 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-16",
+  "capability": "create_checkout_session",
+  "capability_type": "synchronous",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "GHS",
+    "NGN",
+    "GNF",
+    "SLE",
+    "GMD",
+    "MRU",
+    "XAF",
+    "CDF",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "BIF",
+    "ZMW",
+    "ETB",
+    "MAD",
+    "TND",
+    "DZD",
+    "EGP"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header",
+    "env_var": "CARTFLOX_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://cartflox.com/api/v1/checkout/sessions",
+    "method": "POST"
+  },
+  "example_prompt": "Create a checkout session for a customer to pay 100 EUR for an order.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "amount"
+    ],
+    "properties": {
+      "amount": {
+        "type": "number",
+        "description": "Amount, a whole positive number for currencies without minor units (5000 for 5 000 XOF).",
+        "exclusiveMinimum": 0
+      },
+      "currency": {
+        "allOf": [
+          {
+            "enum": [
+              "XOF",
+              "XAF",
+              "GHS",
+              "NGN",
+              "KES",
+              "TZS",
+              "UGX",
+              "RWF",
+              "ZMW",
+              "MWK",
+              "CDF",
+              "ETB",
+              "MZN",
+              "ZAR",
+              "EGP",
+              "MAD",
+              "GNF",
+              "SLE",
+              "LRD",
+              "GMD",
+              "MGA",
+              "MUR",
+              "USD",
+              "EUR",
+              "GBP"
+            ],
+            "type": "string",
+            "description": "ISO 4217 code. Accepted currencies are listed in the introduction. Amounts are whole numbers for currencies without minor units (XOF, XAF, GNF, UGX, RWF, CDF, MGA, KMF, DJF, BIF)."
+          }
+        ],
+        "default": "XOF"
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Your own free-form data, returned in webhooks. Cartflox adds `source` (`checkout_session`, `widget`, `payment_link`...) and, when relevant, `description`, `success_url`, `cancel_url` and `idempotencyKey`.",
+        "additionalProperties": true
+      },
+      "cancel_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "Return address when the customer gives up."
+      },
+      "description": {
+        "type": "string",
+        "description": "Label shown to the customer."
+      },
+      "success_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "Return address after a successful payment."
+      },
+      "customer_name": {
+        "type": "string",
+        "description": "Customer name, pre-filled on the payment page."
+      },
+      "merchant_logo": {
+        "type": "string",
+        "format": "uri",
+        "description": "`https` address of a logo shown instead of the workspace logo (PNG, JPG or SVG). Non-https values are ignored."
+      },
+      "merchant_name": {
+        "type": "string",
+        "maxLength": 60,
+        "description": "Name shown at the top of the payment page instead of the workspace name (60 characters at most). Useful to platforms collecting for several brands."
+      },
+      "customer_email": {
+        "type": "string",
+        "format": "email",
+        "description": "Customer e-mail (payment receipt)."
+      },
+      "customer_phone": {
+        "type": "string",
+        "description": "Phone number in E.164 international format (`+2250700000000`), pre-filled for Mobile Money."
+      }
+    },
+    "additionalProperties": true
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "id",
+      "object",
+      "url",
+      "order_id",
+      "amount",
+      "currency",
+      "status",
+      "livemode",
+      "created"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Session identifier. Keep it to follow the payment."
+      },
+      "url": {
+        "type": "string",
+        "format": "uri",
+        "description": "Hosted payment page. Redirect your customer here."
+      },
+      "amount": {
+        "type": "number",
+        "description": "Amount the payer is asked for. On a Connect workspace with \"fees charged to the customer\", it is the requested amount plus the gateway fee."
+      },
+      "object": {
+        "type": "string",
+        "const": "checkout.session"
+      },
+      "status": {
+        "enum": [
+          "pending",
+          "success",
+          "failed",
+          "cancelled",
+          "refunded"
+        ],
+        "type": "string",
+        "description": "`pending` at creation. On an idempotent replay, the current status in lower case."
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "currency": {
+        "type": "string"
+      },
+      "livemode": {
+        "type": "boolean",
+        "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
+      },
+      "order_id": {
+        "type": "string",
+        "description": "Readable Cartflox reference (`CS-...`)."
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "error"
+    ],
+    "properties": {
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
+      },
+      "error": {
+        "type": "string",
+        "description": "Human-readable message."
+      }
+    },
+    "description": "Error body. `code` is present on transfer endpoints.",
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "The `merchant_logo` field only accepts HTTPS URLs. If a non-HTTPS URL is provided, it will be ignored.",
+    "When specifying `amount` for currencies without minor units (XOF, XAF, GNF, UGX, RWF, CDF, MGA, KMF, DJF, BIF), ensure it is a whole positive number. For example, 5000 for 5 000 XOF."
+  ],
+  "evidence": {
+    "spans": [
+      "https://cartflox.com/api/v1/checkout/sessions",
+      "Non-https values are ignored.",
+      "Amount, a whole positive number for currencies without minor units (5000 for 5 000 XOF)."
+    ],
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "extracted_at": "2026-10-16T21:04:12.495Z",
+    "snapshot_hash": "97a65520c2c663fb",
+    "source_reference": "Full OpenAPI document"
+  }
+}
