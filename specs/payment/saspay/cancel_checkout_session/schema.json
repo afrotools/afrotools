@@ -98,6 +98,10 @@
           },
           "updated_at": {
             "type": "string"
+          },
+          "fee_charge_mode": {
+            "type": "string",
+            "description": "ADD_ON or DEDUCTED."
           }
         }
       },

@@ -66,6 +66,9 @@
           },
           "updated_at": {
             "type": "string"
+          },
+          "frozen_amount": {
+            "type": "string"
           }
         }
       },

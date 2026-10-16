@@ -25,6 +25,7 @@ interface GetBalanceResponse {
   is_frozen?: boolean;
   created_at?: string;
   updated_at?: string;
+  frozen_amount?: string;
 };
   code?: number;
 }

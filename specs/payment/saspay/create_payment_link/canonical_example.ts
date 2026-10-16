@@ -56,6 +56,10 @@ interface CreatePaymentLinkResponse {
   redirect_url?: string;
   created_at?: string;
   updated_at?: string;
+  url?: string;
+  merchant_name?: string;
+  country?: string;
+  admin_locked?: boolean;
 };
   code?: number;
 }

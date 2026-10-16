@@ -199,6 +199,20 @@
           },
           "updated_at": {
             "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "Public URL of the payment page to share with the customer."
+          },
+          "merchant_name": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string",
+            "description": "Preset country, null when none is set."
+          },
+          "admin_locked": {
+            "type": "boolean"
           }
         }
       },

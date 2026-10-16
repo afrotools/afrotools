@@ -39,6 +39,7 @@ interface CancelCheckoutSessionResponse {
   paid_at?: unknown;
   created_at?: string;
   updated_at?: string;
+  fee_charge_mode?: string;
 };
   code?: number;
 }

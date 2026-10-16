@@ -1,0 +1,35 @@
+{
+  "sandbox_base_url": "https://api.saspay.me",
+  "steps": [
+    {
+      "capability": "create_checkout_session",
+      "body": {
+        "amount": "500.00",
+        "currency": "XOF",
+        "description": "afrotools live test $ts",
+        "customer_email": "live-test@afro.tools",
+        "customer_name": "Afrotools Live Test",
+        "return_url": "https://afro.tools/live-test"
+      },
+      "store_as": "session"
+    },
+    {
+      "capability": "get_checkout_session_status",
+      "path_params": { "id": "$session.data.id" }
+    },
+    {
+      "capability": "cancel_checkout_session",
+      "path_params": { "id": "$session.data.id" }
+    },
+    {
+      "capability": "create_payment_link",
+      "body": {
+        "name": "afrotools live test $ts",
+        "currency": "XOF",
+        "amount_type": "FIXED",
+        "amount": "500.00"
+      },
+      "store_as": "link"
+    }
+  ]
+}
