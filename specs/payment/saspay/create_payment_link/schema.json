@@ -3,7 +3,7 @@
   "provider_api_version": "2026-10-12",
   "capability": "create_payment_link",
   "capability_type": "synchronous",
-  "status": "ready",
+  "status": "verified",
   "currency": [
     "XOF",
     "CDF",
