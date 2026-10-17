@@ -1,0 +1,136 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "retry_payment",
+  "capability_type": "synchronous",
+  "status": "verified",
+  "currency": [
+    "XOF",
+    "CDF",
+    "XAF",
+    "GHS",
+    "GNF",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "TZS",
+    "UGX",
+    "ZMW"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header",
+    "env_var": "SASPAY_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://api.saspay.me/api/v1/payments/{payment_id}/retry/",
+    "method": "POST"
+  },
+  "example_prompt": "Let the customer retry a failed SasPay payment, optionally on another network.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "methods": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "example": [
+          "moov_bj"
+        ],
+        "description": "Codes réseau à essayer, dans l'ordre. Défaut : réseau d'origine de la transaction."
+      },
+      "customer": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Format international, ex: +22997505050"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "first_name": {
+            "type": "string"
+          }
+        }
+      },
+      "preferred_gateway": {
+        "type": "string"
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "checkout_url": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "gotchas": [
+    "Retrying reuses the same transaction and id; it never creates a new transaction.",
+    "Only incoming payments can be retried: a payout returns 400. A FAILED payment is retryable (that is what this endpoint is for); 409 is for the other terminal states.",
+    "Send an Idempotency-Key: without it a network retry relaunches the payment a second time. Reusing a key with a different body, or while the first call is still running, returns 409.",
+    "The retry can switch the customer to a hosted page: on the sandbox, a failed mtn_ci push retried with no body came back with a checkout_url (status still FAILED until the customer pays), so check checkout_url on every retry."
+  ],
+  "evidence": {
+    "spans": [
+      "https://api.saspay.me/api/v1/payments/{payment_id}/retry/",
+      "ne crée jamais de nouvelle transaction, réutilise le même `id`.",
+      "La transaction ciblée est un flux sortant (payout), non réessayable via cet endpoint",
+      "sans lui, un retry réseau relance une seconde fois le paiement.",
+      "Même clé, 1<sup>er</sup> appel encore en cours"
+    ],
+    "source_url": "https://docs.saspay.me/api-reference/openapi.json",
+    "extracted_at": "2026-10-12T11:06:35.701Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "source_reference": "Full OpenAPI document"
+  }
+}

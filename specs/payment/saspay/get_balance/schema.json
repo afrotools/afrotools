@@ -1,0 +1,115 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "get_balance",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XOF",
+    "CDF",
+    "XAF",
+    "GHS",
+    "GNF",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "TZS",
+    "UGX",
+    "ZMW"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header",
+    "env_var": "SASPAY_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://api.saspay.me/api/v1/merchant-balances/{id}/",
+    "method": "GET"
+  },
+  "example_prompt": "Show my SasPay account balance on my admin dashboard.",
+  "input_schema": {},
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "merchant": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "available_amount": {
+            "type": "string"
+          },
+          "pending_amount": {
+            "type": "string"
+          },
+          "is_frozen": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "frozen_amount": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "gotchas": [
+    "Balances are per country wallet: two countries with the same currency (e.g. Benin and Senegal, both XOF) still have separate balances."
+  ],
+  "evidence": {
+    "spans": [
+      "https://api.saspay.me/api/v1/merchant-balances/{id}/",
+      "un solde distinct, même devise"
+    ],
+    "source_url": "https://docs.saspay.me/api-reference/openapi.json",
+    "extracted_at": "2026-10-12T11:06:35.701Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "source_reference": "Full OpenAPI document"
+  }
+}

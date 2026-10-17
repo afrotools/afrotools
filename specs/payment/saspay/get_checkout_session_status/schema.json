@@ -1,0 +1,105 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "get_checkout_session_status",
+  "capability_type": "synchronous",
+  "status": "verified",
+  "currency": [
+    "XOF",
+    "CDF",
+    "XAF",
+    "GHS",
+    "GNF",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "TZS",
+    "UGX",
+    "ZMW"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header",
+    "env_var": "SASPAY_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://api.saspay.me/api/v1/checkout-sessions/{id}/status/",
+    "method": "GET"
+  },
+  "example_prompt": "Check whether a SasPay checkout session was paid before fulfilling the order.",
+  "input_schema": {},
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "transaction_id": {
+            "type": "string"
+          },
+          "transaction_status": {
+            "type": "string"
+          },
+          "transaction_reference": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "gotchas": [
+    "Meant for polling when no webhook is configured: it re-checks the real gateway state on each call.",
+    "Authenticated calls are limited to 300 requests per minute per account; beyond that the API returns 429, so space out polling."
+  ],
+  "evidence": {
+    "spans": [
+      "https://api.saspay.me/api/v1/checkout-sessions/{id}/status/",
+      "À utiliser en polling si vous n'avez pas encore de webhook configuré.",
+      "Les appels authentifiés (clé API ou dashboard) sont limités à **300 requêtes par minute** par compte par défaut."
+    ],
+    "source_url": "https://docs.saspay.me/api-reference/openapi.json",
+    "extracted_at": "2026-10-12T11:06:35.701Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "source_reference": "Full OpenAPI document"
+  }
+}

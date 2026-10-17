@@ -1,0 +1,152 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "webhook_payment_completed",
+  "capability_type": "webhook",
+  "status": "ready",
+  "currency": [
+    "XOF",
+    "CDF",
+    "XAF",
+    "GHS",
+    "GNF",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "TZS",
+    "UGX",
+    "ZMW"
+  ],
+  "auth": {
+    "type": "none",
+    "env_var": "SASPAY_WEBHOOK_SECRET"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_webhook_url}"
+  },
+  "example_prompt": "Handle SasPay webhooks to confirm an order once its transaction.success event arrives, after checking the signature.",
+  "input_schema": {
+    "type": "object",
+    "description": "Body SasPay POSTs to your webhook URL, with headers X-Webhook-Signature (lowercase hex HMAC-SHA256), X-Webhook-Timestamp (Unix seconds) and X-Webhook-Event (the event type).",
+    "required": [
+      "event",
+      "data"
+    ],
+    "properties": {
+      "event": {
+        "type": "string",
+        "enum": [
+          "transaction.created",
+          "transaction.success",
+          "transaction.failed",
+          "transaction.cancelled",
+          "settlement.requested",
+          "settlement.approved",
+          "settlement.success",
+          "settlement.failed",
+          "settlement.cancelled",
+          "wallet_transfer.requested",
+          "wallet_transfer.completed",
+          "wallet_transfer.rejected",
+          "webhook.test"
+        ]
+      },
+      "data": {
+        "type": "object",
+        "description": "Shape for transaction.* events, as documented for transaction.success.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Transaction id. Use it to make processing idempotent."
+          },
+          "reference": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "Example: \"PAIEMENT\"."
+          },
+          "status": {
+            "type": "string",
+            "description": "Example: \"SUCCESS\"."
+          },
+          "amount": {
+            "type": "string",
+            "description": "Requested amount, decimal string."
+          },
+          "fee": {
+            "type": "string",
+            "description": "Fee charged to the customer, decimal string."
+          },
+          "charged": {
+            "type": "string",
+            "description": "What the payer actually paid, decimal string."
+          },
+          "net_amount": {
+            "type": "string",
+            "description": "What you receive, decimal string."
+          },
+          "fee_charge_mode": {
+            "type": "string",
+            "enum": [
+              "ADD_ON",
+              "DEDUCTED"
+            ]
+          },
+          "currency": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2."
+          },
+          "network": {
+            "type": "string",
+            "description": "Network code, e.g. mtn_bj."
+          },
+          "msisdn": {
+            "type": "string",
+            "description": "Number debited (payin) or credited (payout). Empty before 17 August 2026."
+          }
+        }
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "Return HTTP 2xx within 15 seconds. The body is ignored."
+  },
+  "error_schema": {},
+  "gotchas": [
+    "Verify X-Webhook-Signature before anything else: it is the lowercase hex HMAC-SHA256, keyed with your webhook's signing_secret (SASPAY_WEBHOOK_SECRET), of the X-Webhook-Timestamp value, a dot, then the raw body: `${timestamp}.${rawBody}`.",
+    "Reject the request when X-Webhook-Timestamp (Unix seconds) is more than 5 minutes from your clock: without this check an intercepted webhook stays replayable forever, since its signature never expires.",
+    "Compute the signature over the raw request body, never over a re-serialised parsed payload (key order or number formatting can differ). Express: mount express.raw({ type: 'application/json' }) on this route.",
+    "Compare signatures in constant time (crypto.timingSafeEqual, hmac.compare_digest, hash_equals), never with ===.",
+    "signing_secret is shown only once, in the creation or rotation response, and never returned by the read endpoints: copy it then. If lost, set a new one from the dashboard (Webhooks → Changer le secret).",
+    "Webhooks and subscriptions can only be created, changed or deleted from the dashboard; the API key can only list and read them.",
+    "Each event is attempted 5 times (immediately, then +30s, +5min, +30min, +2h) with a 15s timeout per attempt, then marked FAILED for good (only a manual resend from the dashboard retries it). Answer 2xx right away, process in the background, and make processing idempotent on data.id, since a retried event can arrive twice.",
+    "For accounting use data.charged (what left the payer) and data.net_amount (what you receive), never data.amount alone: which one includes the fee depends on fee_charge_mode.",
+    "Do not depend on the exact data shape of settlement.* events: SasPay states it is not guaranteed yet.",
+    "data.msisdn is empty on transactions created before 17 August 2026; country, network and the amounts are always present."
+  ],
+  "evidence": {
+    "source_url": "https://docs.saspay.me/api-reference/webhooks",
+    "source_reference": "Webhooks (llms-full.txt)",
+    "extracted_at": "2026-10-12T11:06:35.701Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "spans": [
+      "La signature couvre l'horodatage **et** le corps, séparés par un point :",
+      "rejetez si `X-Webhook-Timestamp` s'écarte de plus de **5 minutes** de votre horloge.",
+      "recalculez-la sur le **corps brut reçu**, jamais sur une re-sérialisation de `payload`",
+      "Comparez toujours en **temps constant**",
+      "Il n'apparaît qu'**une seule fois**, dans la réponse de création et dans celle d'une rotation de secret",
+      "se fait **exclusivement depuis le [tableau de bord](https://app.saspay.me)**",
+      "**5 tentatives** par event : immédiat, puis +30s, +5min, +30min, +2h.",
+      "utilisez `charged` (ce qui a quitté le compte du client) et `net_amount` (ce qui vous revient) — jamais `amount` seul.",
+      "le contenu de `data` n'est pas garanti pour ces events précis pour le moment",
+      "`msisdn` est vide sur les transactions antérieures au 17 août 2026"
+    ]
+  }
+}

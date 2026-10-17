@@ -1,0 +1,219 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "create_checkout_session",
+  "capability_type": "synchronous",
+  "status": "verified",
+  "currency": [
+    "XOF",
+    "CDF",
+    "XAF",
+    "GHS",
+    "GNF",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "TZS",
+    "UGX",
+    "ZMW"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header",
+    "env_var": "SASPAY_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://api.saspay.me/api/v1/checkout-sessions/",
+    "method": "POST"
+  },
+  "example_prompt": "Add a SasPay hosted checkout page to my order flow.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "amount",
+      "currency",
+      "customer_email",
+      "customer_name"
+    ],
+    "properties": {
+      "amount": {
+        "type": "string",
+        "format": "decimal",
+        "example": "5000.00"
+      },
+      "country": {
+        "type": "string",
+        "example": "BJ",
+        "maxLength": 2,
+        "minLength": 2,
+        "description": "Code ISO2, optionnel — présélectionne le pays sur la page de paiement"
+      },
+      "currency": {
+        "type": "string",
+        "example": "XOF",
+        "maxLength": 3,
+        "minLength": 3
+      },
+      "metadata": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "return_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL vers laquelle rediriger le client une fois le paiement terminé"
+      },
+      "description": {
+        "type": "string",
+        "example": "Facture #1042"
+      },
+      "customer_name": {
+        "type": "string",
+        "example": "Awa Sossou"
+      },
+      "customer_email": {
+        "type": "string",
+        "format": "email",
+        "example": "client@example.com"
+      },
+      "customer_phone": {
+        "type": "string",
+        "example": ""
+      },
+      "fee_charge_mode": {
+        "enum": [
+          "ADD_ON",
+          "DEDUCTED"
+        ],
+        "type": "string",
+        "nullable": true,
+        "description": "ADD_ON : les frais s'ajoutent au montant débité au client. DEDUCTED : les frais sont déduits du montant net reversé au marchand. Défaut : configuration du marchand. Pris en compte SEULEMENT si l'option \"Autoriser le choix du mode de frais par l'API\" (ALLOW_CLIENT_OVERRIDE) est activée sur votre compte, sinon ignoré silencieusement — même garde que sur /payments/softpay/ et /payouts/initialize/."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "merchant": {
+            "type": "string"
+          },
+          "created_by_member": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "checkout_url": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "customer_email": {
+            "type": "string"
+          },
+          "customer_name": {
+            "type": "string"
+          },
+          "customer_phone": {
+            "type": "string"
+          },
+          "return_url": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {}
+          },
+          "fee_charge_mode": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "expires_at": {},
+          "transaction": {},
+          "payment_link": {},
+          "paid_at": {},
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "gotchas": [
+    "Idempotency-Key is not supported here: calling twice creates two separate sessions (nothing is charged until one is paid).",
+    "fee_charge_mode is silently ignored unless the merchant account has ALLOW_CLIENT_OVERRIDE enabled.",
+    "The API key needs the PAYIN or BOTH scope, otherwise the call returns 403.",
+    "return_url only brings the customer back after a successful payment: after a failed or cancelled one it is not used, the customer sees a Retry button and must close the tab, so don't depend on a redirect to your site for failures.",
+    "Amounts are decimal strings (\"5000.00\"), never floats."
+  ],
+  "evidence": {
+    "spans": [
+      "https://api.saspay.me/api/v1/checkout-sessions/",
+      "Le header `Idempotency-Key` n'est pas pris en charge sur cet endpoint : un double appel crée deux sessions distinctes.",
+      "sinon ignoré silencieusement",
+      "Scope de clé API insuffisant (PAYIN requis)",
+      "Sur un paiement échoué ou annulé, `return_url` n'est actuellement **pas** utilisée",
+      "Montants : chaînes décimales (`\"2500.00\"`), jamais de flottants."
+    ],
+    "source_url": "https://docs.saspay.me/api-reference/openapi.json",
+    "extracted_at": "2026-10-12T11:06:35.701Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "source_reference": "Full OpenAPI document"
+  }
+}

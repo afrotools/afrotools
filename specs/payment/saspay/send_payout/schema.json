@@ -1,0 +1,193 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "send_payout",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XOF",
+    "CDF",
+    "XAF",
+    "GHS",
+    "GNF",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "TZS",
+    "UGX",
+    "ZMW"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header",
+    "env_var": "SASPAY_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://api.saspay.me/api/v1/payouts/initialize/",
+    "method": "POST"
+  },
+  "example_prompt": "Pay out a seller's earnings to their mobile money account with SasPay.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "amount",
+      "currency",
+      "country",
+      "customer",
+      "method",
+      "recipient"
+    ],
+    "properties": {
+      "amount": {
+        "type": "string",
+        "format": "decimal",
+        "example": "10000.00"
+      },
+      "method": {
+        "type": "string",
+        "example": "mtn_cm",
+        "description": "Code réseau du bénéficiaire"
+      },
+      "country": {
+        "type": "string",
+        "example": "CM",
+        "maxLength": 2,
+        "minLength": 2
+      },
+      "currency": {
+        "type": "string",
+        "example": "XAF",
+        "maxLength": 3,
+        "minLength": 3
+      },
+      "customer": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Format international, ex: +22997505050"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "first_name": {
+            "type": "string"
+          }
+        }
+      },
+      "merchant": {
+        "type": "string",
+        "format": "uuid",
+        "description": "UUID du marchand visé. Ignoré pour une clé API (toujours vous-même)."
+      },
+      "metadata": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "recipient": {
+        "type": "object",
+        "required": [
+          "msisdn"
+        ],
+        "properties": {
+          "msisdn": {
+            "type": "string",
+            "example": "677889900"
+          }
+        }
+      },
+      "description": {
+        "type": "string",
+        "example": "Remboursement commande #778"
+      },
+      "fee_charge_mode": {
+        "enum": [
+          "ADD_ON",
+          "DEDUCTED"
+        ],
+        "type": "string",
+        "nullable": true,
+        "description": "ADD_ON : les frais s'ajoutent au montant débité au client. DEDUCTED : les frais sont déduits du montant net reversé au marchand. Défaut : configuration du marchand."
+      },
+      "preferred_gateway": {
+        "type": "string"
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "gotchas": [
+    "With an API key, the calling server's IP must be whitelisted for the merchant, otherwise 403 ip_not_whitelisted.",
+    "No automatic currency conversion on payouts (unlike payins): the currency must match the beneficiary's country, otherwise 422 currency_country_mismatch.",
+    "Send an Idempotency-Key: without it a network retry creates a second disbursement. Reusing a key with a different body, or while the first call is still running, returns 409.",
+    "Amounts are decimal strings (\"10000.00\"), never floats.",
+    "Valid method codes per country and the expected recipient.msisdn format are listed on the docs' formats page (/api-reference/reference/formats).",
+    "A 400 validation error has a different shape from the business errors: `error` maps each invalid field to a list of messages ({\"amount\": [\"Ce champ est obligatoire.\"]}) with no error.message or error.code, so read the field map, not just error.message (observed on the sandbox).",
+    "Payouts must be enabled for the merchant by SasPay: until then every call returns 403 payout_not_enabled, even with a whitelisted IP (observed on the sandbox).",
+    "The minimum payout is 200 XOF: below it, 400 with error.amount [\"Le montant minimum est de 200 XOF.\"] (observed on the sandbox)."
+  ],
+  "evidence": {
+    "spans": [
+      "https://api.saspay.me/api/v1/payouts/initialize/",
+      "`ip_not_whitelisted` (aucune IP whitelistée pour ce marchand)",
+      "`currency_country_mismatch` (aucune conversion automatique côté payout, contrairement au payin)",
+      "sans lui, un retry réseau crée un second décaissement",
+      "Montants : chaînes décimales (`\"2500.00\"`), jamais de flottants.",
+      "pour la liste des codes `method` valides par pays et le format attendu de `recipient.msisdn`",
+      "Même clé, 1<sup>er</sup> appel encore en cours"
+    ],
+    "source_url": "https://docs.saspay.me/api-reference/openapi.json",
+    "extracted_at": "2026-10-12T11:06:35.701Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "source_reference": "Full OpenAPI document"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "sandbox_base_url": "https://api.saspay.me",
+  "steps": [
+    {
+      "capability": "create_checkout_session",
+      "body": {
+        "amount": "500.00",
+        "currency": "XOF",
+        "description": "afrotools live test $ts",
+        "customer_email": "live-test@afro.tools",
+        "customer_name": "Afrotools Live Test",
+        "return_url": "https://afro.tools/live-test"
+      },
+      "store_as": "session"
+    },
+    {
+      "capability": "get_checkout_session_status",
+      "path_params": {
+        "id": "$session.data.id"
+      }
+    },
+    {
+      "capability": "cancel_checkout_session",
+      "path_params": {
+        "id": "$session.data.id"
+      }
+    },
+    {
+      "capability": "create_payment_link",
+      "body": {
+        "name": "afrotools live test $ts",
+        "currency": "XOF",
+        "amount_type": "FIXED",
+        "amount": "500.00"
+      },
+      "store_as": "link"
+    },
+    {
+      "capability": "create_payment",
+      "headers": {
+        "Idempotency-Key": "afrotools-live-$ts-pay"
+      },
+      "body": {
+        "amount": "200.00",
+        "currency": "XOF",
+        "country": "CI",
+        "network": "mtn_ci",
+        "description": "afrotools live test $ts",
+        "customer": {
+          "first_name": "Afrotools",
+          "last_name": "Live Test",
+          "email": "live-test@afro.tools",
+          "phone": "+2250500000000"
+        }
+      },
+      "store_as": "payment"
+    },
+    {
+      "capability": "verify_payment",
+      "path_params": {
+        "payment_id": "$payment.data.id"
+      }
+    },
+    {
+      "capability": "retry_payment",
+      "path_params": {
+        "payment_id": "$payment.data.id"
+      },
+      "headers": {
+        "Idempotency-Key": "afrotools-live-$ts-retry"
+      },
+      "body": {}
+    }
+  ]
+}

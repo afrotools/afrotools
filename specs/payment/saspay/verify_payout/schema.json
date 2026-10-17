@@ -1,0 +1,159 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "verify_payout",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XOF",
+    "CDF",
+    "XAF",
+    "GHS",
+    "GNF",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "TZS",
+    "UGX",
+    "ZMW"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header",
+    "env_var": "SASPAY_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://api.saspay.me/api/v1/payouts/{payout_id}/verify/",
+    "method": "GET"
+  },
+  "example_prompt": "Check whether a SasPay payout reached the beneficiary.",
+  "input_schema": {},
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "merchant": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "network": {
+            "type": "string"
+          },
+          "transaction_type": {
+            "type": "string"
+          },
+          "flow_direction": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "requested_amount": {
+            "type": "string"
+          },
+          "fee_charge_mode": {
+            "type": "string"
+          },
+          "client_fee": {
+            "type": "string"
+          },
+          "gateway_fee": {
+            "type": "string"
+          },
+          "platform_fee": {
+            "type": "string"
+          },
+          "pricing_rule": {},
+          "merchant_pricing_rule": {},
+          "debited_amount": {
+            "type": "string"
+          },
+          "net_amount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "current_gateway": {
+            "type": "string"
+          },
+          "external_reference": {
+            "type": "string"
+          },
+          "ip_address": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "gotchas": [
+    "A PENDING payout is re-checked against the gateway on each call, so the status can change between two calls."
+  ],
+  "evidence": {
+    "spans": [
+      "https://api.saspay.me/api/v1/payouts/{payout_id}/verify/",
+      "Si le statut connu est `PENDING`, revérifie toujours l'état réel côté gateway avant de répondre."
+    ],
+    "source_url": "https://docs.saspay.me/api-reference/openapi.json",
+    "extracted_at": "2026-10-12T11:06:35.701Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "source_reference": "Full OpenAPI document"
+  }
+}
