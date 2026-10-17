@@ -1,0 +1,175 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-16",
+  "capability": "webhook_payment_failed",
+  "capability_type": "webhook",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "GHS",
+    "NGN",
+    "GNF",
+    "SLE",
+    "GMD",
+    "MRU",
+    "XAF",
+    "CDF",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "BIF",
+    "ZMW",
+    "ETB",
+    "MAD",
+    "TND",
+    "DZD",
+    "EGP"
+  ],
+  "auth": {
+    "type": "none",
+    "env_var": "CARTFLOX_WEBHOOK_SECRET"
+  },
+  "endpoint": {
+    "url": "{your_webhook_url}",
+    "method": "POST"
+  },
+  "example_prompt": "Notify me when a payment fails or is refused.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "event",
+      "livemode",
+      "data",
+      "timestamp"
+    ],
+    "properties": {
+      "data": {
+        "type": "object",
+        "required": [
+          "id",
+          "order_id",
+          "status",
+          "amount",
+          "currency"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Session identifier, the one returned at creation."
+          },
+          "amount": {
+            "type": "number"
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "SUCCESS",
+              "FAILED",
+              "CANCELLED",
+              "REFUNDED"
+            ],
+            "type": "string",
+            "description": "`PENDING`: created, not confirmed yet (customer on the page, OTP pending, redirection in progress).\n`SUCCESS`: confirmed by the aggregator. `FAILED`: refused or failed at the operator, the customer can retry on the same session.\n`CANCELLED`: cancelled, no longer payable. `REFUNDED`: refunded from the dashboard.\n"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "metadata": {
+            "oneOf": [
+              {
+                "type": "object",
+                "description": "Your own free-form data, returned in webhooks. Cartflox adds `source` (`checkout_session`, `widget`, `payment_link`...) and, when relevant, `description`, `success_url`, `cancel_url` and `idempotencyKey`.",
+                "additionalProperties": true
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "order_id": {
+            "type": "string"
+          },
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "`null` until the payment succeeds."
+          },
+          "customer_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "customer_email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "customer_phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "provider_reference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      },
+      "event": {
+        "enum": [
+          "payment.completed",
+          "payment.failed",
+          "payment.cancelled",
+          "payment.updated"
+        ],
+        "type": "string"
+      },
+      "livemode": {
+        "type": "boolean",
+        "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "additionalProperties": true
+  },
+  "response_schema": {},
+  "error_schema": {},
+  "gotchas": [
+    "A payment.failed event does not end the session, because the customer can retry on the same session, so do not permanently cancel the order on this event alone.",
+    "The X-Afriflow-Signature header carries t=<timestamp>,v1=<hex>, where v1 is the HMAC-SHA256 of the string <timestamp>.<raw body> keyed with your secret key (test key for a test event); X-Afriflow-Timestamp carries the Unix timestamp. Verify it, in constant time, before acting on the event.",
+    "Retries reuse the same delivery identifier, so use it to deduplicate repeated payment.failed deliveries.",
+    "Verify webhook signatures with the secret key of the same mode as the event, since a test event is signed with the test secret key."
+  ],
+  "evidence": {
+    "spans": [
+      "{your_webhook_url}",
+      "The customer can retry on the same session.",
+      "`X-Afriflow-Signature: t=<ts>,v1=<hex>` where `v1` is the HMAC-SHA256, with your secret",
+      "Identifier of the delivery, identical from one attempt to the next. Use it to deduplicate.",
+      "Verify webhook signatures with the secret key of the same mode."
+    ],
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "extracted_at": "2026-10-16T21:48:59.995Z",
+    "snapshot_hash": "97a65520c2c663fb",
+    "source_reference": "Full OpenAPI document"
+  }
+}

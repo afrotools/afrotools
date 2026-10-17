@@ -1,0 +1,233 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-16",
+  "capability": "get_checkout_session_status",
+  "capability_type": "synchronous",
+  "status": "unverified",
+  "currency": [
+    "XOF",
+    "GHS",
+    "NGN",
+    "GNF",
+    "SLE",
+    "GMD",
+    "MRU",
+    "XAF",
+    "CDF",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "BIF",
+    "ZMW",
+    "ETB",
+    "MAD",
+    "TND",
+    "DZD",
+    "EGP"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header",
+    "env_var": "CARTFLOX_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://cartflox.com/api/v1/checkout/sessions/{id}/status",
+    "method": "GET"
+  },
+  "example_prompt": "What is the status of checkout session {id}?",
+  "input_schema": {},
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "id",
+      "status",
+      "paid",
+      "amount",
+      "currency",
+      "order_id",
+      "livemode"
+    ],
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "paid": {
+        "type": "boolean",
+        "description": "`true` only when `status` is `SUCCESS`."
+      },
+      "amount": {
+        "type": "number"
+      },
+      "status": {
+        "enum": [
+          "PENDING",
+          "SUCCESS",
+          "FAILED",
+          "CANCELLED",
+          "REFUNDED"
+        ],
+        "type": "string",
+        "description": "`PENDING`: created, not confirmed yet (customer on the page, OTP pending, redirection in progress).\n`SUCCESS`: confirmed by the aggregator. `FAILED`: refused or failed at the operator, the customer can retry on the same session.\n`CANCELLED`: cancelled, no longer payable. `REFUNDED`: refunded from the dashboard.\n"
+      },
+      "currency": {
+        "type": "string"
+      },
+      "livemode": {
+        "type": "boolean",
+        "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
+      },
+      "metadata": {
+        "oneOf": [
+          {
+            "type": "object",
+            "description": "Your own free-form data, returned in webhooks. Cartflox adds `source` (`checkout_session`, `widget`, `payment_link`...) and, when relevant, `description`, `success_url`, `cancel_url` and `idempotencyKey`.",
+            "additionalProperties": true
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "order_id": {
+        "type": "string"
+      },
+      "provider": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Gateway that processed the payment."
+      },
+      "next_action": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri"
+              },
+              "type": {
+                "enum": [
+                  "otp",
+                  "ussd",
+                  "redirection"
+                ],
+                "type": "string"
+              },
+              "message": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ussd_code": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "application": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Name of the mobile application to open, when relevant."
+              }
+            },
+            "description": "What the buyer still has to do (enter a code, dial a USSD code, follow a redirection), when the provider said so only after the initiation.",
+            "additionalProperties": true
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "completed_at": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time",
+        "description": "Confirmation date, `null` until the payment succeeds."
+      },
+      "customer_name": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "customer_email": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "customer_phone": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "failure_message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Why the payment failed, as told by the provider and translated."
+      },
+      "provider_reference": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Reference at the aggregator, for your reconciliations."
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "error"
+    ],
+    "properties": {
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
+      },
+      "error": {
+        "type": "string",
+        "description": "Human-readable message."
+      }
+    },
+    "description": "Error body. `code` is present on transfer endpoints.",
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "The redirect to success_url can happen before the operator confirms: only this endpoint's status (or the webhook) is authoritative, so check it server-side before delivering.",
+    "Polling is throttled: while the session is PENDING, Cartflox re-checks the aggregator at most once every 8 seconds per session, so polling more often does not give fresher payment information.",
+    "FAILED is not a final state: the customer can retry on the same session, so a FAILED status should not cancel the order by itself."
+  ],
+  "evidence": {
+    "spans": [
+      "https://cartflox.com/api/v1/checkout/sessions/{id}/status",
+      "Only this status and the webhook are authoritative: the redirection to `success_url`",
+      "at most once every 8 seconds per",
+      "`FAILED`: refused or failed at the operator, the customer can retry on the same session."
+    ],
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "extracted_at": "2026-10-16T21:48:59.995Z",
+    "snapshot_hash": "97a65520c2c663fb",
+    "source_reference": "Full OpenAPI document"
+  }
+}
