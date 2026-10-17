@@ -3,7 +3,7 @@
   "provider_api_version": "2026-10-12",
   "capability": "get_checkout_session_status",
   "capability_type": "synchronous",
-  "status": "unverified",
+  "status": "ready",
   "currency": [
     "XOF",
     "CDF",
@@ -29,7 +29,7 @@
     "url": "https://api.saspay.me/api/v1/checkout-sessions/{id}/status/",
     "method": "GET"
   },
-  "example_prompt": "",
+  "example_prompt": "Check whether a SasPay checkout session was paid before fulfilling the order.",
   "input_schema": {},
   "response_schema": {
     "type": "object",

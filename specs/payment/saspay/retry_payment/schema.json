@@ -3,7 +3,7 @@
   "provider_api_version": "2026-10-12",
   "capability": "retry_payment",
   "capability_type": "synchronous",
-  "status": "unverified",
+  "status": "ready",
   "currency": [
     "XOF",
     "CDF",
@@ -29,7 +29,7 @@
     "url": "https://api.saspay.me/api/v1/payments/{payment_id}/retry/",
     "method": "POST"
   },
-  "example_prompt": "",
+  "example_prompt": "Let the customer retry a failed SasPay payment, optionally on another network.",
   "input_schema": {
     "type": "object",
     "properties": {

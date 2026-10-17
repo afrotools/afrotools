@@ -3,7 +3,7 @@
   "provider_api_version": "2026-10-12",
   "capability": "get_balance",
   "capability_type": "synchronous",
-  "status": "unverified",
+  "status": "ready",
   "currency": [
     "XOF",
     "CDF",
@@ -29,7 +29,7 @@
     "url": "https://api.saspay.me/api/v1/merchant-balances/{id}/",
     "method": "GET"
   },
-  "example_prompt": "",
+  "example_prompt": "Show my SasPay account balance on my admin dashboard.",
   "input_schema": {},
   "response_schema": {
     "type": "object",

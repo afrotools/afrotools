@@ -3,7 +3,7 @@
   "provider_api_version": "2026-10-12",
   "capability": "create_payment_link",
   "capability_type": "synchronous",
-  "status": "unverified",
+  "status": "ready",
   "currency": [
     "XOF",
     "CDF",
@@ -29,7 +29,7 @@
     "url": "https://api.saspay.me/api/v1/payment-links/",
     "method": "POST"
   },
-  "example_prompt": "",
+  "example_prompt": "Create a SasPay payment link I can share with customers to collect a fixed amount.",
   "input_schema": {
     "type": "object",
     "required": [

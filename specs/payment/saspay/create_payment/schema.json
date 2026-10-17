@@ -3,7 +3,7 @@
   "provider_api_version": "2026-10-12",
   "capability": "create_payment",
   "capability_type": "synchronous",
-  "status": "unverified",
+  "status": "ready",
   "currency": [
     "XOF",
     "CDF",
@@ -29,7 +29,7 @@
     "url": "https://api.saspay.me/api/v1/payments/softpay/",
     "method": "POST"
   },
-  "example_prompt": "",
+  "example_prompt": "Charge my customer by mobile money with SasPay from my checkout.",
   "input_schema": {
     "type": "object",
     "required": [

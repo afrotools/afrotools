@@ -3,7 +3,7 @@
   "provider_api_version": "2026-10-12",
   "capability": "create_checkout_session",
   "capability_type": "synchronous",
-  "status": "unverified",
+  "status": "ready",
   "currency": [
     "XOF",
     "CDF",
@@ -29,7 +29,7 @@
     "url": "https://api.saspay.me/api/v1/checkout-sessions/",
     "method": "POST"
   },
-  "example_prompt": "",
+  "example_prompt": "Add a SasPay hosted checkout page to my order flow.",
   "input_schema": {
     "type": "object",
     "required": [

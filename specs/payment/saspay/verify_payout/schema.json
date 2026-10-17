@@ -3,7 +3,7 @@
   "provider_api_version": "2026-10-12",
   "capability": "verify_payout",
   "capability_type": "synchronous",
-  "status": "unverified",
+  "status": "ready",
   "currency": [
     "XOF",
     "CDF",
@@ -29,7 +29,7 @@
     "url": "https://api.saspay.me/api/v1/payouts/{payout_id}/verify/",
     "method": "GET"
   },
-  "example_prompt": "",
+  "example_prompt": "Check whether a SasPay payout reached the beneficiary.",
   "input_schema": {},
   "response_schema": {
     "type": "object",
