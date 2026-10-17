@@ -115,6 +115,59 @@
           },
           "updated_at": {
             "type": "string"
+          },
+          "merchant_name": {
+            "type": "string"
+          },
+          "country_code": {
+            "type": "string"
+          },
+          "network_code": {
+            "type": "string"
+          },
+          "checkout_session": {
+            "type": "string",
+            "nullable": true
+          },
+          "payment_link": {
+            "type": "string",
+            "nullable": true
+          },
+          "operation_msisdn": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "amounts": {
+            "type": "object",
+            "properties": {
+              "requested": {
+                "type": "string"
+              },
+              "fee": {
+                "type": "string"
+              },
+              "charged": {
+                "type": "string"
+              },
+              "net": {
+                "type": "string"
+              },
+              "currency": {
+                "type": "string"
+              },
+              "fee_charge_mode": {
+                "type": "string"
+              }
+            }
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -150,7 +203,7 @@
     "A PENDING payment is re-checked against the gateway on each call, so the status can change between two calls.",
     "Every response is wrapped in the same envelope: read the payload from data, and on failure read error.message and error.code.",
     "Only PENDING, SUCCESS and FAILED occur in practice: CANCELLED exists in the data model but no flow reaches it today, so treat it as a non-successful terminal state without expecting it.",
-    "For accounting, never use the requested amount alone: what left the payer and what you receive depend on fee_charge_mode. On this endpoint the spec names them debited_amount and net_amount; the docs' charged field only appears in webhook payloads."
+    "For accounting, never use the requested amount alone: what left the payer and what you receive depend on fee_charge_mode. Read debited_amount and net_amount, or the amounts object (requested, fee, charged, net)."
   ],
   "evidence": {
     "spans": [

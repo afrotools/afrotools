@@ -142,6 +142,12 @@
           },
           "checkout_url": {
             "type": "string"
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

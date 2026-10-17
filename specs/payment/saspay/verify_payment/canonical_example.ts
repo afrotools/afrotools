@@ -42,6 +42,15 @@ interface VerifyPaymentResponse {
   ip_address?: string;
   created_at?: string;
   updated_at?: string;
+  merchant_name?: string;
+  country_code?: string;
+  network_code?: string;
+  checkout_session?: string | null;
+  payment_link?: string | null;
+  operation_msisdn?: string;
+  metadata?: Record<string, unknown>;
+  amounts?: { requested?: string; fee?: string; charged?: string; net?: string; currency?: string; fee_charge_mode?: string };
+  instructions?: string[];
 };
   code?: number;
 }

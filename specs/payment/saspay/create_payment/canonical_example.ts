@@ -37,6 +37,7 @@ interface CreatePaymentResponse {
   id?: string;
   status?: string;
   checkout_url?: string;
+  instructions?: string[];
 };
   code?: number;
 }
