@@ -48,6 +48,7 @@ const REQUIRED_FIELDS = [
 
 const VALID_CAPABILITY_TYPES = ["synchronous", "asynchronous", "webhook", "sdk"];
 const VALID_STATUSES = ["unverified", "draft", "ready", "verified", "deprecated", "archived"];
+const VALID_CHANNELS = ["sms", "whatsapp", "ussd", "voice", "email"];
 
 // ---------------------------------------------------------------------------
 // Cross-spec constants
@@ -86,7 +87,7 @@ const COUNTRY_CURRENCY_MAP = {
   // degrade checkCountryCurrencyCoherence's country->currency check to a console.warn (the
   // "absent de COUNTRY_CURRENCY_MAP" branch) instead of a real coherence check.
   BW: "BWP", NA: "NAD", MU: "MUR", SD: "SDG", SO: "SOS", BI: "BIF",
-  // Found live while verifying the fix above: sms/africastalking already lists LS and SZ in its
+  // Found live while verifying the fix above: communications/africastalking already lists LS and SZ in its
   // country_code[] (and correctly includes LSL/SZL in every capability's currency[]) but neither
   // was in this map — every africastalking spec logged 4 "absent de COUNTRY_CURRENCY_MAP"/
   // "absente de CURRENCY_COUNTRIES_MAP" warnings per run for no reason other than this gap.
@@ -239,6 +240,19 @@ function validateSchema(specPath) {
   }
   if (!Array.isArray(providerManifest.country_code) || providerManifest.country_code.length === 0) {
     return fail(specPath, `provider.json country_code must be a non-empty array`);
+  }
+  if (providerManifest.category === "communications" && !("channels" in providerManifest)) {
+    return fail(specPath, `provider.json missing required field: "channels" (required for category "communications")`);
+  }
+  if ("channels" in providerManifest) {
+    const channels = providerManifest.channels;
+    if (!Array.isArray(channels) || channels.length === 0) {
+      return fail(specPath, `provider.json channels must be a non-empty array`);
+    }
+    const invalid = channels.filter((c) => !VALID_CHANNELS.includes(c));
+    if (invalid.length > 0) {
+      return fail(specPath, `provider.json channels contains invalid value(s): ${invalid.join(", ")} — allowed: ${VALID_CHANNELS.join("|")}`);
+    }
   }
 
   // Required fields present

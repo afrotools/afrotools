@@ -128,3 +128,42 @@ test("unverified status with extra evidence fields fails validation", () => {
   assert.equal(code, 1);
   assert.match(stderr, /unexpected field/i);
 });
+
+test("communications provider without channels fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraProvider: { category: "communications" } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /channels/);
+});
+
+test("communications provider with valid channels passes", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraProvider: { category: "communications", channels: ["sms", "whatsapp"] } });
+  const { code } = runValidate(dir);
+  assert.equal(code, 0);
+});
+
+test("empty channels array fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraProvider: { category: "communications", channels: [] } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /non-empty array/);
+});
+
+test("channels value outside the enum fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraProvider: { category: "communications", channels: ["sms", "telegram"] } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /telegram/);
+});
+
+test("channels is optional outside communications but still validated when present", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraProvider: { channels: "sms" } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /channels must be a non-empty array/);
+});

@@ -1,7 +1,8 @@
 {
   "slug": "nimbasms",
   "name": "NimbaSMS",
-  "category": "sms",
+  "category": "communications",
+  "channels": ["sms", "whatsapp", "email"],
   "country_code": [
     "GN"
   ],
