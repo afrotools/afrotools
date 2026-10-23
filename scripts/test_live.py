@@ -295,12 +295,20 @@ def compare(actual, spec_props, required_keys=None, exclude_keys=None):
 # ── Discovery ─────────────────────────────────────────────────────────────────
 
 def discover_provider(slug):
-    for category in ("payment", "sms"):
-        d = SPECS_DIR / category / slug
-        if d.is_dir() and (d / "provider.json").exists():
-            with open(d / "provider.json") as f:
-                return d, json.load(f)
-    print(f"{RED}Provider '{slug}' not found under specs/ (no provider.json){RESET}")
+    # Categories are whatever subfolders specs/ has — no hardcoded list to keep in sync.
+    matches = sorted(
+        d for d in (c / slug for c in SPECS_DIR.iterdir() if c.is_dir())
+        if d.is_dir() and (d / "provider.json").exists()
+    )
+    if len(matches) > 1:
+        found = ", ".join(str(d.relative_to(SPECS_DIR.parent)) for d in matches)
+        print(f"{RED}Provider slug '{slug}' exists in several categories: {found}. "
+              f"Slugs must be unique across specs/ — remove or rename one.{RESET}", file=sys.stderr)
+        sys.exit(1)
+    if matches:
+        with open(matches[0] / "provider.json") as f:
+            return matches[0], json.load(f)
+    print(f"{RED}Provider '{slug}' not found under specs/ (no provider.json){RESET}", file=sys.stderr)
     sys.exit(1)
 
 

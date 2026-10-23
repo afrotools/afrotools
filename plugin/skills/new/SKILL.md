@@ -28,7 +28,7 @@ Examples:
 ```
 /afrotools:new https://docs.wave.com/business payment wave
 /afrotools:new https://developer.orange.com/apis/om-webpay-senegal payment orangemoney-senegal
-/afrotools:new ./local-api-docs.html sms nimbasms
+/afrotools:new ./local-api-docs.html communications nimbasms
 ```
 
 ---
@@ -83,7 +83,9 @@ From the docs, identify:
 - Provider display name (e.g. "Wave", "NimbaSMS")
 - Provider slug — lowercase, no spaces. Single-word providers: `wave`, `nimbasms`.
   Compound names or geographic variants may use hyphens: `orangemoney-mali`, `orangemoney-senegal`.
-- Category — `payment` or `sms` (extend only if genuinely needed)
+- Category — `payment` or `communications` (SMS, WhatsApp, USSD, voice, email providers);
+  extend only if genuinely needed. For `communications`, also list the provider's
+  `channels` — only the ones its docs clearly document (`sms`, `whatsapp`, `ussd`, `voice`, `email`)
 - Countries where the provider operates (ISO 3166-1 alpha-2 codes)
 - Currencies accepted (ISO 4217 codes) — must be coherent with country list
 - Whether a sandbox/test environment exists (boolean)
@@ -175,6 +177,9 @@ Failing to check this upfront causes cross-spec validation failures after all sp
 Field rules:
 - `slug` — exactly matches the directory name
 - `country_code` — non-empty array; use ISO 3166-1 alpha-2 codes
+- `channels` — required when `category` is `communications` (optional elsewhere): non-empty
+  array, values among `sms`, `whatsapp`, `ussd`, `voice`, `email`. Only add a channel the docs
+  clearly document — tell the user about any channel you left out because it was unclear
 - `docs_url` — use `""` if the provider has no public docs URL
 - `docs_public` — `false` if the provider restricts API documentation
 - `description` — one factual sentence; no marketing language
@@ -432,7 +437,7 @@ After validation passes, do one final read-through of all files created:
 
 5. **`provider.json` completeness** — all 10 required fields present and non-empty where required:
    `slug`, `name`, `category`, `country_code`, `website`, `docs_url`, `docs_public`, `sandbox`,
-   `description`, `example_prompt`.
+   `description`, `example_prompt` — plus `channels` for a `communications` provider.
 
 6. **No extra files** — each capability folder must contain exactly `schema.json` and
    `canonical_example.ts`. No `package.json`, no `README.md`, no test files.
