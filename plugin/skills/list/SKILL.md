@@ -15,7 +15,7 @@ Lists all specs available in the Afro.tools registry.
 ```
 /afrotools:list
 /afrotools:list payment
-/afrotools:list sms
+/afrotools:list communications
 /afrotools:list paycard
 ```
 

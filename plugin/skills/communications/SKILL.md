@@ -1,23 +1,29 @@
 ---
-name: sms
+name: communications
 description: >
-  Use this skill whenever the user wants to send SMS messages, OTPs, or bulk
-  notifications via an African SMS provider — including NimbaSMS or any provider
-  in the Afro.tools registry. Activate even for "send a verification code" or
-  "add SMS notifications", not just explicit mentions of a provider name.
+  Use this skill whenever the user wants to send SMS, OTPs, verification codes,
+  bulk notifications, WhatsApp messages, USSD menus, voice calls (voix), or
+  transactional email via an African communications provider — including
+  NimbaSMS, Africa's Talking, or any provider in the Afro.tools registry.
+  Activate even for "send a verification code", "add SMS notifications" or
+  "build a USSD menu", not just explicit mentions of a provider name.
 ---
 
-# Afro.tools — SMS skill
+# Afro.tools — Communications skill
 
 When this skill activates, use the `afrotools` MCP server to retrieve the spec
 for the target provider and capability before writing any implementation code.
 
 ## Workflow
 
-1. Identify the provider slug and capability from the user's request.
-   - Discover what's actually available with `afrotools.search_specs({ category: "sms" })`
+1. Identify the provider slug, the channel (`sms`, `whatsapp`, `ussd`, `voice`,
+   `email`) and the capability from the user's request.
+   - Discover what's actually available with `afrotools.search_specs({ category: "communications" })`
      or `afrotools.list_providers()`. Never assume a provider has (or lacks) a spec from
      memory or from a previous session — the registry grows independently of this skill.
+   - If the user needs a specific channel, keep only providers whose `channels` includes
+     it. `channels` lists what the provider offers, not which capabilities have a spec —
+     still confirm the capability itself is returned before implementing.
    - If the requested provider or capability isn't returned:
      1. Call `afrotools.request_spec({ provider: "<slug>", capability: "<capability>" })`
         so the maintainers are notified of the demand.
