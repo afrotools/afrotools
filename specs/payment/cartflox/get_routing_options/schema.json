@@ -1,0 +1,180 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-09-19",
+  "capability": "get_routing_options",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": [
+    "XOF",
+    "XAF",
+    "GHS",
+    "NGN",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "ZMW",
+    "MWK",
+    "CDF",
+    "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
+    "MAD",
+    "GNF",
+    "SLE"
+  ],
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "url": "https://cartflox.com/api/v1/route",
+    "method": "GET"
+  },
+  "example_prompt": "List the payment methods available in Senegal with PayDunya and CinetPay, and how Cartflox ranks those providers.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "country": {
+        "type": "string",
+        "description": "ISO 3166-1 alpha-2 country code. Passed as a query parameter."
+      },
+      "providers": {
+        "type": "string",
+        "description": "Comma-separated provider keys (`paydunya,cinetpay`). Passed as a query parameter."
+      },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code. Passed as a query parameter."
+      }
+    },
+    "required": [
+      "country"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "country",
+      "availableMethods",
+      "rankedProviders"
+    ],
+    "properties": {
+      "country": {
+        "type": "string"
+      },
+      "currency": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "availableMethods": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "method",
+            "providers"
+          ],
+          "properties": {
+            "method": {
+              "type": "string",
+              "description": "Payment method vocabulary of the routing engine.",
+              "enum": [
+                "card",
+                "orange-money",
+                "wave",
+                "djamo",
+                "mtn",
+                "moov",
+                "airtel",
+                "free-money",
+                "expresso",
+                "wizall",
+                "t-money",
+                "mpesa",
+                "mobile-money",
+                "crypto"
+              ]
+            },
+            "providers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "rankedProviders": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "provider",
+            "score"
+          ],
+          "properties": {
+            "provider": {
+              "type": "string"
+            },
+            "score": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": true
+        }
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "description": "Error body. `code` is present on transfer endpoints.",
+    "required": [
+      "error"
+    ],
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Human-readable message."
+      },
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
+      }
+    },
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "This endpoint does not require an API key.",
+    "A quick check, without a decision: the methods available in the country for the given providers, and the providers ranked by estimated reliability. Without providers, every provider known to Cartflox is considered.",
+    "country is required (400 otherwise); providers is a comma-separated list (paydunya,cinetpay).",
+    "The docs disagree on the routing response: the OpenAPI types rankedProviders as {provider, score} objects, availableMethods items as {method, providers} and routing as {provider, reason, alternates, confidence}, while the Multi-gateway orchestration guide shows rankedProviders as plain strings, availableMethods items with code and name, and routing as {provider, method, reason: \"best_success_rate\"}. This spec follows the OpenAPI and stays draft until a live call settles it: parse these fields defensively.",
+    "Errors are an HTTP 4xx/5xx status with a JSON body { \"error\": \"<message>\" }. Transfer endpoints add a machine-readable code, and so do some other refusals (code test_mode on payment links, rate_limited on webhook resends). A 401 says Missing API key or Invalid API Key."
+  ],
+  "evidence": {
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "source_reference": "OpenAPI 2026-09-19, paths./v1/route.get (operationId getRoutingOptions) and info.description. Passages quoted from https://cartflox.com/docs/llms-full.txt (same snapshot date): \"\"rankedProviders\": [ \"paydunya\", \"cinetpay\" ]\" | \"\"availableMethods\": [ { \"code\": \"wave\", \"name\": \"Wave\", \"providers\": [\"paydunya\", \"cinetpay\"] } ]\" | \"\"routing\": { \"provider\": \"paydunya\", \"method\": \"orange\", \"reason\": \"best_success_rate\" }\"",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
+    "spans": [
+      "This endpoint does not",
+      "require an API key.",
+      "Quick check, without a decision: the payment methods available in a country for the",
+      "given providers, and the providers ranked by estimated reliability. Without",
+      "`providers`, every provider known to Cartflox is considered.",
+      "`country` is missing.",
+      "Comma-separated provider keys (`paydunya,cinetpay`).",
+      "Human-readable explanation (French).",
+      "Errors are reported by the HTTP status code and a JSON body `{ \"error\": \"<message>\" }`.",
+      "Transfer endpoints add a machine-readable `code`.",
+      "(`code: test_mode`)",
+      "(`code: rate_limited`)",
+      "API key missing or invalid: `Missing API key` or `Invalid API Key`",
+      "/v1/route"
+    ]
+  }
+}

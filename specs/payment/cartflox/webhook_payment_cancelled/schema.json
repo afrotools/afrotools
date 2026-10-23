@@ -1,0 +1,186 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-09-19",
+  "capability": "webhook_payment_cancelled",
+  "capability_type": "webhook",
+  "status": "ready",
+  "currency": [
+    "XOF",
+    "XAF",
+    "GHS",
+    "NGN",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "ZMW",
+    "MWK",
+    "CDF",
+    "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
+    "MAD",
+    "GNF",
+    "SLE"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "X-Afriflow-Signature",
+    "format": "t={timestamp},v1={signature}",
+    "env_var": "CARTFLOX_SECRET_KEY"
+  },
+  "endpoint": {
+    "url": "https://{your-domain}/webhooks/cartflox",
+    "method": "POST"
+  },
+  "example_prompt": "Handle the Cartflox payment.cancelled webhook to release the stock of an abandoned order.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "event",
+      "livemode",
+      "data",
+      "timestamp"
+    ],
+    "properties": {
+      "event": {
+        "type": "string",
+        "enum": [
+          "payment.completed",
+          "payment.failed",
+          "payment.cancelled",
+          "payment.updated"
+        ]
+      },
+      "livemode": {
+        "type": "boolean",
+        "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
+      },
+      "data": {
+        "type": "object",
+        "required": [
+          "id",
+          "order_id",
+          "status",
+          "amount",
+          "currency"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Session identifier, the one returned at creation."
+          },
+          "order_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "`PENDING`: created, not confirmed yet (customer on the page, OTP pending, redirection in progress).\n`SUCCESS`: confirmed by the aggregator. `FAILED`: refused or failed at the operator, the customer can retry on the same session.\n`CANCELLED`: cancelled, no longer payable. `REFUNDED`: refunded from the dashboard.\n",
+            "enum": [
+              "PENDING",
+              "SUCCESS",
+              "FAILED",
+              "CANCELLED",
+              "REFUNDED"
+            ]
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "provider_reference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "customer_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "customer_email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "customer_phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metadata": {
+            "oneOf": [
+              {
+                "type": "object",
+                "description": "Your own free-form data, returned in webhooks. Cartflox adds `source` (`checkout_session`, `widget`, `payment_link`...) and, when relevant, `description`, `success_url`, `cancel_url` and `idempotencyKey`.",
+                "additionalProperties": true
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "`null` until the payment succeeds."
+          }
+        },
+        "additionalProperties": true
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "additionalProperties": true
+  },
+  "response_schema": {},
+  "error_schema": {},
+  "gotchas": [
+    "payment.cancelled: payment abandoned by the customer (page left, session expired) or cancelled by the merchant (CANCELLED status). The session can no longer be paid.",
+    "This event was added on September 19, 2026: webhooks configured before that date only receive it once it is ticked in API and Logs, even though the configuration page says an absent or complete events list means all of them. Check events with GET /v1/config/webhook.",
+    "Verify every delivery before acting on it: X-Afriflow-Signature is t=<timestamp>,v1=<hex>; v1 is the HMAC-SHA256, keyed with your secret key, of <timestamp>.<raw body>, with X-Afriflow-Timestamp as the timestamp. Use the raw body exactly as received, compare in constant time, reject a timestamp more than 5 minutes old, and verify with the key of the same mode as the event (livemode).",
+    "The webhook headers use the X-Afriflow- prefix, not X-Cartflox-. X-Afriflow-Delivery is the delivery id, identical from one attempt to the next: deduplicate on it, or on data.id and data.status.",
+    "Respond 2xx within 10 seconds and process afterwards: without a 2xx the delivery is retried, 10 attempts over roughly 72 hours, so the same event can arrive twice. The address and the signing key are read again at every attempt."
+  ],
+  "evidence": {
+    "source_url": "https://cartflox.com/docs/llms-full.txt",
+    "source_reference": "Cartflox documentation bundle (English pages). Request and payload schemas: OpenAPI 2026-09-19, webhooks.payment.cancelled.post, components.parameters (X-Afriflow-* headers) and info.description in https://cartflox.com/docs/openapi.json",
+    "extracted_at": "2026-10-23T23:30:33.106Z",
+    "snapshot_hash": "e5dca3a82d4847ef05c19be1aba966127cc337714695192b4548daec3de24331",
+    "spans": [
+      "Payment abandoned by the customer (page left, session expired) or cancelled by the merchant (`CANCELLED` status).",
+      "Event added on September 19, 2026: webhooks configured before that date only receive it once ticked in API and Logs.",
+      "Absent or complete: all of them.",
+      "| `X-Afriflow-Timestamp` | Unix timestamp (seconds) of the delivery |",
+      "Get the **raw** request body, exactly as received (not the JSON parsed and then re-serialized).",
+      "Concatenate `<timestamp>.<raw body>`.",
+      "Compare in constant time with the `v1` value of the header. Reject if the timestamp is more than 5 minutes old (replay protection).",
+      "Verify the signature with the key of the same world as the event (`livemode`).",
+      "`X-Afriflow-Delivery` (the delivery identifier, identical from one attempt to the next)",
+      "Idempotent processing keyed on `X-Afriflow-Delivery`, or on `data.id` and `data.status`, protects you from duplicates.",
+      "The address and the signing key are read again at every attempt",
+      "Timeout: 10 seconds. Respond 2xx immediately and process afterwards.",
+      "Your server has 10 seconds to respond. Without a 2xx response, the delivery is retried on this schedule, 10 attempts over roughly 72 hours:",
+      "payment.cancelled"
+    ]
+  }
+}

@@ -1,0 +1,351 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-09-19",
+  "capability": "list_transfers",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XOF",
+    "XAF",
+    "GHS",
+    "NGN",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "ZMW",
+    "MWK",
+    "CDF",
+    "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
+    "MAD",
+    "GNF",
+    "SLE"
+  ],
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "CARTFLOX_SECRET_KEY"
+  },
+  "endpoint": {
+    "url": "https://cartflox.com/api/v1/transfers",
+    "method": "GET"
+  },
+  "example_prompt": "List my processing Cartflox transfers, or the countries and operators my workspace can send money to.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "options": {
+        "type": "string",
+        "description": "Set to `1` to get the countries and operators instead of the list. Passed as a query parameter."
+      },
+      "status": {
+        "type": "string",
+        "description": "Passed as a query parameter.",
+        "enum": [
+          "pending",
+          "processing",
+          "succeeded",
+          "failed"
+        ]
+      },
+      "limit": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 200,
+        "default": 50,
+        "description": "Number of transfers (1 to 200). Passed as a query parameter."
+      }
+    }
+  },
+  "response_schema": {
+    "oneOf": [
+      {
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "reference",
+                "status",
+                "amount",
+                "currency",
+                "fee",
+                "country",
+                "operator",
+                "phone",
+                "livemode",
+                "created"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Cartflox identifier."
+                },
+                "reference": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Cartflox reference, sent to the provider. Also accepted by `GET /v1/transfers/{id}`."
+                },
+                "status": {
+                  "type": "string",
+                  "description": "`pending`: created, not handed to the provider yet. `processing`: handed to the provider, the operator is processing it (the most frequent state right after the call).\n`succeeded`: the money reached the recipient, `completed` carries the date. `failed`: refused by the operator or the provider, `failure` says why, nothing was debited.\n",
+                  "enum": [
+                    "pending",
+                    "processing",
+                    "succeeded",
+                    "failed"
+                  ]
+                },
+                "amount": {
+                  "type": "number"
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "fee": {
+                  "type": "number",
+                  "description": "Cartflox fee. `0` with your own gateway keys."
+                },
+                "country": {
+                  "type": "string"
+                },
+                "operator": {
+                  "type": "string",
+                  "description": "Cartflox operator code (`orange_money`...)."
+                },
+                "provider_operator": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Operator code as the provider names it (`ORANGE_CIV`)."
+                },
+                "phone": {
+                  "type": "string",
+                  "description": "Digits only, country code included (`2250712345678`)."
+                },
+                "recipient_name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "provider": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Gateway that carries the transfer (`PawaPay`...)."
+                },
+                "provider_reference": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Reference at the provider, when it differs from `reference`."
+                },
+                "failure": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "properties": {
+                        "code": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "message": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "additionalProperties": true
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Set when `status` is `failed`."
+                },
+                "idempotency_key": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "livemode": {
+                  "type": "boolean",
+                  "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
+                },
+                "created": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "completed": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "count": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": true
+      },
+      {
+        "type": "object",
+        "required": [
+          "countries"
+        ],
+        "properties": {
+          "countries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "name",
+                "currency",
+                "operators"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "operators": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "code",
+                      "name",
+                      "provider"
+                    ],
+                    "properties": {
+                      "code": {
+                        "type": "string",
+                        "description": "Cartflox operator vocabulary, common to every provider. Usual aliases (`mtn`, `orange`, `moov`, `MTN_MOMO_CIV`...) are accepted on input.",
+                        "enum": [
+                          "orange_money",
+                          "mtn_money",
+                          "moov_money",
+                          "wave",
+                          "free_money",
+                          "emoney",
+                          "expresso",
+                          "djamo",
+                          "tmoney",
+                          "celtiis",
+                          "mpesa",
+                          "airtel_money",
+                          "tigo_pesa",
+                          "halopesa",
+                          "vodacom",
+                          "zamtel",
+                          "vodafone_cash",
+                          "airtel_tigo",
+                          "express_union",
+                          "mobicash"
+                        ]
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "provider": {
+                        "type": "string",
+                        "description": "Gateway that will carry the transfer."
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                }
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    ]
+  },
+  "error_schema": {
+    "type": "object",
+    "description": "Error body. `code` is present on transfer endpoints.",
+    "required": [
+      "error"
+    ],
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Human-readable message."
+      },
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
+      }
+    },
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "Two shapes: without options, the latest transfers newest first ({ data, count }); with options=1, the countries, currencies and operators the workspace can send to (TransferOptions).",
+    "limit is 1 to 200, 50 by default.",
+    "Secret key only: a public key gets 401 code unauthorized.",
+    "Errors are an HTTP 4xx/5xx status with a JSON body { \"error\": \"<message>\" }. Transfer endpoints add a machine-readable code, and so do some other refusals (code test_mode on payment links, rate_limited on webhook resends). A 401 says Missing API key or Invalid API Key."
+  ],
+  "evidence": {
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "source_reference": "OpenAPI 2026-09-19, paths./v1/transfers.get (operationId listTransfers) and info.description",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
+    "spans": [
+      "Without `options`, the latest transfers of the workspace, newest first, filterable by",
+      "status. With `options=1`, the countries, currencies and operators the workspace can",
+      "send to, given its gateways (the shape of the response is then `TransferOptions`).",
+      "Number of transfers (1 to 200).",
+      "Key missing, invalid, or public key (`code: unauthorized`).",
+      "Errors are reported by the HTTP status code and a JSON body `{ \"error\": \"<message>\" }`.",
+      "Transfer endpoints add a machine-readable `code`.",
+      "(`code: test_mode`)",
+      "(`code: rate_limited`)",
+      "API key missing or invalid: `Missing API key` or `Invalid API Key`",
+      "/v1/transfers"
+    ]
+  }
+}

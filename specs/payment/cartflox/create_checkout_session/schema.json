@@ -1,43 +1,41 @@
 {
   "spec_version": "1.0",
-  "provider_api_version": "2026-10-16",
+  "provider_api_version": "2026-09-19",
   "capability": "create_checkout_session",
   "capability_type": "synchronous",
-  "status": "unverified",
+  "status": "ready",
   "currency": [
     "XOF",
+    "XAF",
     "GHS",
     "NGN",
-    "GNF",
-    "SLE",
-    "GMD",
-    "MRU",
-    "XAF",
-    "CDF",
     "KES",
     "TZS",
     "UGX",
     "RWF",
-    "BIF",
     "ZMW",
+    "MWK",
+    "CDF",
     "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
     "MAD",
-    "TND",
-    "DZD",
-    "EGP"
+    "GNF",
+    "SLE"
   ],
   "auth": {
     "type": "bearer",
-    "format": "Bearer {token}",
-    "header": "Authorization",
     "location": "header",
-    "env_var": "CARTFLOX_API_KEY"
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "CARTFLOX_SECRET_KEY"
   },
   "endpoint": {
     "url": "https://cartflox.com/api/v1/checkout/sessions",
     "method": "POST"
   },
-  "example_prompt": "Create a checkout session for my customer.",
+  "example_prompt": "Create a 5,000 XOF Cartflox checkout session for order 1042 and redirect the customer to the hosted payment page.",
   "input_schema": {
     "type": "object",
     "required": [
@@ -46,12 +44,14 @@
     "properties": {
       "amount": {
         "type": "number",
-        "description": "Amount, a whole positive number for currencies without minor units (5000 for 5 000 XOF).",
-        "exclusiveMinimum": 0
+        "exclusiveMinimum": 0,
+        "description": "Amount, a whole positive number for currencies without minor units (5000 for 5 000 XOF)."
       },
       "currency": {
         "allOf": [
           {
+            "type": "string",
+            "description": "ISO 4217 code. Accepted currencies are listed in the introduction. Amounts are whole numbers for currencies without minor units (XOF, XAF, GNF, UGX, RWF, CDF, MGA, KMF, DJF, BIF).",
             "enum": [
               "XOF",
               "XAF",
@@ -78,22 +78,23 @@
               "USD",
               "EUR",
               "GBP"
-            ],
-            "type": "string",
-            "description": "ISO 4217 code. Accepted currencies are listed in the introduction. Amounts are whole numbers for currencies without minor units (XOF, XAF, GNF, UGX, RWF, CDF, MGA, KMF, DJF, BIF)."
+            ]
           }
         ],
         "default": "XOF"
       },
-      "metadata": {
-        "type": "object",
-        "description": "Your own free-form data, returned in webhooks. Cartflox adds `source` (`checkout_session`, `widget`, `payment_link`...) and, when relevant, `description`, `success_url`, `cancel_url` and `idempotencyKey`.",
-        "additionalProperties": true
-      },
-      "cancel_url": {
+      "customer_name": {
         "type": "string",
-        "format": "uri",
-        "description": "Return address when the customer gives up."
+        "description": "Customer name, pre-filled on the payment page."
+      },
+      "customer_email": {
+        "type": "string",
+        "format": "email",
+        "description": "Customer e-mail (payment receipt)."
+      },
+      "customer_phone": {
+        "type": "string",
+        "description": "Phone number in E.164 international format (`+2250700000000`), pre-filled for Mobile Money."
       },
       "description": {
         "type": "string",
@@ -104,28 +105,25 @@
         "format": "uri",
         "description": "Return address after a successful payment."
       },
-      "customer_name": {
-        "type": "string",
-        "description": "Customer name, pre-filled on the payment page."
-      },
-      "merchant_logo": {
+      "cancel_url": {
         "type": "string",
         "format": "uri",
-        "description": "`https` address of a logo shown instead of the workspace logo (PNG, JPG or SVG). Non-https values are ignored."
+        "description": "Return address when the customer gives up."
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Your own free-form data, returned in webhooks. Cartflox adds `source` (`checkout_session`, `widget`, `payment_link`...) and, when relevant, `description`, `success_url`, `cancel_url` and `idempotencyKey`.",
+        "additionalProperties": true
       },
       "merchant_name": {
         "type": "string",
         "maxLength": 60,
         "description": "Name shown at the top of the payment page instead of the workspace name (60 characters at most). Useful to platforms collecting for several brands."
       },
-      "customer_email": {
+      "merchant_logo": {
         "type": "string",
-        "format": "email",
-        "description": "Customer e-mail (payment receipt)."
-      },
-      "customer_phone": {
-        "type": "string",
-        "description": "Phone number in E.164 international format (`+2250700000000`), pre-filled for Mobile Money."
+        "format": "uri",
+        "description": "`https` address of a logo shown instead of the workspace logo (PNG, JPG or SVG). Non-https values are ignored."
       }
     },
     "additionalProperties": true
@@ -148,81 +146,121 @@
         "type": "string",
         "description": "Session identifier. Keep it to follow the payment."
       },
+      "object": {
+        "type": "string",
+        "const": "checkout.session"
+      },
       "url": {
         "type": "string",
         "format": "uri",
         "description": "Hosted payment page. Redirect your customer here."
       },
+      "order_id": {
+        "type": "string",
+        "description": "Readable Cartflox reference (`CS-...`)."
+      },
       "amount": {
         "type": "number",
         "description": "Amount the payer is asked for. On a Connect workspace with \"fees charged to the customer\", it is the requested amount plus the gateway fee."
       },
-      "object": {
-        "type": "string",
-        "const": "checkout.session"
+      "currency": {
+        "type": "string"
       },
       "status": {
+        "type": "string",
+        "description": "`pending` at creation. On an idempotent replay, the current status in lower case.",
         "enum": [
           "pending",
           "success",
           "failed",
           "cancelled",
           "refunded"
-        ],
-        "type": "string",
-        "description": "`pending` at creation. On an idempotent replay, the current status in lower case."
-      },
-      "created": {
-        "type": "string",
-        "format": "date-time"
-      },
-      "currency": {
-        "type": "string"
+        ]
       },
       "livemode": {
         "type": "boolean",
         "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
       },
-      "order_id": {
+      "created": {
         "type": "string",
-        "description": "Readable Cartflox reference (`CS-...`)."
+        "format": "date-time"
       }
     },
     "additionalProperties": true
   },
   "error_schema": {
     "type": "object",
+    "description": "Error body. `code` is present on transfer endpoints.",
     "required": [
       "error"
     ],
     "properties": {
-      "code": {
-        "type": "string",
-        "description": "Machine-readable code (transfers)."
-      },
       "error": {
         "type": "string",
         "description": "Human-readable message."
+      },
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
       }
     },
-    "description": "Error body. `code` is present on transfer endpoints.",
     "additionalProperties": true
   },
   "gotchas": [
-    "Retrying a session creation with the same Idempotency-Key returns the existing session with HTTP 200 and an Idempotent-Replayed: true header instead of creating a second session, so send one unique key per order and treat the 200 replay as the same session.",
-    "The amount is a whole positive number for XOF and other currencies without minor units: 5000 means 5,000 XOF, not 50.00.",
-    "A session created with a test key, or in a workspace not yet switched live, is a test transaction even if the key is live; check the livemode field of the response before treating the payment as real."
+    "Create the session server-side and redirect the customer to url, the hosted payment page, which handles the operator choice, the Wave redirection, Orange Money OTP codes and card payments.",
+    "Never fulfil the order on the redirection to success_url: wait for the payment.completed webhook or check GET /v1/checkout/sessions/{id}/status server-side.",
+    "Send an Idempotency-Key header (a unique string per order or per transfer, 120 characters at most for transfers): replaying the call returns the existing object with HTTP 200 and Idempotent-Replayed: true instead of creating a second one, so treat that 200 as the same object.",
+    "amount is a whole number for currencies without minor units (XOF, XAF, GNF, UGX, RWF, CDF, MGA, KMF, DJF, BIF): 5000 means 5,000 XOF. currency defaults to XOF when omitted.",
+    "Amount units are explicit only for currencies without minor units (XOF, XAF, GNF, UGX, RWF, CDF, MGA, KMF, DJF, BIF: whole numbers, 5000 = 5,000 XOF). For the other currencies (NGN, KES, GHS, USD...) the OpenAPI does not say whether amount is in major or minor units, and the guide only says amounts are integers in the smallest common unit with an XOF example: confirm with Cartflox before going live.",
+    "Accepted currencies: XOF, XAF, GHS, NGN, KES, TZS, UGX, RWF, ZMW, MWK, CDF, ETB, MZN, ZAR, EGP, MAD, GNF, SLE, LRD, GMD, MGA, MUR, USD, EUR, GBP. currency[] in this spec lists only the currencies of the African countries named in the Supported gateways table; the API accepts the others too.",
+    "The response status is lower case (pending at creation, the current status in lower case on an idempotent replay), while the status endpoint and the webhooks use upper case (PENDING, SUCCESS, FAILED, CANCELLED, REFUNDED): normalise before comparing.",
+    "order_id (data.order_id in payment webhooks) is Cartflox's readable reference (CS-...), not your order number: put your own order id in the session metadata, which comes back in the webhook (Cartflox also adds keys such as source).",
+    "A session created with a test key is a test transaction (livemode: false). For a workspace whose identity is not verified yet the docs disagree: the OpenAPI says any of its sessions is a test session whatever the key, while the Test mode and Error codes pages say only test keys exist and a production key answers 403 identity_unverified. Handle both: check livemode, and treat 403 identity_unverified as not live yet.",
+    "This endpoint also accepts the public key (widget), which can do nothing else; keep the secret key server-side.",
+    "merchant_logo must be an https URL (non-https values are ignored) and merchant_name is 60 characters at most.",
+    "On a Connect workspace with fees charged to the customer, the amount in the response is the requested amount plus the gateway fee.",
+    "Rate limit: 60 sessions per minute per IP; a 429 carries a Retry-After header in seconds.",
+    "There is no separate sandbox host: the same base URL serves production and test, and the key decides. An object created with a test key is a test object (livemode: false), no aggregator is called, and test data is purged after 90 days; check livemode before treating anything as real money.",
+    "Errors are an HTTP 4xx/5xx status with a JSON body { \"error\": \"<message>\" }. Transfer endpoints add a machine-readable code, and so do some other refusals (code test_mode on payment links, rate_limited on webhook resends). A 401 says Missing API key or Invalid API Key."
   ],
   "evidence": {
-    "spans": [
-      "https://cartflox.com/api/v1/checkout/sessions",
-      "A unique string per order or per transfer. A replayed call returns the existing object with HTTP `200` and `Idempotent-Replayed: true`.",
-      "Amount, a whole positive number for currencies without minor units (5000 for 5 000 XOF).",
-      "A session created with a test key is a test transaction (`livemode: false`)"
-    ],
     "source_url": "https://cartflox.com/docs/openapi.json",
-    "extracted_at": "2026-10-16T21:48:59.995Z",
-    "snapshot_hash": "97a65520c2c663fb",
-    "source_reference": "Full OpenAPI document"
+    "source_reference": "OpenAPI 2026-09-19, paths./v1/checkout/sessions.post (operationId createCheckoutSession) and info.description. Passages quoted from https://cartflox.com/docs/llms-full.txt (same snapshot date): \"Amounts are integers in the smallest common unit of the currency: `5000` means 5,000 XOF.\" | \"only test keys exist: a production key would answer `403` with the code `identity_unverified`.\"",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
+    "spans": [
+      "Create it server-side, then redirect your customer to",
+      "`url`, the hosted payment page, which handles the operator choice, the Wave",
+      "redirection, Orange Money OTP codes and card payments.",
+      "Never fulfil an order on the sole basis of the redirection to `success_url`: wait",
+      "for the `payment.completed` webhook or check the status server-side.",
+      "A unique string per order or per transfer. A replayed call returns the existing object with HTTP `200` and `Idempotent-Replayed: true`. Kept at 120 characters at most for transfers.",
+      "Amounts are whole numbers for currencies without minor units (XOF, XAF, GNF, UGX, RWF, CDF, MGA, KMF, DJF, BIF).",
+      "\"default\": \"XOF\"",
+      "XOF, XAF, GHS, NGN, KES, TZS, UGX, RWF, ZMW, MWK, CDF, ETB, MZN, ZAR, EGP, MAD, GNF, SLE,",
+      "LRD, GMD, MGA, MUR, USD, EUR, GBP.",
+      "`pending` at creation. On an idempotent replay, the current status in lower case.",
+      "`PENDING`: created, not confirmed yet",
+      "Readable Cartflox reference (`CS-...`).",
+      "Your own free-form data, returned in webhooks. Cartflox adds `source` (`checkout_session`, `widget`, `payment_link`...)",
+      "A session created with a test key is a test transaction (`livemode: false`); so is any",
+      "session of a workspace not switched live yet (identity not verified), whatever the key.",
+      "Accepts the secret key, or the public key (widget) which can do nothing else.",
+      "Non-https values are ignored.",
+      "(60 characters at most)",
+      "On a Connect workspace with \"fees charged to the customer\", it is the requested amount plus the gateway fee.",
+      "More than 60 sessions per minute from this IP.",
+      "`POST /v1/checkout/sessions`\nalso sets a `Retry-After` header (seconds).",
+      "Same API, same routes. A session created with a test key is a **test transaction**: no",
+      "aggregator is called",
+      "it is purged after 90 days. Every object response (session, status, transfer, webhook",
+      "delivery) and every webhook body carries `\"livemode\": true|false`.",
+      "Errors are reported by the HTTP status code and a JSON body `{ \"error\": \"<message>\" }`.",
+      "Transfer endpoints add a machine-readable `code`.",
+      "(`code: test_mode`)",
+      "(`code: rate_limited`)",
+      "API key missing or invalid: `Missing API key` or `Invalid API Key`",
+      "/v1/checkout/sessions"
+    ]
   }
 }

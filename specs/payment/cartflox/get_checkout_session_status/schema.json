@@ -1,44 +1,53 @@
 {
   "spec_version": "1.0",
-  "provider_api_version": "2026-10-16",
+  "provider_api_version": "2026-09-19",
   "capability": "get_checkout_session_status",
   "capability_type": "synchronous",
-  "status": "unverified",
+  "status": "ready",
   "currency": [
     "XOF",
+    "XAF",
     "GHS",
     "NGN",
-    "GNF",
-    "SLE",
-    "GMD",
-    "MRU",
-    "XAF",
-    "CDF",
     "KES",
     "TZS",
     "UGX",
     "RWF",
-    "BIF",
     "ZMW",
+    "MWK",
+    "CDF",
     "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
     "MAD",
-    "TND",
-    "DZD",
-    "EGP"
+    "GNF",
+    "SLE"
   ],
   "auth": {
     "type": "bearer",
-    "format": "Bearer {token}",
-    "header": "Authorization",
     "location": "header",
-    "env_var": "CARTFLOX_API_KEY"
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "CARTFLOX_SECRET_KEY"
   },
   "endpoint": {
     "url": "https://cartflox.com/api/v1/checkout/sessions/{id}/status",
     "method": "GET"
   },
-  "example_prompt": "What is the status of checkout session {id}?",
-  "input_schema": {},
+  "example_prompt": "Check server-side whether Cartflox checkout session cmf3k2p1x0001abcd9e8f7g6h is paid before delivering the order.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Session identifier returned at creation. Passed as a path parameter."
+      }
+    },
+    "required": [
+      "id"
+    ]
+  },
   "response_schema": {
     "type": "object",
     "required": [
@@ -54,6 +63,20 @@
       "id": {
         "type": "string"
       },
+      "order_id": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "description": "`PENDING`: created, not confirmed yet (customer on the page, OTP pending, redirection in progress).\n`SUCCESS`: confirmed by the aggregator. `FAILED`: refused or failed at the operator, the customer can retry on the same session.\n`CANCELLED`: cancelled, no longer payable. `REFUNDED`: refunded from the dashboard.\n",
+        "enum": [
+          "PENDING",
+          "SUCCESS",
+          "FAILED",
+          "CANCELLED",
+          "REFUNDED"
+        ]
+      },
       "paid": {
         "type": "boolean",
         "description": "`true` only when `status` is `SUCCESS`."
@@ -61,37 +84,7 @@
       "amount": {
         "type": "number"
       },
-      "status": {
-        "enum": [
-          "PENDING",
-          "SUCCESS",
-          "FAILED",
-          "CANCELLED",
-          "REFUNDED"
-        ],
-        "type": "string",
-        "description": "`PENDING`: created, not confirmed yet (customer on the page, OTP pending, redirection in progress).\n`SUCCESS`: confirmed by the aggregator. `FAILED`: refused or failed at the operator, the customer can retry on the same session.\n`CANCELLED`: cancelled, no longer payable. `REFUNDED`: refunded from the dashboard.\n"
-      },
       "currency": {
-        "type": "string"
-      },
-      "livemode": {
-        "type": "boolean",
-        "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
-      },
-      "metadata": {
-        "oneOf": [
-          {
-            "type": "object",
-            "description": "Your own free-form data, returned in webhooks. Cartflox adds `source` (`checkout_session`, `widget`, `payment_link`...) and, when relevant, `description`, `success_url`, `cancel_url` and `idempotencyKey`.",
-            "additionalProperties": true
-          },
-          {
-            "type": "null"
-          }
-        ]
-      },
-      "order_id": {
         "type": "string"
       },
       "provider": {
@@ -101,28 +94,36 @@
         ],
         "description": "Gateway that processed the payment."
       },
+      "provider_reference": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Reference at the aggregator, for your reconciliations."
+      },
+      "failure_message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Why the payment failed, as told by the provider and translated."
+      },
       "next_action": {
         "oneOf": [
           {
             "type": "object",
+            "description": "What the buyer still has to do (enter a code, dial a USSD code, follow a redirection), when the provider said so only after the initiation.",
             "required": [
               "type"
             ],
             "properties": {
-              "url": {
-                "type": [
-                  "string",
-                  "null"
-                ],
-                "format": "uri"
-              },
               "type": {
+                "type": "string",
                 "enum": [
                   "otp",
                   "ussd",
                   "redirection"
-                ],
-                "type": "string"
+                ]
               },
               "message": {
                 "type": [
@@ -136,6 +137,13 @@
                   "null"
                 ]
               },
+              "url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri"
+              },
               "application": {
                 "type": [
                   "string",
@@ -144,21 +152,12 @@
                 "description": "Name of the mobile application to open, when relevant."
               }
             },
-            "description": "What the buyer still has to do (enter a code, dial a USSD code, follow a redirection), when the provider said so only after the initiation.",
             "additionalProperties": true
           },
           {
             "type": "null"
           }
         ]
-      },
-      "completed_at": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "format": "date-time",
-        "description": "Confirmation date, `null` until the payment succeeds."
       },
       "customer_name": {
         "type": [
@@ -178,56 +177,90 @@
           "null"
         ]
       },
-      "failure_message": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "description": "Why the payment failed, as told by the provider and translated."
+      "metadata": {
+        "oneOf": [
+          {
+            "type": "object",
+            "description": "Your own free-form data, returned in webhooks. Cartflox adds `source` (`checkout_session`, `widget`, `payment_link`...) and, when relevant, `description`, `success_url`, `cancel_url` and `idempotencyKey`.",
+            "additionalProperties": true
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
-      "provider_reference": {
+      "completed_at": {
         "type": [
           "string",
           "null"
         ],
-        "description": "Reference at the aggregator, for your reconciliations."
+        "format": "date-time",
+        "description": "Confirmation date, `null` until the payment succeeds."
+      },
+      "livemode": {
+        "type": "boolean",
+        "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
       }
     },
     "additionalProperties": true
   },
   "error_schema": {
     "type": "object",
+    "description": "Error body. `code` is present on transfer endpoints.",
     "required": [
       "error"
     ],
     "properties": {
-      "code": {
-        "type": "string",
-        "description": "Machine-readable code (transfers)."
-      },
       "error": {
         "type": "string",
         "description": "Human-readable message."
+      },
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
       }
     },
-    "description": "Error body. `code` is present on transfer endpoints.",
     "additionalProperties": true
   },
   "gotchas": [
-    "The redirect to success_url can happen before the operator confirms: only this endpoint's status (or the webhook) is authoritative, so check it server-side before delivering.",
-    "Polling is throttled: while the session is PENDING, Cartflox re-checks the aggregator at most once every 8 seconds per session, so polling more often does not give fresher payment information.",
-    "FAILED is not a final state: the customer can retry on the same session, so a FAILED status should not cancel the order by itself."
+    "Only this status and the webhook are authoritative: the redirection to success_url can happen before the operator confirms, so check here before delivering.",
+    "paid is true only when status is SUCCESS.",
+    "FAILED is not final: the customer can retry on the same session, so do not cancel the order on FAILED alone. CANCELLED means no longer payable; REFUNDED is set from the dashboard.",
+    "While the session is PENDING, Cartflox also checks the payment with the aggregator, at most once every 8 seconds per session.",
+    "next_action tells what the buyer still has to do (otp, ussd or redirection) when the provider said so only after the initiation.",
+    "Use it to catch up on a missed webhook too. A 404 means the session is not found or not owned by this workspace.",
+    "Accepts the secret key or the public key. A test key only reads test sessions and a production key only production ones, so read the status with a key of the same mode as the session.",
+    "There is no separate sandbox host: the same base URL serves production and test, and the key decides. An object created with a test key is a test object (livemode: false), no aggregator is called, and test data is purged after 90 days; check livemode before treating anything as real money.",
+    "Errors are an HTTP 4xx/5xx status with a JSON body { \"error\": \"<message>\" }. Transfer endpoints add a machine-readable code, and so do some other refusals (code test_mode on payment links, rate_limited on webhook resends). A 401 says Missing API key or Invalid API Key."
   ],
   "evidence": {
-    "spans": [
-      "https://cartflox.com/api/v1/checkout/sessions/{id}/status",
-      "Only this status and the webhook are authoritative: the redirection to `success_url`",
-      "at most once every 8 seconds per",
-      "`FAILED`: refused or failed at the operator, the customer can retry on the same session."
-    ],
     "source_url": "https://cartflox.com/docs/openapi.json",
-    "extracted_at": "2026-10-16T21:48:59.995Z",
-    "snapshot_hash": "97a65520c2c663fb",
-    "source_reference": "Full OpenAPI document"
+    "source_reference": "OpenAPI 2026-09-19, paths./v1/checkout/sessions/{id}/status.get (operationId getCheckoutSessionStatus) and info.description. Passages quoted from https://cartflox.com/docs/llms-full.txt (same snapshot date): \"A test key only reads test sessions, and the other way round.\"",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
+    "spans": [
+      "Only this status and the webhook are authoritative: the redirection to `success_url`",
+      "can happen before the operator confirms.",
+      "`true` only when `status` is `SUCCESS`.",
+      "`FAILED`: refused or failed at the operator, the customer can retry on the same session.",
+      "`CANCELLED`: cancelled, no longer payable. `REFUNDED`: refunded from the dashboard.",
+      "While the session is `PENDING`, Cartflox also",
+      "checks the payment directly with the aggregator (at most once every 8 seconds per",
+      "session).",
+      "What the buyer still has to do (enter a code, dial a USSD code, follow a redirection), when the provider said so only after the initiation.",
+      "or to catch up on a missed webhook.",
+      "Session not found, or not owned by this workspace.",
+      "Accepts the secret key or the public key.",
+      "Same API, same routes. A session created with a test key is a **test transaction**: no",
+      "aggregator is called",
+      "it is purged after 90 days. Every object response (session, status, transfer, webhook",
+      "delivery) and every webhook body carries `\"livemode\": true|false`.",
+      "Errors are reported by the HTTP status code and a JSON body `{ \"error\": \"<message>\" }`.",
+      "Transfer endpoints add a machine-readable `code`.",
+      "(`code: test_mode`)",
+      "(`code: rate_limited`)",
+      "API key missing or invalid: `Missing API key` or `Invalid API Key`",
+      "/v1/checkout/sessions/{id}/status"
+    ]
   }
 }

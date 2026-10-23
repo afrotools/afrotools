@@ -1,0 +1,330 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-09-19",
+  "capability": "route_payment",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "currency": [
+    "XOF",
+    "XAF",
+    "GHS",
+    "NGN",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "ZMW",
+    "MWK",
+    "CDF",
+    "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
+    "MAD",
+    "GNF",
+    "SLE"
+  ],
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "CARTFLOX_SECRET_KEY"
+  },
+  "endpoint": {
+    "url": "https://cartflox.com/api/v1/route",
+    "method": "POST"
+  },
+  "example_prompt": "Ask Cartflox which of my aggregators (PayDunya or CinetPay) should carry a 5,000 XOF payment from a Senegal number.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "country",
+      "amount",
+      "availableProviders"
+    ],
+    "properties": {
+      "country": {
+        "type": "string",
+        "description": "ISO 3166-1 alpha-2 country code."
+      },
+      "currency": {
+        "type": "string"
+      },
+      "amount": {
+        "type": "number"
+      },
+      "paymentMethod": {
+        "type": "string",
+        "description": "Payment method vocabulary of the routing engine.",
+        "enum": [
+          "card",
+          "orange-money",
+          "wave",
+          "djamo",
+          "mtn",
+          "moov",
+          "airtel",
+          "free-money",
+          "expresso",
+          "wizall",
+          "t-money",
+          "mpesa",
+          "mobile-money",
+          "crypto"
+        ]
+      },
+      "phone": {
+        "type": "string",
+        "description": "Customer number; the operator is inferred from its prefix when `paymentMethod` is absent."
+      },
+      "availableProviders": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "string",
+          "description": "Aggregator key as known by the routing engine.",
+          "enum": [
+            "paydunya",
+            "pawapay",
+            "flutterwave",
+            "feexpay",
+            "paystack",
+            "cinetpay",
+            "stripe",
+            "kkiapay",
+            "coinbase",
+            "fedapay",
+            "notchpay",
+            "cryptomus",
+            "qosic",
+            "monetbill",
+            "payplus",
+            "hub2",
+            "lengopay",
+            "wave",
+            "paytech",
+            "onepay",
+            "djamo",
+            "ipay"
+          ]
+        },
+        "description": "Candidate gateways."
+      },
+      "preferredProvider": {
+        "type": "string",
+        "description": "Aggregator key as known by the routing engine.",
+        "enum": [
+          "paydunya",
+          "pawapay",
+          "flutterwave",
+          "feexpay",
+          "paystack",
+          "cinetpay",
+          "stripe",
+          "kkiapay",
+          "coinbase",
+          "fedapay",
+          "notchpay",
+          "cryptomus",
+          "qosic",
+          "monetbill",
+          "payplus",
+          "hub2",
+          "lengopay",
+          "wave",
+          "paytech",
+          "onepay",
+          "djamo",
+          "ipay"
+        ]
+      }
+    },
+    "additionalProperties": true
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "routing",
+      "detectedOperator",
+      "availableMethods",
+      "rankedProviders"
+    ],
+    "properties": {
+      "routing": {
+        "type": "object",
+        "required": [
+          "provider",
+          "reason",
+          "alternates",
+          "confidence"
+        ],
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Human-readable explanation (French)."
+          },
+          "alternates": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Fallback providers, in order."
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "additionalProperties": true
+      },
+      "detectedOperator": {
+        "oneOf": [
+          {
+            "type": "string",
+            "description": "Payment method vocabulary of the routing engine.",
+            "enum": [
+              "card",
+              "orange-money",
+              "wave",
+              "djamo",
+              "mtn",
+              "moov",
+              "airtel",
+              "free-money",
+              "expresso",
+              "wizall",
+              "t-money",
+              "mpesa",
+              "mobile-money",
+              "crypto"
+            ]
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "description": "Operator inferred from `phone`, or `null`."
+      },
+      "availableMethods": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "method",
+            "providers"
+          ],
+          "properties": {
+            "method": {
+              "type": "string",
+              "description": "Payment method vocabulary of the routing engine.",
+              "enum": [
+                "card",
+                "orange-money",
+                "wave",
+                "djamo",
+                "mtn",
+                "moov",
+                "airtel",
+                "free-money",
+                "expresso",
+                "wizall",
+                "t-money",
+                "mpesa",
+                "mobile-money",
+                "crypto"
+              ]
+            },
+            "providers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "rankedProviders": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "provider",
+            "score"
+          ],
+          "properties": {
+            "provider": {
+              "type": "string"
+            },
+            "score": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": true
+        }
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "description": "Error body. `code` is present on transfer endpoints.",
+    "required": [
+      "error"
+    ],
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Human-readable message."
+      },
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
+      }
+    },
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "Requires a secret key. It returns a routing decision (provider, ordered alternates, confidence); it is not a payment.",
+    "country, amount (a number) and a non-empty availableProviders array are required (400 otherwise); provider keys use the routing vocabulary (paydunya, cinetpay, pawapay...).",
+    "When paymentMethod is absent and phone is present, the operator is inferred from the number prefix (detectedOperator, or null).",
+    "The routing method vocabulary uses hyphens (orange-money, free-money, t-money) and differs from the transfer operator vocabulary (orange_money, free_money, tmoney).",
+    "The docs disagree on the routing response: the OpenAPI types rankedProviders as {provider, score} objects, availableMethods items as {method, providers} and routing as {provider, reason, alternates, confidence}, while the Multi-gateway orchestration guide shows rankedProviders as plain strings, availableMethods items with code and name, and routing as {provider, method, reason: \"best_success_rate\"}. This spec follows the OpenAPI and stays draft until a live call settles it: parse these fields defensively.",
+    "Rate limit: 120 per minute per IP; beyond it the API answers 429.",
+    "Errors are an HTTP 4xx/5xx status with a JSON body { \"error\": \"<message>\" }. Transfer endpoints add a machine-readable code, and so do some other refusals (code test_mode on payment links, rate_limited on webhook resends). A 401 says Missing API key or Invalid API Key."
+  ],
+  "evidence": {
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "source_reference": "OpenAPI 2026-09-19, paths./v1/route.post (operationId routePayment) and info.description. Passages quoted from https://cartflox.com/docs/llms-full.txt (same snapshot date): \"\"rankedProviders\": [ \"paydunya\", \"cinetpay\" ]\" | \"\"availableMethods\": [ { \"code\": \"wave\", \"name\": \"Wave\", \"providers\": [\"paydunya\", \"cinetpay\"] } ]\" | \"\"routing\": { \"provider\": \"paydunya\", \"method\": \"orange\", \"reason\": \"best_success_rate\" }\"",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
+    "spans": [
+      "Returns the best aggregator for a given context (country, amount, currency, operator),",
+      "with ordered fallbacks and a confidence score.",
+      "Requires a secret key.",
+      "`country`, `amount` (number) or `availableProviders` (non-empty array) is missing.",
+      "Aggregator key as known by the routing engine.",
+      "When `paymentMethod` is absent and",
+      "`phone` is present, the operator is inferred from the number prefix.",
+      "Operator inferred from `phone`, or `null`.",
+      "Payment method vocabulary of the routing engine.",
+      "\"orange-money\"",
+      "\"free-money\"",
+      "\"t-money\"",
+      "Human-readable explanation (French).",
+      "| `POST /v1/route` | 120 per minute per IP |",
+      "Limits apply per minute. Beyond them the response is `429`",
+      "Errors are reported by the HTTP status code and a JSON body `{ \"error\": \"<message>\" }`.",
+      "Transfer endpoints add a machine-readable `code`.",
+      "(`code: test_mode`)",
+      "(`code: rate_limited`)",
+      "API key missing or invalid: `Missing API key` or `Invalid API Key`",
+      "/v1/route"
+    ]
+  }
+}

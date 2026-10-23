@@ -1,43 +1,41 @@
 {
   "spec_version": "1.0",
-  "provider_api_version": "2026-10-16",
+  "provider_api_version": "2026-09-19",
   "capability": "send_mobile_money_transfer",
   "capability_type": "synchronous",
-  "status": "unverified",
+  "status": "ready",
   "currency": [
     "XOF",
+    "XAF",
     "GHS",
     "NGN",
-    "GNF",
-    "SLE",
-    "GMD",
-    "MRU",
-    "XAF",
-    "CDF",
     "KES",
     "TZS",
     "UGX",
     "RWF",
-    "BIF",
     "ZMW",
+    "MWK",
+    "CDF",
     "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
     "MAD",
-    "TND",
-    "DZD",
-    "EGP"
+    "GNF",
+    "SLE"
   ],
   "auth": {
     "type": "bearer",
-    "format": "Bearer {token}",
-    "header": "Authorization",
     "location": "header",
-    "env_var": "CARTFLOX_API_KEY"
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "CARTFLOX_SECRET_KEY"
   },
   "endpoint": {
     "url": "https://cartflox.com/api/v1/transfers",
     "method": "POST"
   },
-  "example_prompt": "Send money to a mobile money account.",
+  "example_prompt": "Send 50,000 XOF from my Cartflox workspace to the Orange Money account +2250712345678 in Côte d'Ivoire for a September salary.",
   "input_schema": {
     "type": "object",
     "required": [
@@ -47,16 +45,14 @@
       "phone"
     ],
     "properties": {
-      "phone": {
-        "type": "string",
-        "description": "Recipient's number, as dialled in the country (`0712345678`) or international (`+2250712345678`). `recipient_phone` and `msisdn` are accepted as aliases of this field."
-      },
       "amount": {
         "type": "number",
-        "description": "Amount received by the recipient, a whole number for francs (5000 for 5 000 XOF).",
-        "exclusiveMinimum": 0
+        "exclusiveMinimum": 0,
+        "description": "Amount received by the recipient, a whole number for francs (5000 for 5 000 XOF)."
       },
       "country": {
+        "type": "string",
+        "description": "Countries served for transfers (ISO 3166-1 alpha-2).",
         "enum": [
           "CI",
           "SN",
@@ -77,37 +73,39 @@
           "UG",
           "RW",
           "ZM"
-        ],
-        "type": "string",
-        "description": "Countries served for transfers (ISO 3166-1 alpha-2)."
-      },
-      "currency": {
-        "type": "string",
-        "description": "Inferred from the country (XOF, XAF, GHS, KES...). A currency that does not match the country is refused (`devise_invalide`)."
-      },
-      "metadata": {
-        "type": "object",
-        "description": "Your own free-form data, kept with the transfer.",
-        "additionalProperties": true
+        ]
       },
       "operator": {
         "type": "string",
         "description": "Recipient's operator (`orange_money`, `mtn_money`, `moov_money`, `wave`, `free_money`, `tmoney`, `mpesa`, `airtel_money`...). Aliases such as `mtn`, `orange`, `MTN_MOMO_CIV` are accepted. `method` and `network` are accepted as aliases of this field."
       },
-      "description": {
+      "phone": {
         "type": "string",
-        "maxLength": 200,
-        "description": "Reason, forwarded when the operator shows it to the recipient."
+        "description": "Recipient's number, as dialled in the country (`0712345678`) or international (`+2250712345678`). `recipient_phone` and `msisdn` are accepted as aliases of this field."
+      },
+      "currency": {
+        "type": "string",
+        "description": "Inferred from the country (XOF, XAF, GHS, KES...). A currency that does not match the country is refused (`devise_invalide`)."
       },
       "recipient_name": {
         "type": "string",
         "maxLength": 120,
         "description": "Recipient name, for your statements and for the provider."
       },
+      "description": {
+        "type": "string",
+        "maxLength": 200,
+        "description": "Reason, forwarded when the operator shows it to the recipient."
+      },
       "idempotency_key": {
         "type": "string",
         "maxLength": 120,
         "description": "Same role as the `Idempotency-Key` header."
+      },
+      "metadata": {
+        "type": "object",
+        "description": "Your own free-form data, kept with the transfer.",
+        "additionalProperties": true
       }
     },
     "additionalProperties": true
@@ -132,33 +130,74 @@
         "type": "string",
         "description": "Cartflox identifier."
       },
-      "fee": {
-        "type": "number",
-        "description": "Cartflox fee. `0` with your own gateway keys."
-      },
-      "phone": {
+      "reference": {
         "type": "string",
-        "description": "Digits only, country code included (`2250712345678`)."
-      },
-      "amount": {
-        "type": "number"
+        "format": "uuid",
+        "description": "Cartflox reference, sent to the provider. Also accepted by `GET /v1/transfers/{id}`."
       },
       "status": {
+        "type": "string",
+        "description": "`pending`: created, not handed to the provider yet. `processing`: handed to the provider, the operator is processing it (the most frequent state right after the call).\n`succeeded`: the money reached the recipient, `completed` carries the date. `failed`: refused by the operator or the provider, `failure` says why, nothing was debited.\n",
         "enum": [
           "pending",
           "processing",
           "succeeded",
           "failed"
-        ],
-        "type": "string",
-        "description": "`pending`: created, not handed to the provider yet. `processing`: handed to the provider, the operator is processing it (the most frequent state right after the call).\n`succeeded`: the money reached the recipient, `completed` carries the date. `failed`: refused by the operator or the provider, `failure` says why, nothing was debited.\n"
+        ]
+      },
+      "amount": {
+        "type": "number"
+      },
+      "currency": {
+        "type": "string"
+      },
+      "fee": {
+        "type": "number",
+        "description": "Cartflox fee. `0` with your own gateway keys."
       },
       "country": {
         "type": "string"
       },
-      "created": {
+      "operator": {
         "type": "string",
-        "format": "date-time"
+        "description": "Cartflox operator code (`orange_money`...)."
+      },
+      "provider_operator": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Operator code as the provider names it (`ORANGE_CIV`)."
+      },
+      "phone": {
+        "type": "string",
+        "description": "Digits only, country code included (`2250712345678`)."
+      },
+      "recipient_name": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "description": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "provider": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Gateway that carries the transfer (`PawaPay`...)."
+      },
+      "provider_reference": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Reference at the provider, when it differs from `reference`."
       },
       "failure": {
         "oneOf": [
@@ -190,23 +229,19 @@
         ],
         "description": "Set when `status` is `failed`."
       },
-      "currency": {
-        "type": "string"
+      "idempotency_key": {
+        "type": [
+          "string",
+          "null"
+        ]
       },
       "livemode": {
         "type": "boolean",
         "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
       },
-      "operator": {
+      "created": {
         "type": "string",
-        "description": "Cartflox operator code (`orange_money`...)."
-      },
-      "provider": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "description": "Gateway that carries the transfer (`PawaPay`...)."
+        "format": "date-time"
       },
       "completed": {
         "type": [
@@ -214,81 +249,79 @@
           "null"
         ],
         "format": "date-time"
-      },
-      "reference": {
-        "type": "string",
-        "format": "uuid",
-        "description": "Cartflox reference, sent to the provider. Also accepted by `GET /v1/transfers/{id}`."
-      },
-      "description": {
-        "type": [
-          "string",
-          "null"
-        ]
-      },
-      "recipient_name": {
-        "type": [
-          "string",
-          "null"
-        ]
-      },
-      "idempotency_key": {
-        "type": [
-          "string",
-          "null"
-        ]
-      },
-      "provider_operator": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "description": "Operator code as the provider names it (`ORANGE_CIV`)."
-      },
-      "provider_reference": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "description": "Reference at the provider, when it differs from `reference`."
       }
     },
     "additionalProperties": true
   },
   "error_schema": {
     "type": "object",
+    "description": "Error body. `code` is present on transfer endpoints.",
     "required": [
       "error"
     ],
     "properties": {
-      "code": {
-        "type": "string",
-        "description": "Machine-readable code (transfers)."
-      },
       "error": {
         "type": "string",
         "description": "Human-readable message."
+      },
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
       }
     },
-    "description": "Error body. `code` is present on transfer endpoints.",
     "additionalProperties": true
   },
   "gotchas": [
-    "Transfers require the secret key: a public key is refused with 401 unauthorized, so the widget's public key cannot send money.",
-    "Send an Idempotency-Key header (or idempotency_key field) on every transfer: a replayed call returns the existing transfer with HTTP 200 instead of sending the money a second time.",
-    "A transfer response is usually still processing, not succeeded, so after the call you must follow the status with GET /v1/transfers/{id} or the transfer webhooks rather than assuming the money arrived."
+    "Transfers move real money and are refused with a test key: 403 code test_mode. Test mode cannot exercise this endpoint.",
+    "Secret key only: the public key is refused with 401 code unauthorized.",
+    "Always send an Idempotency-Key (or the idempotency_key field), 120 characters at most: a replayed call returns the existing transfer with HTTP 200 and Idempotent-Replayed: true instead of sending the money a second time.",
+    "The status right after the call is most often processing: follow it with GET /v1/transfers/{id} and the transfer.succeeded / transfer.failed webhooks before treating the money as sent.",
+    "The money leaves your own aggregator's wallet (PawaPay, PayDunya, Hub2, Notch Pay, Monetbil, Flutterwave, Paystack, FedaPay, FeexPay), with that aggregator's fees; fee is 0. amount is what the recipient receives.",
+    "Only 19 countries are served (CI, SN, BJ, BF, TG, ML, NE, GN, CM, GA, CG, CD, GH, NG, KE, TZ, UG, RW, ZM), and the operators open to you depend on your gateways: read them with GET /v1/transfers?options=1.",
+    "currency is inferred from the country; a currency that does not match the country is refused (devise_invalide). operator accepts aliases (mtn, orange, MTN_MOMO_CIV), and phone accepts the national or international format.",
+    "400 codes: invalid_body, pays_non_desservi, operateur_manquant, operateur_non_desservi, methode_desactivee, telephone_invalide, devise_invalide, montant_invalide. 403 codes: test_mode, transferts_inactifs, connect_non_disponible (Connect workspaces have no transfers for now), identite_non_verifiee.",
+    "429 is either rate_limited (more than 30 transfers per minute) or plafond_journalier (daily cap of the workspace, 200 transfers per day by default, reset at midnight GMT). A 500 code internal means the transfer was not created.",
+    "402 code solde_insuffisant is documented as an insufficient Connect balance, yet Connect workspaces are refused transfers for now (403 connect_non_disponible). 404 code espace_introuvable means the workspace was not found.",
+    "Your aggregator debits the transfer under its own conditions: a funded disbursement wallet, and for some an allowed IP address. The docs do not say which IP to allow; check your aggregator's payout settings before going live.",
+    "Only the 19 served countries can receive transfers, so currencies of other countries in this provider's currency[] (ETB, MWK, MZN, SLE, ZAR, EGP, MAD) cannot be sent.",
+    "Amount units are explicit only for currencies without minor units (XOF, XAF, GNF, UGX, RWF, CDF, MGA, KMF, DJF, BIF: whole numbers, 5000 = 5,000 XOF). For the other currencies (NGN, KES, GHS, USD...) the OpenAPI does not say whether amount is in major or minor units, and the guide only says amounts are integers in the smallest common unit with an XOF example: confirm with Cartflox before going live."
   ],
   "evidence": {
-    "spans": [
-      "https://cartflox.com/api/v1/transfers",
-      "Requires the **secret** key: the public key is refused.",
-      "| 401 | `unauthorized` | Clé absente, invalide, ou clé publique |",
-      "Send an `Idempotency-Key` header (or the `idempotency_key` field): a replayed call",
-      "The status right after the call is most often `processing`."
-    ],
     "source_url": "https://cartflox.com/docs/openapi.json",
-    "extracted_at": "2026-10-16T21:48:59.995Z",
-    "snapshot_hash": "97a65520c2c663fb",
-    "source_reference": "Full OpenAPI document"
+    "source_reference": "OpenAPI 2026-09-19, paths./v1/transfers.post (operationId createTransfer) and info.description. Passages quoted from https://cartflox.com/docs/llms-full.txt (same snapshot date): \"which debits it with its own fees and under its own conditions (funded disbursement wallet, allowed IP address for some).\" | \"Amounts are integers in the smallest common unit of the currency: `5000` means 5,000 XOF.\"",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
+    "spans": [
+      "`test_mode` (test key: transfers move real money)",
+      "Transfers are refused with a test key (`403`, code `test_mode`)",
+      "Requires the **secret** key: the public key is refused.",
+      "Key missing, invalid, or public key (`code: unauthorized`).",
+      "Send an `Idempotency-Key` header (or the `idempotency_key` field): a replayed call",
+      "returns the existing transfer with HTTP `200` and `Idempotent-Replayed: true` instead",
+      "of sending the money a second time.",
+      "Kept at 120 characters at most for transfers.",
+      "The status right after the call is most often `processing`. Follow it with",
+      "`GET /v1/transfers/{id}` and the `transfer.succeeded` / `transfer.failed` webhooks.",
+      "The money leaves your aggregator's wallet, with the",
+      "aggregator's own fees: `fee` is `0`.",
+      "Amount received by the recipient, a whole number for francs (5000 for 5 000 XOF).",
+      "Countries served for transfers (ISO 3166-1 alpha-2).",
+      "With `options=1`, the countries, currencies and operators the workspace can",
+      "send to, given its gateways",
+      "Inferred from the country (XOF, XAF, GHS, KES...). A currency that does not match the country is refused (`devise_invalide`).",
+      "Aliases such as `mtn`, `orange`, `MTN_MOMO_CIV` are accepted.",
+      "Recipient's number, as dialled in the country (`0712345678`) or international (`+2250712345678`).",
+      "`code` is one of `invalid_body`, `pays_non_desservi`,",
+      "`operateur_manquant`, `operateur_non_desservi`, `methode_desactivee`,",
+      "`telephone_invalide`, `devise_invalide`, `montant_invalide`.",
+      "`transferts_inactifs` (closed by Cartflox administration), `connect_non_disponible` (Connect workspace) or `identite_non_verifiee`.",
+      "`rate_limited` (more than 30 transfers per minute) or `plafond_journalier` (daily cap of the workspace reached, resets at midnight GMT).",
+      "plus a daily cap (200 transfers per day by default, error code `plafond_journalier`)",
+      "Internal error, the transfer was not created (`code: internal`).",
+      "Insufficient Connect balance (`code: solde_insuffisant`).",
+      "Workspace not found (`code: espace_introuvable`).",
+      "Amounts are whole numbers for currencies without minor units (XOF, XAF, GNF, UGX, RWF, CDF, MGA, KMF, DJF, BIF).",
+      "/v1/transfers"
+    ]
   }
 }

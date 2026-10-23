@@ -1,0 +1,157 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-09-19",
+  "capability": "settle_sandbox_session",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XOF",
+    "XAF",
+    "GHS",
+    "NGN",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "ZMW",
+    "MWK",
+    "CDF",
+    "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
+    "MAD",
+    "GNF",
+    "SLE"
+  ],
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "url": "https://cartflox.com/api/checkout/sandbox",
+    "method": "POST"
+  },
+  "example_prompt": "In an automated test, mark the Cartflox test checkout session cmu8a1b2c0001xyz as paid without opening the payment page.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "transactionId"
+    ],
+    "properties": {
+      "transactionId": {
+        "type": "string",
+        "description": "Session identifier (`id` of the checkout session)."
+      },
+      "issue": {
+        "type": "string",
+        "enum": [
+          "succes",
+          "echec"
+        ],
+        "default": "succes",
+        "description": "`succes` marks the payment `SUCCESS`, `echec` marks it `FAILED`."
+      },
+      "customerDetails": {
+        "type": "object",
+        "description": "Optional customer details written on the transaction.",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      },
+      "methodCode": {
+        "type": "string",
+        "maxLength": 80,
+        "description": "Optional payment method code recorded in the metadata."
+      }
+    },
+    "additionalProperties": true
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "success",
+      "sandbox",
+      "status",
+      "message"
+    ],
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "const": true
+      },
+      "sandbox": {
+        "type": "boolean",
+        "const": true
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "SUCCESS",
+          "FAILED"
+        ]
+      },
+      "message": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "description": "Error shape of the payment page endpoints.",
+    "required": [
+      "success",
+      "message"
+    ],
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "const": false
+      },
+      "message": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "Test sessions only: it settles the session SUCCESS or FAILED with provider: \"sandbox\" and sends the payment.completed or payment.failed webhook exactly as in production, with livemode: false.",
+    "The path is /checkout/sandbox, not under /v1.",
+    "No API key is needed: the session identifier is enough.",
+    "issue is French: succes marks the payment SUCCESS, echec marks it FAILED (default succes).",
+    "Refused with 403 for a production session of a live workspace, and 409 when the session is no longer payable (already SUCCESS, REFUNDED or CANCELLED).",
+    "Errors use the payment page shape { \"success\": false, \"message\": \"...\" }, not { \"error\" }.",
+    "Rate limit: 30 per minute per IP; beyond it the API answers 429."
+  ],
+  "evidence": {
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "source_reference": "OpenAPI 2026-09-19, paths./checkout/sandbox.post (operationId settleSandboxSession) and info.description",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
+    "spans": [
+      "Marks the session",
+      "`SUCCESS` or `FAILED` with `provider: \"sandbox\"` and sends the `payment.completed` or",
+      "`payment.failed` webhook exactly as in production, with `livemode: false`.",
+      "Note the path: `/checkout/sandbox`, not under `/v1`.",
+      "No API key",
+      "is needed: the session identifier, impossible to guess, is enough.",
+      "`succes` marks the payment `SUCCESS`, `echec` marks it `FAILED`.",
+      "Refused for a production session of a live workspace (`403`)",
+      "The session is no longer payable (already `SUCCESS`, `REFUNDED` or `CANCELLED`).",
+      "Errors use the",
+      "payment page shape `{ \"success\": false, \"message\": \"...\" }`.",
+      "| `POST /checkout/sandbox` | 30 per minute per IP |",
+      "Limits apply per minute. Beyond them the response is `429`",
+      "/checkout/sandbox"
+    ]
+  }
+}

@@ -1,43 +1,41 @@
 {
   "spec_version": "1.0",
-  "provider_api_version": "2026-10-16",
+  "provider_api_version": "2026-09-19",
   "capability": "create_payment_link",
   "capability_type": "synchronous",
-  "status": "unverified",
+  "status": "ready",
   "currency": [
     "XOF",
+    "XAF",
     "GHS",
     "NGN",
-    "GNF",
-    "SLE",
-    "GMD",
-    "MRU",
-    "XAF",
-    "CDF",
     "KES",
     "TZS",
     "UGX",
     "RWF",
-    "BIF",
     "ZMW",
+    "MWK",
+    "CDF",
     "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
     "MAD",
-    "TND",
-    "DZD",
-    "EGP"
+    "GNF",
+    "SLE"
   ],
   "auth": {
     "type": "bearer",
-    "format": "Bearer {token}",
-    "header": "Authorization",
     "location": "header",
-    "env_var": "CARTFLOX_API_KEY"
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "CARTFLOX_SECRET_KEY"
   },
   "endpoint": {
     "url": "https://cartflox.com/api/v1/payment-links",
     "method": "POST"
   },
-  "example_prompt": "Generate a payment link for a customer.",
+  "example_prompt": "Create a Cartflox payment link for a 15,000 XOF T-shirt to share on WhatsApp.",
   "input_schema": {
     "type": "object",
     "required": [
@@ -51,21 +49,21 @@
       },
       "amount": {
         "type": "number",
-        "description": "Fixed amount.",
-        "exclusiveMinimum": 0
+        "exclusiveMinimum": 0,
+        "description": "Fixed amount."
       },
       "currency": {
         "type": "string",
         "default": "XOF"
       },
+      "description": {
+        "type": "string",
+        "description": "Detail of the product or service."
+      },
       "metadata": {
         "type": "object",
         "description": "Accepted by the API but not stored on the link at the moment.",
         "additionalProperties": true
-      },
-      "description": {
-        "type": "string",
-        "description": "Detail of the product or service."
       }
     },
     "additionalProperties": true
@@ -81,6 +79,10 @@
       "currency"
     ],
     "properties": {
+      "success": {
+        "type": "boolean",
+        "const": true
+      },
       "id": {
         "type": "string",
         "description": "Link identifier, to use with `/v1/payment-links/{id}/check`."
@@ -96,10 +98,6 @@
       "amount": {
         "type": "number"
       },
-      "success": {
-        "type": "boolean",
-        "const": true
-      },
       "currency": {
         "type": "string"
       }
@@ -108,37 +106,54 @@
   },
   "error_schema": {
     "type": "object",
+    "description": "Error body. `code` is present on transfer endpoints.",
     "required": [
       "error"
     ],
     "properties": {
-      "code": {
-        "type": "string",
-        "description": "Machine-readable code (transfers)."
-      },
       "error": {
         "type": "string",
         "description": "Human-readable message."
+      },
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
       }
     },
-    "description": "Error body. `code` is present on transfer endpoints.",
     "additionalProperties": true
   },
   "gotchas": [
-    "Payment links cannot be created with a test key: the call returns 403 with code test_mode, and you should create a test checkout session instead.",
-    "A successful creation returns HTTP 200, not 201, so a client that only accepts 201 as success will misreport the link as failed.",
-    "The metadata you send with a payment link is accepted but not saved on the link, so do not rely on it to identify the order later."
+    "Payment links live in production only: a test key gets 403 with code test_mode; create a test checkout session instead.",
+    "A successful creation answers 200, not 201.",
+    "Keep id to check the link: GET /v1/payment-links/{id}/check takes the id, not the slug.",
+    "metadata is accepted but not stored on the link, so it cannot identify the order later.",
+    "The link is created active and never expires by itself; the customer's phone number is always requested on the page, for Mobile Money.",
+    "title and amount are required (400 otherwise).",
+    "Amount units are explicit only for currencies without minor units (XOF, XAF, GNF, UGX, RWF, CDF, MGA, KMF, DJF, BIF: whole numbers, 5000 = 5,000 XOF). For the other currencies (NGN, KES, GHS, USD...) the OpenAPI does not say whether amount is in major or minor units, and the guide only says amounts are integers in the smallest common unit with an XOF example: confirm with Cartflox before going live.",
+    "Rate limit: 60 links per minute per IP (429).",
+    "Errors are an HTTP 4xx/5xx status with a JSON body { \"error\": \"<message>\" }. Transfer endpoints add a machine-readable code, and so do some other refusals (code test_mode on payment links, rate_limited on webhook resends). A 401 says Missing API key or Invalid API Key."
   ],
   "evidence": {
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "source_reference": "OpenAPI 2026-09-19, paths./v1/payment-links.post (operationId createPaymentLink) and info.description. Passages quoted from https://cartflox.com/docs/llms-full.txt (same snapshot date): \"Amounts are integers in the smallest common unit of the currency: `5000` means 5,000 XOF.\"",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
     "spans": [
-      "https://cartflox.com/api/v1/payment-links",
       "Test key: payment links live in production only (`code: test_mode`). Create a test checkout session instead.",
       "Link created (the API answers `200`, not `201`).",
-      "Accepted by the API but not stored on the link at the moment."
-    ],
-    "source_url": "https://cartflox.com/docs/openapi.json",
-    "extracted_at": "2026-10-16T21:48:59.995Z",
-    "snapshot_hash": "97a65520c2c663fb",
-    "source_reference": "Full OpenAPI document"
+      "Link identifier, to use with `/v1/payment-links/{id}/check`.",
+      "Accepted by the API but not stored on the link at the moment.",
+      "The link is created `active` and never expires by itself.",
+      "The customer's phone number is always requested on the page, for Mobile Money.",
+      "`title` or `amount` is missing.",
+      "Amounts are whole numbers for currencies without minor units (XOF, XAF, GNF, UGX, RWF, CDF, MGA, KMF, DJF, BIF).",
+      "More than 60 links per minute from this IP.",
+      "Errors are reported by the HTTP status code and a JSON body `{ \"error\": \"<message>\" }`.",
+      "Transfer endpoints add a machine-readable `code`.",
+      "(`code: test_mode`)",
+      "(`code: rate_limited`)",
+      "API key missing or invalid: `Missing API key` or `Invalid API Key`",
+      "/v1/payment-links"
+    ]
   }
 }

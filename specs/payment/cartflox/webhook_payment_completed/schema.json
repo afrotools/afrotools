@@ -1,40 +1,41 @@
 {
   "spec_version": "1.0",
-  "provider_api_version": "2026-10-16",
+  "provider_api_version": "2026-09-19",
   "capability": "webhook_payment_completed",
   "capability_type": "webhook",
-  "status": "unverified",
+  "status": "ready",
   "currency": [
     "XOF",
+    "XAF",
     "GHS",
     "NGN",
-    "GNF",
-    "SLE",
-    "GMD",
-    "MRU",
-    "XAF",
-    "CDF",
     "KES",
     "TZS",
     "UGX",
     "RWF",
-    "BIF",
     "ZMW",
+    "MWK",
+    "CDF",
     "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
     "MAD",
-    "TND",
-    "DZD",
-    "EGP"
+    "GNF",
+    "SLE"
   ],
   "auth": {
-    "type": "none",
-    "env_var": "CARTFLOX_WEBHOOK_SECRET"
+    "type": "api_key",
+    "location": "header",
+    "field": "X-Afriflow-Signature",
+    "format": "t={timestamp},v1={signature}",
+    "env_var": "CARTFLOX_SECRET_KEY"
   },
   "endpoint": {
-    "url": "{your_webhook_url}",
+    "url": "https://{your-domain}/webhooks/cartflox",
     "method": "POST"
   },
-  "example_prompt": "Notify me when a payment is successfully completed.",
+  "example_prompt": "Handle the Cartflox payment.completed webhook to mark order 1042 as paid.",
   "input_schema": {
     "type": "object",
     "required": [
@@ -44,6 +45,19 @@
       "timestamp"
     ],
     "properties": {
+      "event": {
+        "type": "string",
+        "enum": [
+          "payment.completed",
+          "payment.failed",
+          "payment.cancelled",
+          "payment.updated"
+        ]
+      },
+      "livemode": {
+        "type": "boolean",
+        "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
+      },
       "data": {
         "type": "object",
         "required": [
@@ -58,36 +72,24 @@
             "type": "string",
             "description": "Session identifier, the one returned at creation."
           },
-          "amount": {
-            "type": "number"
+          "order_id": {
+            "type": "string"
           },
           "status": {
+            "type": "string",
+            "description": "`PENDING`: created, not confirmed yet (customer on the page, OTP pending, redirection in progress).\n`SUCCESS`: confirmed by the aggregator. `FAILED`: refused or failed at the operator, the customer can retry on the same session.\n`CANCELLED`: cancelled, no longer payable. `REFUNDED`: refunded from the dashboard.\n",
             "enum": [
               "PENDING",
               "SUCCESS",
               "FAILED",
               "CANCELLED",
               "REFUNDED"
-            ],
-            "type": "string",
-            "description": "`PENDING`: created, not confirmed yet (customer on the page, OTP pending, redirection in progress).\n`SUCCESS`: confirmed by the aggregator. `FAILED`: refused or failed at the operator, the customer can retry on the same session.\n`CANCELLED`: cancelled, no longer payable. `REFUNDED`: refunded from the dashboard.\n"
-          },
-          "currency": {
-            "type": "string"
-          },
-          "metadata": {
-            "oneOf": [
-              {
-                "type": "object",
-                "description": "Your own free-form data, returned in webhooks. Cartflox adds `source` (`checkout_session`, `widget`, `payment_link`...) and, when relevant, `description`, `success_url`, `cancel_url` and `idempotencyKey`.",
-                "additionalProperties": true
-              },
-              {
-                "type": "null"
-              }
             ]
           },
-          "order_id": {
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
             "type": "string"
           },
           "provider": {
@@ -96,13 +98,11 @@
               "null"
             ]
           },
-          "completed_at": {
+          "provider_reference": {
             "type": [
               "string",
               "null"
-            ],
-            "format": "date-time",
-            "description": "`null` until the payment succeeds."
+            ]
           },
           "customer_name": {
             "type": [
@@ -122,27 +122,28 @@
               "null"
             ]
           },
-          "provider_reference": {
+          "metadata": {
+            "oneOf": [
+              {
+                "type": "object",
+                "description": "Your own free-form data, returned in webhooks. Cartflox adds `source` (`checkout_session`, `widget`, `payment_link`...) and, when relevant, `description`, `success_url`, `cancel_url` and `idempotencyKey`.",
+                "additionalProperties": true
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "completed_at": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "format": "date-time",
+            "description": "`null` until the payment succeeds."
           }
         },
         "additionalProperties": true
-      },
-      "event": {
-        "enum": [
-          "payment.completed",
-          "payment.failed",
-          "payment.cancelled",
-          "payment.updated"
-        ],
-        "type": "string"
-      },
-      "livemode": {
-        "type": "boolean",
-        "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
       },
       "timestamp": {
         "type": "string",
@@ -154,24 +155,39 @@
   "response_schema": {},
   "error_schema": {},
   "gotchas": [
-    "The X-Afriflow-Signature header carries t=<timestamp>,v1=<hex>, where v1 is the HMAC-SHA256 of the string <timestamp>.<raw body> keyed with your secret key (test key for a test event); X-Afriflow-Timestamp carries the Unix timestamp. Verify it, in constant time, before acting on the event.",
-    "Verify the signature over the raw request body exactly as received; re-serializing the parsed JSON will change the bytes and make verification fail.",
-    "Reject events whose timestamp is more than 5 minutes old, which protects against replayed requests.",
-    "The same event can be delivered more than once, so make fulfilment idempotent keyed on data.id and data.status, or on the delivery identifier.",
-    "Any 2xx response acknowledges the delivery, and your handler must answer within 10 seconds, so process the order after responding rather than before."
+    "This is the event to wait for before fulfilling an order. Handle it idempotently, keyed on data.id and data.status.",
+    "Verify every delivery before acting on it, choosing the secret key of the event's mode (livemode: false is signed with the test secret key): X-Afriflow-Signature is t=<ts>,v1=<hex>, where v1 is the HMAC-SHA256 hex, keyed with your secret key (the production key, or the test key for a test event), of the string <ts>.<raw body> with X-Afriflow-Timestamp as <ts>. Compute it over the raw body bytes as received, compare in constant time, and reject the request when |now - ts| exceeds 5 minutes.",
+    "The webhook headers use the X-Afriflow- prefix, not X-Cartflox-: X-Afriflow-Timestamp, X-Afriflow-Signature, X-Afriflow-Event (the event name) and X-Afriflow-Delivery (the delivery id, identical on every retry: deduplicate on it), with User-Agent: Cartflox-Webhooks/2.",
+    "Answer with any 2xx within 10 seconds and process afterwards. Without a 2xx, Cartflox makes up to 10 attempts in total over about 72 hours (the first immediate, then +1 min, +5 min, +15 min, +1 h, +3 h, +6 h, +12 h, +24 h, +24 h), so the same event can arrive more than once. The address and the signing key are read again at every attempt.",
+    "order_id (data.order_id in payment webhooks) is Cartflox's readable reference (CS-...), not your order number: put your own order id in the session metadata, which comes back in the webhook (Cartflox also adds keys such as source).",
+    "Test events go to the production webhook URL with livemode: false unless a test URL is set with PATCH /v1/config/webhook and {\"mode\": \"test\"}; branch on livemode, and verify with the secret key of the same mode.",
+    "Only the events selected with PATCH /v1/config/webhook are sent; by default all of them are."
   ],
   "evidence": {
-    "spans": [
-      "{your_webhook_url}",
-      "`X-Afriflow-Signature: t=<ts>,v1=<hex>` where `v1` is the HMAC-SHA256, with your secret",
-      "Get the **raw** request body, exactly as received (not the JSON parsed and then re-serialized).",
-      "Reject if the timestamp is more than 5 minutes old (replay protection).",
-      "Handle it idempotently, keyed on `data.id` and `data.status`.",
-      "Any `2xx` acknowledges the delivery. Answer within 10 seconds and process afterwards."
-    ],
     "source_url": "https://cartflox.com/docs/openapi.json",
-    "extracted_at": "2026-10-16T21:48:59.995Z",
-    "snapshot_hash": "97a65520c2c663fb",
-    "source_reference": "Full OpenAPI document"
+    "source_reference": "OpenAPI 2026-09-19, webhooks.payment.completed.post, components.parameters (X-Afriflow-* headers) and info.description. Passages quoted from https://cartflox.com/docs/llms-full.txt (same snapshot date): \"The address and the signing key are read again at every attempt\"",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
+    "spans": [
+      "The event to wait for before fulfilling an order. Handle it idempotently, keyed on `data.id` and `data.status`.",
+      "`X-Afriflow-Signature: t=<ts>,v1=<hex>` where `v1` is the HMAC-SHA256, with your secret",
+      "key (production key, or test key for a test event), of the string `<ts>.<raw body>`.",
+      "Compare in constant time and reject the request when `|now - ts|` exceeds 5 minutes.",
+      "Unix timestamp (seconds) of the send.",
+      "Every request also carries `X-Afriflow-Event` (the event name) and",
+      "`X-Afriflow-Delivery` (the delivery id, identical from one attempt to the next: use it to",
+      "deduplicate), with `User-Agent: Cartflox-Webhooks/2`.",
+      "endpoint has 10 seconds to answer; any `2xx` counts as an acknowledgement. Failed",
+      "deliveries are retried automatically: 10 attempts over 72 hours (immediately, then",
+      "+1 min, +5 min, +15 min, +1 h, +3 h, +6 h, +12 h, +24 h, +24 h).",
+      "Readable Cartflox reference (`CS-...`).",
+      "Your own free-form data, returned in webhooks. Cartflox adds `source` (`checkout_session`, `widget`, `payment_link`...)",
+      "A distinct test `webhookUrl` can be set with `PATCH /v1/config/webhook` and `{\"mode\": \"test\"}`;",
+      "otherwise the production URL receives test events with `livemode: false`.",
+      "Verify webhook signatures with the secret key of the same mode.",
+      "You choose the events you receive with",
+      "`PATCH /v1/config/webhook` and `{\"events\": [...]}`; by default all of them are sent.",
+      "payment.completed"
+    ]
   }
 }

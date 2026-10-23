@@ -1,0 +1,208 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-09-19",
+  "capability": "get_webhook_delivery",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XOF",
+    "XAF",
+    "GHS",
+    "NGN",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "ZMW",
+    "MWK",
+    "CDF",
+    "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
+    "MAD",
+    "GNF",
+    "SLE"
+  ],
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "CARTFLOX_SECRET_KEY"
+  },
+  "endpoint": {
+    "url": "https://cartflox.com/api/v1/webhooks/deliveries/{id}",
+    "method": "GET"
+  },
+  "example_prompt": "Show the attempts and last HTTP status of Cartflox webhook delivery cmu8d4e5f0003abc.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Webhook delivery identifier. Passed as a path parameter."
+      }
+    },
+    "required": [
+      "id"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "id",
+      "object",
+      "event",
+      "url",
+      "status",
+      "attempts",
+      "max_attempts",
+      "livemode",
+      "created_at"
+    ],
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "object": {
+        "type": "string",
+        "const": "webhook.delivery"
+      },
+      "event": {
+        "type": "string",
+        "enum": [
+          "payment.completed",
+          "payment.failed",
+          "payment.cancelled",
+          "payment.updated",
+          "transfer.succeeded",
+          "transfer.failed"
+        ]
+      },
+      "url": {
+        "type": "string",
+        "format": "uri"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "delivered",
+          "failed"
+        ]
+      },
+      "attempts": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "max_attempts": {
+        "type": "integer",
+        "const": 10
+      },
+      "next_attempt_at": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time"
+      },
+      "last_status_code": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "description": "HTTP status of the last attempt."
+      },
+      "last_error": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "response_ms": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "description": "Duration of the last attempt, in milliseconds."
+      },
+      "transaction_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Session id for payment events."
+      },
+      "transfer_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Transfer id for transfer events."
+      },
+      "livemode": {
+        "type": "boolean",
+        "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "delivered_at": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time"
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "description": "Error body. `code` is present on transfer endpoints.",
+    "required": [
+      "error"
+    ],
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Human-readable message."
+      },
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
+      }
+    },
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "max_attempts is 10: up to 10 attempts in total over about 72 hours. next_attempt_at is the next automatic attempt (null otherwise); last_status_code, last_error and response_ms describe the last attempt.",
+    "transaction_id is set for payment events, transfer_id for transfer events.",
+    "Deliveries are split by mode: a test key sees only test deliveries, a production key only production ones; use the key of the delivery's mode.",
+    "Errors are an HTTP 4xx/5xx status with a JSON body { \"error\": \"<message>\" }. Transfer endpoints add a machine-readable code, and so do some other refusals (code test_mode on payment links, rate_limited on webhook resends). A 401 says Missing API key or Invalid API Key."
+  ],
+  "evidence": {
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "source_reference": "OpenAPI 2026-09-19, paths./v1/webhooks/deliveries/{id}.get (operationId getWebhookDelivery) and info.description. Passages quoted from https://cartflox.com/docs/llms-full.txt (same snapshot date): \"| `next_attempt_at` | Next automatic attempt, `null` otherwise |\"",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
+    "spans": [
+      "10 attempts over 72 hours",
+      "\"const\": 10",
+      "HTTP status of the last attempt.",
+      "Duration of the last attempt, in milliseconds.",
+      "Session id for payment events.",
+      "Transfer id for transfer events.",
+      "A test key",
+      "sees only test deliveries, a production key only production ones.",
+      "Errors are reported by the HTTP status code and a JSON body `{ \"error\": \"<message>\" }`.",
+      "Transfer endpoints add a machine-readable `code`.",
+      "(`code: test_mode`)",
+      "(`code: rate_limited`)",
+      "API key missing or invalid: `Missing API key` or `Invalid API Key`",
+      "/v1/webhooks/deliveries/{id}"
+    ]
+  }
+}

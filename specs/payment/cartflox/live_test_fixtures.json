@@ -1,0 +1,52 @@
+{
+  "sandbox_base_url": "https://cartflox.com",
+  "steps": [
+    {
+      "capability": "create_checkout_session",
+      "body": {
+        "amount": 5000,
+        "currency": "XOF",
+        "customer_email": "test@example.com",
+        "metadata": {
+          "order_id": "afrotools-live-$ts"
+        }
+      },
+      "headers": {
+        "Idempotency-Key": "afrotools-live-$ts"
+      },
+      "store_as": "session"
+    },
+    {
+      "capability": "get_checkout_session_status",
+      "path_params": {
+        "id": "$session.id"
+      }
+    },
+    {
+      "capability": "list_checkout_session_methods",
+      "path_params": {
+        "id": "$session.id"
+      },
+      "query_params": {
+        "country": "ci"
+      }
+    },
+    {
+      "capability": "settle_sandbox_session",
+      "body": {
+        "transactionId": "$session.id",
+        "issue": "succes"
+      }
+    },
+    {
+      "capability": "get_routing_options",
+      "query_params": {
+        "country": "SN",
+        "currency": "XOF"
+      }
+    },
+    {
+      "capability": "get_webhook_config"
+    }
+  ]
+}

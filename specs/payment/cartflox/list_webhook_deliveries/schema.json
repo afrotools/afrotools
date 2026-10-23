@@ -1,0 +1,253 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-09-19",
+  "capability": "list_webhook_deliveries",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XOF",
+    "XAF",
+    "GHS",
+    "NGN",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "ZMW",
+    "MWK",
+    "CDF",
+    "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
+    "MAD",
+    "GNF",
+    "SLE"
+  ],
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "CARTFLOX_SECRET_KEY"
+  },
+  "endpoint": {
+    "url": "https://cartflox.com/api/v1/webhooks/deliveries",
+    "method": "GET"
+  },
+  "example_prompt": "List the failed Cartflox webhook deliveries for checkout session cmf3k2p1x0001abcd9e8f7g6h.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "transaction_id": {
+        "type": "string",
+        "description": "Only the deliveries about this payment (session id). Passed as a query parameter."
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "delivered",
+          "failed"
+        ],
+        "description": "Passed as a query parameter."
+      },
+      "event": {
+        "type": "string",
+        "enum": [
+          "payment.completed",
+          "payment.failed",
+          "payment.cancelled",
+          "payment.updated",
+          "transfer.succeeded",
+          "transfer.failed"
+        ],
+        "description": "Only the deliveries of this event. Passed as a query parameter."
+      },
+      "limit": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 200,
+        "default": 50,
+        "description": "Passed as a query parameter."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "object",
+      "data",
+      "count"
+    ],
+    "properties": {
+      "object": {
+        "type": "string",
+        "const": "list"
+      },
+      "data": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "object",
+            "event",
+            "url",
+            "status",
+            "attempts",
+            "max_attempts",
+            "livemode",
+            "created_at"
+          ],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "object": {
+              "type": "string",
+              "const": "webhook.delivery"
+            },
+            "event": {
+              "type": "string",
+              "enum": [
+                "payment.completed",
+                "payment.failed",
+                "payment.cancelled",
+                "payment.updated",
+                "transfer.succeeded",
+                "transfer.failed"
+              ]
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "delivered",
+                "failed"
+              ]
+            },
+            "attempts": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_attempts": {
+              "type": "integer",
+              "const": 10
+            },
+            "next_attempt_at": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            },
+            "last_status_code": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "description": "HTTP status of the last attempt."
+            },
+            "last_error": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "response_ms": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "description": "Duration of the last attempt, in milliseconds."
+            },
+            "transaction_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Session id for payment events."
+            },
+            "transfer_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Transfer id for transfer events."
+            },
+            "livemode": {
+              "type": "boolean",
+              "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "delivered_at": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "count": {
+        "type": "integer",
+        "description": "Number of deliveries returned."
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "description": "Error body. `code` is present on transfer endpoints.",
+    "required": [
+      "error"
+    ],
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Human-readable message."
+      },
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
+      }
+    },
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "A test key sees only test deliveries, a production key only production ones.",
+    "Newest first, 50 by default and 200 at most; status=pending also covers deliveries being sent right now.",
+    "A status other than pending, delivered or failed gets 400; an unknown event also gets 400, with available_events in the body.",
+    "Errors are an HTTP 4xx/5xx status with a JSON body { \"error\": \"<message>\" }. Transfer endpoints add a machine-readable code, and so do some other refusals (code test_mode on payment links, rate_limited on webhook resends). A 401 says Missing API key or Invalid API Key."
+  ],
+  "evidence": {
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "source_reference": "OpenAPI 2026-09-19, paths./v1/webhooks/deliveries.get (operationId listWebhookDeliveries) and info.description",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
+    "spans": [
+      "A test key",
+      "sees only test deliveries, a production key only production ones.",
+      "The delivery log of the workspace, newest first (50 by default, 200 at most).",
+      "`status=pending` also",
+      "covers deliveries being sent right now.",
+      "`status` is not `pending`, `delivered` or `failed`, or `event` is unknown (the body then lists `available_events`).",
+      "Errors are reported by the HTTP status code and a JSON body `{ \"error\": \"<message>\" }`.",
+      "Transfer endpoints add a machine-readable `code`.",
+      "(`code: test_mode`)",
+      "(`code: rate_limited`)",
+      "API key missing or invalid: `Missing API key` or `Invalid API Key`",
+      "/v1/webhooks/deliveries"
+    ]
+  }
+}

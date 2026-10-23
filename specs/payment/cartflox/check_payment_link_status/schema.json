@@ -1,44 +1,53 @@
 {
   "spec_version": "1.0",
-  "provider_api_version": "2026-10-16",
+  "provider_api_version": "2026-09-19",
   "capability": "check_payment_link_status",
   "capability_type": "synchronous",
-  "status": "unverified",
+  "status": "ready",
   "currency": [
     "XOF",
+    "XAF",
     "GHS",
     "NGN",
-    "GNF",
-    "SLE",
-    "GMD",
-    "MRU",
-    "XAF",
-    "CDF",
     "KES",
     "TZS",
     "UGX",
     "RWF",
-    "BIF",
     "ZMW",
+    "MWK",
+    "CDF",
     "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
     "MAD",
-    "TND",
-    "DZD",
-    "EGP"
+    "GNF",
+    "SLE"
   ],
   "auth": {
     "type": "bearer",
-    "format": "Bearer {token}",
-    "header": "Authorization",
     "location": "header",
-    "env_var": "CARTFLOX_API_KEY"
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "CARTFLOX_SECRET_KEY"
   },
   "endpoint": {
     "url": "https://cartflox.com/api/v1/payment-links/{id}/check",
     "method": "GET"
   },
-  "example_prompt": "Check if payment link {id} has been paid.",
-  "input_schema": {},
+  "example_prompt": "Check whether the Cartflox payment link I shared has been paid.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Identifier of the payment link (`id` returned at creation, not the slug). Passed as a path parameter."
+      }
+    },
+    "required": [
+      "id"
+    ]
+  },
   "response_schema": {
     "type": "object",
     "required": [
@@ -47,26 +56,27 @@
       "status"
     ],
     "properties": {
+      "success": {
+        "type": "boolean",
+        "const": true
+      },
       "paid": {
         "type": "boolean"
       },
       "status": {
+        "type": "string",
+        "description": "`SUCCESS` when paid; otherwise `WAITING` (no attempt yet) or the status of the latest non-failed attempt (`PENDING`, `CANCELLED`, `REFUNDED`).",
         "enum": [
           "SUCCESS",
           "WAITING",
           "PENDING",
           "CANCELLED",
           "REFUNDED"
-        ],
-        "type": "string",
-        "description": "`SUCCESS` when paid; otherwise `WAITING` (no attempt yet) or the status of the latest non-failed attempt (`PENDING`, `CANCELLED`, `REFUNDED`)."
-      },
-      "success": {
-        "type": "boolean",
-        "const": true
+        ]
       },
       "transaction": {
         "type": "object",
+        "description": "Present when `paid` is `true`.",
         "required": [
           "id",
           "amount"
@@ -91,7 +101,6 @@
             ]
           }
         },
-        "description": "Present when `paid` is `true`.",
         "additionalProperties": true
       }
     },
@@ -99,36 +108,46 @@
   },
   "error_schema": {
     "type": "object",
+    "description": "Error body. `code` is present on transfer endpoints.",
     "required": [
       "error"
     ],
     "properties": {
-      "code": {
-        "type": "string",
-        "description": "Machine-readable code (transfers)."
-      },
       "error": {
         "type": "string",
         "description": "Human-readable message."
+      },
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
       }
     },
-    "description": "Error body. `code` is present on transfer endpoints.",
     "additionalProperties": true
   },
   "gotchas": [
-    "Use the link's id returned at creation for the check endpoint, not its public slug.",
-    "The transaction object is only present once paid is true; until a payment succeeds the response is { paid: false, status: \"WAITING\" } or the last attempt's status, so do not read transaction data before that."
+    "Pass the link id returned at creation, not its slug.",
+    "Until a payment succeeds the answer is { success: true, paid: false, status: \"WAITING\" } or the status of the latest non-failed attempt (PENDING, CANCELLED, REFUNDED); transaction is present when paid is true.",
+    "It returns only the most recent successful payment of the link, not a list of payments.",
+    "Errors are an HTTP 4xx/5xx status with a JSON body { \"error\": \"<message>\" }. Transfer endpoints add a machine-readable code, and so do some other refusals (code test_mode on payment links, rate_limited on webhook resends). A 401 says Missing API key or Invalid API Key."
   ],
   "evidence": {
-    "spans": [
-      "https://cartflox.com/api/v1/payment-links/{id}/check",
-      "Identifier of the payment link (`id` returned at creation, not the slug).",
-      "Present when `paid` is `true`.",
-      "Tant qu'aucun paiement n'a abouti, la réponse est `{ \"success\": true, \"paid\": false, \"status\": \"WAITING\" }` (ou le statut de la dernière tentative)."
-    ],
     "source_url": "https://cartflox.com/docs/openapi.json",
-    "extracted_at": "2026-10-16T21:48:59.995Z",
-    "snapshot_hash": "97a65520c2c663fb",
-    "source_reference": "Full OpenAPI document"
+    "source_reference": "OpenAPI 2026-09-19, paths./v1/payment-links/{id}/check.get (operationId checkPaymentLink) and info.description",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
+    "spans": [
+      "Identifier of the payment link (`id` returned at creation, not the slug).",
+      "Until a payment",
+      "succeeds, the answer is `{ \"success\": true, \"paid\": false, \"status\": \"WAITING\" }`,",
+      "or the status of the latest non-failed attempt.",
+      "Present when `paid` is `true`.",
+      "Returns the most recent successful payment of the link, if any.",
+      "Errors are reported by the HTTP status code and a JSON body `{ \"error\": \"<message>\" }`.",
+      "Transfer endpoints add a machine-readable `code`.",
+      "(`code: test_mode`)",
+      "(`code: rate_limited`)",
+      "API key missing or invalid: `Missing API key` or `Invalid API Key`",
+      "/v1/payment-links/{id}/check"
+    ]
   }
 }

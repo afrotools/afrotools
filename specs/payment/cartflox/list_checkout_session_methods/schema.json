@@ -1,0 +1,180 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-09-19",
+  "capability": "list_checkout_session_methods",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XOF",
+    "XAF",
+    "GHS",
+    "NGN",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "ZMW",
+    "MWK",
+    "CDF",
+    "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
+    "MAD",
+    "GNF",
+    "SLE"
+  ],
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "CARTFLOX_SECRET_KEY"
+  },
+  "endpoint": {
+    "url": "https://cartflox.com/api/v1/checkout/sessions/{id}/methods",
+    "method": "GET"
+  },
+  "example_prompt": "List the Cartflox payment operators available in Côte d'Ivoire for checkout session cmf3k2p1x0001abcd9e8f7g6h to build my own operator picker.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Session identifier returned at creation. Passed as a path parameter."
+      },
+      "country": {
+        "type": "string",
+        "description": "ISO 3166-1 alpha-2 code (`ci`, `sn`, `bj`, `ml`, `bf`, `tg`, `cm`, `gh`, `ng`, `ke`...) or country name. Without it, every active operator is returned. Passed as a query parameter."
+      }
+    },
+    "required": [
+      "id"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "id",
+      "currency",
+      "methods"
+    ],
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "currency": {
+        "type": "string"
+      },
+      "methods": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "code",
+            "gatewayId",
+            "name"
+          ],
+          "properties": {
+            "code": {
+              "type": "string",
+              "description": "Operator code at the gateway serving it (`ORANGE_CIV`, `wave-senegal`...). Read it, do not hard-code it."
+            },
+            "gatewayId": {
+              "type": "string",
+              "description": "Identifier of the gateway serving this method."
+            },
+            "name": {
+              "type": "string"
+            },
+            "provider": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Gateway name (`PayDunya`, `PawaPay`...)."
+            },
+            "country": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Country label, or `UEMOA`, `International`, `Global` for methods valid everywhere."
+            },
+            "type": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "`MOBILE_MONEY`, `CARD` or `BANK_TRANSFER`."
+            },
+            "flag": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "ISO 3166-1 alpha-2 code or flag emoji, for display."
+            },
+            "logo": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Logo path, relative to https://cartflox.com."
+            }
+          },
+          "additionalProperties": true
+        }
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "description": "Error body. `code` is present on transfer endpoints.",
+    "required": [
+      "error"
+    ],
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Human-readable message."
+      },
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
+      }
+    },
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "Operator codes depend on the gateway serving them (ORANGE_CIV, wave-senegal...): read them from the response, never hard-code them.",
+    "Card methods (UEMOA, international) are returned whatever country is asked.",
+    "country takes an ISO 3166-1 alpha-2 code (ci, sn, bj...) or a country name; without it, every active operator is returned.",
+    "Accepts the secret key or the public key, per the OpenAPI; the Test mode page describes the public key as only creating a session and reading its status, so call this with the secret key if the public key is refused.",
+    "logo is a path relative to the Cartflox site root, not an absolute URL.",
+    "Errors are an HTTP 4xx/5xx status with a JSON body { \"error\": \"<message>\" }. Transfer endpoints add a machine-readable code, and so do some other refusals (code test_mode on payment links, rate_limited on webhook resends). A 401 says Missing API key or Invalid API Key."
+  ],
+  "evidence": {
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "source_reference": "OpenAPI 2026-09-19, paths./v1/checkout/sessions/{id}/methods.get (operationId listCheckoutSessionMethods) and info.description. Passages quoted from https://cartflox.com/docs/llms-full.txt (same snapshot date): \"Public key (widget, SoftPay): create a session and read its status\"",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
+    "spans": [
+      "Operator codes depend on the gateway serving them: do not",
+      "hard-code them, read them from the response.",
+      "Operator code at the gateway serving it (`ORANGE_CIV`, `wave-senegal`...).",
+      "Card methods (UEMOA, international) are returned",
+      "whatever the country asked.",
+      "ISO 3166-1 alpha-2 code (`ci`, `sn`, `bj`, `ml`, `bf`, `tg`, `cm`, `gh`, `ng`, `ke`...) or country name. Without it, every active operator is returned.",
+      "Accepts the secret key or the public key.",
+      "Logo path, relative to https://cartflox.com.",
+      "Errors are reported by the HTTP status code and a JSON body `{ \"error\": \"<message>\" }`.",
+      "Transfer endpoints add a machine-readable `code`.",
+      "(`code: test_mode`)",
+      "(`code: rate_limited`)",
+      "API key missing or invalid: `Missing API key` or `Invalid API Key`",
+      "/v1/checkout/sessions/{id}/methods"
+    ]
+  }
+}

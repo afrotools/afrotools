@@ -1,0 +1,192 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-09-19",
+  "capability": "update_webhook_config",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XOF",
+    "XAF",
+    "GHS",
+    "NGN",
+    "KES",
+    "TZS",
+    "UGX",
+    "RWF",
+    "ZMW",
+    "MWK",
+    "CDF",
+    "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
+    "MAD",
+    "GNF",
+    "SLE"
+  ],
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "CARTFLOX_SECRET_KEY"
+  },
+  "endpoint": {
+    "url": "https://cartflox.com/api/v1/config/webhook",
+    "method": "PATCH"
+  },
+  "example_prompt": "Point my Cartflox webhooks to https://example.com/webhooks/cartflox and only receive payment.completed, payment.failed and payment.cancelled.",
+  "input_schema": {
+    "type": "object",
+    "description": "At least one of `webhookUrl` and `events` is required.",
+    "anyOf": [
+      {
+        "required": [
+          "webhookUrl"
+        ]
+      },
+      {
+        "required": [
+          "events"
+        ]
+      }
+    ],
+    "properties": {
+      "webhookUrl": {
+        "type": "string",
+        "description": "Public `https` URL. An empty string removes the webhook."
+      },
+      "mode": {
+        "type": "string",
+        "enum": [
+          "live",
+          "test"
+        ],
+        "description": "`test` sets the URL that receives test events. When absent, the address of the key's own mode (a test key sets the test address)."
+      },
+      "events": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "payment.completed",
+            "payment.failed",
+            "payment.cancelled",
+            "payment.updated",
+            "transfer.succeeded",
+            "transfer.failed"
+          ]
+        },
+        "description": "Events to receive. Omit for all events."
+      }
+    },
+    "additionalProperties": true
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "success",
+      "webhookUrl"
+    ],
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "const": true
+      },
+      "webhookUrl": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "uri",
+        "description": "Production webhook URL, `null` when none is set."
+      },
+      "testWebhookUrl": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "uri",
+        "description": "Test webhook URL, when one was set with `mode: test`."
+      },
+      "events": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "payment.completed",
+            "payment.failed",
+            "payment.cancelled",
+            "payment.updated",
+            "transfer.succeeded",
+            "transfer.failed"
+          ]
+        },
+        "description": "Events the workspace receives. Every event when none was selected."
+      },
+      "available_events": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "payment.completed",
+            "payment.failed",
+            "payment.cancelled",
+            "payment.updated",
+            "transfer.succeeded",
+            "transfer.failed"
+          ]
+        },
+        "description": "Every event Cartflox can send."
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "description": "Error body. `code` is present on transfer endpoints.",
+    "required": [
+      "error"
+    ],
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Human-readable message."
+      },
+      "code": {
+        "type": "string",
+        "description": "Machine-readable code (transfers)."
+      }
+    },
+    "additionalProperties": true
+  },
+  "gotchas": [
+    "Pass webhookUrl, events or both (400 when neither). webhookUrl must be a public https address: local addresses, private networks and cloud metadata hosts are refused, and an empty string removes the webhook.",
+    "mode says which address is set (live or test); when absent, the key's own mode is used, so a test key sets the test address. Without a test address, the production address receives test events with livemode: false.",
+    "events selects the events you receive; the full list, or an empty one, means all of them, future events included. Unknown names get 400 with available_events in the body.",
+    "Errors are an HTTP 4xx/5xx status with a JSON body { \"error\": \"<message>\" }. Transfer endpoints add a machine-readable code, and so do some other refusals (code test_mode on payment links, rate_limited on webhook resends). A 401 says Missing API key or Invalid API Key."
+  ],
+  "evidence": {
+    "source_url": "https://cartflox.com/docs/openapi.json",
+    "source_reference": "OpenAPI 2026-09-19, paths./v1/config/webhook.patch (operationId updateWebhookConfig) and info.description",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
+    "spans": [
+      "Pass `webhookUrl`, `events`, or both. `webhookUrl` must be a public `https` address:",
+      "local addresses, private networks and cloud metadata hosts are refused; an empty string",
+      "removes the webhook.",
+      "`mode` says which address is set: `live` or `test`; when absent,",
+      "the address of the key's own mode (a test key sets the test address). Without a test",
+      "address, the production address receives test events with `livemode: false`.",
+      "`events` selects the events you receive; the full list (or an empty one) means all of",
+      "them, future events included.",
+      "or unknown event names (the body then lists `available_events`).",
+      "Errors are reported by the HTTP status code and a JSON body `{ \"error\": \"<message>\" }`.",
+      "Transfer endpoints add a machine-readable `code`.",
+      "(`code: test_mode`)",
+      "(`code: rate_limited`)",
+      "API key missing or invalid: `Missing API key` or `Invalid API Key`",
+      "/v1/config/webhook"
+    ]
+  }
+}

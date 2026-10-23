@@ -1,40 +1,41 @@
 {
   "spec_version": "1.0",
-  "provider_api_version": "2026-10-16",
+  "provider_api_version": "2026-09-19",
   "capability": "webhook_transfer_succeeded",
   "capability_type": "webhook",
-  "status": "unverified",
+  "status": "ready",
   "currency": [
     "XOF",
+    "XAF",
     "GHS",
     "NGN",
-    "GNF",
-    "SLE",
-    "GMD",
-    "MRU",
-    "XAF",
-    "CDF",
     "KES",
     "TZS",
     "UGX",
     "RWF",
-    "BIF",
     "ZMW",
+    "MWK",
+    "CDF",
     "ETB",
+    "MZN",
+    "ZAR",
+    "EGP",
     "MAD",
-    "TND",
-    "DZD",
-    "EGP"
+    "GNF",
+    "SLE"
   ],
   "auth": {
-    "type": "none",
-    "env_var": "CARTFLOX_WEBHOOK_SECRET"
+    "type": "api_key",
+    "location": "header",
+    "field": "X-Afriflow-Signature",
+    "format": "t={timestamp},v1={signature}",
+    "env_var": "CARTFLOX_SECRET_KEY"
   },
   "endpoint": {
-    "url": "{your_webhook_url}",
+    "url": "https://{your-domain}/webhooks/cartflox",
     "method": "POST"
   },
-  "example_prompt": "Notify me when an outgoing transfer successfully reaches the recipient.",
+  "example_prompt": "Handle the Cartflox transfer.succeeded webhook to mark a supplier payout as delivered.",
   "input_schema": {
     "type": "object",
     "required": [
@@ -44,6 +45,17 @@
       "timestamp"
     ],
     "properties": {
+      "event": {
+        "type": "string",
+        "enum": [
+          "transfer.succeeded",
+          "transfer.failed"
+        ]
+      },
+      "livemode": {
+        "type": "boolean",
+        "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
+      },
       "data": {
         "type": "object",
         "required": [
@@ -64,33 +76,74 @@
             "type": "string",
             "description": "Cartflox identifier."
           },
-          "fee": {
-            "type": "number",
-            "description": "Cartflox fee. `0` with your own gateway keys."
-          },
-          "phone": {
+          "reference": {
             "type": "string",
-            "description": "Digits only, country code included (`2250712345678`)."
-          },
-          "amount": {
-            "type": "number"
+            "format": "uuid",
+            "description": "Cartflox reference, sent to the provider. Also accepted by `GET /v1/transfers/{id}`."
           },
           "status": {
+            "type": "string",
+            "description": "`pending`: created, not handed to the provider yet. `processing`: handed to the provider, the operator is processing it (the most frequent state right after the call).\n`succeeded`: the money reached the recipient, `completed` carries the date. `failed`: refused by the operator or the provider, `failure` says why, nothing was debited.\n",
             "enum": [
               "pending",
               "processing",
               "succeeded",
               "failed"
-            ],
-            "type": "string",
-            "description": "`pending`: created, not handed to the provider yet. `processing`: handed to the provider, the operator is processing it (the most frequent state right after the call).\n`succeeded`: the money reached the recipient, `completed` carries the date. `failed`: refused by the operator or the provider, `failure` says why, nothing was debited.\n"
+            ]
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "fee": {
+            "type": "number",
+            "description": "Cartflox fee. `0` with your own gateway keys."
           },
           "country": {
             "type": "string"
           },
-          "created": {
+          "operator": {
             "type": "string",
-            "format": "date-time"
+            "description": "Cartflox operator code (`orange_money`...)."
+          },
+          "provider_operator": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Operator code as the provider names it (`ORANGE_CIV`)."
+          },
+          "phone": {
+            "type": "string",
+            "description": "Digits only, country code included (`2250712345678`)."
+          },
+          "recipient_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Gateway that carries the transfer (`PawaPay`...)."
+          },
+          "provider_reference": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Reference at the provider, when it differs from `reference`."
           },
           "failure": {
             "oneOf": [
@@ -122,23 +175,19 @@
             ],
             "description": "Set when `status` is `failed`."
           },
-          "currency": {
-            "type": "string"
+          "idempotency_key": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "livemode": {
             "type": "boolean",
             "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
           },
-          "operator": {
+          "created": {
             "type": "string",
-            "description": "Cartflox operator code (`orange_money`...)."
-          },
-          "provider": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Gateway that carries the transfer (`PawaPay`...)."
+            "format": "date-time"
           },
           "completed": {
             "type": [
@@ -146,57 +195,9 @@
               "null"
             ],
             "format": "date-time"
-          },
-          "reference": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Cartflox reference, sent to the provider. Also accepted by `GET /v1/transfers/{id}`."
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "recipient_name": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "idempotency_key": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "provider_operator": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Operator code as the provider names it (`ORANGE_CIV`)."
-          },
-          "provider_reference": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Reference at the provider, when it differs from `reference`."
           }
         },
         "additionalProperties": true
-      },
-      "event": {
-        "enum": [
-          "transfer.succeeded",
-          "transfer.failed"
-        ],
-        "type": "string"
-      },
-      "livemode": {
-        "type": "boolean",
-        "description": "`true` for a production object, `false` for a test object: created with a test key, or in a workspace not switched live yet. Verify webhook signatures with the secret key of the same mode."
       },
       "timestamp": {
         "type": "string",
@@ -208,21 +209,39 @@
   "response_schema": {},
   "error_schema": {},
   "gotchas": [
-    "data is the full transfer object, so the completion date is already in data.completed and no API call is needed to read it.",
-    "Verify the signature over the timestamp and raw body with your secret key before crediting or marking the transfer as delivered.",
-    "Deliveries are retried with the same identifier, so deduplicate on it to avoid counting a succeeded transfer twice."
+    "data is the full transfer object: completed carries the date.",
+    "Transfers are refused with a test key, so transfer events cannot be produced in test mode.",
+    "Verify every delivery before acting on it, choosing the secret key of the event's mode (livemode: false is signed with the test secret key): X-Afriflow-Signature is t=<ts>,v1=<hex>, where v1 is the HMAC-SHA256 hex, keyed with your secret key (the production key, or the test key for a test event), of the string <ts>.<raw body> with X-Afriflow-Timestamp as <ts>. Compute it over the raw body bytes as received, compare in constant time, and reject the request when |now - ts| exceeds 5 minutes.",
+    "The webhook headers use the X-Afriflow- prefix, not X-Cartflox-: X-Afriflow-Timestamp, X-Afriflow-Signature, X-Afriflow-Event (the event name) and X-Afriflow-Delivery (the delivery id, identical on every retry: deduplicate on it), with User-Agent: Cartflox-Webhooks/2.",
+    "Answer with any 2xx within 10 seconds and process afterwards. Without a 2xx, Cartflox makes up to 10 attempts in total over about 72 hours (the first immediate, then +1 min, +5 min, +15 min, +1 h, +3 h, +6 h, +12 h, +24 h, +24 h), so the same event can arrive more than once. The address and the signing key are read again at every attempt.",
+    "Test events go to the production webhook URL with livemode: false unless a test URL is set with PATCH /v1/config/webhook and {\"mode\": \"test\"}; branch on livemode, and verify with the secret key of the same mode.",
+    "Only the events selected with PATCH /v1/config/webhook are sent; by default all of them are."
   ],
   "evidence": {
-    "spans": [
-      "{your_webhook_url}",
-      "`data` is the full transfer object.",
-      "`completed` porte la date.",
-      "`t=<timestamp>,v1=<HMAC-SHA256 hex of \"<timestamp>.<raw body>\" with your secret key>`.",
-      "Identifier of the delivery, identical from one attempt to the next. Use it to deduplicate."
-    ],
     "source_url": "https://cartflox.com/docs/openapi.json",
-    "extracted_at": "2026-10-16T21:48:59.995Z",
-    "snapshot_hash": "97a65520c2c663fb",
-    "source_reference": "Full OpenAPI document"
+    "source_reference": "OpenAPI 2026-09-19, webhooks.transfer.succeeded.post, components.parameters (X-Afriflow-* headers) and info.description. Passages quoted from https://cartflox.com/docs/llms-full.txt (same snapshot date): \"The address and the signing key are read again at every attempt\"",
+    "extracted_at": "2026-10-23T23:30:32.803Z",
+    "snapshot_hash": "97a65520c2c663fb7a2d42fb85876b2c81ea5b0e20135f69b923665fb8b7b30d",
+    "spans": [
+      "`data` is the full transfer object.",
+      "`succeeded`: the money reached the recipient, `completed` carries the date.",
+      "Transfers are refused with a test key (`403`, code `test_mode`)",
+      "`X-Afriflow-Signature: t=<ts>,v1=<hex>` where `v1` is the HMAC-SHA256, with your secret",
+      "key (production key, or test key for a test event), of the string `<ts>.<raw body>`.",
+      "Compare in constant time and reject the request when `|now - ts|` exceeds 5 minutes.",
+      "Unix timestamp (seconds) of the send.",
+      "Every request also carries `X-Afriflow-Event` (the event name) and",
+      "`X-Afriflow-Delivery` (the delivery id, identical from one attempt to the next: use it to",
+      "deduplicate), with `User-Agent: Cartflox-Webhooks/2`.",
+      "endpoint has 10 seconds to answer; any `2xx` counts as an acknowledgement. Failed",
+      "deliveries are retried automatically: 10 attempts over 72 hours (immediately, then",
+      "+1 min, +5 min, +15 min, +1 h, +3 h, +6 h, +12 h, +24 h, +24 h).",
+      "A distinct test `webhookUrl` can be set with `PATCH /v1/config/webhook` and `{\"mode\": \"test\"}`;",
+      "otherwise the production URL receives test events with `livemode: false`.",
+      "Verify webhook signatures with the secret key of the same mode.",
+      "You choose the events you receive with",
+      "`PATCH /v1/config/webhook` and `{\"events\": [...]}`; by default all of them are sent.",
+      "transfer.succeeded"
+    ]
   }
 }
