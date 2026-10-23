@@ -1,0 +1,261 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v3",
+  "capability": "enhanced_kyc",
+  "capability_type": "asynchronous",
+  "status": "ready",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "SmileID-Token",
+    "format": "{token}",
+    "env_var": "SMILEID_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.smileidentity.com/v3/enhanced_kyc"
+  },
+  "example_prompt": "Verify a user's ID number against the ID authority (e.g. a Côte d'Ivoire NATIONAL_ID_NO_PHOTO), store the returned job_id, and wait for the verdict on the callback webhook.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "country",
+      "id_type",
+      "id_number",
+      "user_details",
+      "consent"
+    ],
+    "properties": {
+      "country": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 2,
+        "description": "ISO 3166-1 alpha-2 country code (uppercase). Can be provided via the token payload (bound at /v3/token) instead of the request body."
+      },
+      "id_type": {
+        "type": "string",
+        "description": "ID document type (e.g., NIN, BVN, DRIVERS_LICENSE). Can be provided via the token payload (bound at /v3/token) instead of the request body."
+      },
+      "id_number": {
+        "type": "string",
+        "description": "ID document number. Must match the regex format for the country/id_type. Can be provided via the token payload (bound at /v3/token) instead of the request body."
+      },
+      "user_details": {
+        "type": "object",
+        "required": [
+          "given_names",
+          "last_name"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "email"
+            ]
+          },
+          {
+            "required": [
+              "phone_number"
+            ]
+          }
+        ],
+        "description": "Consumer-stated PII fields for the user. Either email or phone_number must be provided.",
+        "properties": {
+          "given_names": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Given names of the individual. Can be provided via the token payload (bound at /v3/token) instead of the request body."
+          },
+          "last_name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Last name / surname of the individual. Can be provided via the token payload (bound at /v3/token) instead of the request body."
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email",
+            "description": "Email address. At least one of email or phone_number is required. Can be provided via the token payload (bound at /v3/token) instead of the request body."
+          },
+          "phone_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\+[1-9]\\d{6,14}$",
+            "description": "Phone number in E.164 format (must start with +). At least one of email or phone_number is required."
+          }
+        }
+      },
+      "consent": {
+        "type": "object",
+        "required": [
+          "granted",
+          "granted_at",
+          "notice_language",
+          "notice_privacy_policy_url"
+        ],
+        "properties": {
+          "granted": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "description": "Must be true; user has granted consent."
+          },
+          "granted_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp of when consent was granted."
+          },
+          "notice_language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "pattern": "^[A-Z]{2}$",
+            "description": "ISO 639-1 language code of the privacy notice shown, uppercase."
+          },
+          "notice_privacy_policy_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://",
+            "description": "HTTPS URL of the privacy policy notice shown to the user."
+          }
+        }
+      },
+      "user_id": {
+        "type": "string",
+        "description": "Optional partner-provided user identifier. Must match the token user identifier when both are supplied. If no user identifier is supplied, a TypeID is generated automatically."
+      },
+      "callback_url": {
+        "type": "string",
+        "format": "uri",
+        "pattern": "^https://",
+        "description": "URL to receive the async result callback. Falls back to partner default if omitted. Must be on the partner's allowed callback domains list. Can be provided via the token payload (bound at /v3/token) instead of the request body."
+      },
+      "bank_code": {
+        "type": "string",
+        "description": "Bank code (required for certain ID types like BANK_ACCOUNT)."
+      },
+      "operator": {
+        "type": "string",
+        "description": "Telecom operator (required for certain ID types)."
+      },
+      "citizenship": {
+        "type": "string",
+        "enum": [
+          "Kenyan",
+          "Alien"
+        ],
+        "description": "Required when id_type is KRA_PIN (KE): whether the ID number is a Kenyan national ID or an alien card. Case-insensitive. Ignored for other ID types."
+      },
+      "partner_params": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Arbitrary key-value metadata for partner reference."
+      },
+      "metadata": {
+        "type": "array",
+        "description": "Additional metadata entries.",
+        "items": {
+          "type": "object",
+          "required": [
+            "name",
+            "value"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "value": {
+              "type": "string",
+              "maxLength": 1000
+            }
+          }
+        }
+      }
+    },
+    "description": "multipart/form-data. user_details, consent, partner_params and metadata are JSON-serialised strings in their form parts."
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "message",
+      "job_id",
+      "user_id",
+      "created_at"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Acceptance status for queued verification requests. 'accepted' in the OpenAPI; 'Accepted' in the migration guide and the Web SDK page."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable acceptance message."
+      },
+      "job_id": {
+        "type": "string",
+        "description": "TypeID format verification identifier for tracking."
+      },
+      "user_id": {
+        "type": "string",
+        "description": "TypeID format user identifier, or partner-provided user identifier."
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 timestamp of when the verification was created."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "message"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "HTTP status text."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error message."
+      }
+    }
+  },
+  "gotchas": [
+    "Two-step auth: first call POST /v3/token with headers SmileID-Partner-ID and SmileID-API-Key (SMILEID_PARTNER_ID / SMILEID_API_KEY) to get a JWT, then send SmileID-Partner-ID and SmileID-Token: {token} on this request. The token expires 15 minutes after issuance — Smile ID recommends minting a new one for every verification request rather than reusing it. Never mint tokens in the browser: the API key must stay on your backend.",
+    "The Authentication page requires both SmileID-Partner-ID and SmileID-Token on all V3 requests; the endpoint's own OpenAPI only declares SmileID-Token. Send both.",
+    "The 202 body's status is 'accepted' in the OpenAPI but 'Accepted' in the migration guide and the Web SDK page — compare case-insensitively.",
+    "V3 Enhanced KYC is always asynchronous: the response is 202 with status 'accepted' and a job_id — not the identity data. The verdict and id_fields arrive on your callback_url (see webhook_verification_result); get_verification_status only returns the status.",
+    "The body must be multipart/form-data, not JSON (415 otherwise). user_details, consent and partner_params are sent as JSON-serialised strings in their form part — e.g. form.append('consent', JSON.stringify({...})).",
+    "consent is mandatory in V3: granted must be true, granted_at an ISO 8601 timestamp, notice_language an uppercase ISO 639-1 code (e.g. 'FR'), notice_privacy_policy_url an https URL.",
+    "user_details requires given_names and last_name plus at least one of email or phone_number (E.164, starting with +).",
+    "Côte d'Ivoire supports id_type NATIONAL_ID_NO_PHOTO and RESIDENT_ID_NO_PHOTO; id_number is either the 11-digit NNI (/^[0-9]{11}$/) or the alphanumeric document number (/^[A-Za-z]\\d{10}$/). Senegal and Guinea have no ID-number product in the docs — use document_verification there.",
+    "callback_url must be https and on the partner's allowed callback domains list; omit it to use the partner default from the Dashboard.",
+    "Any job_id you put in partner_params is overwritten by the Smile ID job_id — use another key name for your own reference.",
+    "402 Insufficient wallet balance — top up the Smile ID wallet from the Dashboard before retrying.",
+    "429 means the rate limit for this ID number was exceeded — back off before retrying.",
+    "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com). Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production. Sandbox only accepts the documented test identities (matched on last_name + given_names + email); production rejects them with 400 'Test identities are not allowed in production'."
+  ],
+  "evidence": {
+    "source_url": "https://docs.usesmileid.com/api-reference/products/enhanced-kyc/perform-an-enhanced-kyc-verification.md",
+    "source_reference": "Perform an Enhanced KYC Verification (OpenAPI submitEnhancedKyc)",
+    "extracted_at": "2026-10-23T20:50:39.728Z",
+    "snapshot_hash": "bb9a069c048797ff1bbfc55eefd5965acffc5b37bc8d663b9c373a28d97c04b6",
+    "spans": [
+      "/v3/enhanced_kyc",
+      "Results are delivered via callback URL.",
+      "Accepted — verification submitted for async processing.",
+      "Either email or phone_number must be provided."
+    ]
+  }
+}

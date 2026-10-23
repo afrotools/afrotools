@@ -32,6 +32,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Smile ID** (`specs/identity/smileid`, V3 API, CI/SN/GN): `generate_token`, `enhanced_kyc`,
+  `create_smile_link`, `get_smile_link`, `get_verification_status`, `replay_verification_webhook`,
+  `aml_check_sync`, `list_supported_documents`, `webhook_verification_result`,
+  `document_verification` (Web SDK). New `identity` category.
+- Plugin skill `identity` — auto-activates for KYC / identity verification integrations
+  (plugin 1.3.0). Run `claude plugin update afrotools`.
 - `provider.json` field `channels` (`sms`, `whatsapp`, `ussd`, `voice`, `email`) — required
   for the `communications` category, optional elsewhere; enforced by `scripts/validate.js`.
 - `scripts/test_live.py` fixtures: per-step `content_type: "multipart/form-data"` (nested values

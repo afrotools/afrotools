@@ -1,0 +1,135 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v3",
+  "capability": "list_supported_documents",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.smileidentity.com/v3/services/supported_documents"
+  },
+  "example_prompt": "List the identity documents Smile ID can verify for a country (e.g. country_code=SN) to build a document picker before Document Verification.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "continent": {
+        "type": "string",
+        "enum": [
+          "AFRICA",
+          "ASIA",
+          "EUROPE",
+          "NORTH AMERICA",
+          "OCEANIA",
+          "SOUTH AMERICA"
+        ],
+        "description": "Filter results to a single continent. Query parameter."
+      },
+      "country_code": {
+        "type": "string",
+        "pattern": "^[A-Z]{2}$",
+        "description": "Filter results to a single country. Must be an ISO 3166-1 alpha-2 code\n(two uppercase letters). Query parameter."
+      },
+      "locale": {
+        "type": "string",
+        "default": "en-GB",
+        "enum": [
+          "en-GB",
+          "fr-FR",
+          "ar-EG"
+        ],
+        "description": "Locale for document names. Defaults to `en-GB`.\nSupported values: `en-GB`, `fr-FR`, `ar-EG`. Query parameter."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "valid_documents"
+    ],
+    "properties": {
+      "valid_documents": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "country": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "description": "ISO 3166-1 alpha-2 country code."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Country name."
+                },
+                "continent": {
+                  "type": "string",
+                  "description": "Continent name."
+                }
+              }
+            },
+            "id_types": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "Machine-readable ID type code."
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Human-readable name of the ID type."
+                  },
+                  "has_back": {
+                    "type": "boolean",
+                    "description": "Whether this document type has a back side that should be captured."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "error",
+      "code"
+    ],
+    "properties": {
+      "error": {
+        "type": "string",
+        "description": "Human-readable error message."
+      },
+      "code": {
+        "type": "string",
+        "description": "Smile Identity error code."
+      }
+    }
+  },
+  "gotchas": [
+    "No authentication required: this endpoint is public.",
+    "Errors use a different shape from the rest of the V3 API: { error, code } instead of { status, message }.",
+    "Filter with country_code (ISO 3166-1 alpha-2, uppercase) or continent; locale (en-GB, fr-FR, ar-EG) only changes the document names. has_back tells you whether to capture the back of the document.",
+    "Enhanced Document Verification only offers the ID types enabled on your account, not this full public catalog.",
+    "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com)."
+  ],
+  "evidence": {
+    "source_url": "https://docs.usesmileid.com/api-reference/core-resources/services/supported-documents.md",
+    "source_reference": "Supported Documents (GET /v3/services/supported_documents)",
+    "extracted_at": "2026-10-23T20:50:41.110Z",
+    "snapshot_hash": "983c72cabec53bb47a4ea97e502dbc82f8706e884ec6dd039f9ec23d053dfb8b",
+    "spans": [
+      "/v3/services/supported_documents",
+      "This endpoint does not require authentication.",
+      "Whether this document type has a back side that should be captured."
+    ]
+  }
+}

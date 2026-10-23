@@ -1,0 +1,16 @@
+{
+  "slug": "smileid",
+  "name": "Smile ID",
+  "category": "identity",
+  "country_code": [
+    "CI",
+    "SN",
+    "GN"
+  ],
+  "website": "https://usesmileid.com",
+  "docs_url": "https://docs.usesmileid.com",
+  "docs_public": true,
+  "sandbox": true,
+  "description": "Smile ID is an identity verification provider whose V3 API checks ID numbers against ID authorities, verifies ID documents with a selfie, and screens people against AML lists.",
+  "example_prompt": "Add Smile ID KYC to my onboarding: verify Côte d'Ivoire users by national ID number with Enhanced KYC, verify Senegalese and Guinean users with Document Verification through the Web SDK, and update their status from the signed result webhook."
+}
