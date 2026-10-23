@@ -1,0 +1,498 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v3",
+  "capability": "aml_check_sync",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "SmileID-Token",
+    "format": "{token}",
+    "env_var": "SMILEID_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.smileidentity.com/v3/aml/sync"
+  },
+  "example_prompt": "Screen a person's full name against sanctions, PEP and adverse-media lists and get the One-Time AML result in the same HTTP response, without hosting a webhook.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "countries",
+      "full_name",
+      "consent",
+      "user_details"
+    ],
+    "properties": {
+      "user_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "minLength": 1,
+        "description": "Partner-provided user identifier. Optional in general; required when `search_existing_user` is `true`. Reconciled with the `User-ID` header and any token-bound user id after authentication — disagreement is a 403. Generated automatically as a TypeID when omitted everywhere."
+      },
+      "countries": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 2
+        },
+        "description": "ISO 3166-1 alpha-2 country codes (uppercase) to screen against. Remains authoritative for the screening even when `search_existing_user` is `true`. Sent as a JSON-encoded array string in the multipart part (e.g. `[\"NG\",\"KE\"]`)."
+      },
+      "full_name": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Full name to screen. Remains authoritative for the screening — never replaced or compared with prior enrollee information, even when `search_existing_user` is `true`."
+      },
+      "birth_year": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^\\d{4}$",
+        "description": "Optional four-digit birth year, minimum 1000 and maximum the current UTC year. A bare integer is also accepted. Full dates, decimals, non-four-digit values, and future years are rejected."
+      },
+      "strict_match": {
+        "type": "boolean",
+        "default": true,
+        "description": "Optional. When `true` (default), uses the stricter match filter set; when `false`, uses a looser filter set. Accepts standard multipart boolean string representations (`\"true\"`/`\"false\"`). Always echoed back on the callback."
+      },
+      "aliases": {
+        "type": "array",
+        "maxItems": 20,
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "description": "Optional list of alternate names to screen, at most 20 entries, each at most 256 characters. Sent as a JSON-encoded array string in the multipart part (e.g. `[\"Johnny Doe\"]`)."
+      },
+      "search_existing_user": {
+        "type": "boolean",
+        "default": false,
+        "description": "Optional. A gate, not a data source: when `true`, requires the resolved `user_id` to belong to a partner-scoped, non-deleted enrollee with at least one non-expired prior KYC record carrying a usable name and country. It never overwrites `full_name`, `countries`, or `birth_year` — those stay authoritative. Accepts standard multipart boolean string representations."
+      },
+      "consent": {
+        "type": "object",
+        "required": [
+          "granted",
+          "granted_at",
+          "notice_language",
+          "notice_privacy_policy_url"
+        ],
+        "properties": {
+          "granted": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "description": "Must be true; user has granted consent."
+          },
+          "granted_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp of when consent was granted."
+          },
+          "notice_language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "pattern": "^[A-Z]{2}$",
+            "description": "ISO 639-1 language code of the privacy notice shown, uppercase."
+          },
+          "notice_privacy_policy_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://",
+            "description": "HTTPS URL of the privacy policy notice shown to the user."
+          }
+        }
+      },
+      "user_details": {
+        "type": "object",
+        "required": [
+          "given_names",
+          "last_name"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "email"
+            ]
+          },
+          {
+            "required": [
+              "phone_number"
+            ]
+          }
+        ],
+        "description": "Consumer-stated PII fields for the screened user. Either email or phone_number must be provided.",
+        "properties": {
+          "given_names": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Given names of the individual."
+          },
+          "last_name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Last name / surname of the individual."
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email",
+            "description": "Email address. At least one of email or phone_number is required."
+          },
+          "phone_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\+[1-9]\\d{6,14}$",
+            "description": "Phone number in E.164 format (must start with +). At least one of email or phone_number is required."
+          }
+        }
+      },
+      "callback_url": {
+        "type": "string",
+        "format": "uri",
+        "pattern": "^https://",
+        "description": "Optional here. If you supply one it is stored so POST /v3/replay/{job_id} can use it later, but no webhook is ever sent — the result is in this response."
+      },
+      "partner_params": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Arbitrary key-value metadata for partner reference."
+      },
+      "metadata": {
+        "type": "array",
+        "description": "Additional metadata entries.",
+        "items": {
+          "type": "object",
+          "required": [
+            "name",
+            "value"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "value": {
+              "type": "string",
+              "maxLength": 1000
+            }
+          }
+        }
+      },
+      "source_sdk": {
+        "type": "string",
+        "description": "Source SDK identifier. Can also be provided via the `SmileID-Source-SDK` header."
+      },
+      "source_sdk_version": {
+        "type": "string",
+        "description": "Source SDK version. Can also be provided via the `SmileID-Source-SDK-Version` header."
+      }
+    },
+    "description": "multipart/form-data. countries, aliases, consent, user_details, partner_params and metadata are JSON-encoded strings in their form parts. Optional header SmileID-Idempotency-Key: Opaque key, 16 to 128 characters of `A-Z a-z 0-9 - _`, that makes a submission safe to repeat. The job id is derived from it, so a request carrying a key you have already used resolves to that same job: it returns the original result and screens — and bills — nothing a second time. Send one whenever you might retry, since a retry without a key starts a new, separately billed screening."
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "message",
+      "reason",
+      "created_at",
+      "product",
+      "partner_params",
+      "kyc_receipt",
+      "strict_match",
+      "no_of_persons_found",
+      "people",
+      "user_provided_info",
+      "consent",
+      "antifraud",
+      "device_signals"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": [
+          "clear",
+          "block",
+          "attention",
+          "error"
+        ],
+        "description": "Terminal outcome of the screening."
+      },
+      "message": {
+        "type": "string",
+        "description": "Canonical human-readable outcome message."
+      },
+      "reason": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Canonical machine-readable reason. `null` for a clear outcome.",
+        "enum": [
+          null,
+          "aml_match_found",
+          "news_media_match",
+          "service_unavailable",
+          "high_risk"
+        ]
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 timestamp the screening job started processing."
+      },
+      "completed_at": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 timestamp the terminal outcome was reached. Omitted only if the terminal state could not be read."
+      },
+      "product": {
+        "type": "string",
+        "enum": [
+          "one_time_aml"
+        ]
+      },
+      "partner_params": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Partner-supplied key-value metadata, with internal transport keys (`_sandbox_v3`, `job_id`, `job_type`, `user_id`) stripped. `null` when empty."
+      },
+      "kyc_receipt": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Signed receipt URL. `null` on submission; populated for `clear`, `block`, and `attention` outcomes. Remains `null` for `error`."
+      },
+      "strict_match": {
+        "type": "boolean",
+        "description": "The resolved `strict_match` value used for the screening."
+      },
+      "no_of_persons_found": {
+        "type": "integer",
+        "description": "Count of sanctions/PEP/adverse-media matches found."
+      },
+      "people": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "description": "A single sanctions/PEP/adverse-media hit. Public snake_case fields only — internal provider references (e.g. sigma_ref) are always stripped before the callback is sent.",
+          "additionalProperties": true,
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "addresses": {
+              "type": "array",
+              "items": {},
+              "description": "Known addresses, each a single string of the form `<address> <country>` (webhook page; the OpenAPI types the items as objects)."
+            },
+            "news_summary": {
+              "description": "Per-category summary of the person's news-media exposure. The raw article list the provider returns under `adverse_media` is never included in the callback; a screening whose only hits are news media resolves to `attention` / `news_media_match`.",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "news_category": {
+                    "type": "string"
+                  },
+                  "news_category_label": {
+                    "type": "string"
+                  },
+                  "number_of_articles": {
+                    "type": "integer"
+                  }
+                }
+              }
+            },
+            "aliases": {
+              "type": "array",
+              "items": {},
+              "description": "Alternate names and spellings recorded for the entity."
+            },
+            "associations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "dates_of_birth": {
+              "type": "array",
+              "items": {},
+              "description": "Recorded dates of birth, as strings (webhook page; the OpenAPI types the items as objects)."
+            },
+            "enforcement_actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "nationalities": {
+              "type": "array",
+              "items": {},
+              "description": "Recorded nationalities, as strings (webhook page; the OpenAPI types the items as objects)."
+            },
+            "sanctions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "pep": {
+              "type": "object",
+              "properties": {
+                "pep_level": {
+                  "type": [
+                    "integer",
+                    "string",
+                    "null"
+                  ],
+                  "description": "The PEP tier, `1` being the most senior. `null` when the entity is not a PEP. integer | null in the OpenAPI, string | null on the webhook page."
+                },
+                "political_positions": {
+                  "type": "array",
+                  "items": {},
+                  "description": "Political positions held. Each entry has `position` and, where known, `country`, `from`, and `to` (webhook page)."
+                },
+                "sources": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            },
+            "ref": {
+              "type": "string",
+              "description": "Smile ID's reference for this person within the result set (webhook page)."
+            }
+          }
+        }
+      },
+      "user_provided_info": {
+        "type": "object",
+        "required": [
+          "given_names",
+          "last_name",
+          "email",
+          "phone_number"
+        ],
+        "properties": {
+          "given_names": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phone_number": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "consent": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "ISO 27560 consent record for the granted consent."
+      },
+      "antifraud": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "additionalProperties": true,
+        "description": "Antifraud risk assessment. `null` when no scored fraud result exists for the job."
+      },
+      "device_signals": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "additionalProperties": true,
+        "description": "Device/network signals captured at submission time. Always `null` for an `error` outcome, and best-effort `null` when no metadata was captured."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "message"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "HTTP status text."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error message."
+      }
+    }
+  },
+  "gotchas": [
+    "Two-step auth: first call POST /v3/token with headers SmileID-Partner-ID and SmileID-API-Key (SMILEID_PARTNER_ID / SMILEID_API_KEY) to get a JWT, then send SmileID-Partner-ID and SmileID-Token: {token} on this request. The token expires 15 minutes after issuance — Smile ID recommends minting a new one for every verification request rather than reusing it. Never mint tokens in the browser: the API key must stay on your backend.",
+    "The Authentication page requires both SmileID-Partner-ID and SmileID-Token on all V3 requests; the endpoint's own OpenAPI only declares SmileID-Token. Send both.",
+    "The body must be multipart/form-data, not JSON (415 otherwise). countries and aliases (per this endpoint's docs), and consent, user_details and partner_params (as on the other V3 endpoints) are sent as JSON-serialised strings in their form part — e.g. form.append('consent', JSON.stringify({...})).",
+    "consent is mandatory in V3: granted must be true, granted_at an ISO 8601 timestamp, notice_language an uppercase ISO 639-1 code (e.g. 'FR'), notice_privacy_policy_url an https URL.",
+    "countries is required and sent as a JSON-encoded array string (e.g. '[\"CI\",\"SN\"]'); full_name is the name actually screened — user_details is still required (given_names, last_name and email or phone_number).",
+    "Send a SmileID-Idempotency-Key (16-128 chars of A-Z a-z 0-9 - _) whenever you might retry: a retry without a key starts a new, separately billed screening. Reuse the same key only when you got no response at all (network failure, gateway timeout): it resolves to the same job and returns the original result instead of screening again.",
+    "Slower than the async /v3/aml: screening runs inline under a request deadline. 408 means the screening provider did not answer in time — the job exists and is terminal in 'error', nothing is billed, and GET /v3/status/{jobId} will only ever return that error: resubmit (with a new idempotency key) rather than poll. A screening that fails internally is a 500, not a 200 with status 'error'.",
+    "GET /v3/status/{jobId} (SmileID-Job-ID response header) only returns the status, not people[] — keep the 200 body, or store a callback_url and use replay_verification_webhook to get the full result again.",
+    "A 200 response carries Response-Signature and Response-Timestamp headers computed like the webhooks' — verify them the same way.",
+    "status 'attention' with reason 'news_media_match' means only adverse-media hits were found; the raw article list is never included, only people[].news_summary.",
+    "402 Insufficient wallet balance — top up the Smile ID wallet from the Dashboard before retrying.",
+    "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com). Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production. Sandbox only accepts the documented AML test identities, matched on full_name alone — user_details play no part in matching; production rejects test identities with 400."
+  ],
+  "evidence": {
+    "source_url": "https://docs.usesmileid.com/api-reference/products/one-time-aml/perform-a-synchronous-one-time-aml-check.md",
+    "source_reference": "Perform a Synchronous One-Time AML Check (POST /v3/aml/sync)",
+    "extracted_at": "2026-10-23T20:50:40.379Z",
+    "snapshot_hash": "68e50f4455617dacb6b27e4eaaddb2d3e14383cd0b6ce8f7eabcae28bcaf5851",
+    "spans": [
+      "/v3/aml/sync",
+      "returns the terminal result in the response body instead of delivering it to a callback URL",
+      "Sent as a JSON-encoded array string in the multipart part",
+      "a retry without a key starts a new, separately billed screening"
+    ]
+  }
+}

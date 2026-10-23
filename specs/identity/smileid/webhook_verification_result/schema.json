@@ -1,0 +1,942 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v3",
+  "capability": "webhook_verification_result",
+  "capability_type": "webhook",
+  "status": "ready",
+  "auth": {
+    "type": "none",
+    "env_var": "SMILEID_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_webhook_url}"
+  },
+  "example_prompt": "Receive Smile ID's verification verdict on my callback URL, verify the Response-Signature, and update the user's KYC status from status, reason and id_fields.",
+  "input_schema": {
+    "type": "object",
+    "description": "JSON body Smile ID POSTs to your callback_url when an Enhanced KYC or Document Verification job completes (fields from both webhook pages; image_links and device_signals come with Document Verification). Other products (e.g. One-Time AML) send a different payload — see their webhook pages.",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "The overall disposition of the verification. One of `clear`, `attention`, `block`, or `error`.",
+        "enum": [
+          "clear",
+          "attention",
+          "block",
+          "error"
+        ]
+      },
+      "message": {
+        "type": "string",
+        "description": "A human-readable summary of the verification outcome."
+      },
+      "reason": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "A machine-readable code indicating the specific cause of the status. `null` when `status` is `clear`."
+      },
+      "product": {
+        "type": "string",
+        "description": "The Smile ID product that produced this result (e.g. `enhanced_kyc`, `document_verification`)."
+      },
+      "created_at": {
+        "type": "string",
+        "description": "ISO 8601 timestamp of when the verification job was created."
+      },
+      "completed_at": {
+        "type": "string",
+        "description": "ISO 8601 timestamp of when the verification job completed."
+      },
+      "partner_params": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "description": "Partner-provided metadata submitted with the original request.",
+        "properties": {
+          "job_type": {
+            "type": "integer",
+            "description": "The job type for the verification (`5` for Enhanced KYC, `6` for Document Verification). Listed in the field tables but absent from both example payloads."
+          },
+          "job_id": {
+            "type": "string",
+            "description": "Smile ID job id (present in the example payloads)."
+          },
+          "user_id": {
+            "type": "string",
+            "description": "User id (present in the example payloads)."
+          }
+        }
+      },
+      "id_fields": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "description": "Personal information returned by the ID authority. `null` when `status` is `block` or `error`.",
+        "properties": {
+          "first_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "First name of the individual."
+          },
+          "other_names": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Middle or other names."
+          },
+          "last_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Surname or family name."
+          },
+          "full_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Full name as recorded by the ID authority."
+          },
+          "id_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The ID number."
+          },
+          "date_of_birth": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Date of birth in `YYYY-MM-DD` format."
+          },
+          "gender": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Gender as recorded by the ID authority."
+          },
+          "is_deceased": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "Whether the individual is recorded as deceased."
+          },
+          "issuance_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Date the ID document was issued, in `YYYY-MM-DD` format."
+          },
+          "expiration_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Date the ID document expires, in `YYYY-MM-DD` format."
+          },
+          "photo_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Signed URL to the ID photo image. The URL expires after 15 minutes."
+          },
+          "document_link": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Signed URL to the ID document image, if available. The URL expires after 15 minutes."
+          },
+          "phone_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Primary phone number on file with the ID authority."
+          },
+          "phone_number_2": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Secondary phone number, if available."
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Email address on file with the ID authority."
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Title (e.g., Mr, Mrs, Dr)."
+          },
+          "occupation": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Occupation as recorded by the ID authority."
+          },
+          "marital_status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Marital status as recorded by the ID authority."
+          },
+          "nationality": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Nationality of the individual."
+          },
+          "country_of_birth": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Country of birth."
+          },
+          "place_of_birth": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Place of birth."
+          },
+          "place_of_issuance": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Location where the ID document was issued."
+          },
+          "region_of_origin": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Region of origin."
+          },
+          "local_area_of_origin": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Local area of origin."
+          },
+          "id_status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Status of the ID document as reported by the authority."
+          },
+          "date_of_death": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Date of death in `YYYY-MM-DD` format, if the individual is recorded as deceased."
+          },
+          "secondary_id_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A secondary ID number associated with the individual, if available."
+          },
+          "address_unparsed": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Full address as a single unstructured string."
+          },
+          "address": {
+            "type": "object",
+            "description": "Structured address fields.",
+            "properties": {
+              "address_line_1": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "First line of the address."
+              },
+              "address_line_2": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Second line of the address."
+              },
+              "locality": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "City or town."
+              },
+              "sub_admin_area": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "District or sub-region."
+              },
+              "main_admin_area": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "State or province."
+              },
+              "postal_code": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Postal or ZIP code."
+              },
+              "country": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Country code."
+              }
+            }
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Country of issuance (ISO 3166-1 alpha-2 code). (Document Verification)"
+          },
+          "id_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The document type (classified automatically when not supplied in the request). (Document Verification)"
+          }
+        }
+      },
+      "user_provided_info": {
+        "type": "object",
+        "description": "The personal information submitted in the original verification request.",
+        "properties": {
+          "given_names": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Given names as provided in the request."
+          },
+          "last_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Last name as provided in the request."
+          },
+          "id_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ID number as provided in the request."
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Email address as provided in the request."
+          },
+          "phone_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Phone number as provided in the request."
+          }
+        }
+      },
+      "antifraud": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "description": "Fraud screening results. `null` when `status` is `error`.",
+        "properties": {
+          "fraud_risk": {
+            "type": "object",
+            "description": "Fraud risk assessment from Smile ID's risk engine.",
+            "properties": {
+              "risk_indicators": {
+                "type": "array",
+                "description": "List of risk indicator codes that contributed to the risk assessment. Empty when no risk is detected."
+              },
+              "risk_level": {
+                "type": "string",
+                "description": "Overall risk level. One of `low`, `medium`, or `high`."
+              },
+              "risk_score": {
+                "type": "integer",
+                "description": "Numeric risk score from 0 (no risk) to 100 (highest risk)."
+              },
+              "indicator_details": {
+                "type": "object",
+                "description": "Detailed metadata for each risk indicator listed in `fraud_risk.risk_indicators`. Empty when no risk is detected.",
+                "properties": {},
+                "additionalProperties": {
+                  "type": "object",
+                  "description": "Detail object keyed by indicator code (for example `risk_indicator_1`).",
+                  "properties": {
+                    "description": {
+                      "type": "string",
+                      "description": "Human-readable explanation of why that indicator contributed to the risk assessment."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "smile_secure": {
+            "type": "object",
+            "description": "Results from Smile ID's Smile Secure duplicate detection system.",
+            "properties": {
+              "status": {
+                "type": "string",
+                "description": "Smile Secure result. One of `clear`, `attention`, or `error`."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable description of the Smile Secure result."
+              },
+              "suspect_users": {
+                "type": "array",
+                "description": "Users previously associated with the same identity, if any duplicates are detected.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "user_id": {
+                      "type": "string",
+                      "description": "The user ID of the matched prior verification."
+                    },
+                    "reasons": {
+                      "type": "array",
+                      "description": "Why the user was matched. Values: `same-id-number` and `same-face`."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "summary": {
+            "type": "object",
+            "description": "Aggregated fraud summary.",
+            "properties": {
+              "fraud_detected": {
+                "type": "boolean",
+                "description": "`true` if any fraud signal was detected across all fraud checks."
+              },
+              "fraud_sources": {
+                "type": "array",
+                "description": "List of fraud check sources that detected fraud (e.g., `fraud_risk`). Empty when no fraud is detected."
+              }
+            }
+          }
+        }
+      },
+      "consent": {
+        "type": "object",
+        "description": "Consent record following the ISO 27560 schema. Present in every webhook.",
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "description": "The consent schema version."
+          },
+          "record_id": {
+            "type": "string",
+            "description": "Unique identifier for the consent record."
+          },
+          "pii_principal_id": {
+            "type": "string",
+            "description": "Identifier of the individual who granted consent."
+          },
+          "language": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 639-1 language code of the privacy notice shown to the individual."
+          },
+          "privacy_notice": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "URL of the privacy notice presented to the individual."
+          },
+          "event": {
+            "type": "array",
+            "description": "List of consent events associated with this record.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "entity_id": {
+                  "type": "string",
+                  "description": "Identifier of the consent grant entity."
+                },
+                "event_state": {
+                  "type": "string",
+                  "description": "State of the consent event (e.g., `consent given`)."
+                },
+                "event_time": {
+                  "type": "string",
+                  "description": "ISO 8601 timestamp of when the consent event occurred."
+                },
+                "event_type": {
+                  "type": "string",
+                  "description": "Type of consent event (e.g., `explicit`)."
+                },
+                "validity_duration": {
+                  "type": "integer",
+                  "description": "Duration in seconds for which the consent remains valid."
+                }
+              }
+            }
+          },
+          "purposes": {
+            "type": "array",
+            "description": "List of processing purposes covered by the consent.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "purpose": {
+                  "type": "string",
+                  "description": "The stated purpose for data processing."
+                },
+                "lawful_basis": {
+                  "type": "array",
+                  "description": "Legal bases for processing (e.g., `consent`, `contract`)."
+                },
+                "pii_information": {
+                  "type": "array",
+                  "description": "List of PII field types covered by the consent."
+                },
+                "pii_controllers": {
+                  "type": "array",
+                  "description": "Organizations controlling the PII (includes Smile ID and the partner)."
+                },
+                "collection_method": {
+                  "type": "array",
+                  "description": "Methods used to collect consent (e.g., `explicit`)."
+                },
+                "processing_method": {
+                  "type": "array",
+                  "description": "Data processing operations performed (e.g., `collect`, `store`, `verify`)."
+                },
+                "jurisdiction": {
+                  "type": "array",
+                  "description": "Applicable legal jurisdictions (e.g., `EU (GDPR)`, `ZA (POPIA)`)."
+                },
+                "geographic_restrictions": {
+                  "type": "string",
+                  "description": "Geographic scope of data processing."
+                },
+                "storage_locations": {
+                  "type": "array",
+                  "description": "Countries where data is stored (ISO 3166-1 alpha-2 codes)."
+                },
+                "processing_locations": {
+                  "type": "array",
+                  "description": "Countries where data is processed (ISO 3166-1 alpha-2 codes)."
+                },
+                "retention_period": {
+                  "type": "integer",
+                  "description": "Data retention period in seconds."
+                },
+                "codes_of_conduct": {
+                  "type": "string",
+                  "description": "URL to applicable codes of conduct."
+                },
+                "impact_assessment": {
+                  "type": "string",
+                  "description": "URL to the data protection impact assessment."
+                },
+                "withdrawal_method": {
+                  "type": "string",
+                  "description": "URL for consent withdrawal."
+                },
+                "privacy_rights": {
+                  "type": "object",
+                  "description": "Map of privacy right names to their respective URLs."
+                }
+              }
+            }
+          }
+        }
+      },
+      "kyc_receipt": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Signed URL to a PDF verification receipt. `null` when `status` is `error`. The URL expires after 15 minutes."
+      },
+      "image_links": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "description": "URLs to the images submitted with the request. `null` when `status` is `error`.",
+        "properties": {
+          "selfie_image": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Signed URL to the submitted selfie image. The URL expires after 15 minutes."
+          },
+          "id_card_image": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Signed URL to the submitted document front image. The URL expires after 15 minutes."
+          },
+          "id_card_back_image": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Signed URL to the submitted document back image, if a back image was submitted. The URL expires after 15 minutes."
+          }
+        }
+      },
+      "device_signals": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "description": "Device, network, and SDK signals derived from the metadata submitted with the job. `null` when `status` is `error`, or when no metadata was submitted.",
+        "properties": {
+          "device_information": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Information about the device that performed the capture.",
+            "properties": {
+              "device_model": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Device make and model."
+              },
+              "device_os": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Operating system and version."
+              },
+              "device_timezone": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Timezone configured on the device."
+              },
+              "locale": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Locale configured on the device."
+              },
+              "system_architecture": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "CPU architecture of the device."
+              }
+            }
+          },
+          "fingerprinting_identifiers": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Identifiers that fingerprint the device.",
+            "properties": {
+              "fingerprint": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Device fingerprint identifier."
+              },
+              "user_agent": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "User agent of the client that submitted the job."
+              }
+            }
+          },
+          "location_data": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Geolocation reported by the device.",
+            "properties": {
+              "accuracy": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Accuracy of the location reading, in meters."
+              },
+              "latitude": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Latitude of the device."
+              },
+              "longitude": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Longitude of the device."
+              },
+              "source": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Source of the location reading (e.g., `gps`, `network`)."
+              }
+            }
+          },
+          "network_connectivity": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Network signals for the connection used to submit the job.",
+            "properties": {
+              "carrier_info": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Mobile carrier of the device."
+              },
+              "ip": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "IP address the job was submitted from."
+              },
+              "ip_information": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "Enriched information about the IP address.",
+                "properties": {
+                  "city": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "City associated with the IP address."
+                  },
+                  "country": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Country associated with the IP address."
+                  },
+                  "ip_timezone": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Timezone associated with the IP address."
+                  },
+                  "isp": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Internet service provider of the IP address."
+                  },
+                  "latitude": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Latitude associated with the IP address."
+                  },
+                  "longitude": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Longitude associated with the IP address."
+                  },
+                  "region": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Region associated with the IP address."
+                  }
+                }
+              },
+              "is_proxy": {
+                "type": [
+                  "boolean",
+                  "null"
+                ],
+                "description": "Whether the IP address is a known proxy."
+              },
+              "is_vpn": {
+                "type": [
+                  "boolean",
+                  "null"
+                ],
+                "description": "Whether the IP address is a known VPN endpoint."
+              },
+              "network_connection": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Network connection type (e.g., `wifi`, `cellular`)."
+              }
+            }
+          },
+          "sdk_application": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Details of the SDK and host application that submitted the job.",
+            "properties": {
+              "host_application": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Identifier of the application hosting the SDK."
+              },
+              "sdk": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The Smile ID SDK used for the capture."
+              },
+              "sdk_version": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Version of the SDK."
+              },
+              "uses_wrapper": {
+                "type": [
+                  "boolean",
+                  "null"
+                ],
+                "description": "Whether the SDK runs inside a wrapper framework (e.g., React Native, Flutter)."
+              },
+              "wrapper_name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Name of the wrapper framework, if any."
+              },
+              "wrapper_version": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Version of the wrapper framework, if any."
+              }
+            }
+          }
+        }
+      }
+    },
+    "required": [
+      "consent"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "Respond with any 2xx status within 35 seconds to acknowledge the webhook."
+  },
+  "error_schema": {},
+  "gotchas": [
+    "Verify every webhook before trusting it: compute HMAC-SHA256 over Response-Timestamp + your partner ID + the literal string 'sid_request', keyed with the API key used to mint the original request's token, base64-encode it and compare with the Response-Signature header. Use the raw Response-Timestamp header value — do not reformat it.",
+    "Return a 2xx within 35 seconds. Otherwise Smile ID retries immediately, up to 3 times (4 attempts in total), then stops — recover a lost result with replay_verification_webhook.",
+    "Delivery is at-least-once and unordered: deduplicate and correlate on the smileid-job-id header and the user-id field, not on arrival order.",
+    "This webhook is the only authoritative verdict. The Web SDK's onResult 'success' only means the job was submitted; a Smile Link redirect fires on submit or cancel and can be forged by the end user.",
+    "Branch on status (clear, attention, block, error) and reason. id_fields is null when status is block or error; antifraud is null when status is error. The shape of id_fields depends on product, country and ID type — every field is nullable.",
+    "photo_url, document_link, image_links.* and kyc_receipt are signed URLs that expire after 15 minutes — download what you need to keep immediately.",
+    "Callback URLs are set per environment in the Dashboard (Developer > Security Settings > Callback URLs) or per request with callback_url. If you filter inbound traffic by IP, allow Smile ID's callback IPs (production: 13.51.0.119, 34.240.137.52, 51.20.27.3, 52.213.46.74; sandbox: 13.48.228.158, 16.170.104.93, 54.246.37.255, 99.81.237.141)."
+  ],
+  "evidence": {
+    "source_url": "https://docs.usesmileid.com/developer-resources/essentials/verification-webhooks/receive-webhooks.md",
+    "source_reference": "Receive Webhooks — Webhook Signature, Automatic Retries, Webhook Sequencing",
+    "extracted_at": "2026-10-23T20:50:45.574Z",
+    "snapshot_hash": "211200e5a5fec8c8613404e2bf16fb6705b572ef568c2d6782da6d563f670d2d",
+    "spans": [
+      "Response-Signature",
+      "Response-Timestamp",
+      "sid_request",
+      "Base64-encoded HMAC-SHA256 signature.",
+      "Webhooks are retried up to **3 times** after the initial attempt",
+      "Your server must respond within **35 seconds**."
+    ]
+  }
+}
