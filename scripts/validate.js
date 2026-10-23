@@ -171,6 +171,16 @@ function discoverChangedSpecs() {
     const match = file.match(/^specs\/([^/]+)\/([^/]+)\/([^/]+)\//);
     if (match) {
       specDirs.add(path.join(SPECS_ROOT, match[1], match[2], match[3]));
+      continue;
+    }
+    // provider.json is checked per spec: a change to it alone must re-validate every spec of that provider.
+    const providerMatch = file.match(/^specs\/([^/]+)\/([^/]+)\/provider\.json$/);
+    const providerDir = providerMatch && path.join(SPECS_ROOT, providerMatch[1], providerMatch[2]);
+    if (providerDir && fs.existsSync(providerDir)) {
+      for (const capability of fs.readdirSync(providerDir)) {
+        const capabilityPath = path.join(providerDir, capability);
+        if (fs.statSync(capabilityPath).isDirectory()) specDirs.add(capabilityPath);
+      }
     }
   }
 
@@ -252,6 +262,9 @@ function validateSchema(specPath) {
     const invalid = channels.filter((c) => !VALID_CHANNELS.includes(c));
     if (invalid.length > 0) {
       return fail(specPath, `provider.json channels contains invalid value(s): ${invalid.join(", ")} — allowed: ${VALID_CHANNELS.join("|")}`);
+    }
+    if (new Set(channels).size !== channels.length) {
+      return fail(specPath, `provider.json channels must not contain duplicates`);
     }
   }
 

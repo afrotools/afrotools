@@ -21,8 +21,9 @@ for the target provider and capability before writing any implementation code.
    - Discover what's actually available with `afrotools.search_specs({ category: "communications" })`
      or `afrotools.list_providers()`. Never assume a provider has (or lacks) a spec from
      memory or from a previous session — the registry grows independently of this skill.
-   - If the user needs a specific channel, keep only providers whose `channels` includes
-     it. `channels` lists what the provider offers, not which capabilities have a spec —
+   - If the user needs a specific channel, filter on it:
+     `afrotools.search_specs({ category: "communications", channel: "whatsapp" })`.
+     A provider's `channels` lists what it offers, not which capabilities have a spec —
      still confirm the capability itself is returned before implementing.
    - If the requested provider or capability isn't returned:
      1. Call `afrotools.request_spec({ provider: "<slug>", capability: "<capability>" })`

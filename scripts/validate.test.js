@@ -167,3 +167,11 @@ test("channels is optional outside communications but still validated when prese
   assert.equal(code, 1);
   assert.match(stderr, /channels must be a non-empty array/);
 });
+
+test("duplicate channels fail validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraProvider: { category: "communications", channels: ["sms", "sms"] } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /duplicates/);
+});
