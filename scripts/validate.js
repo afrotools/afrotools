@@ -36,7 +36,6 @@ const REQUIRED_FIELDS = [
   "capability",
   "capability_type",
   "status",
-  "currency",
   "auth",
   "endpoint",
   "example_prompt",
@@ -306,8 +305,11 @@ function validateSchema(specPath) {
     return fail(specPath, `example_prompt is required and must be non-empty for status "${schema.status}"`);
   }
 
-  // currency array
-  if (!Array.isArray(schema.currency)) {
+  // currency — required for payment only; a country/currency pairing means nothing for identity, SMS, etc.
+  if (providerManifest.category === "payment" && !("currency" in schema)) {
+    return fail(specPath, `schema.json missing required field: "currency" (required for category "payment")`);
+  }
+  if ("currency" in schema && !Array.isArray(schema.currency)) {
     return fail(specPath, `currency must be an array`);
   }
 
@@ -709,7 +711,7 @@ function runCrossSpecChecks(loadedSchemas) {
 
     // country_code comes from provider.json (same for all specs of a provider, but check anyway)
     const ccSigs    = entries.map(({ providerManifest: p }) => JSON.stringify([...p.country_code].sort()));
-    const curSigs   = entries.map(({ schema: s }) => JSON.stringify([...s.currency].sort()));
+    const curSigs   = entries.map(({ schema: s }) => JSON.stringify([...(s.currency ?? [])].sort()));
     const apiVers   = entries.map(({ schema: s }) => s.provider_api_version);
     const sandboxes = entries.map(({ providerManifest: p }) => String(p.sandbox));
 
@@ -722,7 +724,7 @@ function runCrossSpecChecks(loadedSchemas) {
       const rel = path.relative(SPECS_ROOT, specPath);
       /** @type {string[]} */ const errors = [];
       const ccSig = JSON.stringify([...providerManifest.country_code].sort());
-      const curSig = JSON.stringify([...schema.currency].sort());
+      const curSig = JSON.stringify([...(schema.currency ?? [])].sort());
 
       if (ccSig !== majCC) {
         errors.push(
@@ -732,7 +734,7 @@ function runCrossSpecChecks(loadedSchemas) {
       }
       if (curSig !== majCur) {
         errors.push(
-          `[CROSS-SPEC] currency: [${[...schema.currency].sort().join(", ")}] ` +
+          `[CROSS-SPEC] currency: [${[...(schema.currency ?? [])].sort().join(", ")}] ` +
           `(majoritaire: ${majCur})`
         );
       }
@@ -757,7 +759,7 @@ function runCrossSpecChecks(loadedSchemas) {
     }
   }
 
-  // Country/currency coherence now runs unconditionally in the main per-spec loop below, in
+  // Country/currency coherence (payment only) runs in the main per-spec loop below, in
   // EVERY mode — see that loop's comment for why. Kept out of this function entirely rather than
   // left as a second call site, to avoid ever running it twice in the same full run.
 
@@ -817,8 +819,10 @@ for (const specPath of specs) {
       // kind of single-spec mistake this check exists to catch — a currency listed with no
       // matching country, or vice versa — could pass CI on every PR (CI always runs in
       // `--changed` mode) and only surface later, if anyone ever ran a full `npm run validate`
-      // locally. It now runs here, unconditionally, in every mode.
-      if (!checkCountryCurrencyCoherence(specPath, { ...schema, country_code: providerManifest.country_code })) {
+      // locally. It now runs here, in every mode — for payment specs only: currency is
+      // meaningless for the other categories and optional there.
+      if (providerManifest.category === "payment" &&
+          !checkCountryCurrencyCoherence(specPath, { ...schema, country_code: providerManifest.country_code })) {
         failures++; continue;
       }
 

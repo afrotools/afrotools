@@ -7,7 +7,7 @@ step's schema.json) — without running the live calls.
 Why this exists: the live-test GitHub Actions workflow stores one real
 credential per provider under a GitHub Environment (named after the
 provider slug), always in a secret called LIVE_TEST_CREDENTIAL (and
-LIVE_TEST_CREDENTIAL_SECONDARY for `basic` auth). That keeps the workflow
+LIVE_TEST_CREDENTIAL_SECONDARY when the fixture declares auth_secondary_env). That keeps the workflow
 YAML provider-agnostic — adding a new sandbox provider is a repo-settings
 action (new Environment + secret), never a YAML edit. But test_live.py
 itself reads a provider-specific env var name (e.g. QOSIC_USERNAME, taken
@@ -19,8 +19,9 @@ Usage:
 
 Prints one env var name per line to stdout:
     line 1 — primary (always present if the provider is testable)
-    line 2 — secondary (only when auth.type == "basic" and the fixture
-             declares auth_secondary_env)
+    line 2 — secondary (only when the fixture declares auth_secondary_env —
+             the second half of `basic` auth, or a second credential such as a
+             partner ID sent in a step's headers via $env:)
 
 Exits non-zero with a message on stderr if the provider/fixture/schema
 can't be found — same failure shape as test_live.py itself.
@@ -73,10 +74,9 @@ def main():
 
     print(env_var)
 
-    if auth.get("type") == "basic":
-        secondary = fixture.get("auth_secondary_env")
-        if secondary:
-            print(secondary)
+    secondary = fixture.get("auth_secondary_env")
+    if secondary:
+        print(secondary)
 
 
 if __name__ == "__main__":

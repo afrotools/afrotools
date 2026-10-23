@@ -180,7 +180,13 @@ Key fixture fields:
 - `sandbox_base_url` — replaces the production host with the sandbox host for all requests
 - `store_as` — stores the full response under a name so later steps can reference it
 - `$store_as_value.field.nested` — references a value from a previous step's stored response
-- `auth_secondary_env` — required when `auth.type == "basic"` needs two env vars
+- `auth_secondary_env` — a second env var the run needs: the password half of `basic` auth, or a
+  second credential (e.g. a partner ID) that steps send through `$env:NAME` in their `headers`
+- `$env:NAME` — references an environment variable (typically in a step's `headers`)
+- `content_type` (per step) — `application/json` (default), `application/x-www-form-urlencoded`, or
+  `multipart/form-data` (nested objects/arrays are sent as JSON strings; file uploads aren't supported)
+- `skip_auth` (per step) — don't send the schema-derived auth on this step: use it for a
+  token-exchange call that carries its own credentials in `headers`, or an unauthenticated endpoint
 
 **Run it:**
 

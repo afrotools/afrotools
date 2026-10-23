@@ -122,6 +122,22 @@ def build_auth(schema, fixture):
 
 # ── HTTP ──────────────────────────────────────────────────────────────────────
 
+def _multipart(body):
+    """Encode a flat dict as multipart/form-data. Nested dicts/lists travel as JSON strings."""
+    boundary = f"afrotools-{int(time.time() * 1000)}"
+    parts = []
+    for k, v in body.items():
+        if v is None:
+            continue
+        if isinstance(v, bool):
+            v = "true" if v else "false"
+        elif isinstance(v, (dict, list)):
+            v = json.dumps(v)
+        parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n')
+    parts.append(f"--{boundary}--\r\n")
+    return "".join(parts).encode(), f"multipart/form-data; boundary={boundary}"
+
+
 def http_call(method, url, auth_headers, body=None, extra_headers=None, content_type="application/json"):
     headers = {
         "Accept": "application/json",
@@ -141,6 +157,8 @@ def http_call(method, url, auth_headers, body=None, extra_headers=None, content_
         if content_type == "application/x-www-form-urlencoded":
             data = urllib.parse.urlencode({k: v for k, v in body.items() if v is not None}).encode()
             headers["Content-Type"] = "application/x-www-form-urlencoded"
+        elif content_type == "multipart/form-data":
+            data, headers["Content-Type"] = _multipart(body)
         else:
             data = json.dumps(body).encode()
             headers["Content-Type"] = "application/json"
@@ -393,7 +411,10 @@ def run(provider_slug, only_capability=None, raw_capability=None):
         )
 
         body = resolve(step.get("body"), stored, ts) if step.get("body") is not None else None
-        if body_auth:
+        # skip_auth: the step sends its own credentials in `headers` (e.g. a token-exchange call)
+        # or none at all — the schema-derived auth must not leak into it.
+        step_auth = {} if step.get("skip_auth") else auth_headers
+        if body_auth and not step.get("skip_auth"):
             body = body or {}
             body[body_auth[0]] = body_auth[1]
 
@@ -401,12 +422,12 @@ def run(provider_slug, only_capability=None, raw_capability=None):
         content_type = step.get("content_type", "application/json")
 
         if raw_capability == cap_name:
-            _, resp = http_call(method, url, auth_headers, body, extra_headers, content_type)
+            _, resp = http_call(method, url, step_auth, body, extra_headers, content_type)
             print(f"\n{BOLD}Raw response:{RESET}")
             print(json.dumps(resp, indent=2))
             return
 
-        status_code, resp = http_call(method, url, auth_headers, body, extra_headers, content_type)
+        status_code, resp = http_call(method, url, step_auth, body, extra_headers, content_type)
 
         store_as = step.get("store_as")
         if store_as:

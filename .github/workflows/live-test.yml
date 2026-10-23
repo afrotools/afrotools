@@ -15,8 +15,9 @@ name: Live test
 #   1. Settings → Environments → New environment, named exactly the
 #      provider's slug (e.g. "qosic")
 #   2. Add a secret called LIVE_TEST_CREDENTIAL with the real value
-#   3. If the provider's auth type is "basic", also add
-#      LIVE_TEST_CREDENTIAL_SECONDARY
+#   3. If the provider's live_test_fixtures.json declares
+#      auth_secondary_env (basic auth, or a second credential such as a
+#      partner ID), also add LIVE_TEST_CREDENTIAL_SECONDARY
 # scripts/ci_resolve_live_test_env.py reads live_test_fixtures.json +
 # schema.json to figure out which env var name test_live.py actually needs
 # (e.g. QOSIC_USERNAME) and exports the generic secret under that name —
