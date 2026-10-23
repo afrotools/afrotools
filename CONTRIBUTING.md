@@ -77,7 +77,7 @@ specs/{category}/{provider_slug}/
     └── canonical_example.ts
 ```
 
-- `category`: `payment` or `sms`
+- `category`: `payment` or `communications` (SMS, WhatsApp, USSD, voice, email)
 - `provider_slug`: lowercase. Single-word providers use no separator (e.g. `wave`, `nimbasms`). Compound or geographic variants may use hyphens (e.g. `orangemoney-mali`).
 - `capability`: snake_case verb (e.g. `create_payment`, `send_message`)
 
@@ -100,7 +100,10 @@ Create `specs/{category}/{provider_slug}/provider.json` if it does not already e
 }
 ```
 
-All 10 fields are required. If the provider already has a `provider.json`, do not overwrite it.
+All 10 fields are required. Providers in the `communications` category also require
+`channels` — a non-empty array of the channels the provider's docs document, among
+`sms`, `whatsapp`, `ussd`, `voice`, `email` (e.g. `"channels": ["sms", "whatsapp"]`).
+If the provider already has a `provider.json`, do not overwrite it.
 
 ### 4. Add `schema.json`
 

@@ -10,7 +10,7 @@ assignees: ""
 
 <!-- Which provider changed? -->
 **Provider:** <!-- e.g. Wave, Paycard, NimbaSMS -->
-**Category:** <!-- payment / sms -->
+**Category:** <!-- payment / communications -->
 
 ## What changed
 

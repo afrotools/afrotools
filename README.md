@@ -57,11 +57,11 @@ See [ATSS.md](./ATSS.md) for the full specification.
 | SasPay | payment | 🇧🇫 🇧🇯 🇨🇩 +15 | 13 | 7 verified · 6 ready |
 | Djomy | payment | 🇬🇳 | 7 | 4 verified · 3 ready |
 | LengoPay | payment | 🇬🇳 | 8 | 2 verified · 6 ready |
-| Africa's Talking | sms | 🇧🇫 🇧🇯 🇨🇮 +17 | 2 | 📋 Ready |
+| Africa's Talking | communications | 🇧🇫 🇧🇯 🇨🇮 +17 | 2 | 📋 Ready |
 | Bictorys | payment | 🇸🇳 🇨🇮 🇲🇱 +3 | 4 | 📋 Ready |
 | Flutterwave | payment | 🇳🇬 🇬🇭 🇰🇪 +10 | 57 | 📋 Ready |
 | KadevPay | payment | 🇨🇮 | 3 | 📋 Ready |
-| NimbaSMS | sms | 🇬🇳 | 11 | 📋 Ready |
+| NimbaSMS | communications | 🇬🇳 | 11 | 📋 Ready |
 | Notch Pay | payment | 🇨🇲 🇨🇮 🇸🇳 +3 | 31 | 📋 Ready |
 | Orange Money Mali | payment | 🇲🇱 | 2 | 📋 Ready |
 | PayGate | payment | 🇹🇬 | 6 | 📋 Ready |
@@ -105,7 +105,7 @@ claude mcp add --transport http afrotools https://mcp.afro.tools/mcp
 
 **Auto-activated skills** based on context:
 - `payment` — integrating a payment API
-- `sms` — integrating an SMS API
+- `communications` — integrating an SMS, WhatsApp, USSD, voice or email API
 - `debug` — when an integration based on an afrotools spec fails → diagnoses whether the problem is a spec error, a missing gotcha, or an undocumented API change
 
 **Manual commands:**
