@@ -1,0 +1,211 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "3.255.0",
+  "capability": "webhook_sms_delivery_report",
+  "capability_type": "webhook",
+  "status": "draft",
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "url": "https://{your-domain}/webhooks/infobip/sms",
+    "method": "POST"
+  },
+  "example_prompt": "Receive Infobip SMS delivery reports on my endpoint and update each message's status by messageId.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "results": {
+        "type": "array",
+        "description": "Collection of reports, one per every message.",
+        "items": {
+          "type": "object",
+          "description": "Collection of reports, one per every message.",
+          "properties": {
+            "bulkId": {
+              "type": "string",
+              "description": "Unique ID assigned to the request if messaging multiple recipients or sending multiple messages via a single API request."
+            },
+            "price": {
+              "type": "object",
+              "description": "Sent message price.",
+              "properties": {
+                "pricePerMessage": {
+                  "type": "number",
+                  "description": "Price per one message."
+                },
+                "currency": {
+                  "type": "string",
+                  "description": "The currency in which the price is expressed."
+                }
+              }
+            },
+            "status": {
+              "type": "object",
+              "description": "Indicates the [status](https://www.infobip.com/docs/essentials/response-status-and-error-codes#api-status-codes) of the message and how to recover from an error should there be any.",
+              "properties": {
+                "groupId": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "Status group ID."
+                },
+                "groupName": {
+                  "type": "string",
+                  "description": "Status group name that describes which category the status code belongs to, i.e., [PENDING](https://www.infobip.com/docs/essentials/response-status-and-error-codes#pending-general-status-codes), [UNDELIVERABLE](https://www.infobip.com/docs/essentials/response-status-and-error-codes#undeliverable-general-status-codes), [DELIVERED](https://www.infobip.com/docs/essentials/response-status-and-error-codes#delivered-general-status-codes), [EXPIRED](https://www.infobip.com/docs/essentials/response-status-and-error-codes#expired-general-status-codes), [REJECTED](https://www.infobip.com/docs/essentials/response-status-and-error-codes#rejected-general-status-codes).",
+                  "enum": [
+                    "ACCEPTED",
+                    "PENDING",
+                    "UNDELIVERABLE",
+                    "DELIVERED",
+                    "EXPIRED",
+                    "REJECTED"
+                  ]
+                },
+                "id": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "Status code ID."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "[Status code](https://www.infobip.com/docs/essentials/response-status-and-error-codes#api-status-codes) name."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Human-readable description of the status."
+                },
+                "action": {
+                  "type": "string",
+                  "description": "Action to take to recover from the error."
+                }
+              }
+            },
+            "error": {
+              "type": "object",
+              "description": "Indicates whether an [error](https://www.infobip.com/docs/essentials/response-status-and-error-codes#error-codes) occurred during the query execution.",
+              "properties": {
+                "groupId": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "Error group ID."
+                },
+                "groupName": {
+                  "type": "string",
+                  "description": "Error group name that describes which category the error code belongs to.",
+                  "enum": [
+                    "OK",
+                    "HANDSET_ERRORS",
+                    "USER_ERRORS",
+                    "OPERATOR_ERRORS"
+                  ]
+                },
+                "id": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "Error ID."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "[Error name](https://www.infobip.com/docs/essentials/response-status-and-error-codes#error-codes)."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Human-readable description of the error."
+                },
+                "permanent": {
+                  "type": "boolean",
+                  "description": "Indicates whether the error is recoverable or not."
+                }
+              }
+            },
+            "messageId": {
+              "type": "string",
+              "description": "Unique message ID."
+            },
+            "to": {
+              "type": "string",
+              "description": "Message destination address."
+            },
+            "sender": {
+              "type": "string",
+              "description": "The sender ID which can be alphanumeric or numeric (e.g., `CompanyName`)."
+            },
+            "sentAt": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Date and time when the message was sent. Has the following format: yyyy-MM-dd'T'HH:mm:ss.SSSZ."
+            },
+            "doneAt": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Date and time when the Infobip services finished processing the message (i.e., delivered to the destination, network, etc.). Has the following format: yyyy-MM-dd'T'HH:mm:ss.SSSZ."
+            },
+            "messageCount": {
+              "type": "integer",
+              "format": "int32",
+              "description": "The number of sent messages."
+            },
+            "mccMnc": {
+              "type": "string",
+              "description": "Mobile country and network codes."
+            },
+            "callbackData": {
+              "type": "string",
+              "description": "Callback data sent through ‛callbackData‛ field when sending message."
+            },
+            "platform": {
+              "type": "object",
+              "description": "Platform options. For more details, see [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management).",
+              "properties": {
+                "entityId": {
+                  "type": "string",
+                  "description": "Used when specifying an entity in outbound send requests. It is also returned in notification events. For detailed usage, refer to the [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management).",
+                  "maxLength": 255,
+                  "minLength": 0
+                },
+                "applicationId": {
+                  "type": "string",
+                  "description": "Used when specifying an application in outbound send requests. It is also returned in notification events. For detailed usage, refer to the [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management).",
+                  "maxLength": 255,
+                  "minLength": 0
+                }
+              }
+            },
+            "campaignReferenceId": {
+              "type": "string",
+              "description": "ID of a campaign that was sent in the message."
+            }
+          }
+        }
+      }
+    }
+  },
+  "response_schema": {},
+  "error_schema": {},
+  "gotchas": [
+    "Set the URL per message with webhooks.delivery.url in send_sms, or once in Subscriptions management.",
+    "One call carries up to 100 reports by default (maxBucketSize in the Subscriptions API changes it): process every entry of results[].",
+    "Return 200 to accept the callback. If your URL becomes unavailable, Infobip retries on the cycle 1min + (1min * retryNumber * retryNumber).",
+    "Infobip can authenticate the calls it makes to your webhook (security settings of type BASIC, HMAC, OAUTH or CUSTOM, created with POST /subscriptions/1/security), but the OpenAPI doesn't describe the header or signature it then sends — this spec has no verification step, and the docs don't say whether those settings apply to a per-message URL. Treat the payload as untrusted until confirmed (for SMS, the message status is in get_sms_logs)."
+  ],
+  "evidence": {
+    "source_url": "https://api.infobip.com/platform/1/openapi",
+    "source_reference": "Infobip OpenAPI 3.255.0, webhooks.receive-outbound-sms-message-reports-v3.post and paths./subscriptions/1/security.post",
+    "extracted_at": "2026-10-23T21:44:46.862Z",
+    "snapshot_hash": "18bf45accc90ae8699a42800dfd63d4f7ecb83296f094360bcec257f48c8cf5f",
+    "spans": [
+      "You can specify the endpoint URL using the webhooks > delivery > url parameter.",
+      "Alternatively, you can set the endpoint URL through the [Subscriptions management]",
+      "Please note that the default number of delivery reports in a single request is 100.",
+      "Your server returns this code if it accepts the callback.",
+      "If your URL becomes unavailable then the",
+      "1min + (1min * retryNumber * retryNumber)",
+      "/subscriptions/1/security",
+      "Webhook security credentials.",
+      "HMAC credentials.",
+      "CUSTOM",
+      "receive-outbound-sms-message-reports-v3",
+      "Receive outbound SMS message reports"
+    ]
+  }
+}

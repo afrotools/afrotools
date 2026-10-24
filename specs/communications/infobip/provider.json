@@ -1,0 +1,13 @@
+{
+  "slug": "infobip",
+  "name": "Infobip",
+  "category": "communications",
+  "channels": ["sms", "whatsapp", "voice", "email"],
+  "country_code": ["AO", "BF", "BI", "BJ", "BW", "CD", "CF", "CG", "CI", "CM", "CV", "DJ", "DZ", "EG", "ER", "ET", "GA", "GH", "GM", "GN", "GQ", "GW", "KE", "KM", "LR", "LS", "LY", "MA", "MG", "ML", "MR", "MU", "MW", "MZ", "NA", "NE", "NG", "RW", "SC", "SD", "SL", "SN", "SO", "SS", "ST", "SZ", "TD", "TG", "TN", "TZ", "UG", "ZA", "ZM", "ZW"],
+  "website": "https://www.infobip.com",
+  "docs_url": "https://www.infobip.com/docs/api",
+  "docs_public": true,
+  "sandbox": false,
+  "description": "Infobip is a global cloud communications platform with country-by-country SMS coverage across Africa, plus WhatsApp, voice and email APIs and a 2FA (OTP) service. Each account has its own base URL.",
+  "example_prompt": "Send an OTP by SMS to a user in Côte d'Ivoire with Infobip 2FA and verify the code they type."
+}

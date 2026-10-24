@@ -1,0 +1,413 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "3.255.0",
+  "capability": "get_sms_logs",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "App {token}",
+    "env_var": "INFOBIP_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://xxxxx.api.infobip.com/sms/3/logs",
+    "method": "GET"
+  },
+  "example_prompt": "Search the logs of SMS messages sent through Infobip (by bulkId, messageId, destination or date range) to audit sending.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "mcc": {
+        "type": "string",
+        "description": "Mobile Country Code. Passed as a query parameter."
+      },
+      "mnc": {
+        "type": "string",
+        "description": "Mobile Network Code. Mobile Country Code is required if this property is used. Passed as a query parameter."
+      },
+      "sender": {
+        "type": "string",
+        "description": "The sender ID which can be alphanumeric or numeric. Passed as a query parameter."
+      },
+      "destination": {
+        "type": "string",
+        "description": "Message destination address. Passed as a query parameter."
+      },
+      "bulkId": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Unique ID assigned to the request if messaging multiple recipients or sending multiple messages via a single API request. May contain multiple comma-separated values. Maximum length 2048 characters. Passed as a query parameter."
+      },
+      "messageId": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Unique message ID for which a log is requested. May contain multiple comma-separated values. Maximum length 2048 characters. Passed as a query parameter."
+      },
+      "generalStatus": {
+        "type": "string",
+        "description": "Passed as a query parameter.",
+        "enum": [
+          "ACCEPTED",
+          "PENDING",
+          "UNDELIVERABLE",
+          "DELIVERED",
+          "EXPIRED",
+          "REJECTED"
+        ]
+      },
+      "sentSince": {
+        "type": "string",
+        "format": "date-time",
+        "description": "The logs will only include messages sent after this date. Use it alongside sentUntil to specify a time range for the logs, but only up to the maximum limit of 1000 logs per call. Has the following format: yyyy-MM-dd'T'HH:mm:ss.SSSZ. Passed as a query parameter."
+      },
+      "sentUntil": {
+        "type": "string",
+        "format": "date-time",
+        "description": "The logs will only include messages sent before this date. Use it alongside sentSince to specify a time range for the logs, but only up to the maximum limit of 1000 logs per call. Has the following format: yyyy-MM-dd'T'HH:mm:ss.SSSZ. Passed as a query parameter."
+      },
+      "limit": {
+        "type": "integer",
+        "format": "int32",
+        "default": 50,
+        "maximum": 1000,
+        "description": "Maximum number of messages to include in logs. If not set, the latest 50 records are returned. Maximum limit value is 1000 and you can only access logs for the last 48h. Passed as a query parameter."
+      },
+      "entityId": {
+        "type": "string",
+        "description": "Entity id used to send the message. For more details, see our [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management). Passed as a query parameter."
+      },
+      "applicationId": {
+        "type": "string",
+        "description": "Application id used to send the message. For more details, see our [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management). Passed as a query parameter."
+      },
+      "campaignReferenceId": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "ID of a campaign that was sent in the message. May contain multiple comma-separated values. Passed as a query parameter."
+      },
+      "useCursor": {
+        "type": "boolean",
+        "description": "Flag used to enable cursor-based pagination. When set to true, the system will use the cursor to fetch the next set of logs. Passed as a query parameter."
+      },
+      "cursor": {
+        "type": "string",
+        "description": "Value which represents the current position in the data set. For the first request, this field shouldn't be defined. In subsequent requests, use the `nextCursor` value returned from the previous response to continue fetching data. Passed as a query parameter."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "results": {
+        "type": "array",
+        "description": "An array of message log results, one object per each message log entry.",
+        "items": {
+          "type": "object",
+          "description": "An array of message log results, one object per each message log entry.",
+          "properties": {
+            "sender": {
+              "type": "string",
+              "description": "The sender ID which can be alphanumeric or numeric."
+            },
+            "destination": {
+              "type": "string",
+              "description": "Message destination address."
+            },
+            "bulkId": {
+              "type": "string",
+              "description": "Unique ID assigned to the request if messaging multiple recipients or sending multiple messages via a single API request."
+            },
+            "messageId": {
+              "type": "string",
+              "description": "Unique message ID for which a log is requested."
+            },
+            "sentAt": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Date and time when the message was sent. Has the following format: yyyy-MM-dd'T'HH:mm:ss.SSSZ."
+            },
+            "doneAt": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Date and time when the Infobip services finished processing the message (i.e., delivered to the destination, network, etc.). Has the following format: yyyy-MM-dd'T'HH:mm:ss.SSSZ."
+            },
+            "messageCount": {
+              "type": "integer",
+              "format": "int32",
+              "description": "The number of messages content was split to."
+            },
+            "price": {
+              "type": "object",
+              "description": "Sent message price.",
+              "properties": {
+                "pricePerMessage": {
+                  "type": "number",
+                  "description": "Price per one message."
+                },
+                "currency": {
+                  "type": "string",
+                  "description": "The currency in which the price is expressed."
+                }
+              }
+            },
+            "status": {
+              "type": "object",
+              "description": "Indicates the [status](https://www.infobip.com/docs/essentials/response-status-and-error-codes#api-status-codes) of the message and how to recover from an error should there be any.",
+              "properties": {
+                "groupId": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "Status group ID."
+                },
+                "groupName": {
+                  "type": "string",
+                  "description": "Status group name that describes which category the status code belongs to, i.e., [PENDING](https://www.infobip.com/docs/essentials/response-status-and-error-codes#pending-general-status-codes), [UNDELIVERABLE](https://www.infobip.com/docs/essentials/response-status-and-error-codes#undeliverable-general-status-codes), [DELIVERED](https://www.infobip.com/docs/essentials/response-status-and-error-codes#delivered-general-status-codes), [EXPIRED](https://www.infobip.com/docs/essentials/response-status-and-error-codes#expired-general-status-codes), [REJECTED](https://www.infobip.com/docs/essentials/response-status-and-error-codes#rejected-general-status-codes).",
+                  "enum": [
+                    "ACCEPTED",
+                    "PENDING",
+                    "UNDELIVERABLE",
+                    "DELIVERED",
+                    "EXPIRED",
+                    "REJECTED"
+                  ]
+                },
+                "id": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "Status code ID."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "[Status code](https://www.infobip.com/docs/essentials/response-status-and-error-codes#api-status-codes) name."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Human-readable description of the status."
+                },
+                "action": {
+                  "type": "string",
+                  "description": "Action to take to recover from the error."
+                }
+              }
+            },
+            "error": {
+              "type": "object",
+              "description": "Indicates whether an [error](https://www.infobip.com/docs/essentials/response-status-and-error-codes#error-codes) occurred during the query execution.",
+              "properties": {
+                "groupId": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "Error group ID."
+                },
+                "groupName": {
+                  "type": "string",
+                  "description": "Error group name that describes which category the error code belongs to.",
+                  "enum": [
+                    "OK",
+                    "HANDSET_ERRORS",
+                    "USER_ERRORS",
+                    "OPERATOR_ERRORS"
+                  ]
+                },
+                "id": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "Error ID."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "[Error name](https://www.infobip.com/docs/essentials/response-status-and-error-codes#error-codes)."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Human-readable description of the error."
+                },
+                "permanent": {
+                  "type": "boolean",
+                  "description": "Indicates whether the error is recoverable or not."
+                }
+              }
+            },
+            "platform": {
+              "type": "object",
+              "description": "Platform options. For more details, see [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management).",
+              "properties": {
+                "entityId": {
+                  "type": "string",
+                  "description": "Used when specifying an entity in outbound send requests. It is also returned in notification events. For detailed usage, refer to the [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management).",
+                  "maxLength": 255,
+                  "minLength": 0
+                },
+                "applicationId": {
+                  "type": "string",
+                  "description": "Used when specifying an application in outbound send requests. It is also returned in notification events. For detailed usage, refer to the [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management).",
+                  "maxLength": 255,
+                  "minLength": 0
+                }
+              }
+            },
+            "content": {
+              "type": "object",
+              "description": "Message content.",
+              "oneOf": [
+                {
+                  "type": "object",
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "description": "Content of the message being sent.",
+                          "minLength": 1
+                        },
+                        "transliteration": {
+                          "type": "string",
+                          "description": "The transliteration of your sent message from one script to another. [Transliteration](https://www.infobip.com/docs/sms/language#sms-transliteration) is used to replace characters which are not recognized as part of your defaulted alphabet. `ALL` means that the transliteration process will recognize all supported languages.",
+                          "enum": [
+                            "NONE",
+                            "TURKISH",
+                            "GREEK",
+                            "CYRILLIC",
+                            "SERBIAN_CYRILLIC",
+                            "CENTRAL_EUROPEAN",
+                            "BALTIC",
+                            "NON_UNICODE",
+                            "PORTUGUESE",
+                            "COLOMBIAN",
+                            "BULGARIAN_CYRILLIC",
+                            "ALL"
+                          ]
+                        },
+                        "language": {
+                          "type": "object",
+                          "description": "Sets the language parameters for the message being sent.",
+                          "properties": {
+                            "languageCode": {
+                              "type": "string",
+                              "description": "[Language code](https://www.infobip.com/docs/sms/language#national-language-identifier) for the correct character set. `AUTODETECT` lets the platform select the character set based on message content only for supported languages.",
+                              "enum": [
+                                "NONE",
+                                "TR",
+                                "ES",
+                                "PT",
+                                "AUTODETECT"
+                              ]
+                            },
+                            "singleShift": {
+                              "type": "boolean",
+                              "default": false,
+                              "description": "Uses a single shift table which enhances only the extension table of the GSM default alphabet. Allows you to selectively improve character support without altering the entire message."
+                            },
+                            "lockingShift": {
+                              "type": "boolean",
+                              "default": false,
+                              "description": "Uses a locking shift table which allows you to represent characters beyond the standard GSM default alphabet. This flexibility enables better language support."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "required": [
+                    "text"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "dataCoding": {
+                          "type": "integer",
+                          "format": "int32",
+                          "default": 0,
+                          "description": "Binary content data coding. The default value is (`0`) for GSM7. Example: (`8`) for  Unicode data."
+                        },
+                        "esmClass": {
+                          "type": "integer",
+                          "format": "int32",
+                          "default": 0,
+                          "description": "“Esm_class” parameter. Indicate special message attributes associated with the SMS. Default value is (`0`)."
+                        },
+                        "hex": {
+                          "type": "string",
+                          "description": "Hexadecimal string. This is the representation of your binary data. Two hex digits represent one byte. They should be separated by the space character.",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  ],
+                  "required": [
+                    "hex"
+                  ]
+                }
+              ]
+            },
+            "campaignReferenceId": {
+              "type": "string",
+              "description": "ID of a campaign that was sent in the message."
+            },
+            "mccMnc": {
+              "type": "string",
+              "description": "Mobile country and network codes."
+            }
+          }
+        }
+      },
+      "cursor": {
+        "type": "object",
+        "description": "Cursor information.",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Requested limit."
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "The `cursor` value you will use in your next request to fetch the subsequent set of results."
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {},
+  "gotchas": [
+    "Send the API key as 'Authorization: App <API_KEY>' — the prefix App; Bearer is only for OAuth 2.0 access tokens. Infobip API keys have a predefined expiry date and can be revoked at any time; a missing or invalid credential answers 401.",
+    "The OpenAPI lists these API key scopes for this endpoint (x-scopes): sms:manage, sms:logs:read. Give the key a matching scope when you create it.",
+    "Each Infobip account has its own base URL, xxxxx.api.infobip.com, shown once you log in to the Infobip API Resource hub. Set it in INFOBIP_BASE_URL (https://xxxxx.api.infobip.com in this spec is a placeholder). It identifies your account, the API key authenticates it.",
+    "Logs cover the last 48 hours only, at most 1000 per call (limit defaults to 50). For more, enable useCursor and pass nextCursor back as cursor.",
+    "To check whether a message was delivered, use delivery reports (webhook or get_sms_delivery_reports), not logs.",
+    "bulkId, messageId and campaignReferenceId accept several values (2048 characters at most).",
+    "List query parameters are declared style form, explode true in the OpenAPI (repeated keys: status=A&status=B, as this example sends them) while their descriptions say comma-separated values. With a single value both readings match.",
+    "The OpenAPI documents no error body for this endpoint (401, 403, 429, 500 have no schema): handle errors on the HTTP status. The 401 body shown on the authentication page is { requestError: { serviceException: { messageId, text } } }.",
+    "A 429 means the endpoint's rate limit was hit; limits differ per endpoint. Retry with exponential backoff and honour the Retry-After header when present."
+  ],
+  "evidence": {
+    "source_url": "https://api.infobip.com/platform/1/openapi",
+    "source_reference": "Infobip OpenAPI 3.255.0, paths./sms/3/logs.get (operationId get-outbound-sms-message-logs-v3, x-scopes). Passages quoted from the Infobip documentation (snapshot 2026-10-24): https://www.infobip.com/docs/llms.txt: \"sent in the Authorization header as `App YOUR_API_KEY`\" | \"create a key with the `sms:message:send` scope\" ; https://www.infobip.com/docs/essentials/api-essentials/api-authentication.md: \"Infobip API keys have a predefined expiry date to eventually become invalid\" | \"Keys can be revoked at any time\" | \"Commonly you will get the `401 Unauthorised` HTTP status code\" | \"Include `Bearer` and the token in the Authorization header\" | \"\"messageId\": \"UNAUTHORIZED\"\" ; https://www.infobip.com/docs/essentials/api-essentials/base-url.md: \"By default, each Infobip client has a different base URL which helps our platform identify the originator of each API request.\" | \"log in to the Infobip API Resource hub with your Infobip credentials\" | \"xxxxx.api.infobip.com\" ; https://www.infobip.com/docs/essentials/api-essentials/integration-best-practices.md: \"Different endpoints may have different throttling configurations\" | \"you should implement exponential backoff and retry logic\" | \"Check the `Retry-After` header in the 429 response, if present, to know when to retry\"",
+    "extracted_at": "2026-10-23T21:44:46.862Z",
+    "snapshot_hash": "18bf45accc90ae8699a42800dfd63d4f7ecb83296f094360bcec257f48c8cf5f",
+    "spans": [
+      "sms:manage",
+      "sms:logs:read",
+      "The available logs are limited to those generated in the last 48 hours, and you can retrieve a maximum of only 1000 logs per call.",
+      "use the `nextCursor` value returned from the previous response",
+      "if your use case is to verify message delivery",
+      "May contain multiple comma-separated values. Maximum length 2048 characters.",
+      "May contain multiple comma-separated values.",
+      "/sms/3/logs",
+      "Get outbound SMS message logs"
+    ]
+  }
+}
