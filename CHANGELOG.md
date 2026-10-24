@@ -22,6 +22,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- `communications/infobip`: 13 specs from the Infobip OpenAPI (3.255.0) — SMS send, delivery reports and logs; WhatsApp
+  text and template messages and template listing; the 2FA (OTP over SMS) flow from application setup to PIN
+  verification; and the SMS and WhatsApp delivery-report webhooks. The two webhooks are `draft`: the OpenAPI doesn't
+  describe how Infobip signs webhook calls.
 - `provider.json` field `channels` (`sms`, `whatsapp`, `ussd`, `voice`, `email`) — required
   for the `communications` category, optional elsewhere; enforced by `scripts/validate.js`.
 - `scripts/test_live.py` fixtures: per-step `content_type: "multipart/form-data"` (nested values

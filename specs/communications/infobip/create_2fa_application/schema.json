@@ -1,0 +1,190 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "3.255.0",
+  "capability": "create_2fa_application",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "App {token}",
+    "env_var": "INFOBIP_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://xxxxx.api.infobip.com/2fa/2/applications",
+    "method": "POST"
+  },
+  "example_prompt": "Create an Infobip 2FA application that sets the PIN rules (attempts, time to live, sending and verification limits) for my OTP flow.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "configuration": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "allowMultiplePinVerifications": {
+                "type": "boolean",
+                "default": true,
+                "description": "Indicates whether multiple PIN verification is allowed."
+              },
+              "pinAttempts": {
+                "type": "integer",
+                "format": "int32",
+                "default": 10,
+                "description": "Number of possible PIN attempts."
+              },
+              "pinTimeToLive": {
+                "type": "string",
+                "default": "15m",
+                "description": "Validity period of PIN in specified time unit. Required format: `{timeLength}{timeUnit}`. `timeLength` is optional with a default value of 1. `timeUnit` can be set to: `ms`, `s`, `m`, `h` or `d` representing milliseconds, seconds, minutes, hours, and days respectively. Must not exceed one year, although much lower value is recommended."
+              },
+              "sendPinPerApplicationLimit": {
+                "type": "string",
+                "default": "10000/1d",
+                "description": "Overall number of requests over a specified time period for generating a PIN and sending a message using a single application. Required format: `{attempts}/{timeLength}{timeUnit}`. `attempts` and `timeunit` are mandatory and `timeLength` is optional with a default value of 1. `timeUnit` is one of: `ms`, `s`, `m`, `h` or `d` representing milliseconds, seconds, minutes, hours, and days respectively. Must not exceed one year, although much lower value is recommended."
+              },
+              "sendPinPerPhoneNumberLimit": {
+                "type": "string",
+                "default": "3/1d",
+                "description": "Number of requests over a specified time period for generating a PIN and sending a message to one destination. Required format: `{attempts}/{timeLength}{timeUnit}`. `attempts` and `timeunit` are mandatory and `timeLength` is optional with a default value of 1. `timeUnit` is one of: `ms`, `s`, `m`, `h` or `d` representing milliseconds, seconds, minutes, hours, and days respectively. Must not exceed one year, although much lower value is recommended."
+              },
+              "verifyPinLimit": {
+                "type": "string",
+                "default": "1/3s",
+                "description": "The number of PIN verification requests over a specififed time period from one phone number (MSISDN). Required format: `{attempts}/{timeLength}{timeUnit}`. `attempts` and `timeunit` are mandatory and `timeLength` is optional with a default value of 1. `timeUnit` is one of: `ms`, `s`, `m`, `h` or `d` representing milliseconds, seconds, minutes, hours, and days respectively. Must not exceed one day, although much lower value is recommended."
+              }
+            }
+          }
+        ],
+        "description": "Created 2FA application configuration."
+      },
+      "enabled": {
+        "type": "boolean",
+        "description": "Indicates whether the created application is enabled."
+      },
+      "name": {
+        "type": "string",
+        "description": "2FA application name."
+      }
+    },
+    "required": [
+      "name"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "applicationId": {
+        "type": "string",
+        "description": "The ID of the application that represents your service, e.g. 2FA for login, 2FA for changing the password, etc."
+      },
+      "configuration": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "allowMultiplePinVerifications": {
+                "type": "boolean",
+                "default": true,
+                "description": "Indicates whether multiple PIN verification is allowed."
+              },
+              "pinAttempts": {
+                "type": "integer",
+                "format": "int32",
+                "default": 10,
+                "description": "Number of possible PIN attempts."
+              },
+              "pinTimeToLive": {
+                "type": "string",
+                "default": "15m",
+                "description": "Validity period of PIN in specified time unit. Required format: `{timeLength}{timeUnit}`. `timeLength` is optional with a default value of 1. `timeUnit` can be set to: `ms`, `s`, `m`, `h` or `d` representing milliseconds, seconds, minutes, hours, and days respectively. Must not exceed one year, although much lower value is recommended."
+              },
+              "sendPinPerApplicationLimit": {
+                "type": "string",
+                "default": "10000/1d",
+                "description": "Overall number of requests over a specified time period for generating a PIN and sending a message using a single application. Required format: `{attempts}/{timeLength}{timeUnit}`. `attempts` and `timeunit` are mandatory and `timeLength` is optional with a default value of 1. `timeUnit` is one of: `ms`, `s`, `m`, `h` or `d` representing milliseconds, seconds, minutes, hours, and days respectively. Must not exceed one year, although much lower value is recommended."
+              },
+              "sendPinPerPhoneNumberLimit": {
+                "type": "string",
+                "default": "3/1d",
+                "description": "Number of requests over a specified time period for generating a PIN and sending a message to one destination. Required format: `{attempts}/{timeLength}{timeUnit}`. `attempts` and `timeunit` are mandatory and `timeLength` is optional with a default value of 1. `timeUnit` is one of: `ms`, `s`, `m`, `h` or `d` representing milliseconds, seconds, minutes, hours, and days respectively. Must not exceed one year, although much lower value is recommended."
+              },
+              "verifyPinLimit": {
+                "type": "string",
+                "default": "1/3s",
+                "description": "The number of PIN verification requests over a specififed time period from one phone number (MSISDN). Required format: `{attempts}/{timeLength}{timeUnit}`. `attempts` and `timeunit` are mandatory and `timeLength` is optional with a default value of 1. `timeUnit` is one of: `ms`, `s`, `m`, `h` or `d` representing milliseconds, seconds, minutes, hours, and days respectively. Must not exceed one day, although much lower value is recommended."
+              }
+            }
+          }
+        ],
+        "description": "Created 2FA application configuration."
+      },
+      "enabled": {
+        "type": "boolean",
+        "description": "Indicates whether the created application is enabled."
+      },
+      "name": {
+        "type": "string",
+        "description": "2FA application name."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "requestError": {
+        "type": "object",
+        "properties": {
+          "serviceException": {
+            "type": "object",
+            "properties": {
+              "messageId": {
+                "type": "string",
+                "description": "Identifier of the error."
+              },
+              "text": {
+                "type": "string",
+                "description": "Detailed error description."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "gotchas": [
+    "Send the API key as 'Authorization: App <API_KEY>' — the prefix App; Bearer is only for OAuth 2.0 access tokens. Infobip API keys have a predefined expiry date and can be revoked at any time; a missing or invalid credential answers 401.",
+    "The OpenAPI lists these API key scopes for this endpoint (x-scopes): 2fa:manage. Give the key a matching scope when you create it.",
+    "Each Infobip account has its own base URL, xxxxx.api.infobip.com, shown once you log in to the Infobip API Resource hub. Set it in INFOBIP_BASE_URL (https://xxxxx.api.infobip.com in this spec is a placeholder). It identifies your account, the API key authenticates it.",
+    "One-time setup: create the application once and store its applicationId; message templates and PIN sends reference it. The success status is 201.",
+    "Configuration defaults in the OpenAPI: 3 PIN sends per phone number per day (sendPinPerPhoneNumberLimit 3/1d), 10000 per application per day (sendPinPerApplicationLimit 10000/1d), 1 verification per 3 seconds per number (verifyPinLimit 1/3s), PIN valid 15 minutes (pinTimeToLive 15m), 10 attempts (pinAttempts), and allowMultiplePinVerifications true.",
+    "Limits use the format {attempts}/{timeLength}{timeUnit} and pinTimeToLive {timeLength}{timeUnit}, with timeUnit ms, s, m, h or d.",
+    "Errors on this endpoint are { requestError: { serviceException: { messageId, text } } } — not the errorCode shape of the SMS v3 endpoints.",
+    "A 429 means the endpoint's rate limit was hit; limits differ per endpoint. Retry with exponential backoff and honour the Retry-After header when present."
+  ],
+  "evidence": {
+    "source_url": "https://api.infobip.com/platform/1/openapi",
+    "source_reference": "Infobip OpenAPI 3.255.0, paths./2fa/2/applications.post (operationId create-2fa-application, x-scopes). Passages quoted from the Infobip documentation (snapshot 2026-10-24): https://www.infobip.com/docs/llms.txt: \"sent in the Authorization header as `App YOUR_API_KEY`\" | \"create a key with the `sms:message:send` scope\" ; https://www.infobip.com/docs/essentials/api-essentials/api-authentication.md: \"Infobip API keys have a predefined expiry date to eventually become invalid\" | \"Keys can be revoked at any time\" | \"Commonly you will get the `401 Unauthorised` HTTP status code\" | \"Include `Bearer` and the token in the Authorization header\" ; https://www.infobip.com/docs/essentials/api-essentials/base-url.md: \"By default, each Infobip client has a different base URL which helps our platform identify the originator of each API request.\" | \"log in to the Infobip API Resource hub with your Infobip credentials\" | \"xxxxx.api.infobip.com\" ; https://www.infobip.com/docs/essentials/api-essentials/integration-best-practices.md: \"Different endpoints may have different throttling configurations\" | \"you should implement exponential backoff and retry logic\" | \"Check the `Retry-After` header in the 429 response, if present, to know when to retry\"",
+    "extracted_at": "2026-10-23T21:44:46.862Z",
+    "snapshot_hash": "18bf45accc90ae8699a42800dfd63d4f7ecb83296f094360bcec257f48c8cf5f",
+    "spans": [
+      "2fa:manage",
+      "Create and configure a new 2FA application.",
+      "3/1d",
+      "10000/1d",
+      "1/3s",
+      "15m",
+      "Indicates whether multiple PIN verification is allowed.",
+      "Number of requests over a specified time period for generating a PIN and sending a message to one destination.",
+      "The number of PIN verification requests over a specififed time period from one phone number (MSISDN).",
+      "`{attempts}/{timeLength}{timeUnit}`",
+      "`{timeLength}{timeUnit}`",
+      "Identifier of the error.",
+      "Detailed error description.",
+      "/2fa/2/applications",
+      "Create 2FA application"
+    ]
+  }
+}

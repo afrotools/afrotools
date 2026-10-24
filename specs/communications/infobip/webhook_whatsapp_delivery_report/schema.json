@@ -1,0 +1,204 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "3.255.0",
+  "capability": "webhook_whatsapp_delivery_report",
+  "capability_type": "webhook",
+  "status": "draft",
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "url": "https://{your-domain}/webhooks/infobip/whatsapp",
+    "method": "POST"
+  },
+  "example_prompt": "Receive Infobip WhatsApp delivery reports on my endpoint and update each message's status by messageId.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "results": {
+        "type": "array",
+        "description": "Collection of reports, one per every message.",
+        "items": {
+          "type": "object",
+          "allOf": [
+            {
+              "type": "object",
+              "properties": {
+                "bulkId": {
+                  "type": "string",
+                  "description": "The ID that uniquely identifies the request."
+                },
+                "price": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "currency": {
+                          "type": "string",
+                          "description": "The currency in which the price is displayed."
+                        },
+                        "pricePerMessage": {
+                          "type": "number",
+                          "format": "double",
+                          "description": "The price per individual  message."
+                        }
+                      }
+                    }
+                  ],
+                  "description": "Sent message price."
+                },
+                "status": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "groupName": {
+                          "type": "string",
+                          "description": "Group name for the status."
+                        },
+                        "id": {
+                          "type": "integer",
+                          "format": "int32",
+                          "description": "Status ID."
+                        },
+                        "groupId": {
+                          "type": "integer",
+                          "format": "int32",
+                          "description": "Status group ID."
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Status name."
+                        },
+                        "action": {
+                          "type": "string",
+                          "description": "Action that should be taken to fix the error."
+                        },
+                        "description": {
+                          "type": "string",
+                          "description": "Human-readable description of the status."
+                        }
+                      }
+                    }
+                  ],
+                  "description": "Indicates whether the message is successfully sent, not sent, delivered, not delivered, waiting for delivery or any other possible status."
+                },
+                "error": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "description": {
+                          "type": "string",
+                          "description": "Human-readable description of the error."
+                        },
+                        "permanent": {
+                          "type": "boolean",
+                          "description": "Indicates whether the error is permanent."
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Error name."
+                        },
+                        "id": {
+                          "type": "integer",
+                          "format": "int32",
+                          "description": "Error ID."
+                        },
+                        "groupName": {
+                          "type": "string",
+                          "description": "Error group name."
+                        },
+                        "groupId": {
+                          "type": "integer",
+                          "format": "int32",
+                          "description": "Error group ID."
+                        }
+                      }
+                    }
+                  ],
+                  "description": "Indicates whether the error occurred during the query execution."
+                },
+                "messageId": {
+                  "type": "string",
+                  "description": "The ID that uniquely identifies the message sent."
+                },
+                "doneAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Tells when the message was finished processing by Infobip (ie. delivered to destination, delivered to destination network, etc.)."
+                },
+                "messageCount": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "The number of sent message segments."
+                },
+                "sentAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Tells when the message was sent. Has the following format: `yyyy-MM-dd'T'HH:mm:ss.SSSZ`."
+                },
+                "to": {
+                  "type": "string",
+                  "description": "The message destination address."
+                },
+                "contact": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "Display name of the end user."
+                        },
+                        "phoneNumber": {
+                          "type": "string",
+                          "description": "Sender's phone number. May be absent if the user has enabled the Meta username feature and you have not exchanged messages with them in the last 30 days."
+                        },
+                        "userId": {
+                          "type": "string",
+                          "description": "Business-scoped user ID (BSUID) assigned by Meta. Stable identifier for the end user, scoped to the receiving business."
+                        },
+                        "parentUserId": {
+                          "type": "string",
+                          "description": "Business-scoped user ID valid across all phone numbers in a linked business portfolio. Present only for managed businesses with portfolio linking enabled."
+                        },
+                        "username": {
+                          "type": "string",
+                          "description": "Meta username of the end user. Present only if the user has a Meta username."
+                        }
+                      }
+                    }
+                  ],
+                  "description": "End user contact."
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "response_schema": {},
+  "error_schema": {},
+  "gotchas": [
+    "Set the URL per message with notifyUrl, or ask Infobip support to set an account-level URL. One URL receives all report types (delivery and seen reports), so check the payload shape.",
+    "Infobip can authenticate the calls it makes to your webhook (security settings of type BASIC, HMAC, OAUTH or CUSTOM, created with POST /subscriptions/1/security), but the OpenAPI doesn't describe the header or signature it then sends — this spec has no verification step, and the docs don't say whether those settings apply to a per-message URL. Treat the payload as untrusted until confirmed (for SMS, the message status is in get_sms_logs)."
+  ],
+  "evidence": {
+    "source_url": "https://api.infobip.com/platform/1/openapi",
+    "source_reference": "Infobip OpenAPI 3.255.0, webhooks.receive-whatsapp-delivery-reports.post and paths./subscriptions/1/security.post",
+    "extracted_at": "2026-10-23T21:44:46.862Z",
+    "snapshot_hash": "18bf45accc90ae8699a42800dfd63d4f7ecb83296f094360bcec257f48c8cf5f",
+    "spans": [
+      "Please provide the endpoint’s URL to Customer Support and they will set it up for you.",
+      "Use one URL for all report types.",
+      "/subscriptions/1/security",
+      "Webhook security credentials.",
+      "HMAC credentials.",
+      "CUSTOM",
+      "receive-whatsapp-delivery-reports",
+      "Receive delivery reports"
+    ]
+  }
+}

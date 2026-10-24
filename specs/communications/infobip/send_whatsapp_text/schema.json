@@ -1,0 +1,250 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "3.255.0",
+  "capability": "send_whatsapp_text",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "App {token}",
+    "env_var": "INFOBIP_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://xxxxx.api.infobip.com/whatsapp/1/message/text",
+    "method": "POST"
+  },
+  "example_prompt": "Reply to a customer on WhatsApp with a text message through Infobip inside the 24-hour customer service window.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "from": {
+        "type": "string",
+        "description": "Registered WhatsApp sender number. Must be in international format and comply with [WhatsApp's requirements](https://www.infobip.com/docs/whatsapp/get-started/sender-registration#phone-number-what-you-need-to-know).",
+        "maxLength": 24,
+        "minLength": 1
+      },
+      "to": {
+        "type": "string",
+        "description": "Message recipient number in international format or WhatsApp business-scoped user ID.",
+        "maxLength": 150,
+        "minLength": 1
+      },
+      "messageId": {
+        "type": "string",
+        "description": "The ID that uniquely identifies the message sent.",
+        "maxLength": 200,
+        "minLength": 0
+      },
+      "content": {
+        "type": "object",
+        "description": "The content object to build a message that will be sent.",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Content of the message being sent.",
+            "maxLength": 4096,
+            "minLength": 1
+          },
+          "previewUrl": {
+            "type": "boolean",
+            "default": false,
+            "description": "Allows for URL preview from within the message. If set to `true`, the message content must contain a URL starting with `https://` or `http://` and the flag removeProtocol must be set to `false`."
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "callbackData": {
+        "type": "string",
+        "description": "Custom client data that will be included in a [Delivery Report](#channels/whatsapp/receive-whatsapp-delivery-reports).",
+        "maxLength": 4000,
+        "minLength": 0
+      },
+      "notifyUrl": {
+        "type": "string",
+        "description": "The URL on your callback server to which delivery and seen reports will be sent. [Delivery report format](#channels/whatsapp/receive-whatsapp-delivery-reports), [Seen report format](#channels/whatsapp/receive-whatsapp-seen-reports).",
+        "maxLength": 2048,
+        "minLength": 0,
+        "pattern": ""
+      },
+      "urlOptions": {
+        "type": "object",
+        "description": "Sets up [URL shortening](https://www.infobip.com/docs/url-shortening) and tracking feature.",
+        "properties": {
+          "shortenUrl": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable shortening of the URLs within a message. Set this to `true`, if you want to set up other URL options."
+          },
+          "trackClicks": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable tracking of short URL clicks within a message: which URL was clicked, how many times, and by whom."
+          },
+          "trackingUrl": {
+            "type": "string",
+            "description": "The URL of your callback server on to which the Click report will be sent."
+          },
+          "removeProtocol": {
+            "type": "boolean",
+            "default": false,
+            "description": "Remove a protocol, such as `https://`, from links to shorten a message. Note that some mobiles may not recognize such links as a URL."
+          },
+          "customDomain": {
+            "type": "string",
+            "description": "Select a predefined custom domain to use when generating a short URL."
+          }
+        }
+      },
+      "entityId": {
+        "type": "string",
+        "description": "Required for entity use in a send request for outbound traffic. Returned in notification events. For more details, see our [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management).",
+        "maxLength": 255,
+        "minLength": 0
+      },
+      "applicationId": {
+        "type": "string",
+        "description": "Required for application use in a send request for outbound traffic. Returned in notification events. For more details, see our [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management).",
+        "maxLength": 255,
+        "minLength": 0
+      },
+      "context": {
+        "type": "object",
+        "description": "Context object to define WhatsApp-specific metadata about a message.",
+        "properties": {
+          "replyToMessageId": {
+            "type": "string",
+            "description": "Inbound message ID used for a reply. Contextual bubble will not appear for template messages.",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "replyToMessageId"
+        ]
+      }
+    },
+    "required": [
+      "content",
+      "from",
+      "to"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "to": {
+        "type": "string",
+        "description": "The destination address of the message."
+      },
+      "messageCount": {
+        "type": "integer",
+        "format": "int32",
+        "description": "Number of messages required to deliver."
+      },
+      "messageId": {
+        "type": "string",
+        "description": "The ID that uniquely identifies the message sent. If not passed, it will be automatically generated and returned in a response."
+      },
+      "status": {
+        "type": "object",
+        "description": "Indicates the [status](https://www.infobip.com/docs/essentials/response-status-and-error-codes#api-status-codes) of the message and how to recover from an error should there be any.",
+        "properties": {
+          "groupId": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Status group ID."
+          },
+          "groupName": {
+            "type": "string",
+            "description": "Status group name."
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Status ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Status name."
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of the status."
+          },
+          "action": {
+            "type": "string",
+            "description": "Action that should be taken to eliminate the error."
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "requestError": {
+        "type": "object",
+        "properties": {
+          "serviceException": {
+            "type": "object",
+            "properties": {
+              "messageId": {
+                "type": "string",
+                "description": "Identifier of the error."
+              },
+              "text": {
+                "type": "string",
+                "description": "Detailed error description."
+              },
+              "validationErrors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "description": "Validation errors.",
+                  "items": {
+                    "type": "string",
+                    "description": "Validation errors."
+                  }
+                },
+                "description": "Validation errors."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "gotchas": [
+    "Send the API key as 'Authorization: App <API_KEY>' — the prefix App; Bearer is only for OAuth 2.0 access tokens. Infobip API keys have a predefined expiry date and can be revoked at any time; a missing or invalid credential answers 401.",
+    "The OpenAPI lists these API key scopes for this endpoint (x-scopes): message:send, whatsapp:message:send, whatsapp:manage. Give the key a matching scope when you create it.",
+    "Each Infobip account has its own base URL, xxxxx.api.infobip.com, shown once you log in to the Infobip API Resource hub. Set it in INFOBIP_BASE_URL (https://xxxxx.api.infobip.com in this spec is a placeholder). It identifies your account, the API key authenticates it.",
+    "A text message is only delivered if the recipient contacted the business within the last 24 hours; otherwise send a template (send_whatsapp_template).",
+    "from is your registered WhatsApp sender number in international format; to is the recipient's number in international format (or a WhatsApp business-scoped user ID).",
+    "The response doesn't contain the final delivery status: delivery (and seen) reports go to notifyUrl per message, or to an account-level URL set up by Infobip support.",
+    "Errors on this endpoint are { requestError: { serviceException: { messageId, text, validationErrors } } } — not the errorCode shape of the SMS v3 endpoints.",
+    "A 429 means the endpoint's rate limit was hit; limits differ per endpoint. Retry with exponential backoff and honour the Retry-After header when present."
+  ],
+  "evidence": {
+    "source_url": "https://api.infobip.com/platform/1/openapi",
+    "source_reference": "Infobip OpenAPI 3.255.0, paths./whatsapp/1/message/text.post (operationId send-whatsapp-text-message, x-scopes). Passages quoted from the Infobip documentation (snapshot 2026-10-24): https://www.infobip.com/docs/llms.txt: \"sent in the Authorization header as `App YOUR_API_KEY`\" | \"create a key with the `sms:message:send` scope\" ; https://www.infobip.com/docs/essentials/api-essentials/api-authentication.md: \"Infobip API keys have a predefined expiry date to eventually become invalid\" | \"Keys can be revoked at any time\" | \"Commonly you will get the `401 Unauthorised` HTTP status code\" | \"Include `Bearer` and the token in the Authorization header\" ; https://www.infobip.com/docs/essentials/api-essentials/base-url.md: \"By default, each Infobip client has a different base URL which helps our platform identify the originator of each API request.\" | \"log in to the Infobip API Resource hub with your Infobip credentials\" | \"xxxxx.api.infobip.com\" ; https://www.infobip.com/docs/essentials/api-essentials/integration-best-practices.md: \"Different endpoints may have different throttling configurations\" | \"you should implement exponential backoff and retry logic\" | \"Check the `Retry-After` header in the 429 response, if present, to know when to retry\"",
+    "extracted_at": "2026-10-23T21:44:46.862Z",
+    "snapshot_hash": "18bf45accc90ae8699a42800dfd63d4f7ecb83296f094360bcec257f48c8cf5f",
+    "spans": [
+      "message:send",
+      "whatsapp:message:send",
+      "whatsapp:manage",
+      "Text messages can only be successfully delivered if the recipient has contacted the business within the last 24 hours",
+      "Registered WhatsApp sender number. Must be in international format",
+      "Message recipient number in international format or WhatsApp business-scoped user ID.",
+      "The API response will not contain the final delivery status",
+      "The URL on your callback server to which delivery and seen reports will be sent.",
+      "Identifier of the error.",
+      "Detailed error description.",
+      "/whatsapp/1/message/text",
+      "Send WhatsApp text message"
+    ]
+  }
+}

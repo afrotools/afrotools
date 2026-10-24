@@ -1,0 +1,686 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "3.255.0",
+  "capability": "send_sms",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "App {token}",
+    "env_var": "INFOBIP_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://xxxxx.api.infobip.com/sms/3/messages",
+    "method": "POST"
+  },
+  "example_prompt": "Send an SMS (single, bulk or scheduled) to African phone numbers through Infobip and keep each messageId to match delivery reports.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "messages": {
+        "type": "array",
+        "description": "An array of message objects of a single message or multiple messages sent under one bulk ID.",
+        "items": {
+          "type": "object",
+          "description": "An array of message objects of a single message or multiple messages sent under one bulk ID.",
+          "properties": {
+            "sender": {
+              "type": "string",
+              "description": "The sender ID. It can be alphanumeric or numeric (e.g., `CompanyName`). Make sure you don't exceed [character limit](https://www.infobip.com/docs/sms/get-started#sender-names)."
+            },
+            "destinations": {
+              "type": "array",
+              "description": "An array of destination objects for where messages are being sent. A valid destination is required.",
+              "items": {
+                "type": "object",
+                "description": "An array of destination objects for where messages are being sent. A valid destination is required.",
+                "properties": {
+                  "to": {
+                    "type": "string",
+                    "description": "The destination address of the message.",
+                    "maxLength": 64,
+                    "minLength": 0
+                  },
+                  "messageId": {
+                    "type": "string",
+                    "description": "The ID that uniquely identifies the message sent.",
+                    "maxLength": 200,
+                    "minLength": 0
+                  },
+                  "networkId": {
+                    "type": "integer",
+                    "format": "int32",
+                    "description": "Available in US and Canada only if networkId is known for Network Operator of the destination. Returned in [SMS message delivery reports](https://www.infobip.com/docs/api/channels/sms/sms-messaging/logs-and-status-reports) and [Inbound SMS](https://www.infobip.com/docs/api/channels/sms/sms-messaging/inbound-sms); contact Infobip Support to enable."
+                  }
+                },
+                "required": [
+                  "to"
+                ]
+              },
+              "minItems": 1
+            },
+            "content": {
+              "type": "object",
+              "description": "Message content.",
+              "oneOf": [
+                {
+                  "type": "object",
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "description": "Content of the message being sent.",
+                          "minLength": 1
+                        },
+                        "transliteration": {
+                          "type": "string",
+                          "description": "The transliteration of your sent message from one script to another. [Transliteration](https://www.infobip.com/docs/sms/language#sms-transliteration) is used to replace characters which are not recognized as part of your defaulted alphabet. `ALL` means that the transliteration process will recognize all supported languages.",
+                          "enum": [
+                            "NONE",
+                            "TURKISH",
+                            "GREEK",
+                            "CYRILLIC",
+                            "SERBIAN_CYRILLIC",
+                            "CENTRAL_EUROPEAN",
+                            "BALTIC",
+                            "NON_UNICODE",
+                            "PORTUGUESE",
+                            "COLOMBIAN",
+                            "BULGARIAN_CYRILLIC",
+                            "ALL"
+                          ]
+                        },
+                        "language": {
+                          "type": "object",
+                          "description": "Sets the language parameters for the message being sent.",
+                          "properties": {
+                            "languageCode": {
+                              "type": "string",
+                              "description": "[Language code](https://www.infobip.com/docs/sms/language#national-language-identifier) for the correct character set. `AUTODETECT` lets the platform select the character set based on message content only for supported languages.",
+                              "enum": [
+                                "NONE",
+                                "TR",
+                                "ES",
+                                "PT",
+                                "AUTODETECT"
+                              ]
+                            },
+                            "singleShift": {
+                              "type": "boolean",
+                              "default": false,
+                              "description": "Uses a single shift table which enhances only the extension table of the GSM default alphabet. Allows you to selectively improve character support without altering the entire message."
+                            },
+                            "lockingShift": {
+                              "type": "boolean",
+                              "default": false,
+                              "description": "Uses a locking shift table which allows you to represent characters beyond the standard GSM default alphabet. This flexibility enables better language support."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "required": [
+                    "text"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "dataCoding": {
+                          "type": "integer",
+                          "format": "int32",
+                          "default": 0,
+                          "description": "Binary content data coding. The default value is (`0`) for GSM7. Example: (`8`) for  Unicode data."
+                        },
+                        "esmClass": {
+                          "type": "integer",
+                          "format": "int32",
+                          "default": 0,
+                          "description": "“Esm_class” parameter. Indicate special message attributes associated with the SMS. Default value is (`0`)."
+                        },
+                        "hex": {
+                          "type": "string",
+                          "description": "Hexadecimal string. This is the representation of your binary data. Two hex digits represent one byte. They should be separated by the space character.",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  ],
+                  "required": [
+                    "hex"
+                  ]
+                }
+              ]
+            },
+            "options": {
+              "type": "object",
+              "description": "Message options.",
+              "properties": {
+                "platform": {
+                  "type": "object",
+                  "description": "Platform options. For more details, see [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management).",
+                  "properties": {
+                    "entityId": {
+                      "type": "string",
+                      "description": "Used when specifying an entity in outbound send requests. It is also returned in notification events. For detailed usage, refer to the [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management).",
+                      "maxLength": 255,
+                      "minLength": 0
+                    },
+                    "applicationId": {
+                      "type": "string",
+                      "description": "Used when specifying an application in outbound send requests. It is also returned in notification events. For detailed usage, refer to the [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management).",
+                      "maxLength": 255,
+                      "minLength": 0
+                    }
+                  }
+                },
+                "validityPeriod": {
+                  "type": "object",
+                  "description": "Message validity period. Once expired, the message won't be sent. Validity period longer than 48h is not supported. If exceeded, it will be automatically set to 48h.",
+                  "properties": {
+                    "amount": {
+                      "type": "integer",
+                      "format": "int32",
+                      "description": "Message validity period's value. If `timeUnit` is not set, it will default to `MINUTES`.",
+                      "exclusiveMinimum": 0,
+                      "minimum": 0
+                    },
+                    "timeUnit": {
+                      "type": "string",
+                      "default": "MINUTES",
+                      "description": "Message validity period time unit.",
+                      "enum": [
+                        "SECONDS",
+                        "MINUTES",
+                        "HOURS"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "amount"
+                  ]
+                },
+                "deliveryTimeWindow": {
+                  "type": "object",
+                  "description": "Sets specific message delivery window outside of which messages won't be delivered. Often, used when there are restrictions on when messages can be sent. The exact time of the day to start sending messages can be defined using the `from` property. The exact time of the day to end sending messages can be defined using the `to` property. Properties `from` and `to` should be both provided with the minimum 1 hour difference or omitted.",
+                  "properties": {
+                    "days": {
+                      "type": "array",
+                      "description": "Days of the week which are included in the delivery time window. At least one day must be provided. Separate multiple days with a comma.",
+                      "items": {
+                        "type": "string",
+                        "description": "Days of the week which are included in the delivery time window. At least one day must be provided. Separate multiple days with a comma.",
+                        "enum": [
+                          "MONDAY",
+                          "TUESDAY",
+                          "WEDNESDAY",
+                          "THURSDAY",
+                          "FRIDAY",
+                          "SATURDAY",
+                          "SUNDAY"
+                        ]
+                      },
+                      "minItems": 1
+                    },
+                    "from": {
+                      "type": "object",
+                      "description": "The exact time of the day. The time is expressed in the UTC time zone.",
+                      "properties": {
+                        "hour": {
+                          "type": "integer",
+                          "format": "int32",
+                          "description": "Hour when the time window opens when used in the `from` property or closes when used in the `to` property.",
+                          "maximum": 23,
+                          "minimum": 0
+                        },
+                        "minute": {
+                          "type": "integer",
+                          "format": "int32",
+                          "description": "Minute when the time window opens when used in the `from` property or closes when used in the `to` property.",
+                          "maximum": 59,
+                          "minimum": 0
+                        }
+                      },
+                      "required": [
+                        "hour",
+                        "minute"
+                      ]
+                    },
+                    "to": {
+                      "type": "object",
+                      "description": "The exact time of the day. The time is expressed in the UTC time zone.",
+                      "properties": {
+                        "hour": {
+                          "type": "integer",
+                          "format": "int32",
+                          "description": "Hour when the time window opens when used in the `from` property or closes when used in the `to` property.",
+                          "maximum": 23,
+                          "minimum": 0
+                        },
+                        "minute": {
+                          "type": "integer",
+                          "format": "int32",
+                          "description": "Minute when the time window opens when used in the `from` property or closes when used in the `to` property.",
+                          "maximum": 59,
+                          "minimum": 0
+                        }
+                      },
+                      "required": [
+                        "hour",
+                        "minute"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "days"
+                  ]
+                },
+                "campaignReferenceId": {
+                  "type": "string",
+                  "description": "ID that allows you to track, analyze, and show an aggregated overview and the performance of individual campaigns per sending channel.",
+                  "maxLength": 255,
+                  "minLength": 0
+                },
+                "regional": {
+                  "type": "object",
+                  "description": "Region-specific parameters, often imposed by local laws. Use this, if country or region that you are sending an SMS to requires additional information.",
+                  "properties": {
+                    "indiaDlt": {
+                      "type": "object",
+                      "description": "Distributed Ledger Technology (DLT) specific parameters required for sending SMS to phone numbers registered in India.",
+                      "properties": {
+                        "contentTemplateId": {
+                          "type": "string",
+                          "description": "Registered DLT content template ID which matches message you are sending."
+                        },
+                        "principalEntityId": {
+                          "type": "string",
+                          "description": "Your assigned DLT principal entity ID.",
+                          "minLength": 1
+                        },
+                        "telemarketerId": {
+                          "type": "string",
+                          "description": "Your assigned Telemarketer ID. (required for Aggregators)"
+                        }
+                      },
+                      "required": [
+                        "principalEntityId"
+                      ]
+                    },
+                    "turkeyIys": {
+                      "type": "object",
+                      "description": "IYS regulations specific parameters required for sending promotional SMS to phone numbers registered in Turkey.",
+                      "properties": {
+                        "brandCode": {
+                          "type": "integer",
+                          "format": "int32",
+                          "description": "Brand code is an ID of the company based on a company VAT number. If not provided in request, default value is used from your Infobip account."
+                        },
+                        "recipientType": {
+                          "type": "string",
+                          "description": "Recipient Type must be `TACIR` or `BIREYSEL`.",
+                          "enum": [
+                            "BIREYSEL",
+                            "TACIR"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "recipientType"
+                      ]
+                    },
+                    "southKorea": {
+                      "type": "object",
+                      "description": "Use case dependent parameters for sending SMS to phone numbers registered in South Korea.",
+                      "properties": {
+                        "title": {
+                          "type": "string",
+                          "description": "Title of the message.",
+                          "maxLength": 66,
+                          "minLength": 0
+                        },
+                        "resellerCode": {
+                          "type": "integer",
+                          "format": "int32",
+                          "description": "Reseller identification code: 9-digit registration number in the business registration certificate for South Korea. Resellers should submit this when sending."
+                        }
+                      }
+                    }
+                  }
+                },
+                "flash": {
+                  "type": "boolean",
+                  "description": "Allows for sending a [flash SMS](https://www.infobip.com/docs/sms/message-types#flash-sms) to automatically appear on recipient devices without interaction. Set to `true` to enable flash SMS, or leave the default value, `false` to send a standard SMS."
+                }
+              }
+            },
+            "webhooks": {
+              "type": "object",
+              "description": "Provides options for configuring message webhooks.",
+              "properties": {
+                "delivery": {
+                  "type": "object",
+                  "description": "Provides options for configuring the delivery report behavior.",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "The URL on your call back server where a delivery report will be sent. If your URL becomes unavailable then the [retry cycle](https://www.infobip.com/docs/sms/sms-over-api#push-retry-cycle-notify-url) uses the following formula: `1min + (1min * retryNumber * retryNumber)`."
+                    },
+                    "intermediateReport": {
+                      "type": "boolean",
+                      "description": "The real-time intermediate delivery report containing GSM error codes, messages status, pricing, network and country codes, etc., which will be sent on your callback server. Defaults to `false`."
+                    },
+                    "notify": {
+                      "type": "boolean",
+                      "description": "Notify enables you to specify your preferences for receiving DLRs. If set to false, no DLR will be sent. Note: When no webhook is specified in the request and notify is set to 'true' or not defined, your Subscription settings will apply."
+                    }
+                  }
+                },
+                "contentType": {
+                  "type": "string",
+                  "description": "Preferred delivery report content type, `application/json` or `application/xml`."
+                },
+                "callbackData": {
+                  "type": "string",
+                  "description": "Additional data that can be used for identifying, managing, or monitoring a message. Data included here will also be automatically included in the message Delivery Report. The maximum value is 4000 characters.",
+                  "maxLength": 4000,
+                  "minLength": 0
+                }
+              }
+            }
+          },
+          "required": [
+            "content",
+            "destinations"
+          ]
+        },
+        "minItems": 1
+      },
+      "options": {
+        "type": "object",
+        "description": "Options applicable to all messages in the request.",
+        "properties": {
+          "schedule": {
+            "type": "object",
+            "description": "Options for scheduling a message.",
+            "properties": {
+              "bulkId": {
+                "type": "string",
+                "description": "Unique ID assigned to the request if messaging multiple recipients or sending multiple messages via a single API request. If not provided, it will be auto-generated and returned in the API response.",
+                "maxLength": 100,
+                "minLength": 0
+              },
+              "sendAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Date and time when the message is to be sent. Used for scheduled messages. Has the following format: `yyyy-MM-dd'T'HH:mm:ss.SSSZ`, and can only be scheduled for no later than 180 days in advance."
+              },
+              "sendingSpeedLimit": {
+                "type": "object",
+                "description": "Limits the send speed when sending messages in bulk to deliver messages over a longer period of time. You may wish to use this to allow your systems or agents to handle large amounts of incoming traffic, e.g., if you are expecting recipients to follow through with a call-to-action option from a message you sent. Not setting a send speed limit can overwhelm your resources with incoming traffic.",
+                "properties": {
+                  "amount": {
+                    "type": "integer",
+                    "format": "int32",
+                    "description": "The number of messages to be sent per timeUnit. By default, the system sends messages as fast as the infrastructure allows. Use this parameter to adapt sending capacity to your needs. The system is only able to work against its maximum capacity for ambitious message batches."
+                  },
+                  "timeUnit": {
+                    "type": "string",
+                    "default": "MINUTE",
+                    "description": "The time unit to define when setting a messaging speed limit. Defaults to `MINUTE`.",
+                    "enum": [
+                      "MINUTE",
+                      "HOUR",
+                      "DAY"
+                    ]
+                  }
+                },
+                "required": [
+                  "amount"
+                ]
+              }
+            }
+          },
+          "tracking": {
+            "type": "object",
+            "description": "Sets up [URL shortening](https://www.infobip.com/docs/url-shortening) and tracking feature.",
+            "properties": {
+              "shortenUrl": {
+                "type": "boolean",
+                "default": true,
+                "description": "Enable shortening of the URLs within a message. Set this to `true`, if you want to set up other URL options."
+              },
+              "trackClicks": {
+                "type": "boolean",
+                "default": true,
+                "description": "Enable tracking of short URL clicks within a message: which URL was clicked, how many times, and by whom."
+              },
+              "trackingUrl": {
+                "type": "string",
+                "description": "The URL of your callback server on to which the Click report will be sent."
+              },
+              "removeProtocol": {
+                "type": "boolean",
+                "default": false,
+                "description": "Remove a protocol, such as `https://`, from links to shorten a message. Note that some mobiles may not recognize such links as a URL."
+              },
+              "customDomain": {
+                "type": "string",
+                "description": "Select a predefined custom domain to use when generating a short URL."
+              }
+            }
+          },
+          "includeSmsCountInResponse": {
+            "type": "boolean",
+            "default": false,
+            "description": "Set to true to return `messageCount` in the response. The `messageCount` is the total count of SMS submitted in the request. SMS messages have a character limit and messages longer than the limit will be split into multiple SMS. Not compatible with `binary` message content type."
+          },
+          "conversionTracking": {
+            "type": "object",
+            "description": "Allows you to set up tracking parameters to track conversion metrics. For more details, see: [SMS with conversion tracking](https://www.infobip.com/docs/sms/sms-over-api#send-sms-with-conversion-tracking).",
+            "properties": {
+              "useConversionTracking": {
+                "type": "boolean",
+                "description": "Indicates if a message has to be tracked for conversion rates. Default \"false\"."
+              },
+              "conversionTrackingName": {
+                "type": "string",
+                "description": "Sets a custom conversion type naming convention, e.g. `ONE_TIME_PIN` or `SOCIAL_INVITES`."
+              }
+            }
+          }
+        }
+      }
+    },
+    "required": [
+      "messages"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "bulkId": {
+        "type": "string",
+        "description": "Unique ID assigned to the request if messaging multiple recipients or sending multiple messages via a single API request. If not provided, it will be auto-generated and returned in the API response. Typically used for fetching delivery reports and message logs."
+      },
+      "messages": {
+        "type": "array",
+        "description": "An array of message objects of a single message or multiple messages sent under one bulk ID.",
+        "items": {
+          "type": "object",
+          "description": "An array of message objects of a single message or multiple messages sent under one bulk ID.",
+          "properties": {
+            "messageId": {
+              "type": "string",
+              "description": "Unique message ID. If not provided, it will be auto-generated and returned in the API response."
+            },
+            "status": {
+              "type": "object",
+              "description": "Indicates the [status](https://www.infobip.com/docs/essentials/response-status-and-error-codes#api-status-codes) of the message and how to recover from an error should there be any.",
+              "properties": {
+                "groupId": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "Status group ID."
+                },
+                "groupName": {
+                  "type": "string",
+                  "description": "Status group name that describes which category the status code belongs to, i.e., [PENDING](https://www.infobip.com/docs/essentials/response-status-and-error-codes#pending-general-status-codes), [UNDELIVERABLE](https://www.infobip.com/docs/essentials/response-status-and-error-codes#undeliverable-general-status-codes), [DELIVERED](https://www.infobip.com/docs/essentials/response-status-and-error-codes#delivered-general-status-codes), [EXPIRED](https://www.infobip.com/docs/essentials/response-status-and-error-codes#expired-general-status-codes), [REJECTED](https://www.infobip.com/docs/essentials/response-status-and-error-codes#rejected-general-status-codes).",
+                  "enum": [
+                    "ACCEPTED",
+                    "PENDING",
+                    "UNDELIVERABLE",
+                    "DELIVERED",
+                    "EXPIRED",
+                    "REJECTED"
+                  ]
+                },
+                "id": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "Status code ID."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "[Status code](https://www.infobip.com/docs/essentials/response-status-and-error-codes#api-status-codes) name."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Human-readable description of the status."
+                },
+                "action": {
+                  "type": "string",
+                  "description": "Action to take to recover from the error."
+                }
+              }
+            },
+            "destination": {
+              "type": "string",
+              "description": "The destination address of the message, i.e., its recipient."
+            },
+            "details": {
+              "type": "object",
+              "description": "Other details of the message.",
+              "properties": {
+                "messageCount": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "Number of SMS message parts required to deliver the message."
+                }
+              }
+            }
+          }
+        },
+        "minItems": 1
+      }
+    },
+    "required": [
+      "messages"
+    ]
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "errorCode": {
+        "type": "string",
+        "description": "An error code uniquely identifying the error case.",
+        "minLength": 1
+      },
+      "description": {
+        "type": "string",
+        "description": "A detailed description of an error.",
+        "minLength": 1
+      },
+      "action": {
+        "type": "string",
+        "description": "An action that should be taken to recover from the error.",
+        "minLength": 1
+      },
+      "violations": {
+        "type": "array",
+        "description": "List of violations that caused the error.",
+        "items": {
+          "type": "object",
+          "description": "List of violations that caused the error.",
+          "properties": {
+            "property": {
+              "type": "string",
+              "description": "Request property that caused the error."
+            },
+            "violation": {
+              "type": "string",
+              "description": "Detailed violation description."
+            }
+          }
+        }
+      },
+      "resources": {
+        "type": "array",
+        "description": "List of available resources to recover from the error.",
+        "items": {
+          "type": "object",
+          "description": "List of available resources to recover from the error.",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Resource name."
+            },
+            "url": {
+              "type": "string",
+              "description": "Resource URL."
+            }
+          }
+        }
+      }
+    },
+    "required": [
+      "action",
+      "description",
+      "errorCode",
+      "resources",
+      "violations"
+    ]
+  },
+  "gotchas": [
+    "Send the API key as 'Authorization: App <API_KEY>' — the prefix App; Bearer is only for OAuth 2.0 access tokens. Infobip API keys have a predefined expiry date and can be revoked at any time; a missing or invalid credential answers 401.",
+    "The OpenAPI lists these API key scopes for this endpoint (x-scopes): message:send, sms:message:send, sms:manage. Give the key a matching scope when you create it.",
+    "Each Infobip account has its own base URL, xxxxx.api.infobip.com, shown once you log in to the Infobip API Resource hub. Set it in INFOBIP_BASE_URL (https://xxxxx.api.infobip.com in this spec is a placeholder). It identifies your account, the API key authenticates it.",
+    "Free trial accounts: the default test sender is ServiceSMS and messages only go to the phone numbers verified at signup (up to 5), within the trial's free credits. Self sign-up accounts cannot send SMS to South Sudan.",
+    "A 200 only means the request was accepted: each message comes back with a status (groupName PENDING, ACCEPTED, ...). The final state arrives as a delivery report — webhook (webhooks.delivery.url, or your Subscription settings when no URL is given) or get_sms_delivery_reports.",
+    "If your delivery report URL is down, Infobip retries on the cycle 1min + (1min * retryNumber * retryNumber).",
+    "options.schedule.sendAt schedules the send (format yyyy-MM-dd'T'HH:mm:ss.SSSZ), at most 180 days ahead; keep the bulkId to follow the batch.",
+    "Sender rules are per country: an alphanumeric sender is 3-11 characters and can't receive replies. 44 of the 54 African country cards require registering the sender for local traffic and 27 also for international traffic (Nigeria: local '+20' days with documents such as the CAC certificate, international 6 days), and South Africa doesn't support alphanumeric senders at all. Check the country card on Infobip's SMS coverage page before going live.",
+    "Infobip's coverage page has a card for every African country, but says it \"covers general market and service provisioning details for the most frequently requested countries and does not reflect full Infobip coverage\": for account-specific coverage, contact your account manager or Support. Some cards set allowed send time windows (e.g. Botswana: never on Sunday).",
+    "A 400 on this endpoint is { errorCode, description, action, violations[] (property + violation), resources[] }. Other statuses have no schema in the OpenAPI; the 401 body shown on the authentication page is { requestError: { serviceException: { messageId: 'UNAUTHORIZED', text } } } — handle both shapes."
+  ],
+  "evidence": {
+    "source_url": "https://api.infobip.com/platform/1/openapi",
+    "source_reference": "Infobip OpenAPI 3.255.0, paths./sms/3/messages.post (operationId send-sms-messages, x-scopes). Passages quoted from the Infobip documentation (snapshot 2026-10-24): https://www.infobip.com/docs/llms.txt: \"sent in the Authorization header as `App YOUR_API_KEY`\" | \"create a key with the `sms:message:send` scope\" | \"use `ServiceSMS` as the sender and send to the phone number you verified at signup (up to 5 verified numbers)\" ; https://www.infobip.com/docs/essentials/api-essentials/api-authentication.md: \"Infobip API keys have a predefined expiry date to eventually become invalid\" | \"Keys can be revoked at any time\" | \"Commonly you will get the `401 Unauthorised` HTTP status code\" | \"Include `Bearer` and the token in the Authorization header\" | \"\"messageId\": \"UNAUTHORIZED\"\" | \"\"text\": \"Invalid login details\"\" ; https://www.infobip.com/docs/essentials/api-essentials/base-url.md: \"By default, each Infobip client has a different base URL which helps our platform identify the originator of each API request.\" | \"log in to the Infobip API Resource hub with your Infobip credentials\" | \"xxxxx.api.infobip.com\" ; https://www.infobip.com/docs/sms.md: \"The default test sender is\" | \"Send 100 free SMS messages to five recipients with verified numbers\" | \"for self sign up users is available worldwide, with the following exceptions\" | \"South Sudan, Syria, Yemen\" ; https://www.infobip.com/docs/resources-and-numbers/alphanumeric-senders.md: \"custom text name (3-11 characters)\" | \"Recipients cannot reply to messages sent from an alphanumeric sender.\" ; https://www.infobip.com/docs/sms/sms-coverage-and-connectivity: \"Sender Registration Required: LOCAL: Yes\" | \"Sender Registration Required: LOCAL: Yes | INTERNATIONAL: Yes\" | \"Nigeria - Letter of Authorization,Nigerian Insurance Certificate Sender Registration Duration in Days: LOCAL: +20 | INTERNATIONAL: 6\" | \"Documents Required for Sender Registration: LOCAL: CAC Certificate,CBN License\" | \"Country Code: ZA Dialling Code: 27 MCC: 655 Number portability: Yes Traffic Origin Classification (Local vs International): Yes Alphanumeric Senders Supported: LOCAL: No | INTERNATIONAL: No\" | \"covers general market and service provisioning details for the most frequently requested countries and does not reflect full Infobip coverage\" | \"For account-specific coverage, pricing, or if your country is not listed, contact your account manager or\" | \"SUN: Never; UTC[+2] - Gaborone, Botswana\"",
+    "extracted_at": "2026-10-23T21:44:46.862Z",
+    "snapshot_hash": "18bf45accc90ae8699a42800dfd63d4f7ecb83296f094360bcec257f48c8cf5f",
+    "spans": [
+      "message:send",
+      "sms:message:send",
+      "sms:manage",
+      "Status group name that describes which category the status code belongs to",
+      "When no webhook is specified in the request and notify is set to 'true' or not defined, your Subscription settings will apply.",
+      "1min + (1min * retryNumber * retryNumber)",
+      "can only be scheduled for no later than 180 days in advance",
+      "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+      "The sender ID. It can be alphanumeric or numeric",
+      "An error code uniquely identifying the error case.",
+      "An action that should be taken to recover from the error.",
+      "List of violations that caused the error.",
+      "/sms/3/messages",
+      "Send SMS message"
+    ]
+  }
+}
