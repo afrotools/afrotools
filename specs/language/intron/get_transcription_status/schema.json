@@ -1,0 +1,204 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "get_transcription_status",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "INTRON_API_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://infer.voice.intron.io/file/v1/status/{file_id}"
+  },
+  "example_prompt": "Check whether an Intron transcription job has finished and read its transcript and post-processing results.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "file_id"
+    ],
+    "properties": {
+      "file_id": {
+        "type": "string",
+        "description": "the file id generated in response when the file was queued. Passed as a path parameter."
+      },
+      "get_structured_post_processing": {
+        "type": "string",
+        "enum": [
+          "f",
+          "t"
+        ],
+        "default": "f",
+        "description": "if true the post-processed results will be structured as json else it will be a MarkDown formated text. Passed as a query parameter."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "data",
+      "message",
+      "status"
+    ],
+    "properties": {
+      "data": {
+        "type": "object",
+        "properties": {
+          "processing_status": {
+            "type": "string",
+            "enum": [
+              "FILE_QUEUED",
+              "FILE_PENDING",
+              "FILE_PROCESSING",
+              "FILE_TRANSCRIBED",
+              "FILE_PROCESSING_FAILED"
+            ]
+          },
+          "audio_file_name": {
+            "type": "string"
+          },
+          "audio_transcript": {
+            "type": "string",
+            "description": "Transcript, in the input language."
+          },
+          "processed_audio_duration_in_seconds": {
+            "type": "number"
+          },
+          "use_language_asr_input": {
+            "type": "string",
+            "description": "Present in the English examples only."
+          },
+          "transcript_summary": {
+            "type": "string",
+            "description": "Returned when get_summary is TRUE."
+          },
+          "transcript_answer": {
+            "type": "string",
+            "description": "Returned when get_answer is TRUE."
+          },
+          "transcript_soap_note": {
+            "type": "string",
+            "description": "Returned when get_soap_note is TRUE."
+          },
+          "transcript_entity_list": {
+            "type": "string",
+            "description": "Returned when get_entity_list is TRUE."
+          },
+          "transcript_treatment_plan": {
+            "type": "string",
+            "description": "Returned when get_treatment_plan is TRUE."
+          },
+          "transcript_suggestions": {
+            "type": "string",
+            "description": "Returned when get_suggestions is TRUE."
+          },
+          "transcript_billing_codes": {
+            "type": "string",
+            "description": "Returned when get_icd_codes (completed example on Get File Status) is TRUE."
+          },
+          "transcript_icd_codes": {
+            "type": "string",
+            "description": "Returned when get_icd_codes (procedure example) is TRUE."
+          },
+          "transcript_clerking": {
+            "type": "string",
+            "description": "Returned when get_clerking is TRUE."
+          },
+          "transcript_op_note": {
+            "type": "string",
+            "description": "Returned when get_op_note is TRUE."
+          },
+          "transcript_call_center_results": {
+            "type": "string",
+            "description": "Returned when get_call_center_results is TRUE."
+          },
+          "transcript_call_center_agent_score": {
+            "description": "Returned when get_call_center_agent_score is TRUE. Type not documented: the example value is the text 'Numerical performance score for the agent'."
+          },
+          "transcript_call_center_agent_score_category": {
+            "type": "string",
+            "description": "Returned when get_call_center_agent_score_category is TRUE."
+          },
+          "transcript_call_center_product_info": {
+            "type": "string",
+            "description": "Returned when get_call_center_product_info is TRUE."
+          },
+          "transcript_call_center_product_insights": {
+            "type": "string",
+            "description": "Returned when get_call_center_product_insights is TRUE."
+          },
+          "transcript_call_center_compliance": {
+            "type": "string",
+            "description": "Returned when get_call_center_compliance is TRUE."
+          },
+          "transcript_call_center_feedback": {
+            "type": "string",
+            "description": "Returned when get_call_center_feedback is TRUE."
+          },
+          "transcript_call_center_sentiment": {
+            "type": "string",
+            "description": "Returned when get_call_center_sentiment is TRUE."
+          },
+          "transcript_legal_court_hearing": {
+            "type": "string",
+            "description": "Returned when get_legal_court_hearing is TRUE."
+          },
+          "transcript_meeting_notes_participants": {
+            "type": "string",
+            "description": "Returned when get_meeting_notes_participants is TRUE."
+          },
+          "transcript_meeting_notes_decisions": {
+            "type": "string",
+            "description": "Returned when get_meeting_notes_decisions is TRUE."
+          },
+          "transcript_meeting_notes_action_items": {
+            "type": "string",
+            "description": "Returned when get_meeting_notes_action_items is TRUE."
+          },
+          "transcript_meeting_notes_key_topics": {
+            "type": "string",
+            "description": "Returned when get_meeting_notes_key_topics is TRUE."
+          },
+          "transcript_meeting_notes_next_steps": {
+            "type": "string",
+            "description": "Returned when get_meeting_notes_next_steps is TRUE."
+          }
+        }
+      },
+      "message": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "description": "\"Ok\" when the file is found."
+      }
+    }
+  },
+  "error_schema": {},
+  "gotchas": [
+    "The API key comes from the developers tab of your account on voice.intron.io; send it as 'Authorization: Bearer {key}' from your backend only — the docs say never expose it in client-side code.",
+    "Poll until processing_status is FILE_TRANSCRIBED (results present) or FILE_PROCESSING_FAILED. The other values are FILE_QUEUED, FILE_PENDING and FILE_PROCESSING; the in-progress example shows only processing_status and audio_file_name in data.",
+    "get_structured_post_processing takes 'f' or 't' (default 'f' = Markdown text). Every documented example is the default text form; the JSON shape returned with 't' is not documented, so transcript_* fields may not be strings then.",
+    "The documented status responses do not echo file_id — keep it on your side.",
+    "get_icd_codes output has two names in the docs: transcript_icd_codes in the procedure examples, transcript_billing_codes in the completed example on Get File Status. Read both.",
+    "No dedicated response field is documented for get_differential_diagnosis, get_followup_instructions or get_practice_guidelines: in the completed example on Get File Status their output appears as sections inside transcript_suggestions.",
+    "The documented examples return status \"Ok\" and message \"file status found\". No error response is documented for this endpoint (unknown file_id, invalid key, rate limit).",
+    "Rate limit: 100 requests per minute on status. Responses carry rate-limit headers; Retry-After gives the delay in seconds before retrying."
+  ],
+  "evidence": {
+    "source_url": "https://docs.voice.intron.io/docs/stt/file-status",
+    "source_reference": "Get File Status (GET /file/v1/status/{file_id})",
+    "extracted_at": "2026-10-24T14:51:12.000Z",
+    "snapshot_hash": "a45fc1b58cce198ae6a21ecd112904ba95b9bae7b16af0fd967680f99c2fa6dd",
+    "spans": [
+      "https://infer.voice.intron.io/file/v1/status/{file_id}",
+      "FILE_PROCESSING_FAILED",
+      "if true the post-processed results will be structured as json else it will be a MarkDown formated text",
+      "100 requests per minute"
+    ]
+  }
+}

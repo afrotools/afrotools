@@ -110,6 +110,7 @@ claude mcp add --transport http afrotools https://mcp.afro.tools/mcp
 - `communications` — integrating an SMS, WhatsApp, USSD, voice or email API
 - `identity` — integrating an identity verification (KYC, document, AML) API
 - `logistics` — integrating a delivery or courier API (price, book, track, cancel deliveries)
+- `language` — integrating a speech-to-text API for African languages
 - `debug` — when an integration based on an afrotools spec fails → diagnoses whether the problem is a spec error, a missing gotcha, or an undocumented API change
 
 **Manual commands:**

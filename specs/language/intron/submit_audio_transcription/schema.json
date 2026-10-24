@@ -1,0 +1,433 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "submit_audio_transcription",
+  "capability_type": "asynchronous",
+  "status": "ready",
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "INTRON_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://infer.voice.intron.io/file/v1/upload"
+  },
+  "example_prompt": "Upload a recorded Hausa customer call for transcription and summary, then poll for the result.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "audio_file_name",
+      "audio_file_blob",
+      "use_language_asr_input"
+    ],
+    "properties": {
+      "audio_file_name": {
+        "type": "string",
+        "description": "non-unique file name"
+      },
+      "audio_file_blob": {
+        "type": "string",
+        "description": "The audio file. The field table types it as String, 'url to a readable file', but every documented example uploads a local file as a multipart file part (curl --form 'audio_file_blob=@\"/C:/Users/aaaa/file.wav\"'). Supported formats: .wav, .mp3, .mp4, .m4a, .ogg, .webm, .flac."
+      },
+      "use_language_asr_input": {
+        "type": "string",
+        "enum": [
+          "af",
+          "ak",
+          "am",
+          "ar",
+          "bem",
+          "bg",
+          "cs",
+          "da",
+          "de",
+          "el",
+          "en",
+          "es",
+          "et",
+          "fi",
+          "fr",
+          "ff",
+          "fuc",
+          "fuf",
+          "fub",
+          "fuv",
+          "fuq",
+          "fue",
+          "ffm",
+          "gaa",
+          "ha",
+          "hr",
+          "hu",
+          "ig",
+          "it",
+          "lt",
+          "lv",
+          "lg",
+          "mt",
+          "nl",
+          "nso",
+          "nyn",
+          "om",
+          "pcm",
+          "pl",
+          "pt",
+          "ro",
+          "ru",
+          "rw",
+          "sk",
+          "sl",
+          "sn",
+          "st",
+          "sv",
+          "sw",
+          "tn",
+          "tw",
+          "uk",
+          "wo",
+          "xh",
+          "yo",
+          "zu",
+          "luo",
+          "kr",
+          "ki",
+          "nup",
+          "ti"
+        ],
+        "description": "set the input language code. Codes from the Supported Languages page (61 languages). African languages: af (Afrikaans-English), ak (Akan-English), am (Amharic-English), ar (Arabic), bem (Bemba), ff (Fulani), fuc (Fulani (Pulaar)), fuf (Fulani (Pular)), fub (Fulani (Adamawa Fulfulde)), fuv (Fulani (Nigerian Fulfulde)), fuq (Fulani (Central-Eastern Niger Fulfulde)), fue (Fulani (Borgu Fulfulde)), ffm (Fulani (Maasina Fulfulde)), gaa (Ga), ha (Hausa-English), ig (Igbo-English), lg (Luganda-English), nso (Northern Sotho), nyn (Nyankole), om (Oromo), pcm (Pidgin-English), rw (Kinyarwanda-English-French), sn (Shona), st (Sotho), sw (Swahili-English), tn (Tswana), tw (Twi), wo (Wolof-English), xh (Xhosa), yo (Yoruba-English), zu (Zulu-English), luo (Dholuo (Luo)), kr (Kanuri), ki (Kikuyu), nup (Nupe), ti (Tigrinya). Code-switched models (Code-switched table): af, ak, am, ha, ig, lg, pcm, rw, sw, wo, yo, zu."
+      },
+      "use_diarization": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get the transcript text as a diarized response. No documented example shows the diarized response format."
+      },
+      "use_template_id": {
+        "type": "string",
+        "description": "use a custom prompt id for the transcript post-processing. Where the custom-template output appears in the response is not documented: the template examples' responses repeat the call-center fields."
+      },
+      "use_category": {
+        "type": "string",
+        "enum": [
+          "file_category_general",
+          "file_category_telehealth",
+          "file_category_procedure",
+          "file_category_call_center",
+          "file_category_legal",
+          "file_category_meeting_notes"
+        ],
+        "default": "file_category_telehealth",
+        "description": "set the category of post-processing to use on the file"
+      },
+      "use_disable_llm_corrections": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "disable LLM corrections on the transcript for lower latency",
+        "default": "FALSE"
+      },
+      "use_language_data_extraction_output": {
+        "type": "string",
+        "description": "language code for the answer; defaults to the question language (documented for get_answer)"
+      },
+      "get_answer": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "treat the transcript as a question and return only the answer (transcript_answer); works across any category/language and ignores all other options",
+        "default": "FALSE"
+      },
+      "get_summary": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get a summary of the transcript (all categories except legal)",
+        "default": "FALSE"
+      },
+      "get_entity_list": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get extracted entities from the transcript (telehealth, procedure)",
+        "default": "FALSE"
+      },
+      "get_treatment_plan": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get extracted treatment plan from the transcript (telehealth, procedure)",
+        "default": "FALSE"
+      },
+      "get_soap_note": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get extracted SOAP note from the transcript (telehealth)",
+        "default": "FALSE"
+      },
+      "get_clerking": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get extracted clerking from the transcript (telehealth)",
+        "default": "FALSE"
+      },
+      "get_icd_codes": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get the extracted icd/billing codes (telehealth, procedure)",
+        "default": "FALSE"
+      },
+      "get_suggestions": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get suggestions of important questions to ask or instructions to give patient (telehealth, procedure)",
+        "default": "FALSE"
+      },
+      "get_differential_diagnosis": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get the differential diagnosis of the patient (telehealth)",
+        "default": "FALSE"
+      },
+      "get_followup_instructions": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get follow up instructions for the patient (telehealth)",
+        "default": "FALSE"
+      },
+      "get_practice_guidelines": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get practice guidelines for the patient (telehealth)",
+        "default": "FALSE"
+      },
+      "get_op_note": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get the extracted operation note (procedure)",
+        "default": "FALSE"
+      },
+      "get_call_center_results": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get the resolution of a call (call_center)",
+        "default": "FALSE"
+      },
+      "get_call_center_agent_score": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get the performance score for the agent in a call (call_center)",
+        "default": "FALSE"
+      },
+      "get_call_center_agent_score_category": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get the performance assessment (call_center)",
+        "default": "FALSE"
+      },
+      "get_call_center_product_info": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get the product information discussed in the call (call_center)",
+        "default": "FALSE"
+      },
+      "get_call_center_product_insights": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get ideas to improve the product based on customer feedback in the call (call_center)",
+        "default": "FALSE"
+      },
+      "get_call_center_compliance": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get the compliance check of the call (call_center)",
+        "default": "FALSE"
+      },
+      "get_call_center_feedback": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get the feedback of the call (call_center)",
+        "default": "FALSE"
+      },
+      "get_call_center_sentiment": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get caller sentiment analysis (call_center)",
+        "default": "FALSE"
+      },
+      "get_legal_court_hearing": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get the transcript in court hearing format (legal)",
+        "default": "FALSE"
+      },
+      "get_meeting_notes_participants": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get the list of meeting participants and their roles (meeting_notes)",
+        "default": "FALSE"
+      },
+      "get_meeting_notes_decisions": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get the key decisions made during the meeting (meeting_notes)",
+        "default": "FALSE"
+      },
+      "get_meeting_notes_action_items": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get list of action items and their assigned owners (meeting_notes)",
+        "default": "FALSE"
+      },
+      "get_meeting_notes_key_topics": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get the main topics discussed during the meeting (meeting_notes)",
+        "default": "FALSE"
+      },
+      "get_meeting_notes_next_steps": {
+        "type": "string",
+        "enum": [
+          "TRUE",
+          "FALSE"
+        ],
+        "description": "get follow-up steps and next meeting plans (meeting_notes)",
+        "default": "FALSE"
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "data",
+      "message",
+      "status"
+    ],
+    "properties": {
+      "data": {
+        "type": "object",
+        "required": [
+          "file_id"
+        ],
+        "properties": {
+          "file_id": {
+            "type": "string",
+            "description": "pass it to get_transcription_status"
+          }
+        }
+      },
+      "message": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "description": "\"Ok\" when the file is queued."
+      }
+    }
+  },
+  "error_schema": {},
+  "gotchas": [
+    "The API key comes from the developers tab of your account on voice.intron.io; send it as 'Authorization: Bearer {key}' from your backend only — the docs say never expose it in client-side code.",
+    "Asynchronous: the response only carries data.file_id (message \"file queued for processing\"). Poll get_transcription_status until processing_status is FILE_TRANSCRIBED or FILE_PROCESSING_FAILED. No webhook is documented for file uploads.",
+    "No duration limit is documented for this endpoint (the 60/120 s limit is on upload/sync).",
+    "The body is multipart/form-data, not JSON. Every option is a form field whose value is the string \"TRUE\" or \"FALSE\" — not a JSON boolean.",
+    "use_category defaults to file_category_telehealth, not file_category_general — set it explicitly. The docs list the get_* options of each category (see each option's description); what happens with an option from another category is not documented.",
+    "audio_file_blob is typed 'String — url to a readable file' in the field table, but every example uploads the file itself (curl --form 'audio_file_blob=@\"path\"'). Send the file; passing a URL is not shown anywhere.",
+    "use_language_asr_input is 'required: yes' in the upload tables, but the Question Answering page lists it as optional with default 'en', and both the custom-template example and the English Python sample on upload/sync omit it. Always send it — per the Question Answering page, a missing code means 'en'.",
+    "get_answer=TRUE treats the audio as a spoken question and returns only transcript_answer: all other post-processing options are ignored. The answer is in the question's language unless use_language_data_extraction_output sets another code. When no question is detected, transcript_answer is not an answer: the model 'briefly acknowledges what was said and invites the user to ask a question' (documented example: \"Good morning! I'm here to help...\"). The Question Answering page marks get_answer as required, the upload tables as optional (default FALSE).",
+    "get_icd_codes output has two names in the docs: transcript_icd_codes in the procedure examples, transcript_billing_codes in the completed example on Get File Status. Read both.",
+    "No dedicated response field is documented for get_differential_diagnosis, get_followup_instructions or get_practice_guidelines: in the completed example on Get File Status their output appears as sections inside transcript_suggestions.",
+    "The body's status is \"Ok\" on success and \"Error\" on failure (the balance endpoint returns \"success\"). message is not a reliable signal: some 200 examples carry \"file queued for processing\" next to a finished transcript.",
+    "Only two error bodies are documented (400 duration limit and 503 timeout, both on upload/sync). The status code and body for an invalid API key, an unknown file_id, a rate-limit hit or exhausted credits are not documented, nor is a maximum file size.",
+    "The public docs describe no sandbox, test key, free tier or pricing, and don't say how file transcription is billed: every call hits production. The account's credit balance is readable with get_credits_balance.",
+    "Rate limit: 60 requests per minute on upload. Responses carry rate-limit headers; Retry-After gives the delay in seconds before retrying."
+  ],
+  "evidence": {
+    "source_url": "https://docs.voice.intron.io/docs/stt/file-upload",
+    "source_reference": "Upload File (POST /file/v1/upload)",
+    "extracted_at": "2026-10-24T14:51:12.000Z",
+    "snapshot_hash": "872e15666e75a45c04599fc4478103f97b605ec13c60b794d17d99c2d5e0fa17",
+    "spans": [
+      "Files are processed asynchronously, and you can check the status using the Get File Status",
+      "url to a readable file",
+      "60 requests per minute"
+    ]
+  }
+}
