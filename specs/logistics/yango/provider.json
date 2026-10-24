@@ -1,0 +1,12 @@
+{
+  "slug": "yango",
+  "name": "Yango Delivery",
+  "category": "logistics",
+  "country_code": ["CI", "GH", "SN", "ZM"],
+  "website": "https://delivery.yango.com",
+  "docs_url": "https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/quickstart",
+  "docs_public": true,
+  "sandbox": false,
+  "description": "Yango Delivery is an on-demand courier and cargo delivery service; its Express Delivery API prices, books, tracks and cancels deliveries (claims) between addresses.",
+  "example_prompt": "Book a Yango Delivery courier to take an order from my shop in Abidjan to a customer, confirm the price and send the customer the tracking link."
+}

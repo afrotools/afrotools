@@ -28,6 +28,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `document_verification` (Web SDK). New `identity` category.
 - Plugin skill `identity` — auto-activates for KYC / identity verification integrations
   (plugin 1.3.0). Run `claude plugin update afrotools`.
+- **Yango Delivery** (`specs/logistics/yango`, Express Delivery API v2, CI/GH/SN/ZM):
+  `check_delivery_price`, `create_delivery_claim`, `get_delivery_claim`, `accept_delivery_claim`,
+  `get_cancellation_terms`, `cancel_delivery_claim`, `get_claims_journal`, `get_tracking_links`.
+  New `logistics` category.
+- Plugin skill `logistics` — auto-activates for delivery / courier integrations (plugin 1.4.0).
+  Run `claude plugin update afrotools`.
 - `provider.json` field `channels` (`sms`, `whatsapp`, `ussd`, `voice`, `email`) — required
   for the `communications` category, optional elsewhere; enforced by `scripts/validate.js`.
 - `scripts/test_live.py` fixtures: per-step `content_type: "multipart/form-data"` (nested values
