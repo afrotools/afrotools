@@ -1,0 +1,106 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v2",
+  "capability": "get_cancellation_terms",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "header": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "YANGO_DELIVERY_TOKEN"
+  },
+  "endpoint": {
+    "url": "https://b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/cancel-info",
+    "method": "POST"
+  },
+  "example_prompt": "Find out whether cancelling a Yango Delivery claim is still free, paid or no longer possible.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "claim_id": {
+        "type": "string",
+        "minLength": 32,
+        "maxLength": 64,
+        "description": "Claim ID received at the claim creation stage Passed as a query parameter."
+      }
+    },
+    "required": [
+      "claim_id"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "cancel_state": {
+        "enum": [
+          "free",
+          "paid",
+          "unavailable"
+        ],
+        "description": "Terms of cancellation"
+      },
+      "currency": {
+        "type": "string",
+        "description": "Payment currency"
+      },
+      "price": {
+        "type": "string",
+        "pattern": "^-?[0-9]{1,14}(\\.[0-9]{0,4})?$",
+        "description": "Delivery cost in Decimal(18, 4) format"
+      },
+      "price_with_vat": {
+        "type": "string",
+        "pattern": "^-?[0-9]{1,14}(\\.[0-9]{0,4})?$",
+        "description": "Delivery cost in Decimal(18, 4) format"
+      }
+    },
+    "required": [
+      "cancel_state"
+    ]
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "string",
+        "enum": [
+          "bad_request",
+          "not_found"
+        ],
+        "description": "Error code"
+      },
+      "message": {
+        "type": "string",
+        "description": "Error description"
+      }
+    },
+    "required": [
+      "code",
+      "message"
+    ]
+  },
+  "gotchas": [
+    "Authenticate with 'Authorization: Bearer <OAuth token>'. The token comes from your Yango Delivery account (log in with the credentials your Yango Delivery manager gives you, Integration tab, Get token). It remains valid indefinitely, but changing the account password invalidates it; an invalid token answers 401 unauthorized.",
+    "cancel_state is free, paid or unavailable. Pass free or paid unchanged to cancel_delivery_claim. The reference doesn't describe unavailable: don't call cancel_delivery_claim with it.",
+    "Free cancellation lasts until the courier arrives at the pickup point (all pages agree). The paid window is contradictory: the getting-started page and the FAQ make cancellation paid once the courier has arrived but hasn't picked up the items, while the cancel reference says paid cancellation is available before the courier starts moving to the pickup point. Rely on cancel_state from get_cancellation_terms, never on the status alone.",
+    "After the courier has picked up the items, only the support service can cancel the order.",
+    "Accept-Language is a required header on this endpoint (e.g. en); this example sends en.",
+    "Errors return { code, message }: branch on code. Documented on this endpoint: 400 bad_request; 404 not_found. The error guide adds 401 unauthorized (invalid token) and 500 (try again or change the request)."
+  ],
+  "evidence": {
+    "source_url": "https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsCancelInfo.md",
+    "source_reference": "Yango Delivery Express API reference, page 'Terms of cancellation' (POST /b2b/cargo/integration/v2/claims/cancel-info). Passages quoted from the Yango Delivery documentation (snapshot 2026-10-24): https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/quickstart.md: \"using the username and password that you received from your Yango Delivery manager\" | \"Open the **Integration** tab.\" | \"Authorization: Bearer <OAuth_token>\" | \"The OAuth token remains valid indefinitely.\" | \"If you change the password to your personal account, the previously issued OAuth token becomes invalid.\" | \"An order can be canceled free of charge if the courier hasn't arrived at the sender's location yet\" | \"Cancellations made after the courier's arrival are subject to a fee.\" | \"If the courier has already picked up the items, the order can only be canceled through the support service.\" ; https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/errors.md: \"Invalid token specified. Get the correct token in your personal account.\" | \"Invalid token specified.\" | \"Try again or change the request.\" ; https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/faq.md: \"Use the [Terms of cancellation]\" | \"`cancelled_with_payment` if the courier has already confirmed arrival, but hasn't picked up the item yet\" ; https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsCancel.md: \"Free cancellation is available before the courier arrives at the departure point\" | \"paid cancellation is available before the courier starts moving to the pick-up point\"",
+    "extracted_at": "2026-10-24T06:14:38.276Z",
+    "snapshot_hash": "a325301da05ea4b73f3659d05bf43622e0b687c510a69e62f606addb5dddbcf0",
+    "spans": [
+      "Terms of cancellation",
+      "unavailable",
+      "Preferred response language.",
+      "bad_request",
+      "not_found",
+      "b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/cancel-info"
+    ]
+  }
+}
