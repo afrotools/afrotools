@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `schema.json` `currency` is required for `payment` specs only, and the country/currency
   coherence check runs only for them — the field means nothing for identity, communications,
   etc. Existing non-payment specs keep their `currency` (still validated as an array).
+- Plugin skill `new`: `currency` is documented as required for `payment` specs only (plugin 1.2.2).
 
 ### Added
 
