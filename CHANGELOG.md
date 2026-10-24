@@ -59,9 +59,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Plugin skill `logistics` — auto-activates for delivery / courier integrations (plugin 1.4.0).
   Run `claude plugin update afrotools`.
 - **Intron** (`specs/language/intron`, speech-to-text for 36 African languages incl. Wolof, Pulaar,
-  Swahili, Hausa): `transcribe_audio_sync`, `submit_audio_transcription`, `get_transcription_status`,
-  `get_credits_balance`. New `language` category.
-- Plugin skill `language` — auto-activates for speech-to-text / African-language integrations
+  Swahili, Hausa, and text-to-speech for 12): `transcribe_audio_sync`, `submit_audio_transcription`,
+  `get_transcription_status`, `synthesize_speech_sync`, `submit_speech_synthesis`,
+  `get_speech_synthesis_status`, `get_credits_balance`. New `language` category.
+- Plugin skill `language` — auto-activates for speech-to-text / text-to-speech African-language integrations
   (plugin 1.5.0). Run `claude plugin update afrotools`.
 - `provider.json` field `channels` (`sms`, `whatsapp`, `ussd`, `voice`, `email`) — required
   for the `communications` category, optional elsewhere; enforced by `scripts/validate.js`.

@@ -37,7 +37,7 @@ afrotools/afrotools/
 │   │   └── smileid/
 │   ├── logistics/               ← delivery, couriers, parcel tracking
 │   │   └── yango/
-│   └── language/                ← speech-to-text for African languages
+│   └── language/                ← speech-to-text / text-to-speech for African languages
 │       └── intron/
 ├── plugin/                      ← Claude Code plugin
 │   ├── .claude-plugin/

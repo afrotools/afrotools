@@ -1,0 +1,170 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "submit_speech_synthesis",
+  "capability_type": "asynchronous",
+  "status": "ready",
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "INTRON_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://infer.voice.intron.io/tts/v1/enqueue"
+  },
+  "example_prompt": "Queue a Swahili announcement for text-to-speech and poll until the audio is ready.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "text",
+      "voice_accent",
+      "voice_gender",
+      "voice_language"
+    ],
+    "properties": {
+      "text": {
+        "type": "string",
+        "description": "the text to process. The page says 'less than or equal to 4096 characters'; see gotchas for the lower limits in the documented 400s."
+      },
+      "voice_language": {
+        "type": "string",
+        "enum": [
+          "af",
+          "am",
+          "en",
+          "ha",
+          "ig",
+          "rw",
+          "lg",
+          "om",
+          "pcm",
+          "sn",
+          "sw",
+          "wo",
+          "yo"
+        ],
+        "description": "Language of the input text."
+      },
+      "voice_accent": {
+        "type": "string",
+        "enum": [
+          "afrikaans",
+          "amharic",
+          "hausa",
+          "igbo",
+          "kinyarwanda",
+          "luganda",
+          "oromo",
+          "pidgin",
+          "sepedi",
+          "setswana",
+          "shona",
+          "swahili",
+          "wolof",
+          "xhosa",
+          "yoruba",
+          "zulu"
+        ],
+        "description": "Accent for the speech voice. Must be listed for the chosen voice_language — af (Afrikaans): afrikaans; am (Amharic): amharic; en (English): afrikaans, hausa, igbo, luganda, sepedi, swahili, setswana, xhosa, yoruba, zulu; ha (Hausa): hausa; ig (Igbo): igbo; rw (Kinyarwanda): kinyarwanda; lg (Luganda): luganda; om (Oromo): oromo; pcm (Pidgin): pidgin; sn (Shona): shona; sw (Swahili): swahili; wo (Wolof): wolof; yo (Yoruba): yoruba. Source: https://docs.voice.intron.io/docs/tts/supported-languages-and-accents (snapshot 2026-10-24, sha256 0ac43d23555e2e428e27f242e84890443624f316811c308cf9c88c0625821e3f); every accent is listed with 'male,female'."
+      },
+      "voice_gender": {
+        "type": "string",
+        "enum": [
+          "male",
+          "female"
+        ],
+        "description": "Voice gender (options 'male / female'; the docs' description repeats 'Accent for the speech voice'). Every listed accent has male and female voices."
+      },
+      "output_audio_format": {
+        "type": "string",
+        "enum": [
+          "wav",
+          "opus"
+        ],
+        "default": "wav",
+        "description": "Specify the output audio format. The docs list WAV (.wav) and OPUS (.opus) and give 'wav' as the default; the value 'opus' is inferred from that table, not written in the docs."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "data",
+      "message",
+      "status"
+    ],
+    "properties": {
+      "data": {
+        "type": "object",
+        "required": [
+          "text_id"
+        ],
+        "properties": {
+          "text_id": {
+            "type": "string",
+            "description": "pass it to get_speech_synthesis_status"
+          }
+        }
+      },
+      "message": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "description": "\"Ok\" when the text is queued (message \"tts text queued for processing\")."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "data",
+      "message",
+      "status"
+    ],
+    "properties": {
+      "data": {
+        "type": "object",
+        "description": "{} in every documented 400."
+      },
+      "message": {
+        "type": "string",
+        "description": "e.g. \"invalid text voice accent,{accent} not supported for language {language}\"."
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "Error"
+        ]
+      }
+    }
+  },
+  "gotchas": [
+    "The API key comes from the developers tab of your account on voice.intron.io; send it as 'Authorization: Bearer {key}' from your backend only — the docs say never expose it in client-side code.",
+    "The body is JSON and the header table requires 'Content-Type: application/json' — send it, even though the docs' JavaScript samples omit it.",
+    "Character limit is contradictory: the page says 'less than or equal to 4096 characters', but the documented 400 says 'max limit of 1200 characters'. Keep text short or split it.",
+    "voice_accent must be listed for voice_language ('invalid text voice accent,{accent} not supported for language {language}') and voice_gender for voice_accent ('invalid text voice gender,{gender} not supported for accent {accent}'), both 400. English (en) takes the accents afrikaans, hausa, igbo, luganda, sepedi, swahili, setswana, xhosa, yoruba, zulu; every other language takes only its own. On this page all three Hausa samples send voice_language 'ha' with voice_accent 'swahili', which the table does not list for 'ha' (only 'hausa') — follow the table.",
+    "TTS covers 13 voice languages — af, am, en, ha, ig, rw, lg, om, pcm, sn, sw, wo, yo — fewer than speech-to-text: no French and no Fulani/Pulaar voice.",
+    "Asynchronous: the response only carries data.text_id. Poll get_speech_synthesis_status until processing_status is TTS_TEXT_AUDIO_GENERATED or TTS_TEXT_AUDIO_PROCESSING_FAILED. No webhook is documented.",
+    "The documented 400 for an invalid output_audio_format shows the voice-gender message ('invalid text voice gender,...'): don't rely on the message text to tell the two apart.",
+    "Only 400 (character limit, language, accent, gender, format) bodies are documented. The status and body for an invalid API key, a rate-limit hit or exhausted credits are not documented.",
+    "The public docs describe no sandbox, test key, free tier or pricing, and don't say how text-to-speech is billed: every call hits production. The account's credit balance is readable with get_credits_balance.",
+    "Rate limit: 60 requests per minute on tts/v1/enqueue. Responses carry rate-limit headers; Retry-After gives the delay in seconds before retrying."
+  ],
+  "evidence": {
+    "source_url": "https://docs.voice.intron.io/docs/tts/tts-queue",
+    "source_reference": "Upload Text (POST /tts/v1/enqueue)",
+    "extracted_at": "2026-10-24T14:51:12.000Z",
+    "snapshot_hash": "7c9fe09ea40910f2193fdbdfbb1a111bb78143e018ae64b5bfe8de42bd7baa6c",
+    "spans": [
+      "This endpoint only supports text less than or equal to 4096 characters",
+      "tts text character count greater than the max limit of 1200 characters",
+      "tts text queued for processing",
+      "60 requests per minute",
+      "see page of supported accents"
+    ]
+  }
+}
