@@ -1,0 +1,83 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "webhook_trip_event",
+  "capability_type": "webhook",
+  "status": "draft",
+  "auth": {
+    "type": "none",
+    "env_var": "GOZEM_WEBHOOK_SECRET"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_webhook_url}"
+  },
+  "example_prompt": "Update my orders when Gozem notifies me that a delivery was assigned, completed, canceled or expired.",
+  "input_schema": {
+    "type": "object",
+    "description": "Envelope Gozem POSTs to your webhook URL when a subscribed event occurs.",
+    "properties": {
+      "guid": {
+        "type": "string",
+        "description": "Unique identifier for this event"
+      },
+      "account_guid": {
+        "type": "string",
+        "description": "The account the event belongs to"
+      },
+      "event_type": {
+        "type": "string",
+        "description": "The type of event that occurred. Courier events: courier.trip.created, courier.trip.assigned, courier.trip.at_pickup, courier.trip.started, courier.trip.completed, courier.trip.canceled, courier.trip.expired, courier.trip.stop.started, courier.trip.stop.completed, courier.trip.chat.message, courier.trip.payment.completed, courier.trip.payment.refunded"
+      },
+      "data": {
+        "type": "object",
+        "description": "Event-specific payload; its contents depend on event_type"
+      },
+      "environment": {
+        "type": "string",
+        "enum": [
+          "sandbox",
+          "production"
+        ],
+        "description": "sandbox or production, the environment the event came from"
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "Return a 2xx as soon as the event is accepted; the response body is not documented."
+  },
+  "error_schema": {},
+  "gotchas": [
+    "Set a secret on the webhook in the Partner Portal: it is optional, and without it payloads aren't signed. With a secret, X-Webhook-Signature carries the hex HMAC SHA-256 of the raw request body — verify it on the raw bytes (not a re-serialized object) with a constant-time comparison, and reject a mismatch.",
+    "Return a 2xx as soon as the event is accepted and do the work in the background. Failed deliveries are retried up to three times, then marked failed; repeated failures can disable the webhook. Return 5xx only when your own storage is down — that is the one case where you want the retry.",
+    "The same event can arrive more than once: deduplicate on the envelope guid (EVT_…).",
+    "event_type is one of the courier.trip.* events (created, assigned, at_pickup, started, completed, canceled, expired, stop.started, stop.completed, chat.message, payment.completed, payment.refunded). New types get added: ignore types you don't know instead of failing. stop.started / stop.completed fire once per dropoff, even on a single-dropoff trip, per the lifecycle page — Getting Started mentions them only for trips with more than one dropoff.",
+    "data's content isn't documented beyond 'the resource the event is about' (stop events carry which dropoff was served and its delivery confirmation): this spec leaves it untyped. Read the trip with get_trip when you need its full state.",
+    "The envelope carries no timestamp and the signature covers only the body: no replay protection is documented. The retry delay is only 'a short delay'. Validate the payload shape before acting on it.",
+    "Treat courier.trip.canceled (by you, the driver or the system) and courier.trip.expired (no driver within the acceptance window, whose length isn't documented) as normal endings, not errors.",
+    "Events are delivered only to active webhooks of the API client's account subscribed to that event type; environment says whether the event comes from sandbox or production. The portal's Format option isn't documented: this example expects JSON. In sandbox, trip events fire only when you drive the trip with simulate_trip_state."
+  ],
+  "evidence": {
+    "source_url": "https://test-developers.gozem.co/docs/platform/webhooks",
+    "source_reference": "Gozem Developer Docs, page 'Webhooks' (webhook delivery), served on 2026-10-24 from the pre-production host test-developers.gozem.co (the llms.txt links to developers.gozem.co, which did not serve the docs that day). Passages quoted from the Gozem documentation (snapshot 2026-10-24): https://test-developers.gozem.co/docs/recipes/verify-a-webhook-signature: \"Return 5xx when your own storage is down. That is the one case where you want the retry.\" | \"Branch on event_type and ignore ones you do not know. New types get added\" ; https://test-developers.gozem.co/docs/api-services/courier/lifecycle-events: \"courier.trip.created\" | \"courier.trip.assigned\" | \"courier.trip.at_pickup\" | \"courier.trip.started\" | \"courier.trip.completed\" | \"courier.trip.canceled\" | \"courier.trip.expired\" | \"courier.trip.stop.started\" | \"courier.trip.stop.completed\" | \"courier.trip.chat.message\" | \"courier.trip.payment.completed\" | \"courier.trip.payment.refunded\" | \"Fires once per dropoff, including on a single-dropoff trip.\" | \"each event’s data object holds the resource the event is about\" | \"which dropoff was served and its delivery confirmation\" | \"The trip was canceled by you, the driver, or the system\" | \"No driver was assigned within the acceptance window\" ; https://test-developers.gozem.co/docs/api-services/courier/getting-started: \"On a trip with more than one dropoff, each stop also fires\" | \"your webhook handler should treat them as normal endings, not errors\" ; https://test-developers.gozem.co/docs/recipes/simulate-a-trip: \"Every transition fires the same webhook a real trip would\"",
+    "extracted_at": "2026-10-24T07:55:06.245Z",
+    "snapshot_hash": "3aa74e2fab02580ecacb552634a7ada0ce2ff3026667d2923cc368fcffda82ae",
+    "spans": [
+      "Secret (optional)",
+      "X-Webhook-Signature",
+      "The signature is an HMAC SHA-256 of the raw request body using your webhook secret.",
+      "Always verify against the raw body, not a re-serialized version, and use a constant-time comparison",
+      ".digest(\"hex\")",
+      "the platform retries delivery up to three times with a short delay between attempts before marking the delivery failed",
+      "Repeated failures can cause a webhook to be disabled automatically",
+      "Handle events idempotently by tracking the event guid and ignoring ones you have already processed.",
+      "Event-specific payload; its contents depend on event_type",
+      "with a short delay between attempts",
+      "Validate the payload shape before acting on it.",
+      "Events are delivered only to webhooks that belong to the same account as the API client, are active, and are subscribed to that event type.",
+      "Payload format for the notification",
+      "HTTP POST"
+    ]
+  }
+}
