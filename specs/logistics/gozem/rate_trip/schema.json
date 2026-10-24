@@ -1,0 +1,175 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "rate_trip",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "header": "x-api-key",
+    "format": "{token}",
+    "env_var": "GOZEM_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://api.gozem.co/courier/v1/trips/{trip_id}/rating",
+    "method": "POST"
+  },
+  "example_prompt": "Rate my completed Gozem delivery 5 stars with a short comment.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "trip_id": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^(TRP_\\d+|\\d+)$",
+        "description": "Trip ID (TRP_xxx format or numeric ID) Path parameter."
+      },
+      "comment": {
+        "type": "string",
+        "maxLength": 1000,
+        "description": "Free-text feedback on the delivery"
+      },
+      "rating": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5,
+        "description": "Score out of 5, 1 being the worst"
+      }
+    },
+    "required": [
+      "trip_id",
+      "rating"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "data": {
+        "type": "object",
+        "description": "The recorded rating",
+        "properties": {
+          "comment": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Free-text feedback on the delivery"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Rating timestamp"
+          },
+          "rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "description": "Score out of 5, 1 being the worst"
+          },
+          "trip_id": {
+            "type": "string",
+            "description": "Unique trip identifier"
+          }
+        },
+        "required": [
+          "date",
+          "rating",
+          "trip_id"
+        ]
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable outcome. Defaults to `Ok`."
+      },
+      "success": {
+        "type": "boolean",
+        "enum": [
+          true
+        ],
+        "description": "Always `true` on a success response."
+      }
+    },
+    "required": [
+      "data",
+      "message",
+      "success"
+    ]
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "string",
+        "description": "Stable, machine-readable error code. Branch on this. See the Error Codes reference in the API description."
+      },
+      "details": {
+        "description": "Field-level validation failures. Present on `validation_failed` only. API Basics types it object | array | null.",
+        "oneOf": [
+          {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "description": "Dotted path to the offending field."
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Why the field was rejected."
+                }
+              },
+              "required": [
+                "field",
+                "message"
+              ]
+            }
+          },
+          {
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable message. May be reworded or localized — do not branch on it."
+      },
+      "success": {
+        "type": "boolean",
+        "enum": [
+          false
+        ],
+        "description": "Always `false` on an error response."
+      },
+      "error": {
+        "type": "string",
+        "description": "The HTTP error class name. Informational only; do not branch on it. (API Basics)"
+      }
+    },
+    "required": [
+      "code",
+      "message"
+    ]
+  },
+  "gotchas": [
+    "Authenticate with the x-api-key header: a long-lived API key that works only while its Partner Portal client is active. The docs recommend OAuth2 client credentials instead (POST https://auth.gozem.co/oauth2/token, then Authorization: Bearer; tokens last 3600 s by default). Send one credential per request — if both headers are present, the bearer token is used. Missing or invalid credentials return 401 unauthenticated; an endpoint the client wasn't granted, or a source IP outside its allowlist, returns 403 forbidden. How an API key is issued isn't documented: the Partner Portal flow described only generates a client_id and client_secret — ask your Gozem representative for the key.",
+    "trip_id is the trip's guid (TRP_…) or its numeric ID; an unknown trip returns 404 trip_not_found.",
+    "Rate once the trip is completed. rating is an integer from 1 (worst) to 5; comment is at most 1000 characters. A trip that can't be rated returns 403 trip_rating_not_allowed.",
+    "Sandbox (https://sandbox-api.gozem.co/courier/v1) and production (https://api.gozem.co/courier/v1) are fully isolated: each has its own Partner Portal, API clients, credentials and data, so a sandbox key doesn't work in production. Sandbox carries out no real-world operations and no charges occur, and its data may be reset periodically. A client may only call the endpoints granted to it in the portal, with no implicit access to related routes. Portal access is provisioned during onboarding; the API reference labels the Courier API Beta (spec version 0.0.0).",
+    "Failures share one envelope: branch on code — message is human-facing and may be reworded or localized. The API reference describes {success: false, code, message, details}, the API Basics page {error, message, code, details}: read only code, message and details (field-level failures on validation_failed; API Basics types details object, array or null). Statuses listed for this operation: 400, 401, 403, 404, 405, 409, 413, 415, 429, 500, 502. Retry only 429 rate_limit_exceeded (honour Retry-After; default limit 100 requests per minute per client; pace with the X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers), 500 internal_error and 502 service_unavailable, with backoff."
+  ],
+  "evidence": {
+    "source_url": "https://test-developers.gozem.co/docs/reference/courier/rate-trip",
+    "source_reference": "Gozem Developer Docs, page 'Rate Trip' (POST /courier/v1/trips/{trip_id}/rating), served on 2026-10-24 from the pre-production host test-developers.gozem.co (the llms.txt links to developers.gozem.co, which did not serve the docs that day). Passages quoted from the Gozem documentation (snapshot 2026-10-24): https://test-developers.gozem.co/docs/platform/authentication: \"Pass it in the x-api-key header\" | \"It works only while the client is active\" | \"Option 1: OAuth2 access token (recommended)\" | \"auth.gozem.co in production\" | \"The default lifetime is 3600 seconds (60 minutes).\" | \"If both headers are present, the bearer token is used.\" | \"returns 401 with the code unauthenticated\" | \"returns 403 with the code forbidden\" | \"When an allowlist is set, requests from any other address are rejected\" | \"with no implicit access to related routes\" ; https://test-developers.gozem.co/docs/reference/courier: \"API key (x-api-key) or Bearer token\" | \"Spec version 0.0.0\" | \"Always `false` on an error response.\" | \"Present on `validation_failed` only.\" ; https://test-developers.gozem.co/docs/platform/environments: \"Click Save to generate your client_id and client_secret.\" | \"They are fully isolated.\" | \"Credentials created in one environment do not work in the other.\" | \"no real-world operations are carried out, and no charges occur\" | \"Partner Portal access is provisioned during onboarding.\" | \"Sandbox data may be reset periodically\" ; https://test-developers.gozem.co/docs/api-services/courier/errors: \"The referenced trip does not exist.\" | \"Rating is not allowed for this trip.\" | \"The retryable cases are the server-side errors service_unavailable (502) and internal_error (500) above, plus rate_limit_exceeded (429)\" ; https://test-developers.gozem.co/docs/api-services/courier/getting-started: \"once the trip is completed\" ; https://test-developers.gozem.co/docs/reference: \"Courier API Beta\" ; https://test-developers.gozem.co/docs/api-services/courier/overview: \"https://api.gozem.co/courier/v1\" | \"https://sandbox-api.gozem.co/courier/v1\" ; https://test-developers.gozem.co/docs/platform/api-basics: \"\"error\": \"BadRequestError\"\" | \"The default is 100 requests per minute\" | \"object | array | null\" | \"X-RateLimit-Limit\" | \"X-RateLimit-Remaining\" | \"X-RateLimit-Reset\" | \"may include a Retry-After header with the seconds to wait\"",
+    "extracted_at": "2026-10-24T07:55:09.139Z",
+    "snapshot_hash": "e952d7d8745c4abf688793eec7c6b65435d57cc3b95f213c6dd5a46184b736ad",
+    "spans": [
+      "Trip ID (TRP_xxx format or numeric ID)",
+      "Score out of 5, 1 being the worst",
+      "max 1000 chars",
+      "sandbox-api.gozem.co/courier/v1/trips/{trip_id}/rating"
+    ]
+  }
+}

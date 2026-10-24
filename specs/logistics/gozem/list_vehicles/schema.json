@@ -1,0 +1,249 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "list_vehicles",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "header": "x-api-key",
+    "format": "{token}",
+    "env_var": "GOZEM_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://api.gozem.co/courier/v1/vehicles",
+    "method": "GET"
+  },
+  "example_prompt": "Find which Gozem delivery vehicles can pick up a parcel at my shop in Lomé.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "guid": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64,
+        "description": "Exact vehicle identifier, as returned in `data[].guid`. Query parameter."
+      },
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64,
+        "description": "Exact vehicle name, case-insensitive. Query parameter."
+      },
+      "city": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64,
+        "description": "Substring of a covered city name, case-insensitive. Query parameter."
+      },
+      "country": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64,
+        "description": "ISO 3166-1 alpha-2 code (case-insensitive) or a substring of the country name. Query parameter."
+      },
+      "lat": {
+        "type": "number",
+        "minimum": -90,
+        "maximum": 90,
+        "description": "Latitude of a point to test against coverage polygons. Requires `lon`. Query parameter."
+      },
+      "lon": {
+        "type": "number",
+        "minimum": -180,
+        "maximum": 180,
+        "description": "Longitude of a point to test against coverage polygons. Requires `lat`. Query parameter."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "data": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "city_coverage": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "city_name": {
+                    "type": "string",
+                    "description": "City name"
+                  },
+                  "country_code": {
+                    "type": "string",
+                    "description": "ISO 3166-1 alpha-2 country code"
+                  },
+                  "country_name": {
+                    "type": "string",
+                    "description": "Country name"
+                  },
+                  "geo_polygon": {
+                    "type": "object",
+                    "description": "Area of the city the vehicle serves. Omitted when the stored boundary is not GeoJSON.",
+                    "properties": {
+                      "coordinates": {
+                        "type": "array",
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        },
+                        "description": "Linear rings; the first is the outer boundary, any others are holes"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "Polygon"
+                        ],
+                        "description": "GeoJSON geometry type. Always `Polygon`."
+                      }
+                    },
+                    "required": [
+                      "coordinates",
+                      "type"
+                    ]
+                  }
+                },
+                "required": [
+                  "city_name",
+                  "country_name"
+                ]
+              },
+              "description": "Cities where the vehicle can be booked"
+            },
+            "description": {
+              "type": "string",
+              "description": "Load capacity and typical use of the vehicle"
+            },
+            "guid": {
+              "type": "string",
+              "description": "Unique vehicle identifier"
+            },
+            "name": {
+              "type": "string",
+              "description": "Vehicle name, accepted as the `vehicle` field when quoting or booking"
+            }
+          },
+          "required": [
+            "city_coverage",
+            "description",
+            "guid",
+            "name"
+          ]
+        },
+        "description": "Vehicles available for booking"
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable outcome. Defaults to `Ok`."
+      },
+      "success": {
+        "type": "boolean",
+        "enum": [
+          true
+        ],
+        "description": "Always `true` on a success response."
+      }
+    },
+    "required": [
+      "data",
+      "message",
+      "success"
+    ]
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "string",
+        "description": "Stable, machine-readable error code. Branch on this. See the Error Codes reference in the API description."
+      },
+      "details": {
+        "description": "Field-level validation failures. Present on `validation_failed` only. API Basics types it object | array | null.",
+        "oneOf": [
+          {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "description": "Dotted path to the offending field."
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Why the field was rejected."
+                }
+              },
+              "required": [
+                "field",
+                "message"
+              ]
+            }
+          },
+          {
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable message. May be reworded or localized — do not branch on it."
+      },
+      "success": {
+        "type": "boolean",
+        "enum": [
+          false
+        ],
+        "description": "Always `false` on an error response."
+      },
+      "error": {
+        "type": "string",
+        "description": "The HTTP error class name. Informational only; do not branch on it. (API Basics)"
+      }
+    },
+    "required": [
+      "code",
+      "message"
+    ]
+  },
+  "gotchas": [
+    "Authenticate with the x-api-key header: a long-lived API key that works only while its Partner Portal client is active. The docs recommend OAuth2 client credentials instead (POST https://auth.gozem.co/oauth2/token, then Authorization: Bearer; tokens last 3600 s by default). Send one credential per request — if both headers are present, the bearer token is used. Missing or invalid credentials return 401 unauthenticated; an endpoint the client wasn't granted, or a source IP outside its allowlist, returns 403 forbidden. How an API key is issued isn't documented: the Partner Portal flow described only generates a client_id and client_secret — ask your Gozem representative for the key.",
+    "Filter by the pickup point with lat and lon (each requires the other), or by city, country (ISO 3166-1 alpha-2 or part of the name), name or guid. The Getting Started guide passes coordinates=6.1725,1.2314, a parameter this reference doesn't document: use lat and lon.",
+    "A vehicle missing from the response doesn't operate in that area, and a quote or booking for it will fail.",
+    "data[].name is what quotes and bookings accept as vehicle (the guid works too, see create_quote). geo_polygon is omitted when the stored boundary isn't GeoJSON.",
+    "geo_polygon follows GeoJSON order — each position is [longitude, latitude] (the reference example ring starts at [1.18942, 6.1082] for Lomé) — while the query parameters are lat and lon: don't swap them when testing a point.",
+    "This spec lists Togo only: every Courier example is in Lomé. gozem.co lists Togo, Bénin, Cameroun, Gabon and Congo-Brazzaville for the Gozem app, and the developer docs only say 'across West and Central Africa' — whether the Courier API serves the other countries isn't documented. Vehicle availability is per city: check the pickup with list_vehicles (lat/lon) instead of assuming a country or vehicle is served. book_trip's response schema restricts currency_code to XOF.",
+    "Sandbox (https://sandbox-api.gozem.co/courier/v1) and production (https://api.gozem.co/courier/v1) are fully isolated: each has its own Partner Portal, API clients, credentials and data, so a sandbox key doesn't work in production. Sandbox carries out no real-world operations and no charges occur, and its data may be reset periodically. A client may only call the endpoints granted to it in the portal, with no implicit access to related routes. Portal access is provisioned during onboarding; the API reference labels the Courier API Beta (spec version 0.0.0).",
+    "Failures share one envelope: branch on code — message is human-facing and may be reworded or localized. The API reference describes {success: false, code, message, details}, the API Basics page {error, message, code, details}: read only code, message and details (field-level failures on validation_failed; API Basics types details object, array or null). Statuses listed for this operation: 400, 401, 403, 404, 405, 409, 413, 415, 429, 500, 502. Retry only 429 rate_limit_exceeded (honour Retry-After; default limit 100 requests per minute per client; pace with the X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers), 500 internal_error and 502 service_unavailable, with backoff."
+  ],
+  "evidence": {
+    "source_url": "https://test-developers.gozem.co/docs/reference/courier/list-vehicles",
+    "source_reference": "Gozem Developer Docs, page 'Get Available Vehicles' (GET /courier/v1/vehicles), served on 2026-10-24 from the pre-production host test-developers.gozem.co (the llms.txt links to developers.gozem.co, which did not serve the docs that day). Passages quoted from the Gozem documentation (snapshot 2026-10-24): https://test-developers.gozem.co/docs/platform/authentication: \"Pass it in the x-api-key header\" | \"It works only while the client is active\" | \"Option 1: OAuth2 access token (recommended)\" | \"auth.gozem.co in production\" | \"The default lifetime is 3600 seconds (60 minutes).\" | \"If both headers are present, the bearer token is used.\" | \"returns 401 with the code unauthenticated\" | \"returns 403 with the code forbidden\" | \"When an allowlist is set, requests from any other address are rejected\" | \"with no implicit access to related routes\" ; https://test-developers.gozem.co/docs/reference/courier: \"API key (x-api-key) or Bearer token\" | \"Spec version 0.0.0\" | \"Always `false` on an error response.\" | \"Present on `validation_failed` only.\" ; https://test-developers.gozem.co/docs/platform/environments: \"Click Save to generate your client_id and client_secret.\" | \"They are fully isolated.\" | \"Credentials created in one environment do not work in the other.\" | \"no real-world operations are carried out, and no charges occur\" | \"Partner Portal access is provisioned during onboarding.\" | \"Sandbox data may be reset periodically\" ; https://test-developers.gozem.co/docs/api-services/courier/getting-started: \"?coordinates=6.1725,1.2314\" | \"If the vehicle you want is not in the response, it does not operate in that area, and a quote or booking for it will fail.\" ; https://test-developers.gozem.co/docs/recipes/deliver-a-package: \"/v1/vehicles?lat=${pickup.lat}&lon=${pickup.lon}\" | \"Vehicle availability is per city, not global.\" ; https://gozem.co/: \"Togo\" | \"Bénin\" | \"Cameroun\" | \"Gabon\" | \"Congo-Brazzaville\" ; https://test-developers.gozem.co/llms.txt: \"across West and Central Africa\" ; https://test-developers.gozem.co/docs/reference: \"Courier API Beta\" ; https://test-developers.gozem.co/docs/api-services/courier/overview: \"https://api.gozem.co/courier/v1\" | \"https://sandbox-api.gozem.co/courier/v1\" ; https://test-developers.gozem.co/docs/platform/api-basics: \"\"error\": \"BadRequestError\"\" | \"The default is 100 requests per minute\" | \"object | array | null\" | \"X-RateLimit-Limit\" | \"X-RateLimit-Remaining\" | \"X-RateLimit-Reset\" | \"may include a Retry-After header with the seconds to wait\" ; https://test-developers.gozem.co/docs/api-services/courier/errors: \"The retryable cases are the server-side errors service_unavailable (502) and internal_error (500) above, plus rate_limit_exceeded (429)\"",
+    "extracted_at": "2026-10-24T07:55:07.554Z",
+    "snapshot_hash": "ac4cb9105520f58cdb8a276145ca561a4543b26d62a41902a16186f70bfbdfa9",
+    "spans": [
+      "Requires `lon`.",
+      "Requires `lat`.",
+      "ISO 3166-1 alpha-2 code (case-insensitive) or a substring of the country name.",
+      "accepted as the `vehicle` field when quoting or booking",
+      "Omitted when the stored boundary is not GeoJSON.",
+      "1.18942",
+      "6.1082",
+      "GeoJSON geometry type.",
+      "sandbox-api.gozem.co/courier/v1/vehicles"
+    ]
+  }
+}
