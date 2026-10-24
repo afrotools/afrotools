@@ -3,7 +3,7 @@
   "provider_api_version": "v3",
   "capability": "enhanced_kyc",
   "capability_type": "asynchronous",
-  "status": "ready",
+  "status": "verified",
   "auth": {
     "type": "api_key",
     "location": "header",

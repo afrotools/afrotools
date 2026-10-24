@@ -41,6 +41,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `create_smile_link`, `get_smile_link`, `get_verification_status`, `replay_verification_webhook`,
   `aml_check_sync`, `list_supported_documents`, `webhook_verification_result`,
   `document_verification` (Web SDK). New `identity` category.
+  `verified` (sandbox live test passing, https://github.com/afrotools/afrotools/actions/runs/40121352004):
+  `generate_token`, `list_supported_documents`, `enhanced_kyc`, `get_verification_status`,
+  `aml_check_sync`, `create_smile_link`, `get_smile_link`.
 - Plugin skill `identity` — auto-activates for KYC / identity verification integrations
   (plugin 1.3.0). Run `claude plugin update afrotools`.
 - `provider.json` field `channels` (`sms`, `whatsapp`, `ussd`, `voice`, `email`) — required

@@ -3,7 +3,7 @@
   "provider_api_version": "v3",
   "capability": "get_smile_link",
   "capability_type": "synchronous",
-  "status": "ready",
+  "status": "verified",
   "auth": {
     "type": "api_key",
     "location": "header",

@@ -3,7 +3,7 @@
   "provider_api_version": "v3",
   "capability": "list_supported_documents",
   "capability_type": "synchronous",
-  "status": "ready",
+  "status": "verified",
   "auth": {
     "type": "none"
   },
