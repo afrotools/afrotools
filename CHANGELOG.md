@@ -22,6 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **Bictorys** `create_charge` and `webhook_payment_completed` are `verified`: working hosted-checkout +
+  signed-webhook integration in `afrotools/examples` (`shop-senegal`, `lib/bictorys.ts`).
 - **BREAKING:** the `sms` spec category is renamed `communications` — African SMS providers
   also offer WhatsApp, USSD, voice and email. Specs moved from `specs/sms/` to
   `specs/communications/`; `provider.json` now has `"category": "communications"`. Clients

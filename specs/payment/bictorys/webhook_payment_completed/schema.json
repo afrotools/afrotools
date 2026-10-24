@@ -3,7 +3,7 @@
   "provider_api_version": "2026-08-07",
   "capability": "webhook_payment_completed",
   "capability_type": "webhook",
-  "status": "ready",
+  "status": "verified",
   "currency": ["XOF"],
   "auth": {
     "type": "none",
