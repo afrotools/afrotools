@@ -91,10 +91,11 @@
   "gotchas": [
     "Wave envoie aussi l'événement checkout.session.payment_failed lorsqu'un paiement échoue. Implémenter un handler pour cet événement afin de notifier l'utilisateur ou libérer le stock réservé.",
     "Ne jamais fulfiller une commande sur la base du webhook seul. Appeler verify_payment (GET /v1/checkout/sessions/{id}) pour confirmer côté serveur — le payload webhook peut être forgé.",
-    "Répondre HTTP 200 immédiatement et traiter de façon asynchrone. Wave retry pendant 3 jours si votre endpoint ne répond pas dans les 5 secondes.",
+    "Répondre 2xx immédiatement puis traiter de façon asynchrone : Wave ne retente que si votre endpoint ne répond pas en 2xx (pendant 3 jours, timeout de 5 secondes). Une fois le 200 envoyé, Wave ne retentera plus : enregistrer l'événement (au moins data.id) AVANT de répondre, et répondre 5xx si cet enregistrement échoue. Wave prévient aussi que des événements peuvent être perdus, dupliqués ou arriver dans le désordre : prévoir une tâche de rattrapage qui interroge verify_payment (ou search_checkouts par client_reference) pour les commandes restées en attente.",
+    "Wave propose deux modes de sécurité, choisis à l'enregistrement du webhook : Shared Secret (le secret en clair dans Authorization: Bearer <secret>) et Signing Secret (en-tête Wave-Signature, recommandé pour la production). Avec un webhook en Shared Secret, il n'y a pas d'en-tête Wave-Signature : un handler qui ne vérifie que la signature rejette chaque événement. Cet exemple accepte les deux modes.",
     "Implémenter l'idempotence via event.id — Wave peut livrer le même événement plusieurs fois. Vérifier que la commande n'est pas déjà fulfillée avant d'agir.",
     "Vérifier la signature Wave-Signature en production : HMAC-SHA256 du timestamp + raw body. Utiliser le raw body, pas le JSON parsé — certains frameworks modifient le body entre réception et parsing.",
-    "[MUST TELL USER] Wave whitelisté 15 plages d'IPs qui envoient les webhooks. Si votre serveur filtre le trafic entrant, ajouter ces IPs dans votre firewall ou les webhooks échoueront silencieusement. La liste est disponible dans le Business Portal.",
+    "[MUST TELL USER] Wave whitelisté 15 plages d'IPs qui envoient les webhooks. Si votre serveur filtre le trafic entrant, ajouter ces IPs dans votre firewall ou les webhooks échoueront silencieusement. La liste est publique sur https://docs.wave.com/webhook (section IP Whitelisting) : il faut toutes les autoriser, sinon certains webhooks peuvent être rejetés au hasard.",
     "[MUST TELL USER] En développement local, Wave ne peut pas joindre localhost. Utiliser un tunnel HTTPS (ex: `ngrok http 3000`) et configurer l'URL ngrok dans le Business Portal avant de tester."
   ]
 }

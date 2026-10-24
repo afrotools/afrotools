@@ -98,22 +98,29 @@
         "type": "string"
       },
       "details": {
-        "type": "array",
-        "description": "Détails de validation retournés sur request-validation-error. Chaque entrée contient loc (localisation du champ), msg (message), type (type d erreur).",
-        "items": {
-          "type": "object",
-          "properties": {
-            "loc": {
-              "type": "string"
-            },
-            "msg": {
-              "type": "string"
-            },
-            "type": {
-              "type": "string"
+        "description": "Détails de validation retournés sur request-validation-error. Chaque entrée contient loc (localisation du champ), msg (message), type (type d erreur). Peut valoir null ou être absent (mesuré le 2026-10-24 sur des erreurs 401) — tester avant de parcourir.",
+        "oneOf": [
+          {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "loc": {
+                  "type": "string"
+                },
+                "msg": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                }
+              }
             }
+          },
+          {
+            "type": "null"
           }
-        }
+        ]
       }
     }
   },
@@ -122,6 +129,8 @@
     "Cet endpoint est asynchrone — il retourne immédiatement un batch.id sans attendre le traitement des payouts. Interroger GET /v1/payout-batch/{id} en polling jusqu'à status === 'complete'.",
     "batch.status === 'complete' ne signifie pas que tous les payouts ont réussi. Inspecter le status de chaque payout individuel dans la réponse — certains peuvent être 'failed' pendant que d'autres sont 'succeeded'.",
     "Il n'y a pas de status 'success' ou 'failed' au niveau du batch lui-même, seulement 'processing' et 'complete'. Le résultat réel est dans chaque payout.",
-    "Chaque payout dans le batch est traité indépendamment. Un échec sur un payout (ex: insufficient-funds) n'annule pas les autres."
+    "Chaque payout dans le batch est traité indépendamment. Un échec sur un payout (ex: insufficient-funds) n'annule pas les autres.",
+    "Si la clé API a été créée avec la signature des requêtes (option facultative du Business Portal), chaque appel doit porter Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + corps brut)} calculé avec le signing secret (format wave_sn_AKS_…, affiché une seule fois) — corps vide pour un GET. Sans lui : 401 missing-signature ; autres codes : invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp de plus de 5 minutes dans le passé ou de plus de 30 secondes dans le futur). L'option est définitive pour une clé : pour l'abandonner, révoquer la clé et en créer une autre.",
+    "[MUST TELL USER] La liste blanche d'IP de l'API s'active dès la première adresse ajoutée dans le Business Portal (section Developer) et ne se désactive plus depuis le portail — il faut passer par votre account manager Wave. Les appels depuis une IP non listée reçoivent 403 ip-not-allowed : sur un hébergement sans IP sortante fixe (fonctions serverless, la plupart des PaaS), n'ajoutez pas d'IP sans avoir d'abord une sortie fixe."
   ]
 }

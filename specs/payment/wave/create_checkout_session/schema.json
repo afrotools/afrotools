@@ -176,22 +176,29 @@
         "description": "Description lisible de l'erreur."
       },
       "details": {
-        "type": "array",
-        "description": "Détails de validation retournés sur request-validation-error. Chaque entrée contient loc (localisation du champ), msg (message), type (type d erreur).",
-        "items": {
-          "type": "object",
-          "properties": {
-            "loc": {
-              "type": "string"
-            },
-            "msg": {
-              "type": "string"
-            },
-            "type": {
-              "type": "string"
+        "description": "Détails de validation retournés sur request-validation-error. Chaque entrée contient loc (localisation du champ), msg (message), type (type d erreur). Peut valoir null ou être absent (mesuré le 2026-10-24 sur des erreurs 401) — tester avant de parcourir.",
+        "oneOf": [
+          {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "loc": {
+                  "type": "string"
+                },
+                "msg": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                }
+              }
             }
+          },
+          {
+            "type": "null"
           }
-        }
+        ]
       }
     }
   },
@@ -201,6 +208,9 @@
     "La session expire par défaut 30 minutes après création. Après expiration, checkout_status passe à 'expired' et le paiement est impossible.",
     "amount est une string, pas un nombre. XOF n'accepte aucune décimale — envoyer \"5000\" et non \"5000.00\" ou 5000.",
     "La clé API est liée à un seul wallet Wave. Pour opérer dans plusieurs pays, obtenir une clé par wallet.",
-    "Il n'y a pas d'environnement sandbox. Tous les appels touchent la production."
+    "La documentation Wave ne décrit aucun environnement sandbox ni hôte de test : le seul hôte documenté est https://api.wave.com, et la clé API est liée à un wallet réel.",
+    "Si la clé API a été créée avec la signature des requêtes (option facultative du Business Portal), chaque appel doit porter Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + corps brut)} calculé avec le signing secret (format wave_sn_AKS_…, affiché une seule fois) — corps vide pour un GET. Sans lui : 401 missing-signature ; autres codes : invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp de plus de 5 minutes dans le passé ou de plus de 30 secondes dans le futur). L'option est définitive pour une clé : pour l'abandonner, révoquer la clé et en créer une autre.",
+    "[MUST TELL USER] La liste blanche d'IP de l'API s'active dès la première adresse ajoutée dans le Business Portal (section Developer) et ne se désactive plus depuis le portail — il faut passer par votre account manager Wave. Les appels depuis une IP non listée reçoivent 403 ip-not-allowed : sur un hébergement sans IP sortante fixe (fonctions serverless, la plupart des PaaS), n'ajoutez pas d'IP sans avoir d'abord une sortie fixe.",
+    "Wave vérifie la clé avant tout le reste, même avant le routage : une clé invalide renvoie 401 sur n'importe quel chemin. Le message de no-matching-api-key cite les 4 derniers caractères de la clé reçue (\"No API key found ending in '…'\") — comparez-les à votre clé pour repérer une variable d'environnement mal chargée. (Mesuré sans clé valide le 2026-10-24.)"
   ]
 }
