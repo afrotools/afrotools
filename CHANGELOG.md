@@ -32,6 +32,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Intron** (`specs/language/intron`, speech-to-text for 36 African languages incl. Wolof, Pulaar,
+  Swahili, Hausa): `transcribe_audio_sync`, `submit_audio_transcription`, `get_transcription_status`,
+  `get_credits_balance`. New `language` category.
+- Plugin skill `language` — auto-activates for speech-to-text / African-language integrations
+  (plugin 1.5.0). Run `claude plugin update afrotools`.
 - `provider.json` field `channels` (`sms`, `whatsapp`, `ussd`, `voice`, `email`) — required
   for the `communications` category, optional elsewhere; enforced by `scripts/validate.js`.
 - `scripts/test_live.py` fixtures: per-step `content_type: "multipart/form-data"` (nested values

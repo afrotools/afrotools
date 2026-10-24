@@ -30,9 +30,11 @@ afrotools/afrotools/
 │   │   ├── lengopay/
 │   │   ├── djomy/
 │   │   └── bictorys/
-│   └── communications/          ← SMS, WhatsApp, USSD, voice, email
-│       ├── nimbasms/
-│       └── africastalking/
+│   ├── communications/          ← SMS, WhatsApp, USSD, voice, email
+│   │   ├── nimbasms/
+│   │   └── africastalking/
+│   └── language/                ← speech-to-text for African languages
+│       └── intron/
 ├── plugin/                      ← Claude Code plugin
 │   ├── .claude-plugin/
 │   │   └── plugin.json
@@ -42,6 +44,8 @@ afrotools/afrotools/
 │       │   └── SKILL.md         ← auto-activation for payment APIs
 │       ├── communications/
 │       │   └── SKILL.md         ← auto-activation for SMS/WhatsApp/USSD/voice/email APIs
+│       ├── language/
+│       │   └── SKILL.md         ← auto-activation for speech/language APIs
 │       ├── spec/
 │       │   └── SKILL.md         ← /afrotools:spec (manual only)
 │       └── list/
@@ -80,7 +84,7 @@ afrotools/afrotools/
 ## Core rules — plugin/
 
 - `plugin/.mcp.json` points to `https://mcp.afro.tools/mcp` (Streamable HTTP)
-- `plugin/skills/payment/SKILL.md` and `plugin/skills/communications/SKILL.md` activate automatically
+- `plugin/skills/payment/SKILL.md`, `plugin/skills/communications/SKILL.md` and `plugin/skills/language/SKILL.md` activate automatically
 - `plugin/skills/spec/SKILL.md` and `plugin/skills/list/SKILL.md` are manual-only (`disable-model-invocation: true`)
 - When adding a new category to `specs/`, add a corresponding `plugin/skills/{category}/SKILL.md`
 - Never embed API keys or credentials in plugin files
