@@ -1,0 +1,122 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "3.255.0",
+  "capability": "verify_2fa_pin",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "App {token}",
+    "env_var": "INFOBIP_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://xxxxx.api.infobip.com/2fa/2/pin/{pinId}/verify",
+    "method": "POST"
+  },
+  "example_prompt": "Check the PIN a user typed against the Infobip 2FA pinId and only log them in when it is verified.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "pinId": {
+        "type": "string",
+        "description": "ID of the pin code that has to be verified. Passed as a path parameter."
+      },
+      "pin": {
+        "type": "string",
+        "description": "The PIN code to verify."
+      }
+    },
+    "required": [
+      "pinId",
+      "pin"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "attemptsRemaining": {
+        "type": "integer",
+        "format": "int32",
+        "description": "Number of remaining PIN attempts."
+      },
+      "msisdn": {
+        "type": "string",
+        "description": "Phone number (`MSISDN`) to which the 2FA message was sent."
+      },
+      "pinError": {
+        "allOf": [
+          {
+            "type": "string",
+            "enum": [
+              "TTL_EXPIRED",
+              "WRONG_PIN",
+              "NO_MORE_PIN_ATTEMPTS"
+            ]
+          }
+        ],
+        "description": "Indicates whether an error has occurred during PIN verification."
+      },
+      "pinId": {
+        "type": "string",
+        "description": "Sent PIN code ID."
+      },
+      "verified": {
+        "type": "boolean",
+        "description": "Indicates whether the phone number (`MSISDN`) was successfully verified."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "requestError": {
+        "type": "object",
+        "properties": {
+          "serviceException": {
+            "type": "object",
+            "properties": {
+              "messageId": {
+                "type": "string",
+                "description": "Identifier of the error."
+              },
+              "text": {
+                "type": "string",
+                "description": "Detailed error description."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "gotchas": [
+    "Send the API key as 'Authorization: App <API_KEY>' — the prefix App; Bearer is only for OAuth 2.0 access tokens. Infobip API keys have a predefined expiry date and can be revoked at any time; a missing or invalid credential answers 401.",
+    "The OpenAPI lists these API key scopes for this endpoint (x-scopes): 2fa:manage, 2fa:pin:send. Give the key a matching scope when you create it.",
+    "Each Infobip account has its own base URL, xxxxx.api.infobip.com, shown once you log in to the Infobip API Resource hub. Set it in INFOBIP_BASE_URL (https://xxxxx.api.infobip.com in this spec is a placeholder). It identifies your account, the API key authenticates it.",
+    "Decide on the verified field, not on the HTTP status: the response also carries attemptsRemaining and pinError.",
+    "Attempts and verification frequency are capped by the 2FA application (pinAttempts, verifyPinLimit — 1 per 3 seconds by default). allowMultiplePinVerifications defaults to true: set it to false if a PIN must not verify twice.",
+    "Errors on this endpoint are { requestError: { serviceException: { messageId, text } } } — not the errorCode shape of the SMS v3 endpoints."
+  ],
+  "evidence": {
+    "source_url": "https://api.infobip.com/platform/1/openapi",
+    "source_reference": "Infobip OpenAPI 3.255.0, paths./2fa/2/pin/{pinId}/verify.post (operationId verify-2fa-phone-number, x-scopes). Passages quoted from the Infobip documentation (snapshot 2026-10-24): https://www.infobip.com/docs/llms.txt: \"sent in the Authorization header as `App YOUR_API_KEY`\" | \"create a key with the `sms:message:send` scope\" ; https://www.infobip.com/docs/essentials/api-essentials/api-authentication.md: \"Infobip API keys have a predefined expiry date to eventually become invalid\" | \"Keys can be revoked at any time\" | \"Commonly you will get the `401 Unauthorised` HTTP status code\" | \"Include `Bearer` and the token in the Authorization header\" ; https://www.infobip.com/docs/essentials/api-essentials/base-url.md: \"By default, each Infobip client has a different base URL which helps our platform identify the originator of each API request.\" | \"log in to the Infobip API Resource hub with your Infobip credentials\" | \"xxxxx.api.infobip.com\"",
+    "extracted_at": "2026-10-23T21:44:46.862Z",
+    "snapshot_hash": "18bf45accc90ae8699a42800dfd63d4f7ecb83296f094360bcec257f48c8cf5f",
+    "spans": [
+      "2fa:manage",
+      "2fa:pin:send",
+      "Indicates whether the phone number (`MSISDN`) was successfully verified.",
+      "Number of remaining PIN attempts.",
+      "Indicates whether an error has occurred during PIN verification.",
+      "Number of possible PIN attempts.",
+      "1/3s",
+      "Indicates whether multiple PIN verification is allowed.",
+      "Identifier of the error.",
+      "Detailed error description.",
+      "/2fa/2/pin/{pinId}/verify",
+      "Verify a PIN"
+    ]
+  }
+}

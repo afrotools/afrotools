@@ -1,0 +1,144 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "3.255.0",
+  "capability": "send_2fa_pin_sms",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "App {token}",
+    "env_var": "INFOBIP_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://xxxxx.api.infobip.com/2fa/2/pin",
+    "method": "POST"
+  },
+  "example_prompt": "Send a one-time PIN by SMS to a user's phone through Infobip 2FA and keep the pinId to verify the code they type.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "ncNeeded": {
+        "type": "boolean",
+        "description": "Indicates if [Number Lookup](https://www.infobip.com/docs/api/connectivity/number-lookup) is needed before sending the 2FA message. If the parameter value is true, Number Lookup will be requested before sending the SMS. If the value is false, the SMS will be sent without requesting Number Lookup. Field's default value is `true`. Passed as a query parameter."
+      },
+      "applicationId": {
+        "type": "string",
+        "description": "The ID of the application that represents your service, e.g. 2FA for login, 2FA for changing the password, etc."
+      },
+      "from": {
+        "type": "string",
+        "description": "Use this parameter if you wish to override the sender ID from the [created](#channels/sms/create-2fa-message-template) message template parameter `senderId`."
+      },
+      "messageId": {
+        "type": "string",
+        "description": "The ID of the message template (message body with the PIN placeholder) that is sent to the recipient."
+      },
+      "placeholders": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Key value pairs that will be replaced during message sending. Placeholder keys should NOT contain curly brackets and should NOT contain a `pin` placeholder. Valid example: `\"placeholders\":{\"firstName\":\"John\"}`"
+      },
+      "to": {
+        "type": "string",
+        "description": "Phone number to which the 2FA message will be sent. Example: 41793026727."
+      },
+      "trackDelivery": {
+        "type": "boolean",
+        "default": false,
+        "description": "Enables sending of delivery reports via [Subscriptions](https://www.infobip.com/docs/cpaas-x/subscriptions-management). The [retry cycle](https://www.infobip.com/docs/sms/sms-over-api#push-retry-cycle-notify-url) for when your URL becomes unavailable uses the following formula: `1min + (1min * retryNumber * retryNumber)`."
+      }
+    },
+    "required": [
+      "applicationId",
+      "messageId",
+      "to"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "callStatus": {
+        "type": "string",
+        "description": "Call status, e.g. `PENDING_ACCEPTED`."
+      },
+      "externalMessageId": {
+        "type": "string",
+        "description": "Message ID used for delivery tracking."
+      },
+      "ncStatus": {
+        "type": "string",
+        "description": "Status of sent [Number Lookup](https://www.infobip.com/docs/number-lookup). Number Lookup status can have one of the following values: `NC_DESTINATION_UNKNOWN`, `NC_DESTINATION_REACHABLE`, `NC_DESTINATION_NOT_REACHABLE`, `NC_NOT_CONFIGURED`. Contact your Account Manager, if you get the `NC_NOT_CONFIGURED` status. SMS will not be sent only if Number Lookup status is `NC_NOT_REACHABLE`."
+      },
+      "pinId": {
+        "type": "string",
+        "description": "Sent PIN code ID."
+      },
+      "smsStatus": {
+        "type": "string",
+        "description": "Sent SMS status. Can have one of the following values: `MESSAGE_SENT`, `MESSAGE_NOT_SENT`."
+      },
+      "to": {
+        "type": "string",
+        "description": "Phone number to which the 2FA message will be sent. Example: `41793026727`."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "requestError": {
+        "type": "object",
+        "properties": {
+          "serviceException": {
+            "type": "object",
+            "properties": {
+              "messageId": {
+                "type": "string",
+                "description": "Identifier of the error."
+              },
+              "text": {
+                "type": "string",
+                "description": "Detailed error description."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "gotchas": [
+    "Send the API key as 'Authorization: App <API_KEY>' — the prefix App; Bearer is only for OAuth 2.0 access tokens. Infobip API keys have a predefined expiry date and can be revoked at any time; a missing or invalid credential answers 401.",
+    "The OpenAPI lists these API key scopes for this endpoint (x-scopes): 2fa:manage, 2fa:pin:send. Give the key a matching scope when you create it.",
+    "Each Infobip account has its own base URL, xxxxx.api.infobip.com, shown once you log in to the Infobip API Resource hub. Set it in INFOBIP_BASE_URL (https://xxxxx.api.infobip.com in this spec is a placeholder). It identifies your account, the API key authenticates it.",
+    "The response returns a pinId, not the PIN. Store the pinId: verify_2fa_pin and resend_2fa_pin_sms need it.",
+    "Check smsStatus in the response (MESSAGE_SENT or MESSAGE_NOT_SENT).",
+    "Needs an existing 2FA application and message template (applicationId + messageId), created once beforehand.",
+    "ncNeeded defaults to true: a Number Lookup runs before every send unless you pass ncNeeded=false, and ncStatus reports it. The SMS is not sent when the destination is unreachable — the doc names that status NC_NOT_REACHABLE, while its list of values says NC_DESTINATION_NOT_REACHABLE; check both.",
+    "Errors on this endpoint are { requestError: { serviceException: { messageId, text } } } — not the errorCode shape of the SMS v3 endpoints."
+  ],
+  "evidence": {
+    "source_url": "https://api.infobip.com/platform/1/openapi",
+    "source_reference": "Infobip OpenAPI 3.255.0, paths./2fa/2/pin.post (operationId send-2fa-pin-code-over-sms, x-scopes). Passages quoted from the Infobip documentation (snapshot 2026-10-24): https://www.infobip.com/docs/llms.txt: \"sent in the Authorization header as `App YOUR_API_KEY`\" | \"create a key with the `sms:message:send` scope\" ; https://www.infobip.com/docs/essentials/api-essentials/api-authentication.md: \"Infobip API keys have a predefined expiry date to eventually become invalid\" | \"Keys can be revoked at any time\" | \"Commonly you will get the `401 Unauthorised` HTTP status code\" | \"Include `Bearer` and the token in the Authorization header\" ; https://www.infobip.com/docs/essentials/api-essentials/base-url.md: \"By default, each Infobip client has a different base URL which helps our platform identify the originator of each API request.\" | \"log in to the Infobip API Resource hub with your Infobip credentials\" | \"xxxxx.api.infobip.com\"",
+    "extracted_at": "2026-10-23T21:44:46.862Z",
+    "snapshot_hash": "18bf45accc90ae8699a42800dfd63d4f7ecb83296f094360bcec257f48c8cf5f",
+    "spans": [
+      "2fa:manage",
+      "2fa:pin:send",
+      "Sent PIN code ID.",
+      "Can have one of the following values: `MESSAGE_SENT`, `MESSAGE_NOT_SENT`.",
+      "Send a PIN code over SMS using a previously created",
+      "Field's default value is `true`.",
+      "If the value is false, the SMS will be sent without requesting Number Lookup.",
+      "SMS will not be sent only if Number Lookup status is `NC_NOT_REACHABLE`.",
+      "`NC_DESTINATION_NOT_REACHABLE`",
+      "Identifier of the error.",
+      "Detailed error description.",
+      "/2fa/2/pin",
+      "Send 2FA PIN code over SMS"
+    ]
+  }
+}

@@ -1,0 +1,262 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "3.255.0",
+  "capability": "create_2fa_message_template",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "Authorization",
+    "format": "App {token}",
+    "env_var": "INFOBIP_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://xxxxx.api.infobip.com/2fa/2/applications/{appId}/messages",
+    "method": "POST"
+  },
+  "example_prompt": "Create the SMS message template (text with the {{pin}} placeholder, PIN length and type) used by my Infobip 2FA application.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "appId": {
+        "type": "string",
+        "description": "ID of application for which requested message was created. Passed as a path parameter."
+      },
+      "language": {
+        "type": "string",
+        "description": "Language code which message is written in. This is used when sending text-to-speech messages. More about Text-to-speech functionality and supported TTS languages can be found [here](https://www.infobip.com/docs/voice-and-video/outbound-calls#text-to-speech-voice-over-broadcast). If not set, default language is `English [en]`. If voice is not set, then default voice for that specific language is used. In the case of English language, the voice is `[Joanna]`."
+      },
+      "messageText": {
+        "type": "string",
+        "description": "Content of the message being sent which contains at minimum one placeholder for a PIN code (`{{pin}}`). Placeholder format is `{{placeholderName}}`."
+      },
+      "pinLength": {
+        "type": "integer",
+        "format": "int32",
+        "description": "PIN code length."
+      },
+      "pinType": {
+        "allOf": [
+          {
+            "type": "string",
+            "enum": [
+              "NUMERIC",
+              "ALPHA",
+              "HEX",
+              "ALPHANUMERIC"
+            ]
+          }
+        ],
+        "description": "Type of PIN code that will be generated and sent as part of 2FA message."
+      },
+      "regional": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "indiaDlt": {
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "contentTemplateId": {
+                        "type": "string",
+                        "description": "Registered DLT content template ID which matches message you are sending.",
+                        "maxLength": 30,
+                        "minLength": 0
+                      },
+                      "principalEntityId": {
+                        "type": "string",
+                        "description": "Your assigned DLT principal entity ID.",
+                        "maxLength": 30,
+                        "minLength": 0
+                      },
+                      "teleMarketerId": {
+                        "type": "string",
+                        "description": "Your assigned Telemarketer ID (required for Aggregators).",
+                        "maxLength": 255,
+                        "minLength": 0
+                      }
+                    }
+                  }
+                ],
+                "description": "Distributed Ledger Technology (DLT) specific parameters required for sending SMS to phone numbers registered in India."
+              }
+            }
+          }
+        ],
+        "description": "Region-specific parameters, often imposed by local laws. Use this, if country or region that you are sending a message to requires additional information."
+      },
+      "repeatDTMF": {
+        "type": "string",
+        "description": "If the PIN is sent as a voice message, the DTMF code allows the recipient to replay the message."
+      },
+      "senderId": {
+        "type": "string",
+        "description": "The name that will appear as the sender of the 2FA message (Example: CompanyName)."
+      },
+      "speechRate": {
+        "type": "number",
+        "format": "double",
+        "description": "The speed of narration for messages sent as voice. Supported range is from `0.5` to `2`."
+      },
+      "voiceName": {
+        "type": "string",
+        "description": "Defines the voice that will be used for the chosen language (example: Joanna). For each supported language, we may offer different voices (learn more [here](https://www.infobip.com/docs/voice-and-video/reference#text-to-speech-languages)). You can use this [method](https://www.infobip.com/docs/api/channels/voice/voice-message/get-voices) to retrieve all voices for the given language. If not defined, it will default to the standard voice for the selected language (if available). If the standard voice is not available, the request will fail. To avoid that, you can choose one of the neural voices (charges will apply)."
+      }
+    },
+    "required": [
+      "appId",
+      "messageText",
+      "pinType"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "applicationId": {
+        "type": "string",
+        "description": "The ID of the application that represents your service (e.g. 2FA for login, 2FA for changing the password, etc.) for which the requested message has been created."
+      },
+      "language": {
+        "type": "string",
+        "description": "Language code which message is written in. This is used when sending text-to-speech messages. More about Text-to-speech functionality and supported TTS languages can be found [here](https://www.infobip.com/docs/voice-and-video/outbound-calls#text-to-speech-voice-over-broadcast). If not set, default language is `English [en]`. If voice is not set, then default voice for that specific language is used. In the case of English language, the voice is `[Joanna]`."
+      },
+      "messageId": {
+        "type": "string",
+        "description": "The ID of the message template (message body with the PIN placeholder) that is sent to the recipient."
+      },
+      "messageText": {
+        "type": "string",
+        "description": "Text of a message that will be sent. Message text must contain `pinPlaceholder`."
+      },
+      "pinLength": {
+        "type": "integer",
+        "format": "int32",
+        "description": "PIN code length."
+      },
+      "pinPlaceholder": {
+        "type": "string",
+        "description": "The PIN code placeholder that will be replaced with a generated PIN code."
+      },
+      "pinType": {
+        "allOf": [
+          {
+            "type": "string",
+            "enum": [
+              "NUMERIC",
+              "ALPHA",
+              "HEX",
+              "ALPHANUMERIC"
+            ]
+          }
+        ],
+        "description": "The type of PIN code that will be generated and sent as part of 2FA message. You can set PIN type to numeric, alpha, alphanumeric or hex."
+      },
+      "regional": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "indiaDlt": {
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "contentTemplateId": {
+                        "type": "string",
+                        "description": "Registered DLT content template ID which matches message you are sending.",
+                        "maxLength": 30,
+                        "minLength": 0
+                      },
+                      "principalEntityId": {
+                        "type": "string",
+                        "description": "Your assigned DLT principal entity ID.",
+                        "maxLength": 30,
+                        "minLength": 0
+                      },
+                      "teleMarketerId": {
+                        "type": "string",
+                        "description": "Your assigned Telemarketer ID (required for Aggregators).",
+                        "maxLength": 255,
+                        "minLength": 0
+                      }
+                    }
+                  }
+                ],
+                "description": "Distributed Ledger Technology (DLT) specific parameters required for sending SMS to phone numbers registered in India."
+              }
+            }
+          }
+        ],
+        "description": "Region specific parameters, often specified by local laws. Use this if country or region that you are sending SMS to requires some extra parameters."
+      },
+      "repeatDTMF": {
+        "type": "string",
+        "description": "In case PIN message is sent by Voice, DTMF code will enable replaying the message."
+      },
+      "senderId": {
+        "type": "string",
+        "description": "The name that will appear as the sender of the 2FA message (Example: CompanyName)."
+      },
+      "speechRate": {
+        "type": "number",
+        "format": "double",
+        "description": "In case PIN message is sent by Voice, the speed of speech can be set for the message. Supported range is from `0.5` to `2`."
+      },
+      "voiceName": {
+        "type": "string",
+        "description": "Defines the voice that will be used for the chosen language (example: Joanna). For each supported language, we may offer different voices (learn more [here](https://www.infobip.com/docs/voice-and-video/reference#text-to-speech-languages)). You can use this [method](https://www.infobip.com/docs/api/channels/voice/voice-message/get-voices) to retrieve all voices for the given language. If not defined, it will default to the standard voice for the selected language (if available). If the standard voice is not available, the request will fail. To avoid that, you can choose one of the neural voices (charges will apply)."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "requestError": {
+        "type": "object",
+        "properties": {
+          "serviceException": {
+            "type": "object",
+            "properties": {
+              "messageId": {
+                "type": "string",
+                "description": "Identifier of the error."
+              },
+              "text": {
+                "type": "string",
+                "description": "Detailed error description."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "gotchas": [
+    "Send the API key as 'Authorization: App <API_KEY>' — the prefix App; Bearer is only for OAuth 2.0 access tokens. Infobip API keys have a predefined expiry date and can be revoked at any time; a missing or invalid credential answers 401.",
+    "The OpenAPI lists these API key scopes for this endpoint (x-scopes): 2fa:manage. Give the key a matching scope when you create it.",
+    "Each Infobip account has its own base URL, xxxxx.api.infobip.com, shown once you log in to the Infobip API Resource hub. Set it in INFOBIP_BASE_URL (https://xxxxx.api.infobip.com in this spec is a placeholder). It identifies your account, the API key authenticates it.",
+    "messageText must contain the {{pin}} placeholder; Infobip generates the PIN and inserts it there.",
+    "One-time setup after create_2fa_application (appId = its applicationId). Store the returned messageId: send_2fa_pin_sms needs applicationId and messageId.",
+    "senderId is the name that appears as the sender of the 2FA message.",
+    "Errors on this endpoint are { requestError: { serviceException: { messageId, text } } } — not the errorCode shape of the SMS v3 endpoints."
+  ],
+  "evidence": {
+    "source_url": "https://api.infobip.com/platform/1/openapi",
+    "source_reference": "Infobip OpenAPI 3.255.0, paths./2fa/2/applications/{appId}/messages.post (operationId create-2fa-message-template, x-scopes). Passages quoted from the Infobip documentation (snapshot 2026-10-24): https://www.infobip.com/docs/llms.txt: \"sent in the Authorization header as `App YOUR_API_KEY`\" | \"create a key with the `sms:message:send` scope\" ; https://www.infobip.com/docs/essentials/api-essentials/api-authentication.md: \"Infobip API keys have a predefined expiry date to eventually become invalid\" | \"Keys can be revoked at any time\" | \"Commonly you will get the `401 Unauthorised` HTTP status code\" | \"Include `Bearer` and the token in the Authorization header\" ; https://www.infobip.com/docs/essentials/api-essentials/base-url.md: \"By default, each Infobip client has a different base URL which helps our platform identify the originator of each API request.\" | \"log in to the Infobip API Resource hub with your Infobip credentials\" | \"xxxxx.api.infobip.com\"",
+    "extracted_at": "2026-10-23T21:44:46.862Z",
+    "snapshot_hash": "18bf45accc90ae8699a42800dfd63d4f7ecb83296f094360bcec257f48c8cf5f",
+    "spans": [
+      "2fa:manage",
+      "which contains at minimum one placeholder for a PIN code (`{{pin}}`)",
+      "Once you have your [2FA application]",
+      "The name that will appear as the sender of the 2FA message",
+      "Identifier of the error.",
+      "Detailed error description.",
+      "/2fa/2/applications/{appId}/messages",
+      "Create 2FA SMS or Voice message template"
+    ]
+  }
+}
