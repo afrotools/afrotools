@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- `scripts/test_live.py` sends an explicit `User-Agent` (Cloudflare-fronted sandboxes such as
+  Smile ID's ban urllib's default with error 1010) and skips a step whose headers depend on an
+  earlier step that returned nothing, instead of crashing.
+- `scripts/test_live.py` fixtures: per-step `wait_seconds` (e.g. let an async job become visible
+  before reading its status). Live-test workflow uses `actions/setup-python@v6` (Node 24).
 - **Wave** (issue #76): the webhook example now records the event before answering 200 (and answers 500 if that fails,
   so Wave retries), handles both webhook security modes (Signing Secret and Shared Secret), and no longer claims Wave
   retries after a 200. New gotchas on optional request signing (`Wave-Signature` on API calls, permanent per key) and the

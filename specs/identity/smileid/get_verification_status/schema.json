@@ -92,6 +92,7 @@
     "The Authentication page requires both SmileID-Partner-ID and SmileID-Token on all V3 requests; the endpoint's own OpenAPI only declares SmileID-Token. Send both.",
     "Returns only status, job_id, user_id, message and created_at — not id_fields or the full result. The full result is delivered to your callback_url; use replay_verification_webhook to have it re-sent.",
     "The HTTP code carries the state: 200 for a terminal status (clear, block, attention, error), 202 while processing, 404 when the job is not found or not yours. Don't treat 202 as a failure.",
+    "Observed in the sandbox (live test, 2026-10-24) — not in the docs: called right after enhanced_kyc returned 202, this endpoint answered 404 with status 'not_found', message 'Job not found' and user_id 'unknown' — the job's own created_at, as reported later in the webhook, was a few seconds after that 404. The same job_id answered 200 'clear' ('Job completed') two minutes later. A 404 right after submission does not mean the job doesn't exist: wait and retry, or rely on the callback.",
     "jobId is the TypeID returned at submission, with the 'job_' prefix.",
     "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com). Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production."
   ],

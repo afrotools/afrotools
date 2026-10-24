@@ -187,6 +187,8 @@ Key fixture fields:
   `multipart/form-data` (nested objects/arrays are sent as JSON strings; file uploads aren't supported)
 - `skip_auth` (per step) — don't send the schema-derived auth on this step: use it for a
   token-exchange call that carries its own credentials in `headers`, or an unauthenticated endpoint
+- `wait_seconds` (per step) — pause before the step, e.g. so an async job created by an earlier
+  step is visible before its status is read
 
 **Run it:**
 

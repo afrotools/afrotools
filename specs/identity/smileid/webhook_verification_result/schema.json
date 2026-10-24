@@ -55,7 +55,7 @@
           "object",
           "null"
         ],
-        "description": "Partner-provided metadata submitted with the original request.",
+        "description": "Partner-provided metadata submitted with the original request. Custom keys sent with the request come back too: a sandbox Enhanced KYC webhook (live test, 2026-10-24) echoed internal_reference next to job_id and user_id, without job_type.",
         "properties": {
           "job_type": {
             "type": "integer",
@@ -410,8 +410,11 @@
                 "description": "Numeric risk score from 0 (no risk) to 100 (highest risk)."
               },
               "indicator_details": {
-                "type": "object",
-                "description": "Detailed metadata for each risk indicator listed in `fraud_risk.risk_indicators`. Empty when no risk is detected.",
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "Detailed metadata for each risk indicator listed in `fraud_risk.risk_indicators`. Empty when no risk is detected. Observed as null (not {}) in a sandbox Enhanced KYC webhook with no risk detected (live test, 2026-10-24).",
                 "properties": {},
                 "additionalProperties": {
                   "type": "object",

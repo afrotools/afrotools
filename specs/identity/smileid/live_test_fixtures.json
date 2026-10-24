@@ -45,6 +45,7 @@
     },
     {
       "capability": "get_verification_status",
+      "wait_seconds": 15,
       "skip_auth": true,
       "headers": {
         "SmileID-Partner-ID": "$env:SMILEID_PARTNER_ID",
