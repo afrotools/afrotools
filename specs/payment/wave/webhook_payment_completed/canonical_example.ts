@@ -84,6 +84,25 @@ function verifyWaveSignature(
   });
 }
 
+/**
+ * Wave propose deux modes, choisis à l'enregistrement du webhook :
+ * - Signing Secret (recommandé) : en-tête Wave-Signature, vérifié par HMAC ;
+ * - Shared Secret : le secret en clair dans Authorization: Bearer <secret>.
+ */
+function authenticateWaveWebhook(
+  rawBody: string,
+  headers: { signature?: string; authorization?: string },
+  secret: string
+): boolean {
+  if (headers.signature) return verifyWaveSignature(rawBody, headers.signature, secret);
+  if (headers.authorization) {
+    const expected = Buffer.from(`Bearer ${secret}`);
+    const received = Buffer.from(headers.authorization);
+    return received.length === expected.length && timingSafeEqual(received, expected);
+  }
+  return false;
+}
+
 async function verifyPaymentServerSide(sessionId: string): Promise<CheckoutSession> {
   const response = await fetch(
     `https://api.wave.com/v1/checkout/sessions/${sessionId}`,
@@ -104,18 +123,19 @@ async function verifyPaymentServerSide(sessionId: string): Promise<CheckoutSessi
 /**
  * Express-style webhook handler pour checkout.session.completed.
  * Monter à l'URL configurée dans le Wave Business Portal.
+ *
+ * Wave ne retente que les livraisons sans réponse 2xx (pendant 3 jours, timeout 5 s) : l'événement est donc
+ * enregistré AVANT de répondre 200. Une fois le 200 envoyé, Wave ne retentera plus.
  */
 export async function handleWaveWebhook(
   rawBody: string,
-  signatureHeader: string,
+  headers: { signature?: string; authorization?: string },
+  recordEvent: (payload: WaveWebhookPayload) => Promise<void>,
   fulfillOrder: (sessionId: string, clientReference: string | undefined, currency: string) => Promise<void>,
   sendResponse: (status: number) => void
 ): Promise<void> {
-  // Répondre 200 immédiatement — Wave retry 3 jours si pas de réponse dans 5s
-  sendResponse(200);
-
-  if (!verifyWaveSignature(rawBody, signatureHeader, WAVE_WEBHOOK_SECRET!)) {
-    // Signature invalide — ignorer silencieusement (déjà répondu 200)
+  if (!authenticateWaveWebhook(rawBody, headers, WAVE_WEBHOOK_SECRET!)) {
+    sendResponse(401);
     return;
   }
 
@@ -123,8 +143,20 @@ export async function handleWaveWebhook(
   try {
     payload = JSON.parse(rawBody) as WaveWebhookPayload;
   } catch {
+    sendResponse(400);
     return;
   }
+
+  try {
+    // Persister avant de répondre : c'est ce qui permet le rattrapage si la suite échoue
+    await recordEvent(payload);
+  } catch {
+    sendResponse(500); // Wave retentera la livraison
+    return;
+  }
+
+  // Répondre 2xx immédiatement, traiter ensuite
+  sendResponse(200);
 
   if (payload.type !== "checkout.session.completed") return;
 
@@ -142,9 +174,10 @@ export async function handleWaveWebhook(
       // fulfillOrder doit être idempotent via eventId ou sessionId
       await fulfillOrder(session.id, session.client_reference, session.currency);
     }
-  } catch {
-    // Logger l'erreur — ne pas rethrow (200 déjà envoyé)
-    // Le webhook sera retenté par Wave
+  } catch (error) {
+    // Wave ne retentera PAS : le 200 est déjà envoyé. La commande reste en attente dans votre stockage (recordEvent) ;
+    // une tâche de rattrapage doit la reprendre via verify_payment (ou search_checkouts par client_reference).
+    console.error(`Wave webhook ${eventId}: vérification de ${sessionId} échouée`, error);
   }
 }
 
@@ -158,7 +191,11 @@ const app = express();
 app.post("/api/wave/webhook", express.raw({ type: "application/json" }), async (req, res) => {
   await handleWaveWebhook(
     req.body.toString(),
-    req.headers["wave-signature"] as string ?? "",
+    { signature: req.get("Wave-Signature"), authorization: req.get("Authorization") },
+    // Enregistrer l'événement (id + data.id) : une erreur ici renvoie 500 et Wave retentera
+    async (event) => {
+      await db.waveEvents.upsert({ id: event.id }, { session_id: event.data.id, received_at: new Date() });
+    },
     async (sessionId, clientReference, currency) => {
       // Guard idempotence via l'event id ou le sessionId
       const already = await db.orders.findOne({ wave_session_id: sessionId, status: "paid" });
@@ -174,5 +211,5 @@ app.post("/api/wave/webhook", express.raw({ type: "application/json" }), async (
 });
 
 // Ne pas mettre de middleware d'authentification sur cette route.
-// La vérification se fait via Wave-Signature.
+// La vérification se fait via Wave-Signature (Signing Secret) ou Authorization (Shared Secret).
 */

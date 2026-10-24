@@ -291,6 +291,9 @@ Bad:
 "Handle errors carefully."
 ```
 
+These examples show the writing style only — they are not facts about any provider. Never copy one into a spec: every
+gotcha must come from the provider's own docs (or a documented measurement).
+
 **Step 7. Create `specs/{category}/{provider_slug}/{capability}/canonical_example.ts`.**
 
 Read `references/canonical_example_templates.md` for the full template for each capability type.
