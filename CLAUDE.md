@@ -33,8 +33,10 @@ afrotools/afrotools/
 │   ├── communications/          ← SMS, WhatsApp, USSD, voice, email
 │   │   ├── nimbasms/
 │   │   └── africastalking/
-│   └── identity/                ← KYC, document verification, AML
-│       └── smileid/
+│   ├── identity/                ← KYC, document verification, AML
+│   │   └── smileid/
+│   └── logistics/               ← delivery, couriers, parcel tracking
+│       └── yango/
 ├── plugin/                      ← Claude Code plugin
 │   ├── .claude-plugin/
 │   │   └── plugin.json
@@ -46,6 +48,8 @@ afrotools/afrotools/
 │       │   └── SKILL.md         ← auto-activation for SMS/WhatsApp/USSD/voice/email APIs
 │       ├── identity/
 │       │   └── SKILL.md         ← auto-activation for identity verification (KYC) APIs
+│       ├── logistics/
+│       │   └── SKILL.md         ← auto-activation for delivery / courier APIs
 │       ├── spec/
 │       │   └── SKILL.md         ← /afrotools:spec (manual only)
 │       └── list/
@@ -84,7 +88,7 @@ afrotools/afrotools/
 ## Core rules — plugin/
 
 - `plugin/.mcp.json` points to `https://mcp.afro.tools/mcp` (Streamable HTTP)
-- `plugin/skills/payment/SKILL.md`, `plugin/skills/communications/SKILL.md` and `plugin/skills/identity/SKILL.md` activate automatically
+- `plugin/skills/payment/SKILL.md`, `plugin/skills/communications/SKILL.md`, `plugin/skills/identity/SKILL.md` and `plugin/skills/logistics/SKILL.md` activate automatically
 - `plugin/skills/spec/SKILL.md` and `plugin/skills/list/SKILL.md` are manual-only (`disable-model-invocation: true`)
 - When adding a new category to `specs/`, add a corresponding `plugin/skills/{category}/SKILL.md`
 - Never embed API keys or credentials in plugin files

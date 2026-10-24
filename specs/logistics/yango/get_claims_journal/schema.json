@@ -1,0 +1,183 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v2",
+  "capability": "get_claims_journal",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "header": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "YANGO_DELIVERY_TOKEN"
+  },
+  "endpoint": {
+    "url": "https://b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/journal",
+    "method": "POST"
+  },
+  "example_prompt": "Follow status and price changes of my Yango Delivery claims with the change journal instead of a webhook.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "cursor": {
+        "type": "string",
+        "description": "A string with the ID of the last change. If the cursor isn't added, all changes with a certain limit will be approved"
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "cursor": {
+        "type": "string",
+        "description": "Last change ID"
+      },
+      "events": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "change_type": {
+              "type": "string",
+              "description": "Change type. Possible values: - status_changed — status change. - price_changed — price change."
+            },
+            "claim_id": {
+              "type": "string",
+              "description": "Claim ID (claim_id)"
+            },
+            "operation_id": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Operation ID (int64)"
+            },
+            "revision": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Claim change version (int64)"
+            },
+            "updated_ts": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Event time in ISO 8601 format"
+            },
+            "client_id": {
+              "type": "string",
+              "description": "Customer ID"
+            },
+            "current_point_id": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Integer point ID (int64) generated on the Yango Delivery side. It is in the route_points[].id field. Applicable to source, destination, and return points."
+            },
+            "new_currency": {
+              "type": "string",
+              "description": "Order currency code"
+            },
+            "new_price": {
+              "type": "string",
+              "description": "Order price"
+            },
+            "new_status": {
+              "enum": [
+                "new",
+                "estimating",
+                "estimating_failed",
+                "ready_for_approval",
+                "accepted",
+                "performer_lookup",
+                "performer_draft",
+                "performer_found",
+                "performer_not_found",
+                "pickup_arrived",
+                "ready_for_pickup_confirmation",
+                "pickuped",
+                "delivery_arrived",
+                "ready_for_delivery_confirmation",
+                "delivered",
+                "delivered_finish",
+                "returning",
+                "return_arrived",
+                "ready_for_return_confirmation",
+                "returned",
+                "returned_finish",
+                "failed",
+                "cancelled",
+                "cancelled_with_payment",
+                "cancelled_by_taxi",
+                "cancelled_with_items_on_hands"
+              ],
+              "description": "Claim status. To learn more, see Status model (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/claim-process.md)"
+            },
+            "resolution": {
+              "enum": [
+                "success",
+                "failed"
+              ],
+              "description": "Terminal status resolution"
+            }
+          },
+          "required": [
+            "change_type",
+            "claim_id",
+            "operation_id",
+            "revision",
+            "updated_ts"
+          ],
+          "description": "Information about the order change"
+        },
+        "description": "Information about the order change"
+      }
+    },
+    "required": [
+      "cursor",
+      "events"
+    ]
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "string",
+        "enum": [
+          "invalid_cursor",
+          "too_many_requests"
+        ],
+        "description": "Error code"
+      },
+      "message": {
+        "type": "string",
+        "description": "Error description"
+      }
+    },
+    "required": [
+      "code",
+      "message"
+    ]
+  },
+  "gotchas": [
+    "Authenticate with 'Authorization: Bearer <OAuth token>'. The token comes from your Yango Delivery account (log in with the credentials your Yango Delivery manager gives you, Integration tab, Get token). It remains valid indefinitely, but changing the account password invalidates it; an invalid token answers 401 unauthorized.",
+    "This is the documented replacement for the deprecated callback. Store the returned cursor and send it on the next call; without a cursor, the docs say all changes are returned 'with a certain limit'.",
+    "The docs describe 'the change history of the claim', but the body takes no claim_id and each event carries its own claim_id: the reference doesn't say which claims the feed covers. Filter events by event.claim_id.",
+    "change_type is status_changed or price_changed; terminal statuses carry resolution success or failed.",
+    "The status model also lists pay_waiting (pending payment, with payment on delivery), which the status enum of this reference leaves out: don't reject an unknown status value.",
+    "Errors return { code, message }: branch on code. Documented on this endpoint: 400 invalid_cursor; 429 too_many_requests. The error guide adds 401 unauthorized (invalid token) and 500 (try again or change the request)."
+  ],
+  "evidence": {
+    "source_url": "https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsJournal.md",
+    "source_reference": "Yango Delivery Express API reference, page 'Changelog' (POST /b2b/cargo/integration/v2/claims/journal). Passages quoted from the Yango Delivery documentation (snapshot 2026-10-24): https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/quickstart.md: \"using the username and password that you received from your Yango Delivery manager\" | \"Open the **Integration** tab.\" | \"Authorization: Bearer <OAuth_token>\" | \"The OAuth token remains valid indefinitely.\" | \"If you change the password to your personal account, the previously issued OAuth token becomes invalid.\" ; https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/errors.md: \"Invalid token specified. Get the correct token in your personal account.\" | \"Invalid token specified.\" | \"Try again or change the request.\" ; https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsCreate.md: \"This mechanism is deprecated, use the\" ; https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/overview.md: \"Returns the change log for a claim.\" ; https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/claim-process.md: \"The order is pending payment (this status is applicable if payment on delivery is selected in the order parameters).\"",
+    "extracted_at": "2026-10-24T06:14:40.485Z",
+    "snapshot_hash": "122d47ab7c731a546367ecbf2f12177f87e2ba6ccdd7cf9d74b970c3f01a3d86",
+    "spans": [
+      "A string with the ID of the last change.",
+      "all changes with a certain limit",
+      "The method returns the change history of the claim.",
+      "Claim ID (claim_id)",
+      "status_changed",
+      "price_changed",
+      "Terminal status resolution",
+      "invalid_cursor",
+      "too_many_requests",
+      "b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/journal"
+    ]
+  }
+}

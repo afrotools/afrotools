@@ -52,6 +52,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   text and template messages and template listing; the 2FA (OTP over SMS) flow from application setup to PIN
   verification; and the SMS and WhatsApp delivery-report webhooks. The two webhooks are `draft`: the OpenAPI doesn't
   describe how Infobip signs webhook calls.
+- **Yango Delivery** (`specs/logistics/yango`, Express Delivery API v2, CI/GH/SN/ZM):
+  `check_delivery_price`, `create_delivery_claim`, `get_delivery_claim`, `accept_delivery_claim`,
+  `get_cancellation_terms`, `cancel_delivery_claim`, `get_claims_journal`, `get_tracking_links`.
+  New `logistics` category.
+- Plugin skill `logistics` — auto-activates for delivery / courier integrations (plugin 1.4.0).
+  Run `claude plugin update afrotools`.
 - `provider.json` field `channels` (`sms`, `whatsapp`, `ussd`, `voice`, `email`) — required
   for the `communications` category, optional elsewhere; enforced by `scripts/validate.js`.
 - `scripts/test_live.py` fixtures: per-step `content_type: "multipart/form-data"` (nested values
