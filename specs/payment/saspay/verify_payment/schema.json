@@ -1,0 +1,222 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "2026-10-12",
+  "capability": "verify_payment",
+  "capability_type": "synchronous",
+  "status": "verified",
+  "currency": [
+    "XOF",
+    "CDF",
+    "XAF",
+    "GHS",
+    "GNF",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "TZS",
+    "UGX",
+    "ZMW"
+  ],
+  "auth": {
+    "type": "bearer",
+    "format": "Bearer {token}",
+    "header": "Authorization",
+    "location": "header",
+    "env_var": "SASPAY_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://api.saspay.me/api/v1/payments/{payment_id}/verify/",
+    "method": "GET"
+  },
+  "example_prompt": "Verify a SasPay payment server-side before delivering the order.",
+  "input_schema": {},
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "merchant": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "network": {
+            "type": "string"
+          },
+          "transaction_type": {
+            "type": "string"
+          },
+          "flow_direction": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "requested_amount": {
+            "type": "string"
+          },
+          "fee_charge_mode": {
+            "type": "string"
+          },
+          "client_fee": {
+            "type": "string"
+          },
+          "gateway_fee": {
+            "type": "string"
+          },
+          "platform_fee": {
+            "type": "string"
+          },
+          "pricing_rule": {},
+          "merchant_pricing_rule": {
+            "type": "string"
+          },
+          "debited_amount": {
+            "type": "string"
+          },
+          "net_amount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "current_gateway": {
+            "type": "string"
+          },
+          "external_reference": {
+            "type": "string"
+          },
+          "ip_address": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "merchant_name": {
+            "type": "string"
+          },
+          "country_code": {
+            "type": "string"
+          },
+          "network_code": {
+            "type": "string"
+          },
+          "checkout_session": {
+            "type": "string",
+            "nullable": true
+          },
+          "payment_link": {
+            "type": "string",
+            "nullable": true
+          },
+          "operation_msisdn": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "amounts": {
+            "type": "object",
+            "properties": {
+              "requested": {
+                "type": "string"
+              },
+              "fee": {
+                "type": "string"
+              },
+              "charged": {
+                "type": "string"
+              },
+              "net": {
+                "type": "string"
+              },
+              "currency": {
+                "type": "string"
+              },
+              "fee_charge_mode": {
+                "type": "string"
+              }
+            }
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "number"
+      }
+    }
+  },
+  "gotchas": [
+    "Only deliver the product or grant access once this returns SUCCESS.",
+    "A PENDING payment is re-checked against the gateway on each call, so the status can change between two calls.",
+    "Every response is wrapped in the same envelope: read the payload from data, and on failure read error.message and error.code.",
+    "Only PENDING, SUCCESS and FAILED occur in practice: CANCELLED exists in the data model but no flow reaches it today, so treat it as a non-successful terminal state without expecting it.",
+    "For accounting, never use the requested amount alone: what left the payer and what you receive depend on fee_charge_mode. Read debited_amount and net_amount, or the amounts object (requested, fee, charged, net)."
+  ],
+  "evidence": {
+    "spans": [
+      "https://api.saspay.me/api/v1/payments/{payment_id}/verify/",
+      "Ne livrez un produit ou n'activez un accès que lorsque `GET /payments/{payment_id}/verify/` renvoie `SUCCESS`.",
+      "Si le statut connu est `PENDING`, revérifie toujours l'état réel côté gateway avant de répondre",
+      "Toutes les réponses de l'API partagent la même enveloppe, qu'il s'agisse d'un succès ou d'une erreur.",
+      "en pratique, seuls `PENDING`, `SUCCESS` et `FAILED` apparaissent.",
+      "Pour rapprocher votre comptabilité, utilisez `charged` (ce qui a quitté le compte du client) et `net_amount` (ce qui vous revient) — jamais `amount` seul."
+    ],
+    "source_url": "https://docs.saspay.me/api-reference/openapi.json",
+    "extracted_at": "2026-10-12T11:06:35.701Z",
+    "snapshot_hash": "d4f48be4b7231965",
+    "source_reference": "Full OpenAPI document"
+  }
+}
