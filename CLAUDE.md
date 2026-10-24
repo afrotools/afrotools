@@ -36,7 +36,8 @@ afrotools/afrotools/
 │   ├── identity/                ← KYC, document verification, AML
 │   │   └── smileid/
 │   └── logistics/               ← delivery, couriers, parcel tracking
-│       └── yango/
+│       ├── yango/
+│       └── gozem/
 ├── plugin/                      ← Claude Code plugin
 │   ├── .claude-plugin/
 │   │   └── plugin.json

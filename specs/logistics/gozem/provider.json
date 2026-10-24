@@ -1,0 +1,12 @@
+{
+  "slug": "gozem",
+  "name": "Gozem",
+  "category": "logistics",
+  "country_code": ["TG"],
+  "website": "https://gozem.co",
+  "docs_url": "https://test-developers.gozem.co/docs/api-services/courier/overview",
+  "docs_public": true,
+  "sandbox": true,
+  "description": "Gozem is a West and Central African super app; its Courier API lists the vehicles serving an area, prices deliveries with quotes, books and tracks trips, and returns invoices.",
+  "example_prompt": "Price a Gozem motorcycle delivery from my shop in Lomé to a customer, book it and send them the tracking link."
+}

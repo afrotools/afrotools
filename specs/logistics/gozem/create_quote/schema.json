@@ -1,0 +1,389 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "create_quote",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "header": "x-api-key",
+    "format": "{token}",
+    "env_var": "GOZEM_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://api.gozem.co/courier/v1/quotes",
+    "method": "POST"
+  },
+  "example_prompt": "Price a Gozem motorcycle delivery from my shop in Lomé to a customer before booking it.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "dropoffs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "contact_name": {
+              "type": "string",
+              "description": "Contact name"
+            },
+            "contact_phone": {
+              "type": "string",
+              "description": "Contact phone number"
+            },
+            "label": {
+              "type": "string",
+              "description": "Dropoff location name"
+            },
+            "lat": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90,
+              "description": "Dropoff latitude"
+            },
+            "lon": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180,
+              "description": "Dropoff longitude"
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 280,
+              "description": "Note for the dropoff location"
+            }
+          },
+          "required": [
+            "label",
+            "lat",
+            "lon"
+          ]
+        },
+        "minItems": 1,
+        "description": "Delivery stops, at least one. Serviced in the order given unless `optimize_route` is set."
+      },
+      "optimize_route": {
+        "type": "boolean",
+        "description": "If true, dropoffs will be reordered to optimize route"
+      },
+      "pickup": {
+        "type": "object",
+        "description": "Where the package is collected",
+        "properties": {
+          "contact_name": {
+            "type": "string",
+            "description": "Contact name"
+          },
+          "contact_phone": {
+            "type": "string",
+            "description": "Contact phone number"
+          },
+          "label": {
+            "type": "string",
+            "description": "Pickup location name"
+          },
+          "lat": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "description": "Pickup latitude"
+          },
+          "lon": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "description": "Pickup longitude"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 280,
+            "description": "Note for the pickup location"
+          }
+        },
+        "required": [
+          "label",
+          "lat",
+          "lon"
+        ]
+      },
+      "title": {
+        "type": "string",
+        "description": "Title of the trip"
+      },
+      "vehicle": {
+        "type": "string",
+        "description": "Unique ID or name of the selected vehicle/service type"
+      }
+    },
+    "required": [
+      "dropoffs",
+      "pickup",
+      "vehicle"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "data": {
+        "type": "object",
+        "description": "The quote and its estimated fare",
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Quote creation timestamp"
+          },
+          "dropoffs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "contact_name": {
+                  "type": "string",
+                  "description": "Contact name"
+                },
+                "contact_phone": {
+                  "type": "string",
+                  "description": "Contact phone number"
+                },
+                "label": {
+                  "type": "string",
+                  "description": "Dropoff location name"
+                },
+                "lat": {
+                  "type": "number",
+                  "description": "Dropoff latitude"
+                },
+                "lon": {
+                  "type": "number",
+                  "description": "Dropoff longitude"
+                },
+                "note": {
+                  "type": "string",
+                  "description": "Note for the dropoff location"
+                }
+              },
+              "required": [
+                "label",
+                "lat",
+                "lon"
+              ]
+            },
+            "description": "Delivery stops, in the order they will be serviced"
+          },
+          "estimated_distance": {
+            "type": "number",
+            "description": "Total distance (km) of the trip"
+          },
+          "estimated_duration": {
+            "type": "number",
+            "description": "Total estimated duration (minutes)"
+          },
+          "estimated_fare": {
+            "type": "object",
+            "description": "Fare the trip is expected to cost. Not a charge until the quote is booked.",
+            "properties": {
+              "amount": {
+                "type": "number",
+                "description": "Total estimated fare amount"
+              },
+              "breakdown": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "amount": {
+                      "type": "number",
+                      "description": "Component amount"
+                    },
+                    "label": {
+                      "type": "string",
+                      "description": "Fare component label"
+                    },
+                    "sub_label": {
+                      "type": "string",
+                      "description": "Extra detail about the component"
+                    }
+                  },
+                  "required": [
+                    "amount",
+                    "label"
+                  ]
+                },
+                "description": "Fare components, adding up to `amount`"
+              },
+              "currency_code": {
+                "type": "string",
+                "description": "Currency code"
+              }
+            },
+            "required": [
+              "amount",
+              "breakdown",
+              "currency_code"
+            ]
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the quote stops being bookable"
+          },
+          "guid": {
+            "type": "string",
+            "description": "Unique quote identifier"
+          },
+          "pickup": {
+            "type": "object",
+            "description": "Where the package is collected",
+            "properties": {
+              "contact_name": {
+                "type": "string",
+                "description": "Contact name"
+              },
+              "contact_phone": {
+                "type": "string",
+                "description": "Contact phone number"
+              },
+              "label": {
+                "type": "string",
+                "description": "Pickup location name"
+              },
+              "lat": {
+                "type": "number",
+                "description": "Pickup latitude"
+              },
+              "lon": {
+                "type": "number",
+                "description": "Pickup longitude"
+              },
+              "note": {
+                "type": "string",
+                "description": "Note for the pickup location"
+              }
+            },
+            "required": [
+              "label",
+              "lat",
+              "lon"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the trip"
+          }
+        },
+        "required": [
+          "created_at",
+          "dropoffs",
+          "estimated_distance",
+          "estimated_duration",
+          "estimated_fare",
+          "expires_at",
+          "guid",
+          "pickup"
+        ]
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable outcome. Defaults to `Ok`."
+      },
+      "success": {
+        "type": "boolean",
+        "enum": [
+          true
+        ],
+        "description": "Always `true` on a success response."
+      }
+    },
+    "required": [
+      "data",
+      "message",
+      "success"
+    ]
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "string",
+        "description": "Stable, machine-readable error code. Branch on this. See the Error Codes reference in the API description."
+      },
+      "details": {
+        "description": "Field-level validation failures. Present on `validation_failed` only. API Basics types it object | array | null.",
+        "oneOf": [
+          {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "description": "Dotted path to the offending field."
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Why the field was rejected."
+                }
+              },
+              "required": [
+                "field",
+                "message"
+              ]
+            }
+          },
+          {
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable message. May be reworded or localized — do not branch on it."
+      },
+      "success": {
+        "type": "boolean",
+        "enum": [
+          false
+        ],
+        "description": "Always `false` on an error response."
+      },
+      "error": {
+        "type": "string",
+        "description": "The HTTP error class name. Informational only; do not branch on it. (API Basics)"
+      }
+    },
+    "required": [
+      "code",
+      "message"
+    ]
+  },
+  "gotchas": [
+    "Authenticate with the x-api-key header: a long-lived API key that works only while its Partner Portal client is active. The docs recommend OAuth2 client credentials instead (POST https://auth.gozem.co/oauth2/token, then Authorization: Bearer; tokens last 3600 s by default). Send one credential per request — if both headers are present, the bearer token is used. Missing or invalid credentials return 401 unauthenticated; an endpoint the client wasn't granted, or a source IP outside its allowlist, returns 403 forbidden. How an API key is issued isn't documented: the Partner Portal flow described only generates a client_id and client_secret — ask your Gozem representative for the key.",
+    "vehicle takes the vehicle's guid (VEH_…) or its name, as returned by list_vehicles. The guides disagree on which to send — Getting Started passes the guid, the 'Deliver a package' recipe says to take name, not guid — and only list_vehicles' name filter is documented as case-insensitive: send the value exactly as list_vehicles returns it.",
+    "Dropoffs are serviced in the order given unless optimize_route is true, in which case the server reorders them and returns them in delivery order. Each stop needs label, lat and lon; note is at most 280 characters.",
+    "A quote is time-limited: book it before expires_at (the recipe says it holds about fifteen minutes) or create a fresh one — booking an expired quote fails with 409 quote_expired. Ask for it when the customer is ready to confirm.",
+    "estimated_fare is not a charge until the quote is booked. Don't rely on the breakdown's line items: the recipe says a quote splits the price by cost driver and the invoice per delivery (totals agree), but the Getting Started quote example shows a per-delivery line ('Delivery 1').",
+    "vehicle_not_supported (vehicle not recognized), vehicle_not_available (not available at the pickup location) and service_not_available (pickup outside any coverage area) are 400s: fix the request rather than retrying.",
+    "This spec lists Togo only: every Courier example is in Lomé. gozem.co lists Togo, Bénin, Cameroun, Gabon and Congo-Brazzaville for the Gozem app, and the developer docs only say 'across West and Central Africa' — whether the Courier API serves the other countries isn't documented. Vehicle availability is per city: check the pickup with list_vehicles (lat/lon) instead of assuming a country or vehicle is served. book_trip's response schema restricts currency_code to XOF.",
+    "Sandbox (https://sandbox-api.gozem.co/courier/v1) and production (https://api.gozem.co/courier/v1) are fully isolated: each has its own Partner Portal, API clients, credentials and data, so a sandbox key doesn't work in production. Sandbox carries out no real-world operations and no charges occur, and its data may be reset periodically. A client may only call the endpoints granted to it in the portal, with no implicit access to related routes. Portal access is provisioned during onboarding; the API reference labels the Courier API Beta (spec version 0.0.0).",
+    "Failures share one envelope: branch on code — message is human-facing and may be reworded or localized. The API reference describes {success: false, code, message, details}, the API Basics page {error, message, code, details}: read only code, message and details (field-level failures on validation_failed; API Basics types details object, array or null). Statuses listed for this operation: 400, 401, 403, 404, 405, 409, 413, 415, 429, 500, 502. Retry only 429 rate_limit_exceeded (honour Retry-After; default limit 100 requests per minute per client; pace with the X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers), 500 internal_error and 502 service_unavailable, with backoff."
+  ],
+  "evidence": {
+    "source_url": "https://test-developers.gozem.co/docs/reference/courier/create-quote",
+    "source_reference": "Gozem Developer Docs, page 'Create Quote' (POST /courier/v1/quotes), served on 2026-10-24 from the pre-production host test-developers.gozem.co (the llms.txt links to developers.gozem.co, which did not serve the docs that day). Passages quoted from the Gozem documentation (snapshot 2026-10-24): https://test-developers.gozem.co/docs/platform/authentication: \"Pass it in the x-api-key header\" | \"It works only while the client is active\" | \"Option 1: OAuth2 access token (recommended)\" | \"auth.gozem.co in production\" | \"The default lifetime is 3600 seconds (60 minutes).\" | \"If both headers are present, the bearer token is used.\" | \"returns 401 with the code unauthenticated\" | \"returns 403 with the code forbidden\" | \"When an allowlist is set, requests from any other address are rejected\" | \"with no implicit access to related routes\" ; https://test-developers.gozem.co/docs/reference/courier: \"API key (x-api-key) or Bearer token\" | \"Spec version 0.0.0\" | \"Always `false` on an error response.\" | \"Present on `validation_failed` only.\" ; https://test-developers.gozem.co/docs/platform/environments: \"Click Save to generate your client_id and client_secret.\" | \"They are fully isolated.\" | \"Credentials created in one environment do not work in the other.\" | \"no real-world operations are carried out, and no charges occur\" | \"Partner Portal access is provisioned during onboarding.\" | \"Sandbox data may be reset periodically\" ; https://test-developers.gozem.co/docs/api-services/courier/concepts: \"the API accepts either its guid or its name\" ; https://test-developers.gozem.co/docs/api-services/courier/getting-started: \"Pass the guid (here, VEH_XRK6EBcaq0) as vehicle in the next step\" | \"the dropoffs come back in delivery order\" | \"A quote is time-limited, so book it before expires_at or create a fresh one.\" | \"\"sub_label\": \"Delivery 1\"\" ; https://test-developers.gozem.co/docs/recipes/deliver-a-package: \"Take `name`, not `guid`. It is what the quote and booking calls expect.\" | \"The quote holds about fifteen minutes\" | \"Totals agree, line items do not.\" | \"Vehicle availability is per city, not global.\" ; https://test-developers.gozem.co/docs/reference/courier/list-vehicles: \"Exact vehicle name, case-insensitive.\" ; https://test-developers.gozem.co/docs/api-services/courier/errors: \"The quote is no longer valid and cannot be used to book.\" | \"The requested vehicle is not recognized or not supported.\" | \"The requested vehicle is not available at the pickup location.\" | \"The pickup location is outside any supported coverage area.\" | \"The retryable cases are the server-side errors service_unavailable (502) and internal_error (500) above, plus rate_limit_exceeded (429)\" ; https://gozem.co/: \"Togo\" | \"Bénin\" | \"Cameroun\" | \"Gabon\" | \"Congo-Brazzaville\" ; https://test-developers.gozem.co/llms.txt: \"across West and Central Africa\" ; https://test-developers.gozem.co/docs/reference: \"Courier API Beta\" ; https://test-developers.gozem.co/docs/api-services/courier/overview: \"https://api.gozem.co/courier/v1\" | \"https://sandbox-api.gozem.co/courier/v1\" ; https://test-developers.gozem.co/docs/platform/api-basics: \"\"error\": \"BadRequestError\"\" | \"The default is 100 requests per minute\" | \"object | array | null\" | \"X-RateLimit-Limit\" | \"X-RateLimit-Remaining\" | \"X-RateLimit-Reset\" | \"may include a Retry-After header with the seconds to wait\"",
+    "extracted_at": "2026-10-24T07:55:07.717Z",
+    "snapshot_hash": "e8a27a1857d118692b5cae715b6a2ace2f90b79bcce34156da5169376c95d893",
+    "spans": [
+      "Unique ID or name of the selected vehicle/service type",
+      "Serviced in the order given unless `optimize_route` is set.",
+      "max 280 chars",
+      "When the quote stops being bookable",
+      "Not a charge until the quote is booked.",
+      "sandbox-api.gozem.co/courier/v1/quotes"
+    ]
+  }
+}

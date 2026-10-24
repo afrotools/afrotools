@@ -60,6 +60,7 @@ See [ATSS.md](./ATSS.md) for the full specification.
 | Africa's Talking | communications | 🇧🇫 🇧🇯 🇨🇮 +17 | 2 | 📋 Ready |
 | Bictorys | payment | 🇸🇳 🇨🇮 🇲🇱 +3 | 4 | 📋 Ready |
 | Flutterwave | payment | 🇳🇬 🇬🇭 🇰🇪 +10 | 57 | 📋 Ready |
+| Gozem | logistics | 🇹🇬 | — | 🗓 Planifié |
 | KadevPay | payment | 🇨🇮 | 3 | 📋 Ready |
 | NimbaSMS | communications | 🇬🇳 | 11 | 📋 Ready |
 | Notch Pay | payment | 🇨🇲 🇨🇮 🇸🇳 +3 | 31 | 📋 Ready |

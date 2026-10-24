@@ -34,6 +34,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   New `logistics` category.
 - Plugin skill `logistics` — auto-activates for delivery / courier integrations (plugin 1.4.0).
   Run `claude plugin update afrotools`.
+- **Gozem** (`specs/logistics/gozem`, Courier API v1, TG, `draft`): `list_vehicles`,
+  `create_quote`, `get_quote`, `book_trip`, `get_trip`, `list_trips`, `cancel_trip`, `get_trip_invoice`,
+  `get_trip_messages`, `send_trip_message`, `rate_trip`, `get_trip_stats`, `simulate_trip_state` (sandbox only),
+  `webhook_trip_event`; sandbox live-test fixtures. Draft until the docs leave their pre-production host.
 - `provider.json` field `channels` (`sms`, `whatsapp`, `ussd`, `voice`, `email`) — required
   for the `communications` category, optional elsewhere; enforced by `scripts/validate.js`.
 - `scripts/test_live.py` fixtures: per-step `content_type: "multipart/form-data"` (nested values

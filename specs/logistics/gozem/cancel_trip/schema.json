@@ -1,0 +1,169 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "cancel_trip",
+  "capability_type": "synchronous",
+  "status": "draft",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "header": "x-api-key",
+    "format": "{token}",
+    "env_var": "GOZEM_API_KEY"
+  },
+  "endpoint": {
+    "url": "https://api.gozem.co/courier/v1/trips/{trip_id}/cancellation",
+    "method": "POST"
+  },
+  "example_prompt": "Cancel my Gozem delivery because the customer changed their mind.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "trip_id": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^(TRP_\\d+|\\d+)$",
+        "description": "Trip ID (TRP_xxx format or numeric ID) Path parameter."
+      },
+      "cancellation_reason": {
+        "type": "string",
+        "maxLength": 500,
+        "description": "Reason for cancellation"
+      }
+    },
+    "required": [
+      "trip_id"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "data": {
+        "type": "object",
+        "description": "The canceled trip",
+        "properties": {
+          "canceled_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Trip cancellation timestamp"
+          },
+          "cancellation_reason": {
+            "type": "string",
+            "description": "Reason for cancellation"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "canceled"
+            ],
+            "description": "Trip has been canceled"
+          },
+          "trip_id": {
+            "type": "string",
+            "description": "Unique trip identifier"
+          }
+        },
+        "required": [
+          "canceled_at",
+          "status",
+          "trip_id"
+        ]
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable outcome. Defaults to `Ok`."
+      },
+      "success": {
+        "type": "boolean",
+        "enum": [
+          true
+        ],
+        "description": "Always `true` on a success response."
+      }
+    },
+    "required": [
+      "data",
+      "message",
+      "success"
+    ]
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "string",
+        "description": "Stable, machine-readable error code. Branch on this. See the Error Codes reference in the API description."
+      },
+      "details": {
+        "description": "Field-level validation failures. Present on `validation_failed` only. API Basics types it object | array | null.",
+        "oneOf": [
+          {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "description": "Dotted path to the offending field."
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Why the field was rejected."
+                }
+              },
+              "required": [
+                "field",
+                "message"
+              ]
+            }
+          },
+          {
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable message. May be reworded or localized — do not branch on it."
+      },
+      "success": {
+        "type": "boolean",
+        "enum": [
+          false
+        ],
+        "description": "Always `false` on an error response."
+      },
+      "error": {
+        "type": "string",
+        "description": "The HTTP error class name. Informational only; do not branch on it. (API Basics)"
+      }
+    },
+    "required": [
+      "code",
+      "message"
+    ]
+  },
+  "gotchas": [
+    "Authenticate with the x-api-key header: a long-lived API key that works only while its Partner Portal client is active. The docs recommend OAuth2 client credentials instead (POST https://auth.gozem.co/oauth2/token, then Authorization: Bearer; tokens last 3600 s by default). Send one credential per request — if both headers are present, the bearer token is used. Missing or invalid credentials return 401 unauthenticated; an endpoint the client wasn't granted, or a source IP outside its allowlist, returns 403 forbidden. How an API key is issued isn't documented: the Partner Portal flow described only generates a client_id and client_secret — ask your Gozem representative for the key.",
+    "trip_id is the trip's guid (TRP_…) or its numeric ID; an unknown trip returns 404 trip_not_found.",
+    "A trip can be canceled while pending, assigned or at_pickup. Once started it can't; canceling a completed, canceled or expired trip returns 409 trip_state_conflict.",
+    "The reference says canceling processes 'any applicable refunds', but no fee or refund rule is documented. A refund may surface as courier.trip.payment.refunded ('a refund was issued against the trip's payment'); the docs don't link the two.",
+    "A trip can also be canceled by the driver or the system: handle courier.trip.canceled as a normal ending, not an error.",
+    "Sandbox (https://sandbox-api.gozem.co/courier/v1) and production (https://api.gozem.co/courier/v1) are fully isolated: each has its own Partner Portal, API clients, credentials and data, so a sandbox key doesn't work in production. Sandbox carries out no real-world operations and no charges occur, and its data may be reset periodically. A client may only call the endpoints granted to it in the portal, with no implicit access to related routes. Portal access is provisioned during onboarding; the API reference labels the Courier API Beta (spec version 0.0.0).",
+    "Failures share one envelope: branch on code — message is human-facing and may be reworded or localized. The API reference describes {success: false, code, message, details}, the API Basics page {error, message, code, details}: read only code, message and details (field-level failures on validation_failed; API Basics types details object, array or null). Statuses listed for this operation: 400, 401, 403, 404, 405, 409, 413, 415, 429, 500, 502. Retry only 429 rate_limit_exceeded (honour Retry-After; default limit 100 requests per minute per client; pace with the X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers), 500 internal_error and 502 service_unavailable, with backoff."
+  ],
+  "evidence": {
+    "source_url": "https://test-developers.gozem.co/docs/reference/courier/cancel-trip",
+    "source_reference": "Gozem Developer Docs, page 'Cancel Trip' (POST /courier/v1/trips/{trip_id}/cancellation), served on 2026-10-24 from the pre-production host test-developers.gozem.co (the llms.txt links to developers.gozem.co, which did not serve the docs that day). Passages quoted from the Gozem documentation (snapshot 2026-10-24): https://test-developers.gozem.co/docs/platform/authentication: \"Pass it in the x-api-key header\" | \"It works only while the client is active\" | \"Option 1: OAuth2 access token (recommended)\" | \"auth.gozem.co in production\" | \"The default lifetime is 3600 seconds (60 minutes).\" | \"If both headers are present, the bearer token is used.\" | \"returns 401 with the code unauthenticated\" | \"returns 403 with the code forbidden\" | \"When an allowlist is set, requests from any other address are rejected\" | \"with no implicit access to related routes\" ; https://test-developers.gozem.co/docs/reference/courier: \"API key (x-api-key) or Bearer token\" | \"Spec version 0.0.0\" | \"Always `false` on an error response.\" | \"Present on `validation_failed` only.\" ; https://test-developers.gozem.co/docs/platform/environments: \"Click Save to generate your client_id and client_secret.\" | \"They are fully isolated.\" | \"Credentials created in one environment do not work in the other.\" | \"no real-world operations are carried out, and no charges occur\" | \"Partner Portal access is provisioned during onboarding.\" | \"Sandbox data may be reset periodically\" ; https://test-developers.gozem.co/docs/api-services/courier/errors: \"The referenced trip does not exist.\" | \"canceling a trip that has already completed or cannot be canceled in its current state\" | \"The retryable cases are the server-side errors service_unavailable (502) and internal_error (500) above, plus rate_limit_exceeded (429)\" ; https://test-developers.gozem.co/docs/api-services/courier/lifecycle-events: \"A trip can be canceled while it is still pending, assigned, or at_pickup\" | \"trying to cancel one is rejected with a 409 Conflict\" | \"A refund was issued against the trip’s payment.\" | \"The trip was canceled by you, the driver, or the system\" ; https://test-developers.gozem.co/docs/api-services/courier/getting-started: \"your webhook handler should treat them as normal endings, not errors\" ; https://test-developers.gozem.co/docs/reference: \"Courier API Beta\" ; https://test-developers.gozem.co/docs/api-services/courier/overview: \"https://api.gozem.co/courier/v1\" | \"https://sandbox-api.gozem.co/courier/v1\" ; https://test-developers.gozem.co/docs/platform/api-basics: \"\"error\": \"BadRequestError\"\" | \"The default is 100 requests per minute\" | \"object | array | null\" | \"X-RateLimit-Limit\" | \"X-RateLimit-Remaining\" | \"X-RateLimit-Reset\" | \"may include a Retry-After header with the seconds to wait\"",
+    "extracted_at": "2026-10-24T07:55:08.522Z",
+    "snapshot_hash": "70783d9ec0a5a5dcbbf417f3aebb85ea1eec05e3d7fbeb9fcb1f2c16aee27ea0",
+    "spans": [
+      "Trip ID (TRP_xxx format or numeric ID)",
+      "process any applicable refunds",
+      "sandbox-api.gozem.co/courier/v1/trips/{trip_id}/cancellation"
+    ]
+  }
+}
