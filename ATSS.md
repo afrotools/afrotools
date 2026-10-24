@@ -25,7 +25,7 @@ specs/{category}/{provider_slug}/
     └── canonical_example.ts   ← working TypeScript example
 ```
 
-**category** — `payment` or `communications` (extensible to other categories).
+**category** — `payment`, `communications` or `language` (extensible to other categories).
 `communications` covers providers that send SMS, WhatsApp, USSD, voice or email —
 the specific channels go in `provider.json`'s `channels` field, not in the category name.
 **provider_slug** — lowercase, no spaces, no dashes (e.g. `paycard`, `wave`, `nimbasms`)
@@ -54,7 +54,7 @@ One `provider.json` per provider directory. Carries provider-level metadata migr
 |---|---|---|
 | slug | string | Lowercase, no spaces, no dashes — matches the directory name |
 | name | string | Display name of the provider |
-| category | string | `"payment"` or `"communications"` |
+| category | string | `"payment"`, `"communications"` or `"language"` — each category has a matching `plugin/skills/{category}/SKILL.md` |
 | channels | string[] | Required when `category` is `"communications"`, optional otherwise. Non-empty array, values among `sms`, `whatsapp`, `ussd`, `voice`, `email`. Lists the channels the provider's public docs document — not only the ones that already have a spec |
 | country_code | string[] | ISO 3166-1 alpha-2 codes — non-empty array |
 | description | string | One-sentence description of the provider for display and MCP context |

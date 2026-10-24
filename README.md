@@ -106,6 +106,7 @@ claude mcp add --transport http afrotools https://mcp.afro.tools/mcp
 **Auto-activated skills** based on context:
 - `payment` — integrating a payment API
 - `communications` — integrating an SMS, WhatsApp, USSD, voice or email API
+- `language` — integrating a speech-to-text or text-to-speech API for African languages
 - `debug` — when an integration based on an afrotools spec fails → diagnoses whether the problem is a spec error, a missing gotcha, or an undocumented API change
 
 **Manual commands:**
