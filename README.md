@@ -55,18 +55,20 @@ See [ATSS.md](./ATSS.md) for the full specification.
 |----------|----------|---------|--------------|--------|
 | Paycard | payment | 🇬🇳 | 3 | ✅ AI Ready |
 | SasPay | payment | 🇧🇫 🇧🇯 🇨🇩 +15 | 13 | 7 verified · 6 ready |
+| Smile ID | identity | 🇨🇮 🇸🇳 🇬🇳 | 9 | 7 verified · 2 ready |
 | Djomy | payment | 🇬🇳 | 7 | 4 verified · 3 ready |
+| Bictorys | payment | 🇸🇳 🇨🇮 🇲🇱 +3 | 4 | 2 verified · 2 ready |
 | LengoPay | payment | 🇬🇳 | 8 | 2 verified · 6 ready |
 | Africa's Talking | communications | 🇧🇫 🇧🇯 🇨🇮 +17 | 2 | 📋 Ready |
-| Bictorys | payment | 🇸🇳 🇨🇮 🇲🇱 +3 | 4 | 📋 Ready |
 | Flutterwave | payment | 🇳🇬 🇬🇭 🇰🇪 +10 | 57 | 📋 Ready |
+| Infobip | communications | 🇦🇴 🇧🇫 🇧🇮 +51 | 11 | 📋 Ready |
+| Intron | language | 🇦🇴 🇧🇫 🇧🇮 +51 | 7 | 📋 Ready |
 | KadevPay | payment | 🇨🇮 | 3 | 📋 Ready |
 | NimbaSMS | communications | 🇬🇳 | 11 | 📋 Ready |
 | Notch Pay | payment | 🇨🇲 🇨🇮 🇸🇳 +3 | 31 | 📋 Ready |
 | Orange Money Mali | payment | 🇲🇱 | 2 | 📋 Ready |
 | PayGate | payment | 🇹🇬 | 6 | 📋 Ready |
 | Qosic | payment | 🇹🇬 | 4 | 📋 Ready |
-| Smile ID | identity | 🇨🇮 🇸🇳 🇬🇳 | 9 | 📋 Ready |
 | Wave | payment | 🇸🇳 🇨🇮 🇲🇱 +8 | 12 | 📋 Ready |
 | Yango Delivery | logistics | 🇨🇮 🇬🇭 🇸🇳 +1 | 8 | 📋 Ready |
 <!-- fin du tableau -->
