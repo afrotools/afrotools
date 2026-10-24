@@ -142,6 +142,8 @@ def http_call(method, url, auth_headers, body=None, extra_headers=None, content_
     headers = {
         "Accept": "application/json",
         "X-Trace-Id": f"afrotools-live-{int(time.time() * 1000)}",
+        # urllib's default "Python-urllib/x.y" is banned by some Cloudflare-fronted sandboxes (error 1010).
+        "User-Agent": "afrotools-live-test/1.0 (+https://afro.tools)",
     }
     headers.update(auth_headers)
     if extra_headers:
@@ -400,6 +402,10 @@ def run(provider_slug, only_capability=None, raw_capability=None):
             print(f"  {YELLOW}SKIPPED — schema.json not found{RESET}")
             continue
 
+        # wait_seconds: give an async job time to become visible before this step reads it.
+        if step.get("wait_seconds"):
+            time.sleep(step["wait_seconds"])
+
         endpoint = schema.get("endpoint", {})
         method   = step.get("method", endpoint.get("method", "GET"))
         url      = build_url(
@@ -419,6 +425,10 @@ def run(provider_slug, only_capability=None, raw_capability=None):
             body[body_auth[0]] = body_auth[1]
 
         extra_headers = resolve(step.get("headers", {}), stored, ts)
+        missing = [k for k, v in extra_headers.items() if v is None]
+        if missing:
+            print(f"  {YELLOW}SKIPPED — header(s) {', '.join(missing)} come from an earlier step that returned nothing{RESET}")
+            continue
         content_type = step.get("content_type", "application/json")
 
         if raw_capability == cap_name:

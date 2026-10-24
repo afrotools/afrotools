@@ -1,0 +1,109 @@
+{
+  "sandbox_base_url": "https://testapi.smileidentity.com",
+  "auth_secondary_env": "SMILEID_PARTNER_ID",
+  "steps": [
+    {
+      "capability": "generate_token",
+      "skip_auth": true,
+      "headers": {
+        "SmileID-Partner-ID": "$env:SMILEID_PARTNER_ID",
+        "SmileID-API-Key": "$env:SMILEID_API_KEY"
+      },
+      "store_as": "tok"
+    },
+    {
+      "capability": "list_supported_documents",
+      "skip_auth": true,
+      "query_params": { "country_code": "SN", "locale": "fr-FR" }
+    },
+    {
+      "capability": "enhanced_kyc",
+      "skip_auth": true,
+      "headers": {
+        "SmileID-Partner-ID": "$env:SMILEID_PARTNER_ID",
+        "SmileID-Token": "$tok.token"
+      },
+      "content_type": "multipart/form-data",
+      "body": {
+        "country": "CI",
+        "id_type": "NATIONAL_ID_NO_PHOTO",
+        "id_number": "00000000000",
+        "user_details": {
+          "given_names": "Amina Fatou",
+          "last_name": "Clearwater",
+          "email": "amina.clearwater@example.com"
+        },
+        "consent": {
+          "granted": true,
+          "granted_at": "2026-10-23T10:00:00.000Z",
+          "notice_language": "FR",
+          "notice_privacy_policy_url": "https://afro.tools/privacy"
+        },
+        "partner_params": { "internal_reference": "afrotools-live-$ts" }
+      },
+      "store_as": "ekyc"
+    },
+    {
+      "capability": "get_verification_status",
+      "wait_seconds": 15,
+      "skip_auth": true,
+      "headers": {
+        "SmileID-Partner-ID": "$env:SMILEID_PARTNER_ID",
+        "SmileID-Token": "$tok.token"
+      },
+      "path_params": { "jobId": "$ekyc.job_id" }
+    },
+    {
+      "capability": "aml_check_sync",
+      "skip_auth": true,
+      "headers": {
+        "SmileID-Partner-ID": "$env:SMILEID_PARTNER_ID",
+        "SmileID-Token": "$tok.token",
+        "SmileID-Idempotency-Key": "afrotools-live-$ts"
+      },
+      "content_type": "multipart/form-data",
+      "body": {
+        "countries": ["CI"],
+        "full_name": "Nkechi Okafor Cleanford",
+        "user_details": {
+          "given_names": "Nkechi Okafor",
+          "last_name": "Cleanford",
+          "email": "nkechi.cleanford@example.com"
+        },
+        "consent": {
+          "granted": true,
+          "granted_at": "2026-10-23T10:00:00.000Z",
+          "notice_language": "FR",
+          "notice_privacy_policy_url": "https://afro.tools/privacy"
+        }
+      }
+    },
+    {
+      "capability": "create_smile_link",
+      "skip_auth": true,
+      "headers": {
+        "SmileID-Partner-ID": "$env:SMILEID_PARTNER_ID",
+        "SmileID-Token": "$tok.token"
+      },
+      "content_type": "multipart/form-data",
+      "body": {
+        "name": "Afro.tools live test $ts",
+        "is_single_use": true,
+        "notice_privacy_policy_url": "https://afro.tools/privacy",
+        "id_types": [
+          { "country": "CI", "id_type": "NATIONAL_ID_NO_PHOTO", "verification_method": "enhanced_kyc" }
+        ]
+      },
+      "store_as": "link"
+    },
+    {
+      "capability": "get_smile_link",
+      "skip_auth": true,
+      "headers": {
+        "SmileID-Partner-ID": "$env:SMILEID_PARTNER_ID",
+        "SmileID-Token": "$tok.token"
+      },
+      "path_params": { "refId": "$link.ref_id" }
+    }
+  ]
+}

@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- `scripts/test_live.py` sends an explicit `User-Agent` (Cloudflare-fronted sandboxes such as
+  Smile ID's ban urllib's default with error 1010) and skips a step whose headers depend on an
+  earlier step that returned nothing, instead of crashing.
+- `scripts/test_live.py` fixtures: per-step `wait_seconds` (e.g. let an async job become visible
+  before reading its status). Live-test workflow uses `actions/setup-python@v6` (Node 24).
 - **Wave** (issue #76): the webhook example now records the event before answering 200 (and answers 500 if that fails,
   so Wave retries), handles both webhook security modes (Signing Secret and Shared Secret), and no longer claims Wave
   retries after a 200. New gotchas on optional request signing (`Wave-Signature` on API calls, permanent per key) and the
@@ -32,6 +37,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Smile ID** (`specs/identity/smileid`, V3 API, CI/SN/GN): `generate_token`, `enhanced_kyc`,
+  `create_smile_link`, `get_smile_link`, `get_verification_status`, `replay_verification_webhook`,
+  `aml_check_sync`, `list_supported_documents`, `webhook_verification_result`,
+  `document_verification` (Web SDK). New `identity` category.
+- Plugin skill `identity` — auto-activates for KYC / identity verification integrations
+  (plugin 1.3.0). Run `claude plugin update afrotools`.
 - `provider.json` field `channels` (`sms`, `whatsapp`, `ussd`, `voice`, `email`) — required
   for the `communications` category, optional elsewhere; enforced by `scripts/validate.js`.
 - `scripts/test_live.py` fixtures: per-step `content_type: "multipart/form-data"` (nested values
