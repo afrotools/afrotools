@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   retries after a 200. New gotchas on optional request signing (`Wave-Signature` on API calls, permanent per key) and the
   API IP allowlist (cannot be disabled from the portal). `error_schema.details` may be `null` or absent. The "no sandbox"
   gotcha is reworded to what Wave's docs actually say.
-- Plugin skill `new`: the gotcha examples are marked as style examples, not provider facts.
+- Plugin skill `new`: the gotcha examples are marked as style examples, not provider facts (plugin 1.2.1).
 
 ### Changed
 
