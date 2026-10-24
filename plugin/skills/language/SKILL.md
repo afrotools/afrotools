@@ -3,10 +3,11 @@ name: language
 description: >
   Use this skill whenever the user wants to integrate, implement, or test a speech or
   language API for African languages — speech-to-text / transcription of Wolof, Swahili,
-  Hausa, Yoruba, Pulaar, Amharic and other African languages or accents, or post-processing
-  of transcripts — including Intron or any provider in the Afro.tools registry. Activate
-  even if the user only says "transcribe these voice notes", "add speech recognition in
-  Swahili" or "summarize recorded calls" — always fetch the exact spec before writing any code.
+  Hausa, Yoruba, Pulaar, Amharic and other African languages or accents, post-processing
+  of transcripts, or text-to-speech (voices in African languages or accents) — including
+  Intron or any provider in the Afro.tools registry. Activate even if the user only says
+  "transcribe these voice notes", "add speech recognition in Swahili", "summarize recorded
+  calls" or "read this message aloud in Wolof" — always fetch the exact spec before writing any code.
 ---
 
 # Afro.tools — Language skill
@@ -34,8 +35,9 @@ for the target provider and capability before writing any implementation code.
    ```
    afrotools.get_spec({ provider: "<slug>", capability: "<capability>" })
    ```
-   If the capability returns a job or file id instead of a transcript, also fetch the
-   provider's status spec before writing code, and check the gotchas for duration limits.
+   If the capability returns a job, file or text id instead of a result, also fetch the
+   provider's status spec before writing code, and check the gotchas for duration or
+   character limits.
 
 3. Read the spec carefully before writing code:
    - `auth` — how to authenticate (header name, env var)
@@ -48,6 +50,8 @@ for the target provider and capability before writing any implementation code.
 4. Implement using the `canonical_example.ts` pattern:
    - Native fetch only — no axios, no node-fetch
    - Credentials from `process.env`, server-side only — never ship an API key to the browser
+   - For text-to-speech, pick the voice (language, accent, gender) from the combinations the
+     spec lists — an accent outside its language is rejected
    - For a multipart upload, use `FormData` and let fetch set the boundary — don't set
      `Content-Type` by hand
 

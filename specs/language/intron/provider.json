@@ -62,6 +62,6 @@
   "docs_url": "https://docs.voice.intron.io/docs/index/introduction",
   "docs_public": true,
   "sandbox": false,
-  "description": "Intron is a speech-to-text API tuned for African accents. Its docs list 36 African input languages — several, such as Wolof, Swahili, Hausa and Yoruba, as models code-switched with English — with optional LLM post-processing of the transcript; it also offers streaming speech-to-text and text-to-speech.",
-  "example_prompt": "Transcribe Wolof and Swahili voice notes sent by my users and summarize them with Intron."
+  "description": "Intron is a speech API tuned for African accents: speech-to-text in 36 African input languages — several, such as Wolof, Swahili, Hausa and Yoruba, as models code-switched with English — with optional LLM post-processing, and text-to-speech in 12 African languages plus English with African accents.",
+  "example_prompt": "Transcribe Wolof and Swahili voice notes sent by my users, and read replies back to them aloud in their language, with Intron."
 }

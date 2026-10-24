@@ -33,7 +33,7 @@ afrotools/afrotools/
 │   ├── communications/          ← SMS, WhatsApp, USSD, voice, email
 │   │   ├── nimbasms/
 │   │   └── africastalking/
-│   └── language/                ← speech-to-text for African languages
+│   └── language/                ← speech-to-text / text-to-speech for African languages
 │       └── intron/
 ├── plugin/                      ← Claude Code plugin
 │   ├── .claude-plugin/
