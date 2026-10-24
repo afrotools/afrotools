@@ -1,0 +1,43 @@
+{
+  "sandbox_base_url": "https://sandbox-api.gozem.co",
+  "steps": [
+    { "capability": "list_vehicles", "query_params": { "lat": 6.166245, "lon": 1.247951 } },
+    {
+      "capability": "create_quote",
+      "body": {
+        "title": "Live test $ts",
+        "vehicle": "motorcycle",
+        "pickup": { "label": "Raku Raku Express HQ - Zone Aéroport", "lat": 6.166245, "lon": 1.247951, "contact_name": "Raku Raku Express", "contact_phone": "+22822200011" },
+        "dropoffs": [{ "label": "Pharmacie Tokoin Forever", "lat": 6.172834, "lon": 1.231456, "contact_name": "Kossi Mensah", "contact_phone": "+22893112233" }]
+      },
+      "store_as": "quote"
+    },
+    { "capability": "get_quote", "path_params": { "quote_id": "$quote.data.guid" } },
+    { "capability": "book_trip", "body": { "quote_id": "$quote.data.guid" }, "store_as": "trip" },
+    { "capability": "get_trip", "path_params": { "trip_id": "$trip.data.guid" } },
+    { "capability": "simulate_trip_state", "path_params": { "trip_id": "$trip.data.guid" }, "body": { "action": "assign" } },
+    { "capability": "send_trip_message", "path_params": { "trip_id": "$trip.data.guid" }, "body": { "message": "Live test message" } },
+    { "capability": "get_trip_messages", "path_params": { "trip_id": "$trip.data.guid" } },
+    { "capability": "cancel_trip", "path_params": { "trip_id": "$trip.data.guid" }, "body": { "cancellation_reason": "Live test" } },
+    {
+      "capability": "book_trip",
+      "body": {
+        "title": "Live test itinerary $ts",
+        "vehicle": "motorcycle",
+        "pickup": { "label": "Raku Raku Express HQ - Zone Aéroport", "lat": 6.166245, "lon": 1.247951, "contact_name": "Raku Raku Express", "contact_phone": "+22822200011" },
+        "dropoffs": [{ "label": "Pharmacie Tokoin Forever", "lat": 6.172834, "lon": 1.231456, "contact_name": "Kossi Mensah", "contact_phone": "+22893112233" }]
+      },
+      "store_as": "trip2"
+    },
+    { "capability": "simulate_trip_state", "path_params": { "trip_id": "$trip2.data.guid" }, "body": { "action": "assign" } },
+    { "capability": "simulate_trip_state", "path_params": { "trip_id": "$trip2.data.guid" }, "body": { "action": "arrive-pickup" } },
+    { "capability": "simulate_trip_state", "path_params": { "trip_id": "$trip2.data.guid" }, "body": { "action": "start" } },
+    { "capability": "simulate_trip_state", "path_params": { "trip_id": "$trip2.data.guid" }, "body": { "action": "stop-start" } },
+    { "capability": "simulate_trip_state", "path_params": { "trip_id": "$trip2.data.guid" }, "body": { "action": "stop-complete" } },
+    { "capability": "simulate_trip_state", "path_params": { "trip_id": "$trip2.data.guid" }, "body": { "action": "complete" } },
+    { "capability": "get_trip_invoice", "path_params": { "trip_id": "$trip2.data.guid" } },
+    { "capability": "rate_trip", "path_params": { "trip_id": "$trip2.data.guid" }, "body": { "rating": 5, "comment": "Live test" } },
+    { "capability": "list_trips", "query_params": { "limit": 5 } },
+    { "capability": "get_trip_stats", "query_params": { "from": "2026-10-01T00:00:00Z", "to": "2026-10-24T00:00:00Z" } }
+  ]
+}
