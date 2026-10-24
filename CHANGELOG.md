@@ -25,8 +25,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Plugin skill `sms` renamed `communications` (plugin 1.2.0). Run `claude plugin update afrotools`.
 - `scripts/test_live.py` discovers categories from the `specs/` subfolders instead of a
   hardcoded list, and fails clearly when one provider slug exists in two categories.
+- `schema.json` `currency` is required for `payment` specs only, and the country/currency
+  coherence check runs only for them — the field means nothing for identity, communications,
+  etc. Existing non-payment specs keep their `currency` (still validated as an array).
+- Plugin skill `new`: `currency` is documented as required for `payment` specs only (plugin 1.2.2).
 
 ### Added
 
 - `provider.json` field `channels` (`sms`, `whatsapp`, `ussd`, `voice`, `email`) — required
   for the `communications` category, optional elsewhere; enforced by `scripts/validate.js`.
+- `scripts/test_live.py` fixtures: per-step `content_type: "multipart/form-data"` (nested values
+  sent as JSON strings) and `skip_auth` (for token-exchange or unauthenticated calls);
+  `auth_secondary_env` now works with any auth type, so the live-test workflow can export a
+  second credential (e.g. a partner ID) for it.

@@ -175,3 +175,39 @@ test("duplicate channels fail validation", () => {
   assert.equal(code, 1);
   assert.match(stderr, /duplicates/);
 });
+
+test("payment spec without currency fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { currency: undefined } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /currency/);
+});
+
+test("currency is optional outside payment", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { currency: undefined }, extraProvider: { category: "identity" } });
+  assert.equal(runValidate(dir).code, 0);
+});
+
+test("country/currency coherence is not checked outside payment", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { currency: ["XOF"] }, extraProvider: { category: "identity" } });
+  assert.equal(runValidate(dir).code, 0);
+});
+
+test("payment spec with a currency not matching its countries fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { currency: ["XOF"] } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /COHERENCE/);
+});
+
+test("non-array currency fails validation outside payment", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { currency: "XOF" }, extraProvider: { category: "identity" } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /currency must be an array/);
+});

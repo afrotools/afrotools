@@ -167,7 +167,7 @@ Required structure:
 }
 ```
 
-**Currency coherence:** Before setting `country_code`, read `scripts/validate.js` lines 50–65
+**Currency coherence (`payment` only):** Before setting `country_code`, read `scripts/validate.js` lines 50–65
 to get the `COUNTRY_CURRENCY_MAP`. The validator requires that for every country in
 `country_code[]`, the country's standard currency appears in each spec's `currency[]` array.
 If the provider uses a non-standard currency for a country (e.g. processing XAF for users
@@ -249,7 +249,9 @@ Field rules:
 - `capability` — snake_case, must match the capability directory name exactly
 - `capability_type` — `synchronous`, `asynchronous`, or `webhook`
 - `status` — always `"draft"`; never `ready`, `compliant`, or `verified`
-- `currency` — must be consistent with `provider.json`'s `country_code` array
+- `currency` — required for `payment` specs and must be consistent with `provider.json`'s
+  `country_code` array; optional for other categories (omit it — the validator only checks
+  country/currency coherence for `payment`)
 - `auth.type` — see auth type reference below
 - `auth.location` — `"header"`, `"body"`, or `"query"`
 - `auth.env_var` — must be identical across ALL specs for this provider
