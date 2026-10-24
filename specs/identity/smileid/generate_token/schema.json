@@ -1,0 +1,181 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v3",
+  "capability": "generate_token",
+  "capability_type": "synchronous",
+  "status": "verified",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "SmileID-API-Key",
+    "format": "{token}",
+    "env_var": "SMILEID_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.smileidentity.com/v3/token"
+  },
+  "example_prompt": "Mint a short-lived Smile ID V3 token on the backend, optionally binding the user's identity, consent and callback URL into it.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "user_id": {
+        "type": "string",
+        "description": "Optional partner-provided user identifier."
+      },
+      "partner_params": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Key-value metadata for partner reference."
+      },
+      "product": {
+        "type": "string",
+        "description": "The product or service the token will be used for.",
+        "enum": [
+          "aml",
+          "basic_kyc",
+          "one_time_aml",
+          "biometric_kyc",
+          "address_verification",
+          "document_verification",
+          "enhanced_document_verification",
+          "enhanced_kyc",
+          "phone_number_verification",
+          "smart_selfie_authentication",
+          "smart_selfie_registration",
+          "smart_selfie_compare"
+        ]
+      },
+      "use_enrolled_image": {
+        "type": "boolean",
+        "default": false,
+        "description": "Grants the session a Biometric KYC job that verifies against the user's enrolled selfie instead of a fresh capture, so selfie_image and liveness_images may be omitted on that job. Only this request can grant it, because only it is authenticated with the partner's API key — a value sent on the job itself is discarded. Applies to Biometric KYC only."
+      },
+      "payload": {
+        "type": "object",
+        "description": "Optional identity and consent fields to bind into the token. PII fields (id_number, given_names, last_name, email, phone_number) are validated, then replaced with opaque `pii_`-prefixed references — the issued JWT never carries raw PII. country, id_type and the consent fields stay in the clear, and callback_url is replaced by a resolvable `callback_`-prefixed id. Downstream v3 endpoints inject these fields server-side, overriding any matching fields in the request body, so data bound to the token cannot be altered by the client. Fields provided here make the corresponding request body fields optional on downstream endpoints; GET /v3/services/config lists them as `token_provided_fields`. Consent takes the same nested object the v3 entry endpoints accept, and all four of its fields are required when you send it — an incomplete consent object is rejected with 400 naming the field that is missing.",
+        "properties": {
+          "country": {
+            "type": "string",
+            "description": "Country code or name. Accepts ISO 3166-1 alpha-2 codes (e.g. \"NG\") or full country names (e.g. \"Nigeria\"). Normalized to uppercase ISO 3166-1 alpha-2 on the server. If id_type is also provided, the country/id_type combination is validated."
+          },
+          "id_type": {
+            "type": "string",
+            "description": "ID document type (e.g., NIN, BVN, DRIVERS_LICENSE). If country is also provided, the combination is validated against known ID types."
+          },
+          "id_number": {
+            "type": "string",
+            "description": "ID document number. If country and id_type are also provided, the format is validated against the expected regex pattern."
+          },
+          "given_names": {
+            "type": "string",
+            "description": "Given name(s) / first name of the individual."
+          },
+          "last_name": {
+            "type": "string",
+            "description": "Last name / surname of the individual."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of the individual."
+          },
+          "phone_number": {
+            "type": "string",
+            "description": "Phone number in E.164 format."
+          },
+          "callback_url": {
+            "type": "string",
+            "description": "URL to receive the async result callback, or a `callback_`-prefixed id from a previously issued token. Overrides the callback_url in the request body of downstream endpoints."
+          },
+          "consent": {
+            "type": "object",
+            "description": "ISO 27560 consent record, in the same shape the v3 entry endpoints accept. Optional as a whole; when present, all four fields are required and no other field is allowed. Injected as `consent` on downstream endpoints, so a request that carries it need not repeat consent in the body.",
+            "required": [
+              "granted",
+              "granted_at",
+              "notice_language",
+              "notice_privacy_policy_url"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "granted": {
+                "type": "boolean",
+                "description": "Whether the end user granted consent. Must be `true`; any other value is rejected.",
+                "enum": [
+                  true
+                ]
+              },
+              "granted_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When consent was granted, as an ISO 8601 timestamp. Must not be more than a minute in the future, so a value stamped from your own clock is fine. Include the timezone — without one the value is read as UTC."
+              },
+              "notice_language": {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}$",
+                "description": "Two-letter ISO 639-1 code for the language the privacy notice was shown in. Normalised to uppercase."
+              },
+              "notice_privacy_policy_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of the privacy notice the end user was shown. Must use the http or https scheme."
+              }
+            }
+          }
+        }
+      }
+    },
+    "description": "Optional multipart/form-data body. Credentials are NOT in the body: send headers SmileID-Partner-ID (numeric, no leading zeros) and SmileID-API-Key."
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "token": {
+        "type": "string",
+        "description": "JWT token for authenticating subsequent v3 API requests."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "message"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "HTTP status text."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error message."
+      }
+    }
+  },
+  "gotchas": [
+    "Credentials go in headers, not in the body: SmileID-Partner-ID (env SMILEID_PARTNER_ID — numeric, no leading zeros) and SmileID-API-Key (env SMILEID_API_KEY).",
+    "The returned token is a JWT valid for 15 minutes. Mint a new one per verification request; pass it as SmileID-Token on every other V3 call.",
+    "The body is optional, but when present it must be multipart/form-data (415 otherwise).",
+    "Fields bound in payload (country, id_type, id_number, names, email, phone_number, callback_url, consent) are injected server-side into downstream V3 calls and override the request body there; PII is replaced by opaque pii_-prefixed references in the JWT. If you send consent, all four of its fields are required (400 otherwise).",
+    "product scopes the token to one product: the token then only works for that product, and the Smile Links routes reject a product-scoped token (401).",
+    "The docs don't say how the object fields (partner_params, payload) are encoded in this multipart body; the canonical example sends them as JSON strings, as documented for the other V3 endpoints — verify in sandbox.",
+    "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com). Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production."
+  ],
+  "evidence": {
+    "source_url": "https://docs.usesmileid.com/api-reference/set-up/access.md",
+    "source_reference": "Access — Generate v3 Auth Token (OpenAPI getV3Token)",
+    "extracted_at": "2026-10-23T20:50:39.073Z",
+    "snapshot_hash": "738cdf1505d12534f7f6d91f0add6f4706b6c129ed98f20628cf720a2dee8b50",
+    "spans": [
+      "/v3/token",
+      "Issues a short-lived JWT for authenticating subsequent v3 API requests.",
+      "smileid-partner-id",
+      "smileid-api-key",
+      "Must be numeric with no leading zeros."
+    ]
+  }
+}

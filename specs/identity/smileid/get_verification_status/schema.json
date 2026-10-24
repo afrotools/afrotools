@@ -1,0 +1,110 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v3",
+  "capability": "get_verification_status",
+  "capability_type": "synchronous",
+  "status": "verified",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "SmileID-Token",
+    "format": "{token}",
+    "env_var": "SMILEID_API_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.smileidentity.com/v3/status/{jobId}"
+  },
+  "example_prompt": "Check the current status of a submitted Smile ID verification by its job_id, e.g. to poll an Enhanced KYC job until it leaves 'processing'.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "jobId"
+    ],
+    "properties": {
+      "jobId": {
+        "type": "string",
+        "pattern": "^job_[0-9a-hjkmnp-tv-z]{26}$",
+        "description": "TypeID format verification identifier with 'job_' prefix. Passed as a path parameter."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "job_id",
+      "user_id",
+      "message",
+      "created_at"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Verification status. Terminal states (clear, block, attention, error) are returned with HTTP 200; processing is returned with HTTP 202; not_found is returned with HTTP 404.",
+        "enum": [
+          "clear",
+          "block",
+          "attention",
+          "error",
+          "processing",
+          "not_found"
+        ]
+      },
+      "job_id": {
+        "type": "string",
+        "description": "TypeID format verification identifier."
+      },
+      "user_id": {
+        "type": "string",
+        "description": "User ID associated with the verification."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable status message."
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Timestamp the status response was generated (ISO 8601)."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "message"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "HTTP status text."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error message."
+      }
+    }
+  },
+  "gotchas": [
+    "Two-step auth: first call POST /v3/token with headers SmileID-Partner-ID and SmileID-API-Key (SMILEID_PARTNER_ID / SMILEID_API_KEY) to get a JWT, then send SmileID-Partner-ID and SmileID-Token: {token} on this request. The token expires 15 minutes after issuance — Smile ID recommends minting a new one for every verification request rather than reusing it. Never mint tokens in the browser: the API key must stay on your backend.",
+    "The Authentication page requires both SmileID-Partner-ID and SmileID-Token on all V3 requests; the endpoint's own OpenAPI only declares SmileID-Token. Send both.",
+    "Returns only status, job_id, user_id, message and created_at — not id_fields or the full result. The full result is delivered to your callback_url; use replay_verification_webhook to have it re-sent.",
+    "The HTTP code carries the state: 200 for a terminal status (clear, block, attention, error), 202 while processing, 404 when the job is not found or not yours. Don't treat 202 as a failure.",
+    "Observed in the sandbox (live test, 2026-10-24) — not in the docs: called right after enhanced_kyc returned 202, this endpoint answered 404 with status 'not_found', message 'Job not found' and user_id 'unknown' — the job's own created_at, as reported later in the webhook, was a few seconds after that 404. The same job_id answered 200 'clear' ('Job completed') two minutes later. A 404 right after submission does not mean the job doesn't exist: wait and retry, or rely on the callback.",
+    "jobId is the TypeID returned at submission, with the 'job_' prefix.",
+    "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com). Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production."
+  ],
+  "evidence": {
+    "source_url": "https://docs.usesmileid.com/api-reference/core-resources/verification-status/retrieve-a-verification-result.md",
+    "source_reference": "Retrieve a Verification Result (OpenAPI GET /v3/status/{jobId})",
+    "extracted_at": "2026-10-23T20:50:43.624Z",
+    "snapshot_hash": "4bf6602896a5f694876f9db3a24423c8942446e1da6508c40fb45fee477efe27",
+    "spans": [
+      "/v3/status/{jobId}",
+      "processing is returned with HTTP 202; not_found is returned with HTTP 404",
+      "TypeID format verification identifier with 'job_' prefix."
+    ]
+  }
+}

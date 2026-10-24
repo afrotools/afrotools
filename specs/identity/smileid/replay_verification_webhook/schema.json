@@ -1,0 +1,103 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v3",
+  "capability": "replay_verification_webhook",
+  "capability_type": "asynchronous",
+  "status": "ready",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "SmileID-Token",
+    "format": "{token}",
+    "env_var": "SMILEID_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.smileidentity.com/v3/replay/{job_id}"
+  },
+  "example_prompt": "Ask Smile ID to re-send the result webhook of a completed verification, e.g. after all delivery attempts to your callback_url failed.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "job_id": {
+        "type": "string",
+        "pattern": "^job_[0-9a-z]{26}$",
+        "description": "TypeID format verification identifier with 'job_' prefix. Passed as a path parameter."
+      },
+      "callback_url": {
+        "type": "string",
+        "format": "uri",
+        "pattern": "^https://",
+        "description": "Override callback URL. Must be on the partner's callback domain allowlist. If omitted, the stored callback URL is used. Can also be provided via the token payload (see /v3/token)."
+      }
+    },
+    "required": [
+      "job_id"
+    ],
+    "description": "job_id goes in the path; the optional multipart/form-data body only carries callback_url."
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "job_id",
+      "user_id",
+      "message"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Always 'accepted' for successful replay requests. 'accepted' in the OpenAPI; 'Accepted' in the migration guide and the Web SDK page."
+      },
+      "job_id": {
+        "type": "string",
+        "description": "TypeID format verification identifier."
+      },
+      "user_id": {
+        "type": "string",
+        "description": "User ID associated with the verification (from partner_params)."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable confirmation message."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "message"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "HTTP status text."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error message."
+      }
+    }
+  },
+  "gotchas": [
+    "Two-step auth: first call POST /v3/token with headers SmileID-Partner-ID and SmileID-API-Key (SMILEID_PARTNER_ID / SMILEID_API_KEY) to get a JWT, then send SmileID-Partner-ID and SmileID-Token: {token} on this request. The token expires 15 minutes after issuance — Smile ID recommends minting a new one for every verification request rather than reusing it. Never mint tokens in the browser: the API key must stay on your backend.",
+    "The Authentication page requires both SmileID-Partner-ID and SmileID-Token on all V3 requests; the endpoint's own OpenAPI only declares SmileID-Token. Send both.",
+    "This is the way to get the full verification result again: Smile ID retries a failed webhook 3 times (4 attempts in total), then stops. The replay is queued (202) and the payload arrives on the callback URL, not in this response.",
+    "The job must be in a terminal state (clear, block, attention, error) — otherwise 409. Poll get_verification_status first.",
+    "An optional callback_url overrides the stored one but must be on the partner's callback domain allowlist (403 otherwise). If a body is sent it must be multipart/form-data (415).",
+    "The 202 body's status is 'accepted' in the OpenAPI; other pages spell the acceptance status 'Accepted' — compare case-insensitively.",
+    "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com). Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production."
+  ],
+  "evidence": {
+    "source_url": "https://docs.usesmileid.com/api-reference/core-resources/replay-webhook/replay-a-verification-webhook.md",
+    "source_reference": "Replay a Verification Webhook (POST /v3/replay/{job_id})",
+    "extracted_at": "2026-10-23T20:50:43.991Z",
+    "snapshot_hash": "4548241ee1788c46b8eb27face7e28dfa8ab63c6782fbbc08fddc342e5a99237",
+    "spans": [
+      "/v3/replay/{job_id}",
+      "re-sends the callback",
+      "The verification must have reached a terminal state (clear, block, attention, or error) before its callback can be replayed."
+    ]
+  }
+}

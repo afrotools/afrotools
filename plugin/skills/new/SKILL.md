@@ -83,7 +83,8 @@ From the docs, identify:
 - Provider display name (e.g. "Wave", "NimbaSMS")
 - Provider slug — lowercase, no spaces. Single-word providers: `wave`, `nimbasms`.
   Compound names or geographic variants may use hyphens: `orangemoney-mali`, `orangemoney-senegal`.
-- Category — `payment` or `communications` (SMS, WhatsApp, USSD, voice, email providers);
+- Category — `payment`, `communications` (SMS, WhatsApp, USSD, voice, email providers) or
+  `identity` (KYC, document verification, AML);
   extend only if genuinely needed. For `communications`, also list the provider's
   `channels` — only the ones its docs clearly document (`sms`, `whatsapp`, `ussd`, `voice`, `email`)
 - Countries where the provider operates (ISO 3166-1 alpha-2 codes)

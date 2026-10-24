@@ -1,0 +1,173 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v3",
+  "capability": "create_smile_link",
+  "capability_type": "synchronous",
+  "status": "verified",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "SmileID-Token",
+    "format": "{token}",
+    "env_var": "SMILEID_API_KEY"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.smileidentity.com/v3/smile_links"
+  },
+  "example_prompt": "Create a hosted Smile Link that onboards a user through document or ID verification without building a capture UI, then send the returned link to the user.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "id_types",
+      "name",
+      "notice_privacy_policy_url",
+      "is_single_use"
+    ],
+    "properties": {
+      "id_types": {
+        "type": "array",
+        "minItems": 1,
+        "description": "JSON-encoded array of verification configurations.",
+        "items": {
+          "type": "object",
+          "required": [
+            "country",
+            "id_type",
+            "verification_method"
+          ],
+          "properties": {
+            "country": {
+              "type": "string",
+              "description": "ISO 3166-1 alpha-2 country code."
+            },
+            "id_type": {
+              "type": "string",
+              "description": "The ID type to verify."
+            },
+            "verification_method": {
+              "type": "string",
+              "description": "The verification product to run for this ID type."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "name": {
+        "type": "string"
+      },
+      "notice_privacy_policy_url": {
+        "type": "string",
+        "description": "Must be a public HTTPS URL. Private, loopback, link-local and internal addresses are rejected."
+      },
+      "is_single_use": {
+        "type": "boolean"
+      },
+      "callback_url": {
+        "type": "string",
+        "description": "Defaults to the partner's configured callback when omitted. Otherwise a public HTTPS URL; private, loopback, link-local and internal addresses are rejected."
+      },
+      "description": {
+        "type": "string"
+      },
+      "expires_at": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Defaults to 90 days from creation for single-use links."
+      },
+      "logo_url": {
+        "type": "string",
+        "description": "Must be a public HTTPS URL. Private, loopback, link-local and internal addresses are rejected."
+      },
+      "redirect_url": {
+        "type": "string",
+        "description": "Must be a public HTTPS URL. Private, loopback, link-local and internal addresses are rejected."
+      },
+      "theme_color": {
+        "type": "string"
+      },
+      "partner_params": {
+        "type": "object",
+        "description": "JSON-encoded key-value pairs echoed on job results."
+      },
+      "user_id": {
+        "type": "string",
+        "description": "Unique user id for a single-use link's job. Defaults to\nthe SmileID-Token's user id when omitted and the token\ncarries one; otherwise generated (`user_` TypeID). Must\nnot already be in use by another link.\n"
+      }
+    },
+    "description": "multipart/form-data. id_types and partner_params are JSON-encoded strings in their form parts."
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "link",
+      "message",
+      "ref_id",
+      "user_id"
+    ],
+    "properties": {
+      "link": {
+        "type": "string",
+        "description": "The URL to hand to the end user."
+      },
+      "message": {
+        "type": "string"
+      },
+      "ref_id": {
+        "type": "string",
+        "format": "uuid",
+        "description": "The link's id — the reference used on all v3 smile_links routes."
+      },
+      "user_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "The user id a single-use link's job runs under (generated when not\nprovided). Null on multi-use links — each opener gets its own user\nid at link-open.\n"
+      }
+    },
+    "additionalProperties": false
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "message"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "HTTP status text."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error message."
+      }
+    }
+  },
+  "gotchas": [
+    "Two-step auth: first call POST /v3/token with headers SmileID-Partner-ID and SmileID-API-Key (SMILEID_PARTNER_ID / SMILEID_API_KEY) to get a JWT, then send SmileID-Partner-ID and SmileID-Token: {token} on this request. The token expires 15 minutes after issuance — Smile ID recommends minting a new one for every verification request rather than reusing it. Never mint tokens in the browser: the API key must stay on your backend.",
+    "The Authentication page requires both SmileID-Partner-ID and SmileID-Token on all V3 requests; the endpoint's own OpenAPI only declares SmileID-Token. Send both.",
+    "A product-scoped token is rejected here with 401 ('missing, invalid, or product-scoped token') — mint the token without `product` for this route.",
+    "The body must be multipart/form-data, not JSON (415 otherwise). id_types and partner_params are sent as JSON-serialised strings in their form part — e.g. form.append('consent', JSON.stringify({...})).",
+    "Each id_types entry pairs one country + id_type with exactly one verification_method. The docs do not enumerate verification_method values; the products listed for Smile Links are Enhanced KYC, Biometric KYC, Document Verification and Enhanced Document Verification. An unsupported combination returns 400 (e.g. 'NG PASSPORT is not supported for the enhanced_document_verification product').",
+    "The response is a creation acknowledgment (link, message, ref_id, user_id), not the full link resource — call get_smile_link with ref_id for it.",
+    "A payload bound into the SmileID-Token (at generate_token) is copied onto the link only for single-use links; is_single_use false with a payload-bearing token returns 400. The token's callback_url claim is never used for the link.",
+    "notice_privacy_policy_url, callback_url, logo_url and redirect_url must be public https URLs; private, loopback, link-local and internal addresses are rejected.",
+    "The redirect and its query parameters can be forged by the end user — decide the outcome from the webhook on callback_url, never from the redirect.",
+    "Single-use links expire 90 days after creation by default (expires_at). 409 means the user_id is already used by another link.",
+    "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com). Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production."
+  ],
+  "evidence": {
+    "source_url": "https://docs.usesmileid.com/api-reference/core-resources/smile-links/create-a-smile-link.md",
+    "source_reference": "Create a Smile Link (POST /v3/smile_links)",
+    "extracted_at": "2026-10-23T20:50:41.895Z",
+    "snapshot_hash": "5ff1a7d8ce628b4bb8e8cda53a98503d20c6eaa14428ab99e9d61c168b15ff3e",
+    "spans": [
+      "/v3/smile_links",
+      "Creates a Smile Link synchronously",
+      "JSON-encoded array of verification configurations.",
+      "only single-use links accept a bound payload"
+    ]
+  }
+}

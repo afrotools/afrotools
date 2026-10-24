@@ -1,0 +1,236 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v3",
+  "capability": "get_smile_link",
+  "capability_type": "synchronous",
+  "status": "verified",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "SmileID-Token",
+    "format": "{token}",
+    "env_var": "SMILEID_API_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://api.smileidentity.com/v3/smile_links/{refId}"
+  },
+  "example_prompt": "Fetch a Smile Link by its ref_id to check its configuration, expiry and whether it is disabled.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "refId"
+    ],
+    "properties": {
+      "refId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "The link's id, returned as `ref_id` at creation. Passed as a path parameter."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "ref_id",
+      "link",
+      "name"
+    ],
+    "properties": {
+      "ref_id": {
+        "type": "string",
+        "format": "uuid",
+        "description": "The link's id — the reference used on all v3 smile_links routes."
+      },
+      "link": {
+        "type": "string",
+        "description": "The URL to hand to the end user."
+      },
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "id_types": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "country",
+            "id_type",
+            "verification_method"
+          ],
+          "properties": {
+            "country": {
+              "type": "string",
+              "description": "ISO 3166-1 alpha-2 country code."
+            },
+            "id_type": {
+              "type": "string",
+              "description": "The ID type to verify."
+            },
+            "verification_method": {
+              "type": "string",
+              "description": "The verification product to run for this ID type."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "is_single_use": {
+        "type": "boolean"
+      },
+      "callback_url": {
+        "type": "string",
+        "description": "Where job results for this link are delivered."
+      },
+      "notice_privacy_policy_url": {
+        "type": "string"
+      },
+      "logo_url": {
+        "type": "string"
+      },
+      "redirect_url": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "theme_color": {
+        "type": "string"
+      },
+      "expires_at": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time"
+      },
+      "disabled_at": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time",
+        "description": "Set while the link is disabled; null when active."
+      },
+      "partner_params": {
+        "type": [
+          "object",
+          "null"
+        ]
+      },
+      "user_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "The user id a single-use link's job runs under (generated when not\nprovided). Null on multi-use links — each opener gets its own user\nid at link-open.\n"
+      },
+      "token_provided_fields": {
+        "type": "array",
+        "description": "Field names bound onto this link from the creating SmileID-Token's payload. Sorted. The hosted flow that opens the link skips collecting these from the end user; empty when the link was created without a bound token payload.",
+        "items": {
+          "type": "string",
+          "enum": [
+            "consent",
+            "country",
+            "email",
+            "given_names",
+            "id_number",
+            "id_type",
+            "last_name",
+            "phone_number"
+          ]
+        }
+      },
+      "token_provided_values": {
+        "type": "object",
+        "description": "Values for the subset of token_provided_fields held in the clear (country, id_type, consent). PII fields are never returned here — the token holds opaque pii_-prefixed references to them, not the values. Empty object when nothing is bound.",
+        "properties": {
+          "country": {
+            "type": "string"
+          },
+          "id_type": {
+            "type": "string"
+          },
+          "consent": {
+            "type": "object",
+            "description": "The consent record bound from the token. Present only when consent is bound, and complete when present.",
+            "required": [
+              "granted",
+              "granted_at",
+              "notice_language",
+              "notice_privacy_policy_url"
+            ],
+            "properties": {
+              "granted": {
+                "type": "boolean"
+              },
+              "granted_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "notice_language": {
+                "type": "string"
+              },
+              "notice_privacy_policy_url": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        }
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "additionalProperties": true
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "message"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "HTTP status text."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error message."
+      }
+    }
+  },
+  "gotchas": [
+    "Two-step auth: first call POST /v3/token with headers SmileID-Partner-ID and SmileID-API-Key (SMILEID_PARTNER_ID / SMILEID_API_KEY) to get a JWT, then send SmileID-Partner-ID and SmileID-Token: {token} on this request. The token expires 15 minutes after issuance — Smile ID recommends minting a new one for every verification request rather than reusing it. Never mint tokens in the browser: the API key must stay on your backend.",
+    "The Authentication page requires both SmileID-Partner-ID and SmileID-Token on all V3 requests; the endpoint's own OpenAPI only declares SmileID-Token. Send both.",
+    "refId is the ref_id (a uuid) returned by create_smile_link; a non-uuid value returns 400, an unknown one 404.",
+    "disabled_at is set while the link is disabled and null when active. token_provided_values never contains PII — only country, id_type and consent are returned in the clear.",
+    "A product-scoped token is rejected here with 401 ('missing, invalid, or product-scoped token') — mint the token without `product` for this route.",
+    "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com). Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production."
+  ],
+  "evidence": {
+    "source_url": "https://docs.usesmileid.com/api-reference/core-resources/smile-links/fetch-a-smile-link.md",
+    "source_reference": "Fetch a Smile Link (GET /v3/smile_links/{refId})",
+    "extracted_at": "2026-10-23T20:50:42.595Z",
+    "snapshot_hash": "383d56e1be834e436432272617dc200c64dbd4166d2220152627ac842b5af351",
+    "spans": [
+      "/v3/smile_links/{refId}",
+      "Returns the link resource for a link id.",
+      "Set while the link is disabled; null when active."
+    ]
+  }
+}
