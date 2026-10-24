@@ -1,0 +1,121 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v2",
+  "capability": "get_tracking_links",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "header": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "YANGO_DELIVERY_TOKEN"
+  },
+  "endpoint": {
+    "url": "https://b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/tracking-links",
+    "method": "GET"
+  },
+  "example_prompt": "Get the link that lets my customer follow their Yango Delivery courier on a map.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "claim_id": {
+        "type": "string",
+        "minLength": 32,
+        "maxLength": 64,
+        "description": "Claim ID received at the claim creation stage Passed as a query parameter."
+      }
+    },
+    "required": [
+      "claim_id"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "route_points": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Integer point ID (int64)"
+            },
+            "type": {
+              "enum": [
+                "source",
+                "destination",
+                "return"
+              ],
+              "description": "Point type: - source: the point of departure where the courier picks up the item - destination: destination points where the courier delivers the items - return: item return point (added automatically and matches the point of departure by default, but a different point can also be selected)"
+            },
+            "visit_order": {
+              "type": "integer",
+              "format": "int64",
+              "description": "The order in which the points are visited (numbering starts with 1) (int64)"
+            },
+            "sharing_link": {
+              "type": "string",
+              "description": "Route tracking link. Available only for destination points"
+            }
+          },
+          "required": [
+            "id",
+            "type",
+            "visit_order"
+          ]
+        },
+        "description": "Route points with tracking links"
+      }
+    },
+    "required": [
+      "route_points"
+    ]
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "string",
+        "enum": [
+          "not_found",
+          "unknown_tracking_links",
+          "inappropriate_status",
+          "too_many_requests"
+        ],
+        "description": "Error code"
+      },
+      "message": {
+        "type": "string",
+        "description": "Error description"
+      }
+    },
+    "required": [
+      "code",
+      "message"
+    ]
+  },
+  "gotchas": [
+    "Authenticate with 'Authorization: Bearer <OAuth token>'. The token comes from your Yango Delivery account (log in with the credentials your Yango Delivery manager gives you, Integration tab, Get token). It remains valid indefinitely, but changing the account password invalidates it; an invalid token answers 401 unauthorized.",
+    "sharing_link is only available on destination points: pick the route point of type destination.",
+    "A 409 means 'Inactive claim or no courier tracking links' (codes unknown_tracking_links, inappropriate_status): this example throws on it, so handle the error.",
+    "Errors return { code, message }: branch on code. Documented on this endpoint: 404 not_found; 409 unknown_tracking_links, inappropriate_status; 429 too_many_requests. The error guide adds 401 unauthorized (invalid token) and 500 (try again or change the request)."
+  ],
+  "evidence": {
+    "source_url": "https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsTrackingLinks.md",
+    "source_reference": "Yango Delivery Express API reference, page 'Courier tracking links' (GET /b2b/cargo/integration/v2/claims/tracking-links). Passages quoted from the Yango Delivery documentation (snapshot 2026-10-24): https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/quickstart.md: \"using the username and password that you received from your Yango Delivery manager\" | \"Open the **Integration** tab.\" | \"Authorization: Bearer <OAuth_token>\" | \"The OAuth token remains valid indefinitely.\" | \"If you change the password to your personal account, the previously issued OAuth token becomes invalid.\" ; https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/errors.md: \"Invalid token specified. Get the correct token in your personal account.\" | \"Invalid token specified.\" | \"Try again or change the request.\"",
+    "extracted_at": "2026-10-24T06:14:42.880Z",
+    "snapshot_hash": "a1c061a5a191b520d0f60c43292eb4b1cbb16b7d39865a7d67c65d9330ff7682",
+    "spans": [
+      "Route tracking link. Available only for destination points",
+      "Inactive claim or no courier tracking links",
+      "unknown_tracking_links",
+      "not_found",
+      "inappropriate_status",
+      "too_many_requests",
+      "b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/tracking-links"
+    ]
+  }
+}

@@ -1,0 +1,341 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v2",
+  "capability": "check_delivery_price",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "header": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "YANGO_DELIVERY_TOKEN"
+  },
+  "endpoint": {
+    "url": "https://b2b.delivery.yango.tech/b2b/cargo/integration/v2/check-price",
+    "method": "POST"
+  },
+  "example_prompt": "Estimate the cost of a Yango Delivery courier between two addresses in Abidjan before creating a claim.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "route_points": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "coordinates": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2,
+              "description": "Coordinates of points in the form of an array of two real numbers: longitude and latitude — exactly in that order. ``` [ 0.1, 0.1 ] ```"
+            },
+            "fullname": {
+              "type": "string",
+              "description": "Full address with an indication of the city, street, and house number. You don't need to specify the flat, the entrance number, or the floor."
+            },
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Numeric point id (int64). The parameter is mandatory if there are multiple delivery points in the order"
+            }
+          }
+        },
+        "minItems": 1,
+        "description": "Route points. Sorted in order of visits A-B1....BN"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "quantity": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "description": "Number of items"
+            },
+            "dropoff_point": {
+              "type": "integer",
+              "format": "int64",
+              "description": "ID of the point (int64) to deliver the item to. It can be any number. Must match the route_points[].id value of the destination point. The parameter is mandatory if there are multiple delivery points in the order."
+            },
+            "pickup_point": {
+              "type": "integer",
+              "format": "int64",
+              "description": "ID of the point (int64) to pick up the item from. It can be any number. Must match the route_points[].id value of the dispatch point. The parameter is mandatory if there are multiple delivery points in the order."
+            },
+            "size": {
+              "type": "object",
+              "properties": {
+                "height": {
+                  "type": "number",
+                  "description": "Height in meters"
+                },
+                "length": {
+                  "type": "number",
+                  "description": "Length in meters"
+                },
+                "width": {
+                  "type": "number",
+                  "description": "Width in meters"
+                }
+              },
+              "required": [
+                "height",
+                "length",
+                "width"
+              ],
+              "description": "Unit dimensions in meters. The actual values should be added to the fields. If the dimensions aren't added, the order is placed, taking into account the maximum dimensions allowed for the selected rate. If the actual characteristics of the unit exceed the allowed dimensions, the courier has the right to refuse to fulfill the order on site. In this case, the minimum fee will be withheld. Courier: up to 0.80 m × 0.50 m × 0.50 м Express: up to 1.00 m × 0.60 m × 0.50 m Cargo: - Small body: up to 1.70 m × 0.96 m × 0.90 m - Medium body: up to 2.60 m × 1.30 m × 1.50 m - Large body: up to 3.80 m × 1.80 m × 1.80 m"
+            },
+            "weight": {
+              "type": "number",
+              "description": "Item weight in kilograms. Example: 2.105"
+            }
+          },
+          "required": [
+            "quantity"
+          ]
+        },
+        "minItems": 1,
+        "description": "Item parameters"
+      },
+      "requirements": {
+        "type": "object",
+        "properties": {
+          "taxi_class": {
+            "type": "string",
+            "description": "Delivery rate. Possible values: courier, express, cargo"
+          },
+          "cargo_loaders": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Number of loaders for the cargo rate. Possible values: 0, 1, 2. For an exact list of possible values for a particular point, use the method for obtaining rates tariffs (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2Tariffs.md)."
+          },
+          "cargo_options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of additional rate options. Possible separate options: - auto_courier (a courier with a vehicle only) - thermobag (a courier with a thermobag) Example of a list of options: [\"auto_courier\"]. For an exact list of possible values for a particular geo point, use the method for obtaining rates tariffs (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2Tariffs.md)"
+          },
+          "cargo_type": {
+            "enum": [
+              "van",
+              "lcv_m",
+              "lcv_l",
+              "lcv_xl"
+            ],
+            "description": "Body type (size) for the cargo rate. Possible values: - van (\"Small body\") - lcv_m (\"Medium body\") - lcv_l (\"Large body\") - lcv_xl (\"XL body\") For an exact list of possible values for a particular geo point, use the method for obtaining rates tariffs (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2Tariffs.md)"
+          },
+          "pro_courier": {
+            "type": "boolean",
+            "description": "Enable the \"Pro\" option for \"Express\" and \"Courier\" rates. In this case, we will look only for experienced couriers."
+          }
+        },
+        "required": [
+          "taxi_class"
+        ],
+        "description": "Delivery requirements (vehicle class, options)"
+      },
+      "skip_door_to_door": {
+        "type": "boolean",
+        "default": false,
+        "description": "Disable door-to-door delivery (disable the \"Door-to-door\" option). Possible values: - true (the courier will deliver the order only at the entrance outside) - false (the courier will deliver the order at the door) - default value."
+      }
+    },
+    "required": [
+      "route_points"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "price": {
+        "type": "string",
+        "pattern": "^-?[0-9]{1,14}(\\.[0-9]{0,4})?$",
+        "description": "Delivery cost in Decimal(18, 4) format"
+      },
+      "requirements": {
+        "type": "object",
+        "properties": {
+          "taxi_class": {
+            "type": "string",
+            "description": "Delivery rate. Possible values: courier, express, cargo"
+          },
+          "cargo_loaders": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Number of loaders for the cargo rate. Possible values: 0, 1, 2. For an exact list of possible values for a particular point, use the method for obtaining rates tariffs (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2Tariffs.md)."
+          },
+          "cargo_options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of additional rate options. Possible separate options: - auto_courier (a courier with a vehicle only) - thermobag (a courier with a thermobag) Example of a list of options: [\"auto_courier\"]. For an exact list of possible values for a particular geo point, use the method for obtaining rates tariffs (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2Tariffs.md)"
+          },
+          "cargo_type": {
+            "enum": [
+              "van",
+              "lcv_m",
+              "lcv_l",
+              "lcv_xl"
+            ],
+            "description": "Body type (size) for the cargo rate. Possible values: - van (\"Small body\") - lcv_m (\"Medium body\") - lcv_l (\"Large body\") - lcv_xl (\"XL body\") For an exact list of possible values for a particular geo point, use the method for obtaining rates tariffs (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2Tariffs.md)"
+          },
+          "pro_courier": {
+            "type": "boolean",
+            "description": "Enable the \"Pro\" option for \"Express\" and \"Courier\" rates. In this case, we will look only for experienced couriers."
+          }
+        },
+        "required": [
+          "taxi_class"
+        ],
+        "description": "Delivery requirements (vehicle class, options)"
+      },
+      "currency_rules": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "description": "Three-digit code of the payment currency"
+          },
+          "template": {
+            "type": "string",
+            "description": "Currency display template"
+          },
+          "text": {
+            "type": "string",
+            "description": "Short currency name"
+          },
+          "sign": {
+            "type": "string",
+            "description": "Currency symbol"
+          }
+        },
+        "required": [
+          "code",
+          "template",
+          "text"
+        ],
+        "description": "Currency display rules"
+      },
+      "distance_meters": {
+        "type": "number",
+        "description": "Distance in meters for the specified route, from the first to the last point"
+      },
+      "eta": {
+        "type": "number",
+        "description": "Estimated time of arrival in minutes"
+      },
+      "zone_id": {
+        "type": "string",
+        "description": "Delivery zone ID"
+      }
+    },
+    "required": [
+      "price",
+      "requirements"
+    ]
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "string",
+        "enum": [
+          "bad_request",
+          "address_not_found",
+          "errors.suitable_offer_not_found",
+          "estimating.cant_construct_route",
+          "estimating.cargocorp_payment_failure",
+          "estimating.claim.no_zone_id",
+          "estimating.limited_by_claims_creation_overflow",
+          "estimating.no_pickup_point",
+          "estimating.payment_method_cant_order",
+          "estimating.payment_method_zone_unavailable",
+          "estimating.permitted_tariffs_not_enough",
+          "estimating.requirement_unavailable",
+          "estimating.route_too_long",
+          "estimating.tariff.no_categories",
+          "estimating.tariff.no_categories_in_zone",
+          "estimating.tariff.no_sdd_tariff",
+          "estimating.tariff.no_tariff_plan",
+          "estimating.too_large_linear_size",
+          "estimating.too_many_loaders",
+          "estimating.warning.too_heavy_item",
+          "estimating.warning.too_large_item",
+          "too_many_requests"
+        ],
+        "description": "Error code"
+      },
+      "message": {
+        "type": "string",
+        "description": "Error description"
+      }
+    },
+    "required": [
+      "code",
+      "message"
+    ]
+  },
+  "gotchas": [
+    "Authenticate with 'Authorization: Bearer <OAuth token>'. The token comes from your Yango Delivery account (log in with the credentials your Yango Delivery manager gives you, Integration tab, Get token). It remains valid indefinitely, but changing the account password invalidates it; an invalid token answers 401 unauthorized.",
+    "This is a first estimate, without creating a claim. The price you confirm is the offer computed after create_delivery_claim (pricing.offer in get_delivery_claim).",
+    "Coordinates are [longitude, latitude] — in that order. The error guide links unknown_zone to coordinates sent in the wrong order.",
+    "requirements.taxi_class is courier, express or cargo. The reference lists cargo_type van, lcv_m, lcv_l and lcv_xl; the FAQ gives weight caps only for courier (10 kg), express (20 kg) and van / lcv_m / lcv_l (300 / 700 / 1400 kg). Loaders: the reference says 0, 1 or 2, the FAQ 1 or 2.",
+    "Send real item dimensions: without them the rate's maximum dimensions are assumed, and a courier can refuse an item that exceeds them on site — the minimum fee is still withheld.",
+    "Accept-Language is a required header on this endpoint (e.g. en); this example sends en.",
+    "delivery.yango.com lists Côte d'Ivoire, Ghana, Senegal and Zambia under Africa. The Côte d'Ivoire and Senegal pages mention API integrations; the Ghana and Zambia pages say 'integrations' without naming the API. Every example in this reference uses UAE data (AED prices, +971 phone numbers): confirm with your Yango Delivery manager that API access is open in your country.",
+    "No test environment is documented: requests go to the production host, and confirming a claim starts the search for a courier. The error guide mentions test accounts (required_tariffs_disabled_for_user: 'Test account has expired or the specified rate is disabled') — ask your manager for one before testing.",
+    "Errors return { code, message }: branch on code. Documented on this endpoint: 400 bad_request, address_not_found; 409 errors.suitable_offer_not_found, estimating.cant_construct_route, estimating.cargocorp_payment_failure, estimating.claim.no_zone_id, estimating.limited_by_claims_creation_overflow, estimating.no_pickup_point, estimating.payment_method_cant_order, estimating.payment_method_zone_unavailable, estimating.permitted_tariffs_not_enough, estimating.requirement_unavailable, estimating.route_too_long, estimating.tariff.no_categories, estimating.tariff.no_categories_in_zone, estimating.tariff.no_sdd_tariff, estimating.tariff.no_tariff_plan, estimating.too_large_linear_size, estimating.too_many_loaders, estimating.warning.too_heavy_item, estimating.warning.too_large_item; 429 too_many_requests. The error guide adds 401 unauthorized (invalid token) and 500 (try again or change the request)."
+  ],
+  "evidence": {
+    "source_url": "https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2CheckPrice.md",
+    "source_reference": "Yango Delivery Express API reference, page 'Preliminary evaluation without creating a claim' (POST /b2b/cargo/integration/v2/check-price). Passages quoted from the Yango Delivery documentation (snapshot 2026-10-24): https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/quickstart.md: \"using the username and password that you received from your Yango Delivery manager\" | \"Open the **Integration** tab.\" | \"Authorization: Bearer <OAuth_token>\" | \"The OAuth token remains valid indefinitely.\" | \"If you change the password to your personal account, the previously issued OAuth token becomes invalid.\" | \"If the claim can be fulfilled, you receive a response with the actual cost of the order.\" | \"This initiates the process of finding a courier for the order.\" ; https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/errors.md: \"Invalid token specified. Get the correct token in your personal account.\" | \"Make sure the coordinates are specified in the correct order [longitude, latitude]\" | \"(+97142774444)\" | \"Test account has expired or the specified rate is disabled.\" | \"Invalid token specified.\" | \"Try again or change the request.\" ; https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/overview.md: \"Returns the initial cost estimation without creating a claim.\" ; https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/faq.md: \"\"Courier\" — `courier`\" | \"\"Express\" — `express`\" | \"\"Cargo\" — `cargo`\" | \"\"Courier\" (`courier`): Up to 10 kg\" | \"\"Express\" (`express`): Up to 20 kg\" | \"\"Small vehicle\": Up to 300 kg\" | \"\"Medium vehicle\": Up to 700 kg\" | \"\"Large vehicle\": Up to 1400 kg\" | \"**Number of loaders** (`cargo_loaders`): 1 or 2\" ; https://delivery.yango.com/: \"Africa\" | \"Ghana\" | \"Senegal\" | \"Zambia\" ; https://delivery.yango.com/ci-fr: \"Yango propose un éventail de produits, allant du compte web prépayé aux intégrations API\" ; https://delivery.yango.com/sn-fr: \"allant du compte web prépayé aux intégrations API\" ; https://delivery.yango.com/gh-en: \"from prepaid web account to integrations\" ; https://delivery.yango.com/zm-en: \"from prepaid web account to integrations\"",
+    "extracted_at": "2026-10-24T06:14:51.310Z",
+    "snapshot_hash": "974ee278deba695db3821119aa0f90c5a38ee64e1a1acd71f4b9f4c1c4d4d8fd",
+    "spans": [
+      "Preliminary evaluation without creating a claim",
+      "longitude and latitude",
+      "exactly in that order",
+      "Possible values: courier, express, cargo",
+      "lcv_xl",
+      "Possible values: 0, 1, 2.",
+      "the courier has the right to refuse to fulfill the order on site",
+      "the minimum fee will be withheld",
+      "Preferred response language.",
+      "bad_request",
+      "address_not_found",
+      "errors.suitable_offer_not_found",
+      "estimating.cant_construct_route",
+      "estimating.cargocorp_payment_failure",
+      "estimating.claim.no_zone_id",
+      "estimating.limited_by_claims_creation_overflow",
+      "estimating.no_pickup_point",
+      "estimating.payment_method_cant_order",
+      "estimating.payment_method_zone_unavailable",
+      "estimating.permitted_tariffs_not_enough",
+      "estimating.requirement_unavailable",
+      "estimating.route_too_long",
+      "estimating.tariff.no_categories",
+      "estimating.tariff.no_categories_in_zone",
+      "estimating.tariff.no_sdd_tariff",
+      "estimating.tariff.no_tariff_plan",
+      "estimating.too_large_linear_size",
+      "estimating.too_many_loaders",
+      "estimating.warning.too_heavy_item",
+      "estimating.warning.too_large_item",
+      "too_many_requests",
+      "b2b.delivery.yango.tech/b2b/cargo/integration/v2/check-price"
+    ]
+  }
+}

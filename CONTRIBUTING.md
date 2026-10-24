@@ -77,7 +77,7 @@ specs/{category}/{provider_slug}/
     └── canonical_example.ts
 ```
 
-- `category`: `payment`, `communications` (SMS, WhatsApp, USSD, voice, email) or `identity` (KYC, document verification, AML)
+- `category`: `payment`, `communications` (SMS, WhatsApp, USSD, voice, email) `identity` (KYC, document verification, AML) or `logistics` (delivery, couriers, parcel tracking)
 - `provider_slug`: lowercase. Single-word providers use no separator (e.g. `wave`, `nimbasms`). Compound or geographic variants may use hyphens (e.g. `orangemoney-mali`).
 - `capability`: snake_case verb (e.g. `create_payment`, `send_message`)
 

@@ -1,0 +1,1613 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v2",
+  "capability": "create_delivery_claim",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "header": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "YANGO_DELIVERY_TOKEN"
+  },
+  "endpoint": {
+    "url": "https://b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/create",
+    "method": "POST"
+  },
+  "example_prompt": "Create a Yango Delivery claim to send a parcel from my shop in Abidjan to a customer, then confirm it once it is priced.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "request_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "description": "Idempotency token. Letters, numbers, and other symbols are allowed. To guarantee that values are unique, we recommend using the uuid format and its derivatives. If a server error (code 5xx) or timeout occur when creating a claim, use the same value to retry. (Otherwise, claim duplicating is possible, which may result in multiple couriers coming for the order). In other cases (when creating a new claim), use the new request_id value. Learn more (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/faq.md#claim-create) Passed as a query parameter."
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "cost_currency": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3,
+              "description": "Three-digit code of the payment currency"
+            },
+            "cost_value": {
+              "type": "string",
+              "description": "Price per item in cost_currency. To insure the cost, enter the actual cargo price"
+            },
+            "droppof_point": {
+              "type": "integer",
+              "format": "int64",
+              "description": "ID of the point (int64) to deliver the item to. Differs from the ID in the claim. It can be any number. Must match the route_points[].point_id value of the destination point"
+            },
+            "pickup_point": {
+              "type": "integer",
+              "format": "int64",
+              "description": "ID of the point (int64) to pick up the item from. Differs from the ID in the claim. It can be any number. Must match the route_points[].point_id value of the dispatch point"
+            },
+            "quantity": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "description": "Number of units (int64)"
+            },
+            "title": {
+              "type": "string",
+              "description": "Item name"
+            },
+            "extra_id": {
+              "type": "string",
+              "maxLength": 512,
+              "description": "Short unique item ID (order number in the claim, usually identical to external_order_id)"
+            },
+            "fiscalization": {
+              "type": "object",
+              "properties": {
+                "article": {
+                  "type": "string",
+                  "description": "Item SKU. Must be unique for items delivered from one point."
+                },
+                "excise": {
+                  "type": "string",
+                  "pattern": "^-?[0-9]{1,14}(\\.[0-9]{0,4})?$",
+                  "description": "Amount of excise tax"
+                },
+                "item_type": {
+                  "enum": [
+                    "product",
+                    "service"
+                  ],
+                  "description": "Name type: product or service. Default value: product"
+                },
+                "mark": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Unit marking code in accordance with the format 'kind'"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "description": "Marking type. Possible values: 1. compiled — disassembled stamp with dedicated GTIN and Serial. Example: - 444D00000000003741 2. gs1_data_matrix_base64 — unit code in GS1 Data Matrix format subject to marking using identification. Maximum 200 characters. The unit code must be entered in full by encoding the string in base64 format."
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "kind"
+                  ],
+                  "description": "Unique item code (control identification sign). Valid for Russia. If items have a unique code, a separate block must be created for each of them"
+                },
+                "supplier_inn": {
+                  "type": "string",
+                  "pattern": "^(\\d{10}|\\d{12})$",
+                  "description": "Supplier's ITN (10 or 12 digits). Fill in the field for orders with buyout and CoD options. If there is no ITN, specify the default value: 1234567890"
+                },
+                "vat_code_str": {
+                  "type": "string",
+                  "description": "VAT rate. Possible values: vat_none — without VAT. vat0 — 0% VAT (applied in rare cases). vat10 — 10% VAT. vat20 — 20% VAT."
+                }
+              },
+              "description": "Fiscalization information (valid for payment upon receipt)"
+            },
+            "size": {
+              "type": "object",
+              "properties": {
+                "height": {
+                  "type": "number",
+                  "description": "Height in meters"
+                },
+                "length": {
+                  "type": "number",
+                  "description": "Length in meters"
+                },
+                "width": {
+                  "type": "number",
+                  "description": "Width in meters"
+                }
+              },
+              "required": [
+                "height",
+                "length",
+                "width"
+              ],
+              "description": "Unit dimensions in meters. The actual values should be added to the fields. If the dimensions aren't added, the order is placed, taking into account the maximum dimensions allowed for the selected rate. If the actual characteristics of the unit exceed the allowed dimensions, the courier has the right to refuse to fulfill the order on site. In this case, the minimum fee will be withheld. Courier: up to 0.80 m × 0.50 m × 0.50 м Express: up to 1.00 m × 0.60 m × 0.50 m Cargo: - Small body: up to 1.70 m × 0.96 m × 0.90 m - Medium body: up to 2.60 m × 1.30 m × 1.50 m - Large body: up to 3.80 m × 1.80 m × 1.80 m"
+            },
+            "weight": {
+              "type": "number",
+              "description": "Item weight in kg. The actual values should be entered in the field. If the weight isn't added, the order is placed, taking into account the maximum dimensions allowed for the selected rate. If the actual characteristics of the parcel exceed the allowed dimensions, the courier has the right to refuse to fulfill the order on site. In this case, the minimum fee will be withheld. Courier: up to 10 kg Express: up to 20 kg Cargo: - Small body: up to 300 kg - Medium body: up to 700 kg - Large body: up to 1400 kg"
+            }
+          },
+          "required": [
+            "cost_currency",
+            "cost_value",
+            "droppof_point",
+            "pickup_point",
+            "quantity",
+            "title"
+          ]
+        },
+        "minItems": 1,
+        "description": "Item parameters"
+      },
+      "route_points": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "address": {
+              "type": "object",
+              "properties": {
+                "fullname": {
+                  "type": "string",
+                  "description": "Full address with an indication of the city, street, and house number. You don't need to specify the flat, the entrance number, or the floor."
+                },
+                "building": {
+                  "type": "string",
+                  "description": "Building"
+                },
+                "building_name": {
+                  "type": "string",
+                  "description": "Apartment building name"
+                },
+                "city": {
+                  "type": "string",
+                  "description": "City"
+                },
+                "comment": {
+                  "type": "string",
+                  "maxLength": 7000,
+                  "description": "Comment for the courier. For the dispatch point, use the template: \"Delivery from store <>. Inform the manager that the order is for Yango Delivery. Provide your order number <> and collect the parcel. The order was paid using cashless payment. So, there's no need to ask the recipient to pay for the delivery when handing over the order.\" For delivery points, leave the recipient's wishes in the comments. For example, \"the intercom doesn't work\" / \"the gate is closed, call 10 minutes in advance\" / \"don't call, the baby is asleep\"."
+                },
+                "coordinates": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "description": "Coordinates of points in the form of an array of two real numbers: longitude and latitude — exactly in that order. Rounded coordinate values are specified."
+                },
+                "country": {
+                  "type": "string",
+                  "description": "Country"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "A geographic area that turns a short address into a global match"
+                },
+                "door_code": {
+                  "type": "string",
+                  "description": "Intercom code"
+                },
+                "door_code_extra": {
+                  "type": "string",
+                  "description": "Additional instructions for intercoms"
+                },
+                "doorbell_name": {
+                  "type": "string",
+                  "description": "Name on the doorbell"
+                },
+                "porch": {
+                  "type": "string",
+                  "description": "Entrance (may be A)"
+                },
+                "sflat": {
+                  "type": "string",
+                  "description": "Flat"
+                },
+                "sfloor": {
+                  "type": "string",
+                  "description": "Floor"
+                },
+                "shortname": {
+                  "type": "string",
+                  "description": "Short address within the city (like on a Taximeter)"
+                },
+                "street": {
+                  "type": "string",
+                  "description": "Street"
+                },
+                "uri": {
+                  "type": "string",
+                  "description": "URI of the geo object on maps"
+                }
+              },
+              "required": [
+                "fullname"
+              ],
+              "description": "Point address"
+            },
+            "contact": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name of the contact person"
+                },
+                "phone": {
+                  "type": "string",
+                  "maxLength": 30,
+                  "pattern": "[0-9 \\\\(\\\\)\\\\-\\\\+]+",
+                  "description": "Phone number of the contact person"
+                },
+                "email": {
+                  "type": "string",
+                  "maxLength": 320,
+                  "pattern": "\\S+@\\S+.\\S+",
+                  "description": "Email is a mandatory parameter for source and return points"
+                },
+                "phone_additional_code": {
+                  "type": "string",
+                  "description": "Extension number to call the courier"
+                }
+              },
+              "required": [
+                "name",
+                "phone"
+              ],
+              "description": "Information about the contact person"
+            },
+            "point_id": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Integer point ID (int64), unique within claim creation"
+            },
+            "type": {
+              "enum": [
+                "source",
+                "destination",
+                "return"
+              ],
+              "description": "Point type: - source: the point of departure where the courier picks up the item - destination: destination points where the courier delivers the items - return: item return point (added automatically and matches the point of departure by default, but a different point can also be selected)"
+            },
+            "visit_order": {
+              "type": "integer",
+              "format": "int64",
+              "description": "The order in which the points are visited (numbering starts with 1) (int64)"
+            },
+            "buyout": {
+              "type": "object",
+              "properties": {
+                "payment_method": {
+                  "enum": [
+                    "card",
+                    "cash"
+                  ],
+                  "description": "Selected payment method. card — payment by card. cash — cash payment (not yet available)."
+                }
+              },
+              "required": [
+                "payment_method"
+              ],
+              "description": "Information on item buyout by the courier at the point of departure (relevant if payment upon receipt is enabled for all destination points on the route)."
+            },
+            "external_order_cost": {
+              "type": "object",
+              "properties": {
+                "currency": {
+                  "type": "string",
+                  "description": "Currency"
+                },
+                "currency_sign": {
+                  "type": "string",
+                  "description": "Currency symbol"
+                },
+                "value": {
+                  "type": "string",
+                  "description": "Cost"
+                }
+              },
+              "required": [
+                "currency",
+                "currency_sign",
+                "value"
+              ],
+              "description": "Cost of the external order linked to the point"
+            },
+            "external_order_id": {
+              "type": "string",
+              "maxLength": 512,
+              "description": "Order number from the customer's system. Entered for destination points"
+            },
+            "leave_under_door": {
+              "type": "boolean",
+              "description": "Leave the parcel at the door"
+            },
+            "meet_outside": {
+              "type": "boolean",
+              "description": "The courier will be met outside, at the entrance"
+            },
+            "no_door_call": {
+              "type": "boolean",
+              "description": "Don't ring the doorbell"
+            },
+            "payment_on_delivery": {
+              "type": "object",
+              "properties": {
+                "payment_method": {
+                  "enum": [
+                    "card",
+                    "cash"
+                  ],
+                  "description": "Selected payment method. card — payment by card. cash — cash payment (not yet available)."
+                },
+                "customer": {
+                  "type": "object",
+                  "properties": {
+                    "email": {
+                      "type": "string",
+                      "maxLength": 320,
+                      "pattern": "\\S+@\\S+.\\S+",
+                      "description": "User's email address in customer-BryanBurns@yango.com format. If not specified, the recipient's email address from the destination point will be used"
+                    },
+                    "inn": {
+                      "type": "string",
+                      "pattern": "^(\\d{10}|\\d{12})$",
+                      "description": "User's ITN (10 or 12 digits)"
+                    },
+                    "phone": {
+                      "type": "string",
+                      "maxLength": 30,
+                      "pattern": "[0-9 \\\\(\\\\)\\\\-\\\\+]+",
+                      "description": "User's phone number in +X XXX XXX XX XX format. If not specified, the recipient's phone number from the destination point will be used"
+                    }
+                  },
+                  "description": "Information about the recipient"
+                }
+              },
+              "required": [
+                "payment_method"
+              ],
+              "description": "Information about payment upon receipt (relevant for payment upon receipt)"
+            },
+            "pickup_code": {
+              "type": "string",
+              "minLength": 6,
+              "maxLength": 6,
+              "pattern": "\\d{6}",
+              "description": "Parcel pick-up code. The courier needs to enter this code to confirm that they have picked up the parcel. This requires your employees to be at the point of dispatch to provide this code to the courier. Relevant for source points. Code format: 6 digits Item pick-up code (pick-up point)"
+            },
+            "skip_confirmation": {
+              "type": "boolean",
+              "default": false,
+              "description": "Skip SMS confirmation at the given point Default value: false (confirmation required)."
+            }
+          },
+          "required": [
+            "address",
+            "contact",
+            "point_id",
+            "type",
+            "visit_order"
+          ]
+        },
+        "minItems": 2,
+        "description": "Route point information"
+      },
+      "auto_accept": {
+        "type": "boolean",
+        "description": "Enable automatic claim confirmation after creation. A manager's approval is required to use this option"
+      },
+      "callback_properties": {
+        "type": "object",
+        "properties": {
+          "callback_url": {
+            "type": "string",
+            "pattern": "^https?:.*",
+            "description": "The URL used in the case of a status change for the claim. This mechanism is deprecated, use the claims/journal (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsJournal.md) operation instead."
+          }
+        },
+        "required": [
+          "callback_url"
+        ],
+        "description": "Parameters for notifying the client's server about the claim status change. A notification is a POST request to the specified URL to which information about the date of the last claim change and claim ID in the format 'updated_ts=<ISO-8601>&claim_id=<claim id>' will be added. Which means that this URL 'https://example.com/?my_order_id=123&' format will be expanded into 'https://example.com/?my_order_id=123&updated_ts=...&claim_id=...'. Note that parameters are added by concatenation to callback_url, which means that the URL such as 'https://example.com' will turn into this invalid format: 'https://example.comupdated_ts=...&claim_id=...'. Only HTTP and HTTPS are supported. In the case of HTTPS, an SSL certificate must be issued by a certification authority known to the server. Notifications should be viewed as a push ahead of polling, a way of speeding up information on status changes. The server expects the 200 response, and if there are timeouts or any other response, it will attempt to deliver the notification and then stop the attempts. So in order to reliably obtain the claim status, the client needs to request information using the method claims/info (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsInfo.md). The client should note that the response of the claims/info (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsInfo.md) operation may contain an older claim state (the value of the updated_ts field should be used as a reference). In this case, the operation call must be repeated after some time (from 5 to 30 seconds)."
+      },
+      "client_requirements": {
+        "type": "object",
+        "properties": {
+          "taxi_class": {
+            "type": "string",
+            "description": "Delivery rate. Possible values: courier, express, cargo"
+          },
+          "cargo_loaders": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Number of loaders for the cargo rate. Possible values: 0, 1, 2. For an exact list of possible values for a particular point, use the method for obtaining rates tariffs (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2Tariffs.md)."
+          },
+          "cargo_options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of additional rate options. Possible separate options: - auto_courier (a courier with a vehicle only) - thermobag (a courier with a thermobag) Example of a list of options: [\"auto_courier\"]. For an exact list of possible values for a particular geo point, use the method for obtaining rates tariffs (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2Tariffs.md)"
+          },
+          "cargo_type": {
+            "enum": [
+              "van",
+              "lcv_m",
+              "lcv_l",
+              "lcv_xl"
+            ],
+            "description": "Body type (size) for the cargo rate. Possible values: - van (\"Small body\") - lcv_m (\"Medium body\") - lcv_l (\"Large body\") - lcv_xl (\"XL body\") For an exact list of possible values for a particular geo point, use the method for obtaining rates tariffs (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2Tariffs.md)"
+          },
+          "pro_courier": {
+            "type": "boolean",
+            "description": "Enable the \"Pro\" option for \"Express\" and \"Courier\" rates. In this case, we will look only for experienced couriers."
+          }
+        },
+        "required": [
+          "taxi_class"
+        ],
+        "description": "Customer requirements specified when creating or editing a claim"
+      },
+      "comment": {
+        "type": "string",
+        "maxLength": 7000,
+        "description": "Comment to the order"
+      },
+      "due": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Estimated time of arrival of the courier. If this parameter isn't specified, we will look for a courier as soon as possible."
+      },
+      "emergency_contact": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the contact person"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 30,
+            "pattern": "[0-9 \\\\(\\\\)\\\\-\\\\+]+",
+            "description": "Phone number of the contact person"
+          },
+          "phone_additional_code": {
+            "type": "string",
+            "description": "Extension number to call the courier"
+          }
+        },
+        "required": [
+          "name",
+          "phone"
+        ],
+        "description": "Information about the contact person with a phone number"
+      },
+      "offer_payload": {
+        "type": "string",
+        "description": "Payload obtained using the method offers/calculate"
+      },
+      "optional_return": {
+        "type": "boolean",
+        "default": false,
+        "description": "Disable item return in case of order cancellation. Possible values: - true (the courier keeps the item) - false (by default, the item must be returned)"
+      },
+      "referral_source": {
+        "type": "string",
+        "description": "Claim source (the name of the CMS where the request is created can be entered) When integrating via a module or aggregator, use referral_source obtained from the Yango integration team."
+      },
+      "same_day_data": {
+        "type": "object",
+        "properties": {
+          "delivery_interval": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Interval start"
+              },
+              "to": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Interval end (date and time)"
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ],
+            "description": "Parcel pick-up and delivery interval"
+          }
+        },
+        "required": [
+          "delivery_interval"
+        ],
+        "description": "Additional information for `Same-day delivery` claims."
+      },
+      "shipping_document": {
+        "type": "string",
+        "description": "Shipping documents"
+      },
+      "skip_act": {
+        "type": "boolean",
+        "description": "Don't show an acceptance certificate"
+      },
+      "skip_client_notify": {
+        "type": "boolean",
+        "default": false,
+        "description": "Don't send SMS notifications to the sender/recipient when a courier is on their way. Default value: false (send notifications)"
+      },
+      "skip_door_to_door": {
+        "type": "boolean",
+        "default": false,
+        "description": "Disable door-to-door delivery (disable the \"Door-to-door\" option). Possible values: - true (the courier will deliver the order only at the entrance outside) - false (the courier will deliver the order to the door) - default value"
+      },
+      "skip_emergency_notify": {
+        "type": "boolean",
+        "default": false,
+        "description": "Don't send a notification to the emergency contact person Default value: false (send notifications)"
+      }
+    },
+    "required": [
+      "request_id",
+      "items",
+      "route_points"
+    ]
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "created_ts": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Date and time of claim creation"
+      },
+      "id": {
+        "type": "string",
+        "minLength": 32,
+        "maxLength": 64,
+        "description": "Claim ID obtained at the claim creation stage"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "cost_currency": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3,
+              "description": "Three-digit code of the payment currency"
+            },
+            "cost_value": {
+              "type": "string",
+              "description": "Price per item in cost_currency. To insure the cost, enter the actual cargo price"
+            },
+            "droppof_point": {
+              "type": "integer",
+              "format": "int64",
+              "description": "ID of the point (int64) to deliver the item to. Differs from the ID in the claim. It can be any number. Must match the route_points[].point_id value of the destination point"
+            },
+            "pickup_point": {
+              "type": "integer",
+              "format": "int64",
+              "description": "ID of the point (int64) to pick up the item from. Differs from the ID in the claim. It can be any number. Must match the route_points[].point_id value of the dispatch point"
+            },
+            "quantity": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "description": "Number of units (int64)"
+            },
+            "title": {
+              "type": "string",
+              "description": "Item name"
+            },
+            "extra_id": {
+              "type": "string",
+              "maxLength": 512,
+              "description": "Short unique item ID (order number in the claim, usually identical to external_order_id)"
+            },
+            "fiscalization": {
+              "type": "object",
+              "properties": {
+                "article": {
+                  "type": "string",
+                  "description": "Item SKU. Must be unique for items delivered from one point."
+                },
+                "excise": {
+                  "type": "string",
+                  "pattern": "^-?[0-9]{1,14}(\\.[0-9]{0,4})?$",
+                  "description": "Amount of excise tax"
+                },
+                "item_type": {
+                  "enum": [
+                    "product",
+                    "service"
+                  ],
+                  "description": "Name type: product or service. Default value: product"
+                },
+                "mark": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Unit marking code in accordance with the format 'kind'"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "description": "Marking type. Possible values: 1. compiled — disassembled stamp with dedicated GTIN and Serial. Example: - 444D00000000003741 2. gs1_data_matrix_base64 — unit code in GS1 Data Matrix format subject to marking using identification. Maximum 200 characters. The unit code must be entered in full by encoding the string in base64 format."
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "kind"
+                  ],
+                  "description": "Unique item code (control identification sign). Valid for Russia. If items have a unique code, a separate block must be created for each of them"
+                },
+                "supplier_inn": {
+                  "type": "string",
+                  "pattern": "^(\\d{10}|\\d{12})$",
+                  "description": "Supplier's ITN (10 or 12 digits). Fill in the field for orders with buyout and CoD options. If there is no ITN, specify the default value: 1234567890"
+                },
+                "vat_code_str": {
+                  "type": "string",
+                  "description": "VAT rate. Possible values: vat_none — without VAT. vat0 — 0% VAT (applied in rare cases). vat10 — 10% VAT. vat20 — 20% VAT."
+                }
+              },
+              "description": "Fiscalization information (valid for payment upon receipt)"
+            },
+            "size": {
+              "type": "object",
+              "properties": {
+                "height": {
+                  "type": "number",
+                  "description": "Height in meters"
+                },
+                "length": {
+                  "type": "number",
+                  "description": "Length in meters"
+                },
+                "width": {
+                  "type": "number",
+                  "description": "Width in meters"
+                }
+              },
+              "required": [
+                "height",
+                "length",
+                "width"
+              ],
+              "description": "Unit dimensions in meters. The actual values should be added to the fields. If the dimensions aren't added, the order is placed, taking into account the maximum dimensions allowed for the selected rate. If the actual characteristics of the unit exceed the allowed dimensions, the courier has the right to refuse to fulfill the order on site. In this case, the minimum fee will be withheld. Courier: up to 0.80 m × 0.50 m × 0.50 м Express: up to 1.00 m × 0.60 m × 0.50 m Cargo: - Small body: up to 1.70 m × 0.96 m × 0.90 m - Medium body: up to 2.60 m × 1.30 m × 1.50 m - Large body: up to 3.80 m × 1.80 m × 1.80 m"
+            },
+            "weight": {
+              "type": "number",
+              "description": "Item weight in kg. The actual values should be entered in the field. If the weight isn't added, the order is placed, taking into account the maximum dimensions allowed for the selected rate. If the actual characteristics of the parcel exceed the allowed dimensions, the courier has the right to refuse to fulfill the order on site. In this case, the minimum fee will be withheld. Courier: up to 10 kg Express: up to 20 kg Cargo: - Small body: up to 300 kg - Medium body: up to 700 kg - Large body: up to 1400 kg"
+            }
+          },
+          "required": [
+            "cost_currency",
+            "cost_value",
+            "droppof_point",
+            "pickup_point",
+            "quantity",
+            "title"
+          ]
+        },
+        "minItems": 1,
+        "description": "Item parameters"
+      },
+      "revision": {
+        "type": "integer",
+        "format": "int64",
+        "description": "Revision (int64)"
+      },
+      "route_points": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "address": {
+              "type": "object",
+              "properties": {
+                "fullname": {
+                  "type": "string",
+                  "description": "Full address with an indication of the city, street, and house number. You don't need to specify the flat, the entrance number, or the floor."
+                },
+                "building": {
+                  "type": "string",
+                  "description": "Building"
+                },
+                "building_name": {
+                  "type": "string",
+                  "description": "Apartment building name"
+                },
+                "city": {
+                  "type": "string",
+                  "description": "City"
+                },
+                "comment": {
+                  "type": "string",
+                  "maxLength": 7000,
+                  "description": "Comment for the courier. For the dispatch point, use the template: \"Delivery from store <>. Inform the manager that the order is for Yango Delivery. Provide your order number <> and collect the parcel. The order was paid using cashless payment. So, there's no need to ask the recipient to pay for the delivery when handing over the order.\" For delivery points, leave the recipient's wishes in the comments. For example, \"the intercom doesn't work\" / \"the gate is closed, call 10 minutes in advance\" / \"don't call, the baby is asleep\"."
+                },
+                "coordinates": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "description": "Coordinates of points in the form of an array of two real numbers: longitude and latitude — exactly in that order. Rounded coordinate values are specified."
+                },
+                "country": {
+                  "type": "string",
+                  "description": "Country"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "A geographic area that turns a short address into a global match"
+                },
+                "door_code": {
+                  "type": "string",
+                  "description": "Intercom code"
+                },
+                "door_code_extra": {
+                  "type": "string",
+                  "description": "Additional instructions for intercoms"
+                },
+                "doorbell_name": {
+                  "type": "string",
+                  "description": "Name on the doorbell"
+                },
+                "porch": {
+                  "type": "string",
+                  "description": "Entrance (may be A)"
+                },
+                "sflat": {
+                  "type": "string",
+                  "description": "Flat"
+                },
+                "sfloor": {
+                  "type": "string",
+                  "description": "Floor"
+                },
+                "shortname": {
+                  "type": "string",
+                  "description": "Short address within the city (like on a Taximeter)"
+                },
+                "street": {
+                  "type": "string",
+                  "description": "Street"
+                },
+                "uri": {
+                  "type": "string",
+                  "description": "URI of the geo object on maps"
+                }
+              },
+              "required": [
+                "fullname"
+              ],
+              "description": "Point address"
+            },
+            "contact": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name of the contact person"
+                },
+                "phone": {
+                  "type": "string",
+                  "maxLength": 30,
+                  "pattern": "[0-9 \\\\(\\\\)\\\\-\\\\+]+",
+                  "description": "Phone number of the contact person"
+                },
+                "email": {
+                  "type": "string",
+                  "maxLength": 320,
+                  "pattern": "\\S+@\\S+.\\S+",
+                  "description": "Email is a mandatory parameter for source and return points"
+                },
+                "phone_additional_code": {
+                  "type": "string",
+                  "description": "Extension number to call the courier"
+                }
+              },
+              "required": [
+                "name",
+                "phone"
+              ],
+              "description": "Information about the contact person"
+            },
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Integer point ID (int64)"
+            },
+            "type": {
+              "enum": [
+                "source",
+                "destination",
+                "return"
+              ],
+              "description": "Point type: - source: the point of departure where the courier picks up the item - destination: destination points where the courier delivers the items - return: item return point (added automatically and matches the point of departure by default, but a different point can also be selected)"
+            },
+            "visit_order": {
+              "type": "integer",
+              "format": "int64",
+              "description": "The order in which the points are visited (numbering starts with 1) (int64)"
+            },
+            "visit_status": {
+              "enum": [
+                "pending",
+                "arrived",
+                "visited",
+                "skipped"
+              ],
+              "description": "Point visit status: - pending — not yet visited. - arrived — the courier arrived at the point. - visited — the courier handed over/picked up the cargo at the point. - skipped — skipped (if the item wasn't accepted)."
+            },
+            "visited_at": {
+              "type": "object",
+              "properties": {
+                "actual": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Actual point visit time. Filled in only for visited points."
+                },
+                "expected": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Estimated time of arrival. Can be filled in only for unvisited points."
+                },
+                "expected_waiting_time_sec": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "Estimated waiting time at the point. (int64)"
+                }
+              },
+              "description": "Information about the point visit time"
+            },
+            "expected_visit_interval": {
+              "type": "object",
+              "properties": {
+                "from": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Interval start"
+                },
+                "to": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Interval end"
+                }
+              },
+              "required": [
+                "from",
+                "to"
+              ],
+              "description": "Time interval of the courier's visit to the point according to the selected offer"
+            },
+            "external_order_cost": {
+              "type": "object",
+              "properties": {
+                "currency": {
+                  "type": "string",
+                  "description": "Currency"
+                },
+                "currency_sign": {
+                  "type": "string",
+                  "description": "Currency symbol"
+                },
+                "value": {
+                  "type": "string",
+                  "description": "Cost"
+                }
+              },
+              "required": [
+                "currency",
+                "currency_sign",
+                "value"
+              ],
+              "description": "Cost of the external order linked to the point"
+            },
+            "external_order_id": {
+              "type": "string",
+              "description": "Order number from the customer's system. Entered for destination points"
+            },
+            "leave_under_door": {
+              "type": "boolean",
+              "description": "Leave the parcel at the door"
+            },
+            "meet_outside": {
+              "type": "boolean",
+              "description": "The courier will be met outside, at the entrance"
+            },
+            "no_door_call": {
+              "type": "boolean",
+              "description": "Don't ring the doorbell"
+            },
+            "payment_on_delivery": {
+              "type": "object",
+              "properties": {
+                "is_paid": {
+                  "type": "boolean",
+                  "description": "Order payment indication"
+                },
+                "client_order_id": {
+                  "type": "string",
+                  "description": "customer order's external ID"
+                },
+                "customer": {
+                  "type": "object",
+                  "properties": {
+                    "email": {
+                      "type": "string",
+                      "description": "User's email address. If not specified, the recipient's email address from the destination point will be used"
+                    },
+                    "full_name": {
+                      "type": "string",
+                      "description": "For legal entities — organization name, for individual entrepreneurs and individuals — full name"
+                    },
+                    "inn": {
+                      "type": "string",
+                      "pattern": "^(\\d{10}|\\d{12})$",
+                      "description": "User's ITN (10 or 12 digits)"
+                    },
+                    "phone": {
+                      "type": "string",
+                      "description": "User's phone number in +X XXX XXX XX XX format. If not specified, the recipient's phone number from the destination point will be used"
+                    }
+                  },
+                  "description": "Information about the customer (recipient)"
+                },
+                "invoice_link": {
+                  "type": "string",
+                  "description": "Invoice link"
+                },
+                "payment_method": {
+                  "enum": [
+                    "card",
+                    "cash"
+                  ],
+                  "description": "Selected payment method. card — payment by card. cash — cash payment (not yet available)."
+                },
+                "payment_ref_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Payment ID"
+                }
+              },
+              "required": [
+                "is_paid"
+              ],
+              "description": "Parameters of payment upon receipt"
+            },
+            "pickup_code": {
+              "type": "string",
+              "minLength": 6,
+              "maxLength": 6,
+              "pattern": "\\d{6}",
+              "description": "Parcel pick-up code. The courier needs to enter this code to confirm that they have picked up the parcel. This requires your employees to be at the point of dispatch to provide this code to the courier. Relevant for source points. Code format: 6 digits Item pick-up code (pick-up point)"
+            },
+            "return_comment": {
+              "type": "string",
+              "description": "Comments on the reasons for returning the cargo"
+            },
+            "return_reasons": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Reasons for returning the cargo"
+            },
+            "skip_confirmation": {
+              "type": "boolean",
+              "default": false,
+              "description": "Skip SMS confirmation at the given point Default value: false (confirmation required)."
+            }
+          },
+          "required": [
+            "address",
+            "contact",
+            "id",
+            "type",
+            "visit_order",
+            "visit_status",
+            "visited_at"
+          ],
+          "description": "Route point information"
+        },
+        "minItems": 2,
+        "description": "Route point information Route point information"
+      },
+      "status": {
+        "enum": [
+          "new",
+          "estimating",
+          "estimating_failed",
+          "ready_for_approval",
+          "accepted",
+          "performer_lookup",
+          "performer_draft",
+          "performer_found",
+          "performer_not_found",
+          "pickup_arrived",
+          "ready_for_pickup_confirmation",
+          "pickuped",
+          "delivery_arrived",
+          "ready_for_delivery_confirmation",
+          "delivered",
+          "delivered_finish",
+          "returning",
+          "return_arrived",
+          "ready_for_return_confirmation",
+          "returned",
+          "returned_finish",
+          "failed",
+          "cancelled",
+          "cancelled_with_payment",
+          "cancelled_by_taxi",
+          "cancelled_with_items_on_hands"
+        ],
+        "description": "Claim status. To learn more, see Status model (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/claim-process.md)"
+      },
+      "updated_ts": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Date and time of the last claim update"
+      },
+      "user_request_revision": {
+        "type": "string",
+        "description": "The current version of changes in the claim entered by the user"
+      },
+      "version": {
+        "type": "integer",
+        "format": "int64",
+        "description": "Version (int64)"
+      },
+      "callback_properties": {
+        "type": "object",
+        "properties": {
+          "callback_url": {
+            "type": "string",
+            "pattern": "^https?:.*",
+            "description": "The URL used in the case of a status change for the claim. This mechanism is deprecated, use the claims/journal (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsJournal.md) operation instead."
+          }
+        },
+        "required": [
+          "callback_url"
+        ],
+        "description": "Parameters for notifying the client's server about the claim status change. A notification is a POST request to the specified URL to which information about the date of the last claim change and claim ID in the format 'updated_ts=<ISO-8601>&claim_id=<claim id>' will be added. Which means that this URL 'https://example.com/?my_order_id=123&' format will be expanded into 'https://example.com/?my_order_id=123&updated_ts=...&claim_id=...'. Note that parameters are added by concatenation to callback_url, which means that the URL such as 'https://example.com' will turn into this invalid format: 'https://example.comupdated_ts=...&claim_id=...'. Only HTTP and HTTPS are supported. In the case of HTTPS, an SSL certificate must be issued by a certification authority known to the server. Notifications should be viewed as a push ahead of polling, a way of speeding up information on status changes. The server expects the 200 response, and if there are timeouts or any other response, it will attempt to deliver the notification and then stop the attempts. So in order to reliably obtain the claim status, the client needs to request information using the method claims/info (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsInfo.md). The client should note that the response of the claims/info (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsInfo.md) operation may contain an older claim state (the value of the updated_ts field should be used as a reference). In this case, the operation call must be repeated after some time (from 5 to 30 seconds)."
+      },
+      "client_requirements": {
+        "type": "object",
+        "properties": {
+          "taxi_class": {
+            "type": "string",
+            "description": "Delivery rate. Possible values: courier, express, cargo"
+          },
+          "cargo_loaders": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Number of loaders for the cargo rate. Possible values: 0, 1, 2. For an exact list of possible values for a particular point, use the method for obtaining rates tariffs (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2Tariffs.md)."
+          },
+          "cargo_options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of additional rate options. Possible separate options: - auto_courier (a courier with a vehicle only) - thermobag (a courier with a thermobag) Example of a list of options: [\"auto_courier\"]. For an exact list of possible values for a particular geo point, use the method for obtaining rates tariffs (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2Tariffs.md)"
+          },
+          "cargo_type": {
+            "enum": [
+              "van",
+              "lcv_m",
+              "lcv_l",
+              "lcv_xl"
+            ],
+            "description": "Body type (size) for the cargo rate. Possible values: - van (\"Small body\") - lcv_m (\"Medium body\") - lcv_l (\"Large body\") - lcv_xl (\"XL body\") For an exact list of possible values for a particular geo point, use the method for obtaining rates tariffs (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2Tariffs.md)"
+          },
+          "pro_courier": {
+            "type": "boolean",
+            "description": "Enable the \"Pro\" option for \"Express\" and \"Courier\" rates. In this case, we will look only for experienced couriers."
+          }
+        },
+        "required": [
+          "taxi_class"
+        ],
+        "description": "Customer requirements specified when creating or editing a claim"
+      },
+      "comment": {
+        "type": "string",
+        "maxLength": 7000,
+        "description": "General comment to the order"
+      },
+      "corp_client_id": {
+        "type": "string",
+        "minLength": 32,
+        "maxLength": 32,
+        "description": "Yango Delivery corporate client ID (from the OAuth token)"
+      },
+      "current_point_id": {
+        "type": "integer",
+        "format": "int64",
+        "description": "Integer point ID (int64) generated on the Yango Delivery side. It is in the route_points[].id field. Applicable to source, destination, and return points."
+      },
+      "due": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Estimated time of arrival of the courier. If this parameter isn't specified, we will look for a courier as soon as possible."
+      },
+      "emergency_contact": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the contact person"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 30,
+            "pattern": "[0-9 \\\\(\\\\)\\\\-\\\\+]+",
+            "description": "Phone number of the contact person"
+          },
+          "phone_additional_code": {
+            "type": "string",
+            "description": "Extension number to call the courier"
+          }
+        },
+        "required": [
+          "name",
+          "phone"
+        ],
+        "description": "Information about the contact person with a phone number"
+      },
+      "error_messages": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "description": "Error code"
+            },
+            "message": {
+              "type": "string",
+              "description": "Error description"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "description": "Error code and description"
+        },
+        "description": "List of error messages Error code and description"
+      },
+      "eta": {
+        "type": "integer",
+        "format": "int64",
+        "description": "Estimated order fulfillment time in minutes (int64)"
+      },
+      "matched_cars": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "taxi_class": {
+              "type": "string",
+              "description": "Delivery rate. Possible values: courier, express, cargo"
+            },
+            "cargo_loaders": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0,
+              "description": "Required number of loaders (int64)"
+            },
+            "cargo_type": {
+              "type": "string",
+              "description": "Body type"
+            },
+            "cargo_type_int": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Body type (int64)"
+            },
+            "client_taxi_class": {
+              "type": "string",
+              "description": "Customer rate"
+            },
+            "door_to_door": {
+              "type": "boolean",
+              "description": "The \"door-to-door\" option for the \"Express\" rate"
+            },
+            "pro_courier": {
+              "type": "boolean",
+              "description": "Enable the \"Pro\" option for \"Express\" and \"Courier\" rates. In this case, we will look only for experienced couriers."
+            }
+          },
+          "required": [
+            "taxi_class"
+          ]
+        },
+        "description": "Information about the selected rate"
+      },
+      "optional_return": {
+        "type": "boolean",
+        "default": false,
+        "description": "Disable item return in case of order cancellation. Possible values: - true (the courier keeps the item) - false (by default, the item must be returned)"
+      },
+      "performer_info": {
+        "type": "object",
+        "properties": {
+          "courier_name": {
+            "type": "string",
+            "description": "Name of the courier who is delivering a parcel"
+          },
+          "legal_name": {
+            "type": "string",
+            "description": "Data on the legal entity that performs the delivery"
+          },
+          "car_color": {
+            "type": "string",
+            "description": "Vehicle color"
+          },
+          "car_color_hex": {
+            "type": "string",
+            "description": "RGB code of the vehicle color"
+          },
+          "car_model": {
+            "type": "string",
+            "description": "Vehicle model"
+          },
+          "car_number": {
+            "type": "string",
+            "description": "License plate number of the vehicle"
+          },
+          "transport_type": {
+            "type": "string",
+            "description": "Type of courier transport"
+          }
+        },
+        "required": [
+          "courier_name",
+          "legal_name"
+        ],
+        "description": "Information about the executor"
+      },
+      "pricing": {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "Three-digit code of the payment currency"
+          },
+          "currency_rules": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 3,
+                "description": "Three-digit code of the payment currency"
+              },
+              "template": {
+                "type": "string",
+                "description": "Currency display template"
+              },
+              "text": {
+                "type": "string",
+                "description": "Short currency name"
+              },
+              "sign": {
+                "type": "string",
+                "description": "Currency symbol"
+              }
+            },
+            "required": [
+              "code",
+              "template",
+              "text"
+            ],
+            "description": "Currency display rules"
+          },
+          "final_price": {
+            "type": "string",
+            "pattern": "^-?[0-9]{1,14}(\\.[0-9]{0,4})?$",
+            "description": "Delivery cost in Decimal(18, 4) format"
+          },
+          "final_pricing_calc_id": {
+            "type": "string",
+            "description": "Cost calculation ID"
+          },
+          "offer": {
+            "type": "object",
+            "properties": {
+              "offer_id": {
+                "type": "string",
+                "description": "Offer ID"
+              },
+              "price": {
+                "type": "string",
+                "pattern": "^-?[0-9]{1,14}(\\.[0-9]{0,4})?$",
+                "description": "Offer price without VAT"
+              },
+              "price_with_vat": {
+                "type": "string",
+                "pattern": "^-?[0-9]{1,14}(\\.[0-9]{0,4})?$",
+                "description": "Delivery cost in Decimal(18, 4) format"
+              },
+              "valid_until": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time until which the offer to accept the claim is valid. If there is no value, there are no limits on the offer duration"
+              }
+            },
+            "required": [
+              "offer_id",
+              "price"
+            ],
+            "description": "Offer from Yango Delivery (valid for some time)."
+          }
+        },
+        "description": "Information about the order cost"
+      },
+      "route_id": {
+        "type": "string",
+        "description": "ID of the route within which the order is delivered If multiple orders are delivered by one courier, all of them will have the same route_id (Relevant only for the \"Same-day delivery\")"
+      },
+      "same_day_data": {
+        "type": "object",
+        "properties": {
+          "delivery_interval": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Interval start"
+              },
+              "to": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Interval end (date and time)"
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ],
+            "description": "Parcel pick-up and delivery interval"
+          }
+        },
+        "required": [
+          "delivery_interval"
+        ],
+        "description": "Additional information for `Same-day delivery` claims."
+      },
+      "shipping_document": {
+        "type": "string",
+        "description": "Shipping documents"
+      },
+      "skip_act": {
+        "type": "boolean",
+        "description": "Don't show an acceptance certificate"
+      },
+      "skip_client_notify": {
+        "type": "boolean",
+        "default": false,
+        "description": "Don't send SMS notifications to the sender/recipient when a courier is on their way. Default value: false (send notifications)"
+      },
+      "skip_door_to_door": {
+        "type": "boolean",
+        "default": false,
+        "description": "Disable door-to-door delivery (disable the \"Door-to-door\" option). Possible values: - true (the courier will deliver the order only at the entrance outside) - false (the courier will deliver the order to the door) - default value"
+      },
+      "skip_emergency_notify": {
+        "type": "boolean",
+        "default": false,
+        "description": "Don't send a notification to the emergency contact person Default value: false (send notifications)"
+      },
+      "warnings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "description": "Warning type: - not_fit_in_car: the cargo may not fit in the vehicle. - requirement_unavailable: the specified requirement isn't available and has been ignored. - address_not_found - the specified address wasn't found in maps. - address_too_far: the coordinates from maps the specified address are far from the transmitted coordinates."
+            },
+            "source": {
+              "type": "string",
+              "description": "Warning source: - client_requirements — the warning is related to customer requirements. - route_points — the warning is related to the transmitted addresses."
+            },
+            "message": {
+              "type": "string",
+              "description": "Warning description"
+            }
+          },
+          "required": [
+            "code",
+            "source"
+          ]
+        },
+        "description": "Warnings during claim processing"
+      }
+    },
+    "required": [
+      "created_ts",
+      "id",
+      "items",
+      "revision",
+      "route_points",
+      "status",
+      "updated_ts",
+      "user_request_revision",
+      "version"
+    ]
+  },
+  "error_schema": {
+    "type": "object",
+    "properties": {
+      "code": {
+        "type": "string",
+        "enum": [
+          "validation_error",
+          "sdd_items_without_parameters_forbidden",
+          "items_without_parameters_forbidden",
+          "sdd_multipoints_not_supported",
+          "address_too_far",
+          "address_not_found",
+          "bad_request",
+          "invalid_post_payment",
+          "sdd_client_requirements_forbidden",
+          "invalid_delivery_interval",
+          "wrong_pickup_code_format",
+          "wrong_pickup_code_usage",
+          "unknown_zone",
+          "invalid_time_intervals",
+          "unsupported_points_count",
+          "invalid_phone_incorrect_symbol",
+          "invalid_phone_must_start_plus_symbol",
+          "country_phone_code_not_supported",
+          "invalid_phone_size_incorrect",
+          "item_destination_point_not_found",
+          "invalid_destination_point",
+          "due_in_past",
+          "delay_too_long",
+          "external_order_id_not_allowed",
+          "address_outside_delivery_zone",
+          "invalid_buyout_point_type",
+          "payment_on_delivery_missed",
+          "payment_on_delivery_invalid_request",
+          "max_order_cost_exceeded",
+          "invalid_post_payment_payment_method",
+          "invalid_buyout_payment_method",
+          "invalid_source_point",
+          "invalid_point_phone",
+          "invalid_item_destination_point",
+          "invalid_item_source_point",
+          "different_cost_currencies",
+          "buyout_disabled",
+          "payment_on_delivery_disabled",
+          "forbidden_by_antifake",
+          "too_many_requests"
+        ],
+        "description": "Error code"
+      },
+      "message": {
+        "type": "string",
+        "description": "Error description"
+      }
+    },
+    "required": [
+      "code",
+      "message"
+    ]
+  },
+  "gotchas": [
+    "Authenticate with 'Authorization: Bearer <OAuth token>'. The token comes from your Yango Delivery account (log in with the credentials your Yango Delivery manager gives you, Integration tab, Get token). It remains valid indefinitely, but changing the account password invalidates it; an invalid token answers 401 unauthorized.",
+    "request_id (query) is the idempotency key: send a new one (a UUID) per claim, and reuse the same value only to retry after a 5xx or a timeout — otherwise the claim can be duplicated and several couriers may come. An old request_id returns the old claim, whatever the body.",
+    "A 200 means the claim exists, not that the order is accepted: it starts as new, then estimating. Poll get_delivery_claim until ready_for_approval (or estimating_failed, with reasons in error_messages), then confirm with accept_delivery_claim within 10 minutes.",
+    "Each item's pickup_point and droppof_point (spelled this way here; check_delivery_price uses dropoff_point) must match a route_points[].point_id. Route points need point_id, visit_order (the pickup point is always 1) and type source or destination.",
+    "Send route_points[].address.coordinates as [longitude, latitude] — in that order. The FAQ calls them mandatory (they're used to create route points) although the table marks the field optional; the error guide links unknown_zone to coordinates sent in the wrong order.",
+    "Without client_requirements.taxi_class, item dimensions and weight are mandatory (the vehicle is chosen from them). due schedules the courier's arrival, at most 3 days ahead. external_order_id can only be sent on destination points.",
+    "items[].cost_value and cost_currency (a three-letter code) are mandatory. The FAQ suggests cost_value \"0\" with cost_currency \"AED\" when the price is unknown, and no African currency appears in the reference: confirm the currency with your manager.",
+    "Phone numbers start with + and the country code (format +97142774444 in the docs). contact.email is mandatory for source and return points, although the schema only marks name and phone as required.",
+    "skip_confirmation defaults to false: a confirmation code is needed at each point. At pickup it goes to the sender by text message, in their account or by API; at delivery it goes to the recipient by text message, and they give it to the courier.",
+    "callback_properties.callback_url is deprecated in favour of get_claims_journal. The callback only appends updated_ts and claim_id to your URL, the reference documents no signature, and delivery stops after failed attempts: always read the state with get_delivery_claim.",
+    "auto_accept (confirm automatically after creation) needs your manager's approval.",
+    "Accept-Language is a required header on this endpoint (e.g. en); this example sends en.",
+    "delivery.yango.com lists Côte d'Ivoire, Ghana, Senegal and Zambia under Africa. The Côte d'Ivoire and Senegal pages mention API integrations; the Ghana and Zambia pages say 'integrations' without naming the API. Every example in this reference uses UAE data (AED prices, +971 phone numbers): confirm with your Yango Delivery manager that API access is open in your country.",
+    "No test environment is documented: requests go to the production host, and confirming a claim starts the search for a courier. The error guide mentions test accounts (required_tariffs_disabled_for_user: 'Test account has expired or the specified rate is disabled') — ask your manager for one before testing.",
+    "Errors return { code, message }: branch on code. Documented on this endpoint: 400 validation_error, sdd_items_without_parameters_forbidden, items_without_parameters_forbidden, sdd_multipoints_not_supported, address_too_far, address_not_found, bad_request, invalid_post_payment, sdd_client_requirements_forbidden, invalid_delivery_interval, wrong_pickup_code_format, wrong_pickup_code_usage, unknown_zone, invalid_time_intervals, unsupported_points_count, invalid_phone_incorrect_symbol, invalid_phone_must_start_plus_symbol, country_phone_code_not_supported, invalid_phone_size_incorrect, item_destination_point_not_found, invalid_destination_point, due_in_past, delay_too_long, external_order_id_not_allowed, address_outside_delivery_zone, invalid_buyout_point_type, payment_on_delivery_missed, payment_on_delivery_invalid_request, max_order_cost_exceeded, invalid_post_payment_payment_method, invalid_buyout_payment_method, invalid_source_point, invalid_point_phone, invalid_item_destination_point, invalid_item_source_point, different_cost_currencies; 403 buyout_disabled, payment_on_delivery_disabled, forbidden_by_antifake; 429 too_many_requests. The error guide adds 401 unauthorized (invalid token) and 500 (try again or change the request)."
+  ],
+  "evidence": {
+    "source_url": "https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsCreate.md",
+    "source_reference": "Yango Delivery Express API reference, page 'Create claim' (POST /b2b/cargo/integration/v2/claims/create). Passages quoted from the Yango Delivery documentation (snapshot 2026-10-24): https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/quickstart.md: \"using the username and password that you received from your Yango Delivery manager\" | \"Open the **Integration** tab.\" | \"Authorization: Bearer <OAuth_token>\" | \"The OAuth token remains valid indefinitely.\" | \"If you change the password to your personal account, the previously issued OAuth token becomes invalid.\" | \"This initiates the process of finding a courier for the order.\" ; https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/errors.md: \"Invalid token specified. Get the correct token in your personal account.\" | \"Make sure the coordinates are specified in the correct order [longitude, latitude]\" | \"The maximum number of days in the `due` field is 3.\" | \"invalid_phone_must_start_plus_symbol\" | \"(+97142774444)\" | \"Test account has expired or the specified rate is disabled.\" | \"Invalid token specified.\" | \"Try again or change the request.\" ; https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/faq.md: \"When an old `request_id` value is used, the method returns information about the old order regardless of the claim body.\" | \"The location where the courier needs to to pick up the item is always number 1.\" | \"This is a mandatory field. You need to send correct coordinates because they're used to create route points.\" | \"If the vehicle type is determined automatically (the `taxi_class` isn't set), you must send item dimensions and weight.\" | \"You can only send the internal order number in the section of fields related to the array of point B (item delivery point).\" | \"The `items[].cost_value` item price and `items[].cost_currency` currency fields must be filled in.\" | \"\"cost_value\": \"0\"\" | \"\"cost_currency\": \"AED\"\" | \"Phone numbers should be in the following format: +97142774444.\" | \"The default value is `false` — the confirmation procedure must be passed.\" | \"sent to the sender by text message, in their account, or by API\" | \"a code is automatically generated and sent to the recipient by text message\" ; https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/claim-process.md: \"Confirm the claim within 10 minutes after it receives the `ready_for_approval` status.\" | \"the reason is specified in the `error_messages` response field\" ; https://delivery.yango.com/: \"Africa\" | \"Ghana\" | \"Senegal\" | \"Zambia\" ; https://delivery.yango.com/ci-fr: \"Yango propose un éventail de produits, allant du compte web prépayé aux intégrations API\" ; https://delivery.yango.com/sn-fr: \"allant du compte web prépayé aux intégrations API\" ; https://delivery.yango.com/gh-en: \"from prepaid web account to integrations\" ; https://delivery.yango.com/zm-en: \"from prepaid web account to integrations\"",
+    "extracted_at": "2026-10-24T06:14:39.099Z",
+    "snapshot_hash": "5a77bf08614c570e296400605063902048c8af0e62ecd94ab7160cb4cfebdcc7",
+    "spans": [
+      "Idempotency token.",
+      "use the same value to retry",
+      "may result in multiple couriers coming for the order",
+      "the order has been accepted",
+      "droppof_point",
+      "Must match the route_points[].point_id value of the destination point",
+      "longitude and latitude",
+      "exactly in that order",
+      "Order number from the customer",
+      "Entered for destination points",
+      "Three-digit code of the payment currency",
+      "Email is a mandatory parameter for source and return points",
+      "Skip SMS confirmation at the given point",
+      "This mechanism is deprecated",
+      "Notifications should be viewed as a push ahead of polling",
+      "it will attempt to deliver the notification and then stop the attempts",
+      "Enable automatic claim confirmation after creation",
+      "approval is required to use this option",
+      "Preferred response language.",
+      "validation_error",
+      "sdd_items_without_parameters_forbidden",
+      "items_without_parameters_forbidden",
+      "sdd_multipoints_not_supported",
+      "address_too_far",
+      "address_not_found",
+      "bad_request",
+      "invalid_post_payment",
+      "sdd_client_requirements_forbidden",
+      "invalid_delivery_interval",
+      "wrong_pickup_code_format",
+      "wrong_pickup_code_usage",
+      "unknown_zone",
+      "invalid_time_intervals",
+      "unsupported_points_count",
+      "invalid_phone_incorrect_symbol",
+      "invalid_phone_must_start_plus_symbol",
+      "country_phone_code_not_supported",
+      "invalid_phone_size_incorrect",
+      "item_destination_point_not_found",
+      "invalid_destination_point",
+      "due_in_past",
+      "delay_too_long",
+      "external_order_id_not_allowed",
+      "address_outside_delivery_zone",
+      "invalid_buyout_point_type",
+      "payment_on_delivery_missed",
+      "payment_on_delivery_invalid_request",
+      "max_order_cost_exceeded",
+      "invalid_post_payment_payment_method",
+      "invalid_buyout_payment_method",
+      "invalid_source_point",
+      "invalid_point_phone",
+      "invalid_item_destination_point",
+      "invalid_item_source_point",
+      "different_cost_currencies",
+      "buyout_disabled",
+      "payment_on_delivery_disabled",
+      "forbidden_by_antifake",
+      "too_many_requests",
+      "b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/create"
+    ]
+  }
+}

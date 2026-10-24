@@ -66,8 +66,9 @@ See [ATSS.md](./ATSS.md) for the full specification.
 | Orange Money Mali | payment | 🇲🇱 | 2 | 📋 Ready |
 | PayGate | payment | 🇹🇬 | 6 | 📋 Ready |
 | Qosic | payment | 🇹🇬 | 4 | 📋 Ready |
-| Smile ID | identity | 🇨🇮 🇸🇳 🇬🇳 | 10 | 📋 Ready |
+| Smile ID | identity | 🇨🇮 🇸🇳 🇬🇳 | 9 | 📋 Ready |
 | Wave | payment | 🇸🇳 🇨🇮 🇲🇱 +8 | 12 | 📋 Ready |
+| Yango Delivery | logistics | 🇨🇮 🇬🇭 🇸🇳 +1 | 8 | 📋 Ready |
 <!-- fin du tableau -->
 
 **Legend:** ✅ AI Ready = all capabilities `verified` · X verified · Y ready = awaiting production validation · 📋 Ready = spec validated · 🗓 Planned = specs coming soon
@@ -108,6 +109,7 @@ claude mcp add --transport http afrotools https://mcp.afro.tools/mcp
 - `payment` — integrating a payment API
 - `communications` — integrating an SMS, WhatsApp, USSD, voice or email API
 - `identity` — integrating an identity verification (KYC, document, AML) API
+- `logistics` — integrating a delivery or courier API (price, book, track, cancel deliveries)
 - `debug` — when an integration based on an afrotools spec fails → diagnoses whether the problem is a spec error, a missing gotcha, or an undocumented API change
 
 **Manual commands:**
