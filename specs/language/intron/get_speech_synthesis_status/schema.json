@@ -1,0 +1,92 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "get_speech_synthesis_status",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "INTRON_API_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://infer.voice.intron.io/tts/v1/status/{text_id}"
+  },
+  "example_prompt": "Check whether an Intron text-to-speech job is done and get the generated audio's location.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "text_id"
+    ],
+    "properties": {
+      "text_id": {
+        "type": "string",
+        "description": "the text id generated in response when the text was queued. Passed as a path parameter."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "data",
+      "message",
+      "status"
+    ],
+    "properties": {
+      "data": {
+        "type": "object",
+        "properties": {
+          "audio_duration_in_seconds": {
+            "type": "number"
+          },
+          "audio_path": {
+            "type": "string",
+            "description": "Location of the generated audio (documented example: \"http://myaudio.wav\"). Lifetime and download auth are not documented."
+          },
+          "processing_status": {
+            "type": "string",
+            "enum": [
+              "TTS_TEXT_AUDIO_QUEUED",
+              "TTS_TEXT_AUDIO_PENDING",
+              "TTS_TEXT_AUDIO_PROCESSING",
+              "TTS_TEXT_AUDIO_GENERATED",
+              "TTS_TEXT_AUDIO_PROCESSING_FAILED"
+            ],
+            "description": "Values listed on the Get Text Status page."
+          }
+        }
+      },
+      "message": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "description": "\"Ok\" in the documented examples, including the 503 timeout body."
+      }
+    }
+  },
+  "error_schema": {},
+  "gotchas": [
+    "The API key comes from the developers tab of your account on voice.intron.io; send it as 'Authorization: Bearer {key}' from your backend only — the docs say never expose it in client-side code.",
+    "Poll until processing_status is TTS_TEXT_AUDIO_GENERATED or TTS_TEXT_AUDIO_PROCESSING_FAILED (other values: TTS_TEXT_AUDIO_QUEUED, TTS_TEXT_AUDIO_PENDING, TTS_TEXT_AUDIO_PROCESSING). The documented in-progress example already contains audio_path and audio_duration_in_seconds — only use audio_path once the status is TTS_TEXT_AUDIO_GENERATED.",
+    "The response does not echo text_id — keep it on your side.",
+    "audio_path is the generated audio's location (example \"http://myaudio.wav\"). How long it stays valid and whether downloading it needs the API key are not documented — download it promptly.",
+    "No error response is documented for this endpoint (unknown text_id, invalid key, rate limit).",
+    "Rate limit: 100 requests per minute on tts/v1/status. Responses carry rate-limit headers; Retry-After gives the delay in seconds before retrying."
+  ],
+  "evidence": {
+    "source_url": "https://docs.voice.intron.io/docs/tts/tts-status",
+    "source_reference": "Get Text Status (GET /tts/v1/status/{text_id})",
+    "extracted_at": "2026-10-24T14:51:12.000Z",
+    "snapshot_hash": "e6174a56fe773df8dfa2909d1594b42b7db1eb55a0e739434c93b8ecb0cd9cb2",
+    "spans": [
+      "GET https://infer.voice.intron.io/tts/v1/status/{text_id}",
+      "TTS_TEXT_AUDIO_PROCESSING_FAILED",
+      "the text id generated in response when the text was queued",
+      "100 requests per minute"
+    ]
+  }
+}

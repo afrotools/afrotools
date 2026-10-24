@@ -1,0 +1,80 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v1",
+  "capability": "get_credits_balance",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {token}",
+    "env_var": "INTRON_API_KEY"
+  },
+  "endpoint": {
+    "method": "GET",
+    "url": "https://infer.voice.intron.io/accounts/v1/balance"
+  },
+  "example_prompt": "Check how many Intron credits are left before sending a batch of audio files.",
+  "input_schema": {
+    "type": "object",
+    "properties": {}
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "data",
+      "message",
+      "status"
+    ],
+    "properties": {
+      "data": {
+        "type": "object",
+        "required": [
+          "balance",
+          "currency"
+        ],
+        "properties": {
+          "balance": {
+            "type": "number",
+            "description": "the current available credits balance on the account"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "NGN",
+              "USD"
+            ],
+            "description": "the currency the balance is denominated in"
+          }
+        }
+      },
+      "message": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "description": "\"success\" in the documented example (not \"Ok\" as on the transcription endpoints)."
+      }
+    }
+  },
+  "error_schema": {},
+  "gotchas": [
+    "The API key comes from the developers tab of your account on voice.intron.io; send it as 'Authorization: Bearer {key}' from your backend only — the docs say never expose it in client-side code.",
+    "currency depends on the country set on the account: NGN for Nigeria (NG), USD for every other country. Don't assume USD.",
+    "The body's status is \"success\" here, while transcription endpoints return \"Ok\".",
+    "Error bodies (invalid key, rate limit) are not documented.",
+    "Rate limit: 100 requests per minute on accounts/v1/balance. Responses carry rate-limit headers; Retry-After gives the delay in seconds before retrying."
+  ],
+  "evidence": {
+    "source_url": "https://docs.voice.intron.io/docs/accounts/credits_balance",
+    "source_reference": "Get Credits Balance (GET /accounts/v1/balance)",
+    "extracted_at": "2026-10-24T14:51:12.000Z",
+    "snapshot_hash": "ee9b3532491f3f77b46f2badaa438a6f94fe6ac43168c34d369a4756ba357836",
+    "spans": [
+      "If your account country is NG (Nigeria), the currency will be NGN; for all other countries, the currency will be USD.",
+      "the current available credits balance on the account",
+      "100 requests per minute"
+    ]
+  }
+}
