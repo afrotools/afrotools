@@ -17,11 +17,15 @@ body:
     validations:
       required: true
 
-  - type: input
-    id: capability
+  - type: textarea
+    id: capabilities
     attributes:
-      label: Capability
-      placeholder: e.g. create_charge
+      label: Capabilities used
+      description: One line per capability of the flow, with its result. Each capability is verified on its own.
+      placeholder: |
+        create_payment — worked
+        payment_status — worked
+        webhook — wrong: <what the API sent vs. what the spec says>
     validations:
       required: true
 
@@ -38,10 +42,10 @@ body:
   - type: dropdown
     id: outcome
     attributes:
-      label: Did the spec match the API?
+      label: Did the specs match the API?
       options:
-        - "Yes — it worked as the spec describes"
-        - "No — the spec is wrong (field, status code, auth, URL…)"
+        - "Yes — every capability worked as its spec describes"
+        - "No — at least one spec is wrong (field, status code, auth, URL…)"
         - "No — it failed for another reason"
     validations:
       required: true

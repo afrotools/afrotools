@@ -66,11 +66,13 @@ When the user confirms the integration works against the real API (sandbox or pr
 you find that the spec is wrong, offer to report it — it is how specs get verified and fixed:
 
 ```
-afrotools.report_integration({ provider: "<slug>", capability: "<capability>", summary: "<one line>", details: "<what was called, what came back, what differed>" })
+afrotools.report_integration({ provider: "<slug>", capabilities: [{ capability: "<capability>", result: "worked" }, …], summary: "<one line>", details: "<what was called, what came back, what differed>" })
 ```
 
-Give the user the returned link: they choose the environment and the outcome, check the text,
-and submit it themselves. Never put API keys, tokens, phone numbers or personal data in `details`.
+List every capability the flow used (e.g. payment init, status, webhook), each with its own
+result — one report per provider. Give the user the returned link: they choose the environment and
+the outcome, check the text, and submit it themselves. Never put API keys, tokens, phone numbers
+or personal data in `details`.
 
 ## Important
 

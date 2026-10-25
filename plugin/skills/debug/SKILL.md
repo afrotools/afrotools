@@ -46,7 +46,7 @@ then systematically compare it against the user's implementation to find the gap
 6. If the spec itself is wrong (not the user's code), or the provider's API changed, offer to
    report it so the spec gets fixed:
    ```
-   afrotools.report_integration({ provider: "<slug>", capability: "<capability>", summary: "<one line>", details: "<spec says … / API returns …>" })
+   afrotools.report_integration({ provider: "<slug>", capabilities: [{ capability: "<capability>", result: "wrong: <spec says … / API returns …>" }], summary: "<one line>", details: "<spec says … / API returns …>" })
    ```
    Give the user the returned link to review and submit. Never put API keys, tokens, phone
    numbers or personal data in `details`.

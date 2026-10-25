@@ -17,14 +17,16 @@ Thank you for helping expand AI-ready coverage for African APIs.
 
 The maintainers cannot test every provider in production. If you integrated one from its spec —
 in sandbox or in production — [open an integration report](https://github.com/afrotools/afrotools/issues/new?template=integration-report.yml), whether it worked or not.
+One report covers a whole flow of one provider (e.g. payment init, status check, webhook): list
+each capability you used with its own result.
 With the Afro.tools MCP, ask your agent: it calls `report_integration` and gives you a pre-filled
 link; you choose the environment and the outcome, check that no secret is in it, and submit.
 The agent never submits anything itself.
 
-- **It worked** — a maintainer checks the report and records it as the spec's proof:
-  `status: "verified"` with `verification.method: "community_report"` and a link to your issue
-  (ATSS.md § verified). You are credited as a contributor.
-- **The spec is wrong** — the report becomes a fix: the field, status code or gotcha is corrected
+- **It worked** — a maintainer checks the report and records it as the proof of each capability
+  that worked: `status: "verified"` with `verification.method: "community_report"` and a link to
+  your issue (ATSS.md § verified). You are credited as a contributor.
+- **A spec is wrong** — the report becomes a fix: the field, status code or gotcha is corrected
   from your response and the provider's docs.
 
 ---
