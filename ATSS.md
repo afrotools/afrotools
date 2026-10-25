@@ -28,7 +28,7 @@ specs/{category}/{provider_slug}/
 **category** — `payment`, `communications`, `identity`, `logistics` or `language` (extensible to other categories).
 `communications` covers providers that send SMS, WhatsApp, USSD, voice or email —
 the specific channels go in `provider.json`'s `channels` field, not in the category name.
-**provider_slug** — lowercase, no spaces, no dashes (e.g. `paycard`, `wave`, `nimbasms`)
+**provider_slug** — lowercase, no spaces, no dashes (e.g. `paycard`, `wave`, `nimbasms`). Unique across all categories: the registry, the MCP and the website look providers up by slug alone, so a provider offering products in several categories uses one slug per product. `validate.js` rejects a slug reused in another category.
 **capability** — snake_case verb (e.g. `create_payment`, `verify_payment`, `send_otp`)
 
 Every capability folder must contain exactly these two files. Nothing else.

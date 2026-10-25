@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- `scripts/validate.js` rejects a provider slug reused in another category, in every mode (`--changed` included): the registry, the MCP and the website index providers by slug alone, so the second provider silently shadowed the first. CI now runs `scripts/validate.test.js`.
 - `scripts/test_live.py` sends an explicit `User-Agent` (Cloudflare-fronted sandboxes such as
   Smile ID's ban urllib's default with error 1010) and skips a step whose headers depend on an
   earlier step that returned nothing, instead of crashing.

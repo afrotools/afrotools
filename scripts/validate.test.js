@@ -211,3 +211,15 @@ test("non-array currency fails validation outside payment", () => {
   assert.equal(code, 1);
   assert.match(stderr, /currency must be an array/);
 });
+
+test("a provider slug reused in another category fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready" });
+  const twin = path.join(dir, "specs", "identity", "fixtureprovider");
+  fs.cpSync(path.join(dir, "specs", "payment", "fixtureprovider"), twin, { recursive: true });
+  const manifest = JSON.parse(fs.readFileSync(path.join(twin, "provider.json"), "utf8"));
+  fs.writeFileSync(path.join(twin, "provider.json"), JSON.stringify({ ...manifest, category: "identity" }));
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /Duplicate provider slug "fixtureprovider"/);
+});
