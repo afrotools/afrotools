@@ -29,7 +29,20 @@
     "format": "Bearer {token}",
     "header": "Authorization",
     "location": "header",
-    "env_var": "SASPAY_API_KEY"
+    "env_var": "SASPAY_API_KEY",
+    "credentials": [
+      {
+        "env_var": "SASPAY_API_KEY",
+        "description": "SasPay API key (Authorization: Bearer)"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {SASPAY_API_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "url": "https://api.saspay.me/api/v1/checkout-sessions/",

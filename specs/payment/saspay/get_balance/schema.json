@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2026-10-12",
   "capability": "get_balance",
   "capability_type": "synchronous",
@@ -23,7 +23,20 @@
     "format": "Bearer {token}",
     "header": "Authorization",
     "location": "header",
-    "env_var": "SASPAY_API_KEY"
+    "env_var": "SASPAY_API_KEY",
+    "credentials": [
+      {
+        "env_var": "SASPAY_API_KEY",
+        "description": "SasPay API key (Authorization: Bearer)"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {SASPAY_API_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "url": "https://api.saspay.me/api/v1/merchant-balances/{id}/",

@@ -26,6 +26,14 @@
   "docs_url": "https://docs.saspay.me",
   "docs_public": true,
   "sandbox": true,
+  "environments": {
+    "sandbox": {
+      "base_url": "https://api.saspay.me"
+    },
+    "production": {
+      "base_url": "https://api.saspay.me"
+    }
+  },
   "description": "SasPay is a single REST API to collect payments (mobile money, card) and pay out beneficiaries by mobile money across West, Central and East Africa, with hosted checkout, payment links, per-country wallets and signed webhooks.",
   "example_prompt": "Use SasPay to process a payment for a customer."
 }
