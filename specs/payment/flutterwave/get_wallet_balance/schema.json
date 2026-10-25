@@ -4,7 +4,23 @@
   "capability": "get_wallet_balance",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,60 +32,95 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/wallets/balances/{currency}"
   },
-  "example_prompt": "Show me the available balance in my Flutterwave NGN wallet before I trigger a batch of payouts.",
+  "example_prompt": "Check my Flutterwave NGN balance before sending a payout.",
   "input_schema": {
     "type": "object",
-    "required": ["currency"],
+    "required": [
+      "currency"
+    ],
     "properties": {
       "currency": {
-        "type": "string",
-        "description": "ISO 4217 currency code of the wallet to read (e.g. NGN, KES, GHS). Substituted into the URL path."
-      },
-      "trace_id": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Optional X-Trace-Id header value for request correlation."
+        "description": "Path parameter. The currency for the balance you want to fetch",
+        "type": "string"
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
-      "status": { "type": "string", "enum": ["success", "failed"], "description": "Envelope status." },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
       "data": {
         "type": "object",
-        "description": "Balance details for the requested currency wallet.",
-        "required": ["currency", "available_balance"],
         "properties": {
-          "currency": { "type": "string", "description": "ISO 4217 currency code of this wallet." },
-          "available_balance": { "type": "number", "description": "Amount available for outgoing payments in this currency." }
+          "currency": {
+            "type": "string"
+          },
+          "available_balance": {
+            "type": "number",
+            "format": "decimal"
+          }
         }
       }
     }
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: 212400 MERCHANT_WALLET_NOT_FOUND is documented for transfers; nothing specific for this endpoint."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "validation_errors": {
             "type": "array",
+            "description": "On 400 validation errors.",
             "items": {
               "type": "object",
               "properties": {
-                "field_name": { "type": "string" },
-                "message": { "type": "string" }
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -78,9 +129,21 @@
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "The path is /wallets/balances/{currency} (plural 'balances' followed by the currency code). A common mistake is /wallets/{currency}/balance — that path returns 404.",
-    "Only available_balance is returned — there is no separate ledger_balance field. Pending credits are not exposed via this endpoint; treat available_balance as the spendable amount for outbound transfers.",
-    "Requesting a currency you have not been provisioned for returns 404 — call GET /wallets/balances first to discover the currencies you actually hold."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: X-Trace-Id is optional on this GET (the headers guide lists it under 'Optional API Headers'; \"It must be a string using only alphanumeric ASCII characters.\", 12-255 characters). The API reference documents no X-Idempotency-Key for this endpoint.",
+    "Returns {currency, available_balance} for the currency in the path (e.g. /wallets/balances/NGN). Payout guides require it: \"Ensure your balance has sufficient funds.\" A transfer that exceeds it fails with provider_response 0307 INSUFFICIENT_BALANCE.",
+    "The response for a currency you don't hold is not documented (the API reference lists only 400/401/403).",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 212400 MERCHANT_WALLET_NOT_FOUND is documented for transfers; nothing specific for this endpoint. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/fetch_currency_wallet_balance.md",
+    "source_reference": "Fetch a currency's wallet balance (GET /wallets/balances/{currency})",
+    "extracted_at": "2026-10-24T23:14:57.000Z",
+    "snapshot_hash": "12f29f0b706bc72139474d03f916b7c9e4f1a900de397844f2bf5315d32d52da",
+    "spans": [
+      "Fetch a currency's wallet balance",
+      "Fetch a currency's balance",
+      "\"/wallets/balances/{currency}\""
+    ]
+  }
 }

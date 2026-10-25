@@ -4,7 +4,23 @@
   "capability": "list_chargebacks",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,7 +32,7 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/chargebacks"
   },
-  "example_prompt": "List Flutterwave chargebacks raised in the last 30 days.",
+  "example_prompt": "Fetch the chargebacks raised against my Flutterwave account so I can respond before they are lost.",
   "input_schema": {
     "type": "object",
     "properties": {
@@ -24,48 +40,61 @@
         "type": "integer",
         "minimum": 1,
         "default": 1,
-        "description": "The page of the data to retrieve. The most recent data entry is on page 1."
+        "description": "Query parameter. The page of the data to retrieve. The most recent data entry is on page 1."
       },
       "size": {
         "type": "integer",
         "minimum": 10,
         "maximum": 50,
         "default": 10,
-        "description": "Length of data returned. Defaults to 10. Min 10, max 50."
+        "description": "Query parameter. Length of data returned. Defaults to 10."
       },
       "from": {
         "type": "string",
         "format": "date-time",
-        "description": "ISO 8601 start date-time of the period to retrieve chargebacks for."
+        "description": "Query parameter. The start date and time for a period. This parameter is used in conjunction with the 'to' parameter to define a time range. The value should be in ISO 8601 format."
       },
       "to": {
         "type": "string",
         "format": "date-time",
-        "description": "ISO 8601 end date-time of the period to retrieve chargebacks for."
-      },
-      "trace_id": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Optional X-Trace-Id header value (12-255 chars) for request correlation."
+        "description": "Query parameter. The end date and time for a period. This parameter is used in conjunction with the 'from' parameter to define a time range. The value should be in **ISO 8601 format**."
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
-      "status": { "type": "string", "enum": ["success"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
       "meta": {
         "type": "object",
         "properties": {
           "page_info": {
             "type": "object",
             "properties": {
-              "total": { "type": "integer" },
-              "current_page": { "type": "integer" },
-              "total_pages": { "type": "integer" }
+              "total": {
+                "type": "integer",
+                "description": "The total number of items available across all pages",
+                "format": "int64"
+              },
+              "current_page": {
+                "type": "integer",
+                "description": "The current page number being viewed",
+                "format": "int64"
+              },
+              "total_pages": {
+                "type": "integer",
+                "description": "The total number of pages required to display all items.",
+                "format": "int64"
+              }
             }
           }
         }
@@ -74,29 +103,100 @@
         "type": "array",
         "items": {
           "type": "object",
+          "description": "A chargeback object",
           "properties": {
-            "id": { "type": "string" },
-            "charge_id": { "type": "string" },
-            "amount": { "type": "number" },
-            "meta": { "type": "object", "additionalProperties": true },
+            "id": {
+              "type": "string",
+              "description": "ID of the chargeback"
+            },
+            "charge_id": {
+              "type": "string",
+              "description": "ID of the charge tied to this chargeback"
+            },
+            "amount": {
+              "type": "number",
+              "format": "decimal",
+              "description": "The payment amount in decimals.",
+              "minimum": 0.01
+            },
+            "meta": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
             "stage": {
               "type": "string",
-              "enum": ["new", "second", "pre-arbitration", "arbitration", "invalid"]
+              "description": "The stage describes the current phase of a chargeback dispute",
+              "enum": [
+                "new",
+                "second",
+                "pre-arbitration",
+                "arbitration",
+                "invalid"
+              ]
             },
             "status": {
               "type": "string",
-              "enum": ["pending", "accepted", "declined", "initiated", "won", "lost", "reversed", "new"]
+              "description": "The status field tracks the current state or outcome of a chargeback dispute, providing a comprehensive overview of its lifecycle.",
+              "enum": [
+                "pending",
+                "accepted",
+                "declined",
+                "initiated",
+                "won",
+                "lost",
+                "reversed",
+                "new"
+              ]
             },
-            "type": { "type": "string", "enum": ["local", "international"] },
-            "due_datetime": { "type": "string", "format": "date-time" },
-            "created_datetime": { "type": "string", "format": "date-time" },
-            "updated_datetime": { "type": "string", "format": "date-time" },
-            "settlement_id": { "type": "string" },
-            "uploaded_proof": { "type": "string" },
-            "comment": { "type": "string" },
-            "provider": { "type": "string" },
-            "arn": { "type": "string" },
-            "initiator": { "type": "string" }
+            "type": {
+              "type": "string",
+              "description": "The type categorizes the chargeback based on whether it originates from a transaction within the same country (local) or across different countries (international).",
+              "enum": [
+                "local",
+                "international"
+              ]
+            },
+            "due_datetime": {
+              "type": "string",
+              "description": "The due_datetime specifies the exact date and time by which an action or response is required. This is typically used to set deadlines for submitting documentation or responding to a chargeback.",
+              "format": "date-time"
+            },
+            "created_datetime": {
+              "type": "string",
+              "description": "The created_datetime indicates the exact date and time when the chargeback record was initially created in the system. This timestamp helps in tracking the age of the dispute.",
+              "format": "date-time"
+            },
+            "updated_datetime": {
+              "type": "string",
+              "description": "The updated_datetime specifies the most recent date and time when any information related to the chargeback record was modified or updated. This helps in tracking the last activity on the dispute.",
+              "format": "date-time"
+            },
+            "settlement_id": {
+              "type": "string",
+              "description": "ID of the settlement tied to this chargeback"
+            },
+            "uploaded_proof": {
+              "type": "string",
+              "description": "Link to proof against chargeback"
+            },
+            "comment": {
+              "type": "string",
+              "description": "Additional comments for the chargeback"
+            },
+            "provider": {
+              "type": "string",
+              "description": "Provider for the chargeback"
+            },
+            "arn": {
+              "type": "string",
+              "description": "Acquirer reference number for transaction"
+            },
+            "initiator": {
+              "type": "string",
+              "description": "Initiator of the chargeback"
+            }
           }
         }
       }
@@ -104,27 +204,77 @@
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
-          "validation_errors": { "type": "array", "items": { "type": "object", "properties": { "field_name": { "type": "string" }, "message": { "type": "string" } } } }
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: 1700404 CHARGEBACK_NOT_FOUND."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "validation_errors": {
+            "type": "array",
+            "description": "On 400 validation errors.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
       }
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "Page size is bounded by the API: 10 minimum, 50 maximum. Defaults to 10.",
-    "from and to must be ISO 8601 date-times. The most recent chargebacks are on page 1.",
-    "Each chargeback carries a stage (new/second/pre-arbitration/arbitration/invalid) and a status (pending/accepted/declined/initiated/won/lost/reversed/new). Both must be inspected to know what action is required.",
-    "Chargebacks are typically initiated by the cardholder via the issuing bank; this endpoint surfaces them so the merchant can respond before due_datetime."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: X-Trace-Id is optional on this GET (the headers guide lists it under 'Optional API Headers'; \"It must be a string using only alphanumeric ASCII characters.\", 12-255 characters). The API reference documents no X-Idempotency-Key for this endpoint.",
+    "Discovery: Docs (Chargebacks): \"Flutterwave notifies you about chargebacks via your email.\" \"We also send webhooks to your server when a chargeback is raised. This notification service is available on request.\" Without the webhook, poll this endpoint at least hourly (from = last poll): the guide's samples set due_datetime 24 hours after created_datetime.",
+    "Respond before data.due_datetime: lost means \"a lack of response from the merchant before the due date (48 hours)\"; \"If the merchant **does not respond**, the amount is debited automatically.\"",
+    "Status: accepted / declined = you answered; won / lost / reversed = final; anything else (initiated, pending, and new, which the API enum has but the guide's table doesn't describe) = waiting for you. Stage pre-arbitration = last chance to send new evidence.",
+    "Pagination: page ≥ 1 (default 1, most recent first), size 10-50 (default 10); read meta.page_info.total_pages. The API reference caps some list responses at 10 items (maxItems 10) although size goes up to 50: always paginate.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 1700404 CHARGEBACK_NOT_FOUND. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/chargebacks_list.md",
+    "source_reference": "List chargebacks (GET /chargebacks)",
+    "extracted_at": "2026-10-24T23:14:51.000Z",
+    "snapshot_hash": "78ebb8b96739b753d375010bb149c02004d952a87caa5c2b1535f47096b9eac2",
+    "spans": [
+      "List chargebacks",
+      "\"/chargebacks\""
+    ]
+  }
 }

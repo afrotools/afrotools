@@ -4,7 +4,23 @@
   "capability": "list_settlements",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,7 +32,7 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/settlements"
   },
-  "example_prompt": "List Flutterwave settlements from the last 30 days, 20 per page.",
+  "example_prompt": "List my Flutterwave settlements for a date range to reconcile collected payments with what reached my bank or wallet.",
   "input_schema": {
     "type": "object",
     "properties": {
@@ -24,63 +40,100 @@
         "type": "integer",
         "minimum": 1,
         "default": 1,
-        "description": "Page number (1-indexed)."
+        "description": "Query parameter. The page of the data to retrieve. The most recent data entry is on page 1."
       },
       "size": {
         "type": "integer",
         "minimum": 10,
         "maximum": 50,
         "default": 10,
-        "description": "Page size (10 to 50)."
-      },
-      "from": {
-        "type": "string",
-        "format": "date-time",
-        "description": "ISO 8601 date-time lower bound on the time range filter."
+        "description": "Query parameter. Length of data returned. Defaults to 10."
       },
       "to": {
         "type": "string",
         "format": "date-time",
-        "description": "ISO 8601 date-time upper bound on the time range filter."
+        "description": "Query parameter. The end date and time for a period. This parameter is used in conjunction with the 'from' parameter to define a time range. The value should be in **ISO 8601 format**."
       },
-      "trace_id": {
+      "from": {
         "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Optional X-Trace-Id header value for request correlation."
+        "format": "date-time",
+        "description": "Query parameter. The start date and time for a period. This parameter is used in conjunction with the 'to' parameter to define a time range. The value should be in ISO 8601 format."
       }
     }
   },
   "response_schema": {
     "type": "object",
     "properties": {
-      "status": { "type": "string", "description": "\"success\" or \"failed\"." },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
       "meta": {
         "type": "object",
         "properties": {
           "page_info": {
             "type": "object",
             "properties": {
-              "total": { "type": "integer" },
-              "current_page": { "type": "integer" },
-              "total_pages": { "type": "integer" }
+              "total": {
+                "type": "integer",
+                "description": "The total number of items available across all pages",
+                "format": "int64"
+              },
+              "current_page": {
+                "type": "integer",
+                "description": "The current page number being viewed",
+                "format": "int64"
+              },
+              "total_pages": {
+                "type": "integer",
+                "description": "The total number of pages required to display all items.",
+                "format": "int64"
+              }
             }
           }
         }
       },
       "data": {
         "type": "array",
-        "description": "Array of settlement objects.",
         "items": {
+          "description": "A settlement of a successful transaction",
           "type": "object",
           "properties": {
-            "id": { "type": "string" },
-            "net_amount": { "type": "number" },
-            "gross_amount": { "type": "number" },
-            "currency": { "type": "string", "description": "ISO 4217 currency code." },
+            "id": {
+              "description": "ID of the settlement",
+              "type": "string"
+            },
+            "net_amount": {
+              "type": "number",
+              "format": "decimal",
+              "description": "The payment amount in decimals.",
+              "minimum": 0.01
+            },
+            "gross_amount": {
+              "$ref": "#/$defs/amount"
+            },
+            "currency": {
+              "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "meta": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
             "status": {
               "type": "string",
+              "description": "The status of the settlement.",
               "enum": [
                 "disburse-pending",
                 "pending",
@@ -94,49 +147,122 @@
                 "on-hold"
               ]
             },
-            "due_datetime": { "type": "string", "format": "date-time" },
-            "transaction_datetime": { "type": "string", "format": "date-time" },
-            "settlement_account": { "type": "string" },
+            "due_datetime": {
+              "type": "string",
+              "format": "date-time",
+              "description": "The settlement due date."
+            },
+            "transaction_datetime": {
+              "type": "string",
+              "format": "date-time",
+              "description": "The date the transaction was created."
+            },
+            "settlement_account": {
+              "type": "string",
+              "description": "The bank account number to which the transaction was settled."
+            },
             "fees": {
+              "description": "Fees deducted before settlement",
               "type": "array",
               "items": {
                 "type": "object",
                 "properties": {
-                  "type": { "type": "string" },
-                  "amount": { "type": "number" }
+                  "type": {
+                    "type": "string",
+                    "description": "The type of fee charged on the transaction."
+                  },
+                  "amount": {
+                    "type": "number",
+                    "format": "decimal",
+                    "description": "The amount of fee charged."
+                  }
                 }
               }
             },
-            "chargeback": { "type": "number" },
-            "refund": { "type": "number" },
-            "destination": { "type": "string" },
-            "charge_count": { "type": "string" },
-            "created_datetime": { "type": "string", "format": "date-time" }
+            "chargeback": {
+              "type": "number",
+              "format": "decimal",
+              "description": "The chargeback amount."
+            },
+            "refund": {
+              "type": "number",
+              "format": "decimal",
+              "description": "The refunded amount."
+            },
+            "destination": {
+              "type": "string",
+              "description": "The settlement destination."
+            },
+            "charge_count": {
+              "type": "string",
+              "description": "The number of charge transactions that make up the settlement."
+            },
+            "created_datetime": {
+              "type": "string",
+              "description": "The date and time when the virtual account was created."
+            }
           }
         }
+      }
+    },
+    "$defs": {
+      "amount": {
+        "type": "number",
+        "format": "decimal",
+        "description": "The payment amount in decimals.",
+        "minimum": 0.01
       }
     }
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: 1500404 SETTLEMENT_NOT_FOUND."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "validation_errors": {
             "type": "array",
+            "description": "On 400 validation errors.",
             "items": {
               "type": "object",
               "properties": {
-                "field_name": { "type": "string" },
-                "message": { "type": "string" }
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -145,10 +271,22 @@
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "Page size is bounded by the API: 10 minimum, 50 maximum. Pagination metadata lives at meta.page_info (total, current_page, total_pages).",
-    "from and to must be ISO 8601 date-times (e.g. 2024-01-01T00:00:00Z). Date-only strings are rejected.",
-    "Settlements represent the funds moved from your Flutterwave balance to your bank account, not the underlying transactions. Each settlement carries net_amount/gross_amount plus a fees breakdown array.",
-    "The status field is a fixed enum (disburse-pending, pending, reviewed, approved, completed, completed-offline, failed, flagged, processing, on-hold) — match against these values, not on free-form strings."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: X-Trace-Id is optional on this GET (the headers guide lists it under 'Optional API Headers'; \"It must be a string using only alphanumeric ASCII characters.\", 12-255 characters). The API reference documents no X-Idempotency-Key for this endpoint.",
+    "Docs (Settlements): \"Only transactions made in **live/production** mode are eligible for settlement.\" Expect no settlements in sandbox.",
+    "A settlement moves collected funds to your bank account or \"Your **Flutterwave for Business (F4B) wallet** (payout balance).\" See data[].destination; amounts are gross_amount / net_amount with a fees[] breakdown; charge_count is a string.",
+    "The guide's prose shows \"`status`: The current status of the settlement (e.g., SUCCESSFUL, PENDING).\" but the API returns the lowercase enum (e.g. 'completed').",
+    "Pagination: page ≥ 1 (default 1, most recent first), size 10-50 (default 10); read meta.page_info.total_pages. The API reference caps some list responses at 10 items (maxItems 10) although size goes up to 50: always paginate. from / to are ISO 8601 date-times.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 1500404 SETTLEMENT_NOT_FOUND. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/settlement_list.md",
+    "source_reference": "List settlement (GET /settlements)",
+    "extracted_at": "2026-10-24T23:15:08.000Z",
+    "snapshot_hash": "0900ef880099ff09020a3ab3567db12ad0ba081d83aa2b91214ad9ede9af4049",
+    "spans": [
+      "List settlement",
+      "\"/settlements\""
+    ]
+  }
 }

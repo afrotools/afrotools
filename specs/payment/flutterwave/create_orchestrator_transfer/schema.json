@@ -2,9 +2,25 @@
   "spec_version": "1.0",
   "provider_api_version": "v4",
   "capability": "create_orchestrator_transfer",
-  "capability_type": "synchronous",
+  "capability_type": "asynchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,201 +32,3309 @@
     "method": "POST",
     "url": "https://f4bexperience.flutterwave.com/direct-transfers"
   },
-  "example_prompt": "Create a Flutterwave v4 orchestrated transfer inline (without pre-creating sender or recipient) to send a payout across borders in a single request.",
+  "example_prompt": "Pay out to a bank account, mobile money wallet or Flutterwave wallet in one request, with recipient (and sender) details inline.",
   "input_schema": {
-    "type": "object",
-    "required": ["payment_instruction"],
-    "properties": {
-      "reference": {
-        "type": "string",
-        "minLength": 6,
-        "maxLength": 42,
-        "pattern": "^[A-Za-z0-9-]+$",
-        "description": "Optional merchant-supplied unique reference. Alphanumeric and hyphens, 6-42 chars. Reusing returns 409."
-      },
-      "narration": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 180,
-        "description": "Optional narration shown to the recipient where supported."
-      },
-      "transfer_purpose": {
-        "type": "string",
-        "enum": [
-          "family_maintenance",
-          "personal",
-          "education",
-          "medical",
-          "donation",
-          "business",
-          "salary_payment",
-          "investment",
-          "loan_repayment",
-          "bill_payment",
-          "travel",
-          "gift",
-          "other"
-        ],
-        "description": "Purpose of the transfer. Required for bank_egp instructions; optional for other corridors."
-      },
-      "payment_instruction": {
+    "oneOf": [
+      {
         "type": "object",
-        "required": ["type", "source_currency", "amount", "recipient"],
-        "description": "Discriminated union keyed on `type`. The destination_currency is fixed by `type` (e.g. bank_ngn => NGN). The shape of `recipient` and `sender` varies by corridor (bank_ngn_instruction, bank_usd_instruction, bank_gbp_instruction, bank_eur_instruction, bank_egp_instruction, bank_etb_instruction, bank_ghs_instruction, bank_mwk_instruction, bank_zar_instruction).",
+        "required": [
+          "action",
+          "payment_instruction",
+          "type"
+        ],
         "properties": {
           "type": {
             "type": "string",
             "enum": [
-              "bank_ngn",
-              "bank_usd",
-              "bank_gbp",
-              "bank_eur",
-              "bank_egp",
-              "bank_etb",
-              "bank_ghs",
-              "bank_mwk",
-              "bank_zar"
-            ],
-            "description": "Discriminator that selects the corridor and fixes the destination currency."
+              "bank"
+            ]
           },
-          "destination_currency": {
+          "action": {
+            "description": "To define whether the transfer should be processed immediately, scheduled for a later date, or deferred for future processing.",
             "type": "string",
-            "description": "Read-only. Inferred from `type` (e.g. NGN for bank_ngn)."
+            "enum": [
+              "instant",
+              "deferred",
+              "scheduled"
+            ]
           },
-          "source_currency": {
+          "reference": {
+            "$ref": "#/$defs/reference"
+          },
+          "narration": {
+            "description": "Transfer description. This cannot be greater than 180 characters.",
             "type": "string",
-            "description": "ISO 4217 source currency code."
+            "minLength": 1,
+            "maxLength": 180
           },
-          "amount": {
-            "type": "object",
-            "required": ["value", "applies_to"],
-            "properties": {
-              "value": { "type": "number", "minimum": 0.01, "description": "Transfer amount, decimal, minimum 0.01." },
-              "applies_to": {
-                "type": "string",
-                "enum": ["destination_currency", "source_currency"],
-                "description": "Whether `value` is denominated in the destination or source currency."
+          "disburse_option": {
+            "$ref": "#/$defs/disburse_option"
+          },
+          "callback_url": {
+            "description": "Specify to set a callback url for receiving payout webhook, this will take precedent over the merchant's default webhook url.",
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/$defs/meta"
+          },
+          "payment_instruction": {
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "destination_currency",
+                  "recipient",
+                  "source_currency"
+                ],
+                "properties": {
+                  "destination_currency": {
+                    "type": "string",
+                    "enum": [
+                      "NGN"
+                    ]
+                  },
+                  "source_currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/$defs/transfer_amount"
+                  },
+                  "recipient": {
+                    "type": "object",
+                    "required": [
+                      "bank"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "bank"
+                        ]
+                      },
+                      "bank": {
+                        "type": "object",
+                        "required": [
+                          "account_number",
+                          "code"
+                        ],
+                        "properties": {
+                          "account_number": {
+                            "description": "recipient account number",
+                            "type": "string",
+                            "pattern": "^[0-9]+$"
+                          },
+                          "code": {
+                            "description": "recipient bank code",
+                            "type": "string",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "sender": {
+                    "$ref": "#/$defs/generic_sender"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "destination_currency",
+                  "recipient",
+                  "sender",
+                  "source_currency",
+                  "transfer_purpose"
+                ],
+                "properties": {
+                  "destination_currency": {
+                    "type": "string",
+                    "enum": [
+                      "EGP"
+                    ]
+                  },
+                  "source_currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/$defs/transfer_amount"
+                  },
+                  "recipient": {
+                    "type": "object",
+                    "required": [
+                      "bank",
+                      "name",
+                      "national_identification",
+                      "phone",
+                      "address"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "national_identification": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "PASSPORT",
+                              "DRIVERS_LICENSE",
+                              "NATIONAL_ID"
+                            ]
+                          },
+                          "identifier": {
+                            "type": "string",
+                            "minLength": 4,
+                            "maxLength": 40
+                          },
+                          "expiration_date": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
+                          }
+                        },
+                        "required": [
+                          "identifier",
+                          "type"
+                        ],
+                        "description": "Recipient government identification"
+                      },
+                      "phone": {
+                        "type": "object",
+                        "description": "The customer's mobile number.",
+                        "required": [
+                          "country_code",
+                          "number"
+                        ],
+                        "properties": {
+                          "country_code": {
+                            "description": "The dialling country code e.g. 234 for NG.",
+                            "type": "string",
+                            "pattern": "^[0-9]{1,3}$"
+                          },
+                          "number": {
+                            "description": "Unformatted 7-10-digit phone number without the country code.",
+                            "type": "string",
+                            "pattern": "^[0-9]{7,10}$"
+                          }
+                        }
+                      },
+                      "address": {
+                        "type": "object",
+                        "description": "Customer address information.",
+                        "required": [
+                          "city",
+                          "country",
+                          "line1",
+                          "postal_code",
+                          "state"
+                        ],
+                        "properties": {
+                          "city": {
+                            "type": "string",
+                            "description": "The name of the city.",
+                            "pattern": "^.+$"
+                          },
+                          "country": {
+                            "description": "ISO2 country code",
+                            "type": "string",
+                            "pattern": "^[A-Z]{2}$"
+                          },
+                          "line1": {
+                            "type": "string",
+                            "description": "The first line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "line2": {
+                            "type": "string",
+                            "description": "The second line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "postal_code": {
+                            "type": "string",
+                            "pattern": "^.+$"
+                          },
+                          "state": {
+                            "type": "string",
+                            "description": "The state or region.",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      },
+                      "bank": {
+                        "type": "object",
+                        "required": [
+                          "account_number",
+                          "code"
+                        ],
+                        "properties": {
+                          "account_number": {
+                            "description": "recipient account number",
+                            "type": "string",
+                            "minLength": 8,
+                            "maxLength": 32,
+                            "pattern": "^[a-zA-Z0-9]+$"
+                          },
+                          "code": {
+                            "description": "recipient bank code",
+                            "type": "string",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "sender": {
+                    "type": "object",
+                    "description": "Sender information for EGP bank transfers.",
+                    "required": [
+                      "name",
+                      "national_identification",
+                      "date_of_birth",
+                      "phone",
+                      "email",
+                      "address"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "national_identification": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "PASSPORT",
+                              "DRIVERS_LICENSE",
+                              "NATIONAL_ID"
+                            ]
+                          },
+                          "identifier": {
+                            "type": "string",
+                            "minLength": 4,
+                            "maxLength": 40
+                          },
+                          "expiration_date": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
+                          }
+                        },
+                        "required": [
+                          "expiration_date",
+                          "identifier",
+                          "type"
+                        ],
+                        "description": "The Sender's official government ID."
+                      },
+                      "date_of_birth": {
+                        "description": "Sender's date of birth in YYYY-MM-DD.",
+                        "type": "string"
+                      },
+                      "phone": {
+                        "type": "object",
+                        "description": "The customer's mobile number.",
+                        "required": [
+                          "country_code",
+                          "number"
+                        ],
+                        "properties": {
+                          "country_code": {
+                            "description": "The dialling country code e.g. 234 for NG.",
+                            "type": "string",
+                            "pattern": "^[0-9]{1,3}$"
+                          },
+                          "number": {
+                            "description": "Unformatted 7-10-digit phone number without the country code.",
+                            "type": "string",
+                            "pattern": "^[0-9]{7,10}$"
+                          }
+                        }
+                      },
+                      "email": {
+                        "type": "string",
+                        "description": "The Customer's email address.",
+                        "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+                      },
+                      "address": {
+                        "type": "object",
+                        "description": "Customer address information.",
+                        "required": [
+                          "city",
+                          "country",
+                          "line1",
+                          "postal_code",
+                          "state"
+                        ],
+                        "properties": {
+                          "city": {
+                            "type": "string",
+                            "description": "The name of the city.",
+                            "pattern": "^.+$"
+                          },
+                          "country": {
+                            "description": "ISO2 country code",
+                            "type": "string",
+                            "pattern": "^[A-Z]{2}$"
+                          },
+                          "line1": {
+                            "type": "string",
+                            "description": "The first line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "line2": {
+                            "type": "string",
+                            "description": "The second line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "postal_code": {
+                            "type": "string",
+                            "pattern": "^.+$"
+                          },
+                          "state": {
+                            "type": "string",
+                            "description": "The state or region.",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "transfer_purpose": {
+                    "description": "The reason for the transfer.",
+                    "type": "string",
+                    "enum": [
+                      "family_maintenance",
+                      "personal",
+                      "education",
+                      "medical",
+                      "donation",
+                      "business",
+                      "salary_payment",
+                      "investment",
+                      "loan_repayment",
+                      "bill_payment",
+                      "travel",
+                      "gift",
+                      "other"
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "destination_currency",
+                  "recipient",
+                  "source_currency"
+                ],
+                "properties": {
+                  "destination_currency": {
+                    "type": "string",
+                    "enum": [
+                      "ETB",
+                      "KES"
+                    ]
+                  },
+                  "source_currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/$defs/transfer_amount"
+                  },
+                  "recipient": {
+                    "type": "object",
+                    "required": [
+                      "bank",
+                      "name"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "bank"
+                        ]
+                      },
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "bank": {
+                        "type": "object",
+                        "required": [
+                          "account_number",
+                          "code"
+                        ],
+                        "properties": {
+                          "account_number": {
+                            "description": "recipient account number",
+                            "type": "string",
+                            "minLength": 7,
+                            "maxLength": 24,
+                            "pattern": "^[a-zA-Z0-9]+$"
+                          },
+                          "code": {
+                            "description": "recipient bank code",
+                            "type": "string",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "sender": {
+                    "$ref": "#/$defs/generic_sender"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "destination_currency",
+                  "recipient",
+                  "sender",
+                  "source_currency"
+                ],
+                "properties": {
+                  "destination_currency": {
+                    "type": "string",
+                    "enum": [
+                      "EUR"
+                    ]
+                  },
+                  "source_currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/$defs/transfer_amount"
+                  },
+                  "recipient": {
+                    "type": "object",
+                    "required": [
+                      "bank",
+                      "name",
+                      "phone",
+                      "email",
+                      "address"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "bank"
+                        ]
+                      },
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "phone": {
+                        "type": "object",
+                        "description": "The customer's mobile number.",
+                        "required": [
+                          "country_code",
+                          "number"
+                        ],
+                        "properties": {
+                          "country_code": {
+                            "description": "The dialling country code e.g. 234 for NG.",
+                            "type": "string",
+                            "pattern": "^[0-9]{1,3}$"
+                          },
+                          "number": {
+                            "description": "Unformatted 7-10-digit phone number without the country code.",
+                            "type": "string",
+                            "pattern": "^[0-9]{7,10}$"
+                          }
+                        }
+                      },
+                      "email": {
+                        "type": "string",
+                        "description": "The Customer's email address.",
+                        "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+                      },
+                      "address": {
+                        "type": "object",
+                        "description": "Customer address information.",
+                        "required": [
+                          "city",
+                          "country",
+                          "line1",
+                          "postal_code",
+                          "state"
+                        ],
+                        "properties": {
+                          "city": {
+                            "type": "string",
+                            "description": "The name of the city.",
+                            "pattern": "^.+$"
+                          },
+                          "country": {
+                            "description": "ISO2 country code",
+                            "type": "string",
+                            "pattern": "^[A-Z]{2}$"
+                          },
+                          "line1": {
+                            "type": "string",
+                            "description": "The first line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "line2": {
+                            "type": "string",
+                            "description": "The second line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "postal_code": {
+                            "type": "string",
+                            "pattern": "^.+$"
+                          },
+                          "state": {
+                            "type": "string",
+                            "description": "The state or region.",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      },
+                      "bank": {
+                        "type": "object",
+                        "required": [
+                          "account_number",
+                          "name",
+                          "swift_code"
+                        ],
+                        "properties": {
+                          "account_number": {
+                            "description": "recipient account number",
+                            "type": "string",
+                            "minLength": 8,
+                            "maxLength": 35,
+                            "pattern": "^[a-zA-Z0-9]+$"
+                          },
+                          "name": {
+                            "description": "recipient bank name",
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 60
+                          },
+                          "swift_code": {
+                            "description": "recipient bank swift code",
+                            "type": "string",
+                            "minLength": 4,
+                            "maxLength": 15
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "sender": {
+                    "type": "object",
+                    "description": "Sender information for EUR bank transfers.",
+                    "required": [
+                      "name",
+                      "email",
+                      "address",
+                      "phone"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "email": {
+                        "type": "string",
+                        "description": "The Customer's email address.",
+                        "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+                      },
+                      "address": {
+                        "type": "object",
+                        "description": "Customer address information.",
+                        "required": [
+                          "city",
+                          "country",
+                          "line1",
+                          "postal_code",
+                          "state"
+                        ],
+                        "properties": {
+                          "city": {
+                            "type": "string",
+                            "description": "The name of the city.",
+                            "pattern": "^.+$"
+                          },
+                          "country": {
+                            "description": "ISO2 country code",
+                            "type": "string",
+                            "pattern": "^[A-Z]{2}$"
+                          },
+                          "line1": {
+                            "type": "string",
+                            "description": "The first line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "line2": {
+                            "type": "string",
+                            "description": "The second line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "postal_code": {
+                            "type": "string",
+                            "pattern": "^.+$"
+                          },
+                          "state": {
+                            "type": "string",
+                            "description": "The state or region.",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      },
+                      "phone": {
+                        "type": "object",
+                        "description": "The customer's mobile number.",
+                        "required": [
+                          "country_code",
+                          "number"
+                        ],
+                        "properties": {
+                          "country_code": {
+                            "description": "The dialling country code e.g. 234 for NG.",
+                            "type": "string",
+                            "pattern": "^[0-9]{1,3}$"
+                          },
+                          "number": {
+                            "description": "Unformatted 7-10-digit phone number without the country code.",
+                            "type": "string",
+                            "pattern": "^[0-9]{7,10}$"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "destination_currency",
+                  "recipient",
+                  "sender",
+                  "source_currency"
+                ],
+                "properties": {
+                  "destination_currency": {
+                    "type": "string",
+                    "enum": [
+                      "GBP"
+                    ]
+                  },
+                  "source_currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/$defs/transfer_amount"
+                  },
+                  "recipient": {
+                    "type": "object",
+                    "required": [
+                      "bank",
+                      "name",
+                      "phone",
+                      "email",
+                      "address"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "bank"
+                        ]
+                      },
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "phone": {
+                        "type": "object",
+                        "description": "The customer's mobile number.",
+                        "required": [
+                          "country_code",
+                          "number"
+                        ],
+                        "properties": {
+                          "country_code": {
+                            "description": "The dialling country code e.g. 234 for NG.",
+                            "type": "string",
+                            "pattern": "^[0-9]{1,3}$"
+                          },
+                          "number": {
+                            "description": "Unformatted 7-10-digit phone number without the country code.",
+                            "type": "string",
+                            "pattern": "^[0-9]{7,10}$"
+                          }
+                        }
+                      },
+                      "email": {
+                        "type": "string",
+                        "description": "The Customer's email address.",
+                        "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+                      },
+                      "address": {
+                        "type": "object",
+                        "description": "Customer address information.",
+                        "required": [
+                          "city",
+                          "country",
+                          "line1",
+                          "postal_code",
+                          "state"
+                        ],
+                        "properties": {
+                          "city": {
+                            "type": "string",
+                            "description": "The name of the city.",
+                            "pattern": "^.+$"
+                          },
+                          "country": {
+                            "description": "ISO2 country code",
+                            "type": "string",
+                            "pattern": "^[A-Z]{2}$"
+                          },
+                          "line1": {
+                            "type": "string",
+                            "description": "The first line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "line2": {
+                            "type": "string",
+                            "description": "The second line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "postal_code": {
+                            "type": "string",
+                            "pattern": "^.+$"
+                          },
+                          "state": {
+                            "type": "string",
+                            "description": "The state or region.",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      },
+                      "bank": {
+                        "type": "object",
+                        "required": [
+                          "account_number",
+                          "account_type",
+                          "name",
+                          "sort_code"
+                        ],
+                        "properties": {
+                          "account_number": {
+                            "description": "recipient account number",
+                            "type": "string",
+                            "minLength": 8,
+                            "maxLength": 35,
+                            "pattern": "^[a-zA-Z0-9]+$"
+                          },
+                          "account_type": {
+                            "description": "recipient account type",
+                            "type": "string",
+                            "enum": [
+                              "individual",
+                              "corporate"
+                            ]
+                          },
+                          "name": {
+                            "description": "recipient bank name",
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 60
+                          },
+                          "sort_code": {
+                            "description": "recipient bank sort code",
+                            "type": "string",
+                            "minLength": 4,
+                            "maxLength": 15
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "sender": {
+                    "type": "object",
+                    "description": "Sender information for GBP bank transfers.",
+                    "required": [
+                      "name",
+                      "email",
+                      "address",
+                      "phone"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "email": {
+                        "type": "string",
+                        "description": "The Customer's email address.",
+                        "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+                      },
+                      "address": {
+                        "type": "object",
+                        "description": "Customer address information.",
+                        "required": [
+                          "city",
+                          "country",
+                          "line1",
+                          "postal_code",
+                          "state"
+                        ],
+                        "properties": {
+                          "city": {
+                            "type": "string",
+                            "description": "The name of the city.",
+                            "pattern": "^.+$"
+                          },
+                          "country": {
+                            "description": "ISO2 country code",
+                            "type": "string",
+                            "pattern": "^[A-Z]{2}$"
+                          },
+                          "line1": {
+                            "type": "string",
+                            "description": "The first line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "line2": {
+                            "type": "string",
+                            "description": "The second line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "postal_code": {
+                            "type": "string",
+                            "pattern": "^.+$"
+                          },
+                          "state": {
+                            "type": "string",
+                            "description": "The state or region.",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      },
+                      "phone": {
+                        "type": "object",
+                        "description": "The customer's mobile number.",
+                        "required": [
+                          "country_code",
+                          "number"
+                        ],
+                        "properties": {
+                          "country_code": {
+                            "description": "The dialling country code e.g. 234 for NG.",
+                            "type": "string",
+                            "pattern": "^[0-9]{1,3}$"
+                          },
+                          "number": {
+                            "description": "Unformatted 7-10-digit phone number without the country code.",
+                            "type": "string",
+                            "pattern": "^[0-9]{7,10}$"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "destination_currency",
+                  "recipient",
+                  "source_currency"
+                ],
+                "properties": {
+                  "destination_currency": {
+                    "type": "string",
+                    "enum": [
+                      "GHS",
+                      "RWF",
+                      "SLL",
+                      "UGX",
+                      "XAF",
+                      "XOF"
+                    ]
+                  },
+                  "source_currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/$defs/transfer_amount"
+                  },
+                  "recipient": {
+                    "type": "object",
+                    "required": [
+                      "bank",
+                      "name"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "bank"
+                        ]
+                      },
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "bank": {
+                        "type": "object",
+                        "required": [
+                          "account_number",
+                          "code",
+                          "branch"
+                        ],
+                        "properties": {
+                          "account_number": {
+                            "description": "recipient account number",
+                            "type": "string",
+                            "minLength": 7,
+                            "maxLength": 35,
+                            "pattern": "^[a-zA-Z0-9]+$"
+                          },
+                          "code": {
+                            "description": "recipient bank code",
+                            "type": "string",
+                            "pattern": "^.+$"
+                          },
+                          "branch": {
+                            "description": "recipient bank branch",
+                            "type": "string",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "sender": {
+                    "$ref": "#/$defs/generic_sender"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "destination_currency",
+                  "recipient",
+                  "source_currency"
+                ],
+                "properties": {
+                  "destination_currency": {
+                    "type": "string",
+                    "enum": [
+                      "MWK"
+                    ]
+                  },
+                  "source_currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/$defs/transfer_amount"
+                  },
+                  "recipient": {
+                    "type": "object",
+                    "required": [
+                      "bank",
+                      "name"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "bank"
+                        ]
+                      },
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "bank": {
+                        "type": "object",
+                        "required": [
+                          "account_number",
+                          "code"
+                        ],
+                        "properties": {
+                          "account_number": {
+                            "description": "recipient account number",
+                            "type": "string",
+                            "minLength": 5,
+                            "maxLength": 19,
+                            "pattern": "^[a-zA-Z0-9]+$"
+                          },
+                          "code": {
+                            "description": "recipient bank code",
+                            "type": "string",
+                            "pattern": "^.+$"
+                          },
+                          "branch": {
+                            "description": "recipient bank branch",
+                            "type": "string",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "sender": {
+                    "$ref": "#/$defs/generic_sender"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "destination_currency",
+                  "recipient",
+                  "source_currency"
+                ],
+                "properties": {
+                  "destination_currency": {
+                    "type": "string",
+                    "enum": [
+                      "USD"
+                    ]
+                  },
+                  "source_currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/$defs/transfer_amount"
+                  },
+                  "recipient": {
+                    "type": "object",
+                    "required": [
+                      "bank",
+                      "name",
+                      "phone",
+                      "email",
+                      "address"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "bank"
+                        ]
+                      },
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "phone": {
+                        "type": "object",
+                        "description": "The customer's mobile number.",
+                        "required": [
+                          "country_code",
+                          "number"
+                        ],
+                        "properties": {
+                          "country_code": {
+                            "description": "The dialling country code e.g. 234 for NG.",
+                            "type": "string",
+                            "pattern": "^[0-9]{1,3}$"
+                          },
+                          "number": {
+                            "description": "Unformatted 7-10-digit phone number without the country code.",
+                            "type": "string",
+                            "pattern": "^[0-9]{7,10}$"
+                          }
+                        }
+                      },
+                      "email": {
+                        "type": "string",
+                        "description": "Recipient email address",
+                        "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+                      },
+                      "address": {
+                        "type": "object",
+                        "description": "Customer address information.",
+                        "required": [
+                          "city",
+                          "country",
+                          "line1",
+                          "postal_code",
+                          "state"
+                        ],
+                        "properties": {
+                          "city": {
+                            "type": "string",
+                            "description": "The name of the city.",
+                            "pattern": "^.+$"
+                          },
+                          "country": {
+                            "description": "ISO2 country code",
+                            "type": "string",
+                            "pattern": "^[A-Z]{2}$"
+                          },
+                          "line1": {
+                            "type": "string",
+                            "description": "The first line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "line2": {
+                            "type": "string",
+                            "description": "The second line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "postal_code": {
+                            "type": "string",
+                            "pattern": "^.+$"
+                          },
+                          "state": {
+                            "type": "string",
+                            "description": "The state or region.",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      },
+                      "bank": {
+                        "type": "object",
+                        "required": [
+                          "account_number",
+                          "account_type",
+                          "code",
+                          "swift_code",
+                          "routing_number"
+                        ],
+                        "properties": {
+                          "account_number": {
+                            "description": "recipient account number",
+                            "type": "string",
+                            "minLength": 5,
+                            "maxLength": 17,
+                            "pattern": "^[a-zA-Z0-9]+$"
+                          },
+                          "code": {
+                            "description": "recipient bank code",
+                            "type": "string",
+                            "pattern": "^.+$"
+                          },
+                          "account_type": {
+                            "description": "recipient account type",
+                            "type": "string",
+                            "enum": [
+                              "checking",
+                              "savings"
+                            ]
+                          },
+                          "routing_number": {
+                            "description": "recipient bank routing number",
+                            "type": "string",
+                            "minLength": 6,
+                            "maxLength": 9
+                          },
+                          "swift_code": {
+                            "description": "recipient bank swift code",
+                            "type": "string",
+                            "minLength": 8,
+                            "maxLength": 11
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "sender": {
+                    "$ref": "#/$defs/generic_sender"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "destination_currency",
+                  "recipient",
+                  "source_currency"
+                ],
+                "properties": {
+                  "destination_currency": {
+                    "type": "string",
+                    "enum": [
+                      "ZAR"
+                    ]
+                  },
+                  "source_currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/$defs/transfer_amount"
+                  },
+                  "recipient": {
+                    "type": "object",
+                    "required": [
+                      "bank",
+                      "phone",
+                      "email",
+                      "address",
+                      "name"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "bank"
+                        ]
+                      },
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "phone": {
+                        "type": "object",
+                        "description": "The customer's mobile number.",
+                        "required": [
+                          "country_code",
+                          "number"
+                        ],
+                        "properties": {
+                          "country_code": {
+                            "description": "The dialling country code e.g. 234 for NG.",
+                            "type": "string",
+                            "pattern": "^[0-9]{1,3}$"
+                          },
+                          "number": {
+                            "description": "Unformatted 7-10-digit phone number without the country code.",
+                            "type": "string",
+                            "pattern": "^[0-9]{7,10}$"
+                          }
+                        }
+                      },
+                      "email": {
+                        "type": "string",
+                        "description": "The Customer's email address.",
+                        "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+                      },
+                      "address": {
+                        "type": "object",
+                        "description": "Customer address information.",
+                        "required": [
+                          "city",
+                          "country",
+                          "line1",
+                          "postal_code",
+                          "state"
+                        ],
+                        "properties": {
+                          "city": {
+                            "type": "string",
+                            "description": "The name of the city.",
+                            "pattern": "^.+$"
+                          },
+                          "country": {
+                            "description": "ISO2 country code",
+                            "type": "string",
+                            "pattern": "^[A-Z]{2}$"
+                          },
+                          "line1": {
+                            "type": "string",
+                            "description": "The first line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "line2": {
+                            "type": "string",
+                            "description": "The second line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "postal_code": {
+                            "type": "string",
+                            "pattern": "^.+$"
+                          },
+                          "state": {
+                            "type": "string",
+                            "description": "The state or region.",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      },
+                      "bank": {
+                        "type": "object",
+                        "required": [
+                          "account_number",
+                          "code"
+                        ],
+                        "properties": {
+                          "account_number": {
+                            "description": "recipient account number",
+                            "type": "string",
+                            "minLength": 7,
+                            "maxLength": 11,
+                            "pattern": "^[a-zA-Z0-9]+$"
+                          },
+                          "code": {
+                            "description": "recipient bank code",
+                            "type": "string",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "sender": {
+                    "$ref": "#/$defs/generic_sender"
+                  }
+                }
               }
-            }
-          },
-          "recipient": {
-            "type": "object",
-            "description": "Corridor-specific recipient shape. For bank_ngn: `{ bank: { account_number, code } }`. For bank_usd: full name+phone+email+address+bank (account_number 5-17, account_type checking|savings, routing_number 6-9 digits, swift_code 8-11). For bank_gbp: name+phone+email+address+bank (account_number 8-35, account_type individual|corporate, name 2-60, sort_code 4-15). For bank_eur: name+phone+email+address+bank (account_number 8-35, name 2-60, swift_code 4-15). For bank_egp: bank (account_number 8-32, code), name, national_identification (type PASSPORT|DRIVERS_LICENSE|NATIONAL_ID, identifier, expiration_date), phone, address. For bank_etb: name + bank (account_number 7-24, code). For bank_ghs: name + bank (account_number 7-35, code, branch). For bank_mwk: name + bank (account_number 5-19, code, optional branch). For bank_zar: name+phone+email+address + bank (account_number 7-11, code)."
-          },
-          "sender": {
-            "type": "object",
-            "description": "Corridor-specific sender shape (optional for purely local corridors). For bank_ngn / bank_etb / bank_ghs / bank_mwk / bank_zar: `{ name: { first, last } }`. For bank_usd / bank_gbp / bank_eur: name+email+address+phone. For bank_egp: name, national_identification, date_of_birth (YYYY-MM-DD), phone, email, address."
+            ],
+            "description": "Currency-specific information for the transfer."
           }
         }
       },
+      {
+        "type": "object",
+        "required": [
+          "action",
+          "payment_instruction",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "mobile_money"
+            ]
+          },
+          "action": {
+            "description": "To define whether the transfer should be processed immediately, scheduled for a later date, or deferred for future processing",
+            "type": "string",
+            "enum": [
+              "instant",
+              "deferred",
+              "scheduled"
+            ]
+          },
+          "reference": {
+            "$ref": "#/$defs/reference"
+          },
+          "narration": {
+            "description": "transfer description. This cannot be greater than 180 characters",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 180
+          },
+          "disburse_option": {
+            "$ref": "#/$defs/disburse_option"
+          },
+          "callback_url": {
+            "description": "To set a callback url for receiving payout webhook, this will take precedent over the merchant's default webhook url",
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/$defs/meta"
+          },
+          "payment_instruction": {
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "destination_currency",
+                  "recipient",
+                  "source_currency"
+                ],
+                "properties": {
+                  "destination_currency": {
+                    "type": "string",
+                    "enum": [
+                      "ETB",
+                      "GHS",
+                      "KES",
+                      "RWF",
+                      "TZS",
+                      "UGX",
+                      "ZMW"
+                    ]
+                  },
+                  "source_currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/$defs/transfer_amount"
+                  },
+                  "recipient": {
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "mobile_money"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "mobile_money"
+                        ]
+                      },
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "mobile_money": {
+                        "type": "object",
+                        "required": [
+                          "network",
+                          "msisdn"
+                        ],
+                        "properties": {
+                          "network": {
+                            "description": "recipient network",
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 25,
+                            "pattern": "^[a-zA-Z0-9]*$"
+                          },
+                          "msisdn": {
+                            "description": "recipient phone number",
+                            "type": "string",
+                            "minLength": 6,
+                            "maxLength": 25,
+                            "pattern": "^[0-9]+$"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "sender": {
+                    "$ref": "#/$defs/generic_sender"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "destination_currency",
+                  "recipient",
+                  "sender",
+                  "source_currency"
+                ],
+                "properties": {
+                  "destination_currency": {
+                    "type": "string",
+                    "enum": [
+                      "EGP"
+                    ]
+                  },
+                  "source_currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/$defs/transfer_amount"
+                  },
+                  "recipient": {
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "mobile_money",
+                      "national_identification",
+                      "address"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "mobile_money"
+                        ]
+                      },
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "national_identification": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "PASSPORT",
+                              "DRIVERS_LICENSE",
+                              "NATIONAL_ID"
+                            ]
+                          },
+                          "identifier": {
+                            "type": "string",
+                            "minLength": 4,
+                            "maxLength": 40
+                          },
+                          "expiration_date": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
+                          }
+                        },
+                        "required": [
+                          "identifier",
+                          "type"
+                        ],
+                        "description": "Recipient government identification"
+                      },
+                      "address": {
+                        "type": "object",
+                        "description": "Customer address information.",
+                        "required": [
+                          "city",
+                          "country",
+                          "line1",
+                          "postal_code",
+                          "state"
+                        ],
+                        "properties": {
+                          "city": {
+                            "type": "string",
+                            "description": "The name of the city.",
+                            "pattern": "^.+$"
+                          },
+                          "country": {
+                            "description": "ISO2 country code",
+                            "type": "string",
+                            "pattern": "^[A-Z]{2}$"
+                          },
+                          "line1": {
+                            "type": "string",
+                            "description": "The first line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "line2": {
+                            "type": "string",
+                            "description": "The second line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "postal_code": {
+                            "type": "string",
+                            "pattern": "^.+$"
+                          },
+                          "state": {
+                            "type": "string",
+                            "description": "The state or region.",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      },
+                      "mobile_money": {
+                        "type": "object",
+                        "required": [
+                          "network",
+                          "msisdn"
+                        ],
+                        "properties": {
+                          "network": {
+                            "description": "recipient network",
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 25,
+                            "pattern": "^[a-zA-Z0-9]*$"
+                          },
+                          "msisdn": {
+                            "description": "recipient phone number",
+                            "type": "string",
+                            "minLength": 6,
+                            "maxLength": 25,
+                            "pattern": "^[0-9]+$"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "sender": {
+                    "type": "object",
+                    "description": "Sender information for EGP mobile money transfers.",
+                    "required": [
+                      "name",
+                      "national_identification",
+                      "date_of_birth",
+                      "phone",
+                      "email",
+                      "address"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "national_identification": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "PASSPORT",
+                              "DRIVERS_LICENSE",
+                              "NATIONAL_ID"
+                            ]
+                          },
+                          "identifier": {
+                            "type": "string",
+                            "minLength": 4,
+                            "maxLength": 40
+                          },
+                          "expiration_date": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
+                          }
+                        },
+                        "required": [
+                          "expiration_date",
+                          "identifier",
+                          "type"
+                        ],
+                        "description": "The Sender's official government ID."
+                      },
+                      "phone": {
+                        "type": "object",
+                        "description": "The customer's mobile number.",
+                        "required": [
+                          "country_code",
+                          "number"
+                        ],
+                        "properties": {
+                          "country_code": {
+                            "description": "The dialling country code e.g. 234 for NG.",
+                            "type": "string",
+                            "pattern": "^[0-9]{1,3}$"
+                          },
+                          "number": {
+                            "description": "Unformatted 7-10-digit phone number without the country code.",
+                            "type": "string",
+                            "pattern": "^[0-9]{7,10}$"
+                          }
+                        }
+                      },
+                      "date_of_birth": {
+                        "description": "Sender's date of birth in YYYY-MM-DD.",
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string",
+                        "description": "The Customer's email address.",
+                        "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+                      },
+                      "address": {
+                        "type": "object",
+                        "description": "Customer address information.",
+                        "required": [
+                          "city",
+                          "country",
+                          "line1",
+                          "postal_code",
+                          "state"
+                        ],
+                        "properties": {
+                          "city": {
+                            "type": "string",
+                            "description": "The name of the city.",
+                            "pattern": "^.+$"
+                          },
+                          "country": {
+                            "description": "ISO2 country code",
+                            "type": "string",
+                            "pattern": "^[A-Z]{2}$"
+                          },
+                          "line1": {
+                            "type": "string",
+                            "description": "The first line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "line2": {
+                            "type": "string",
+                            "description": "The second line of the Customer's address.",
+                            "pattern": "^.+$"
+                          },
+                          "postal_code": {
+                            "type": "string",
+                            "pattern": "^.+$"
+                          },
+                          "state": {
+                            "type": "string",
+                            "description": "The state or region.",
+                            "pattern": "^.+$"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "transfer_purpose": {
+                    "description": "The reason for the transfer.",
+                    "type": "string",
+                    "enum": [
+                      "family_maintenance",
+                      "personal",
+                      "education",
+                      "medical",
+                      "donation",
+                      "business",
+                      "salary_payment",
+                      "investment",
+                      "loan_repayment",
+                      "bill_payment",
+                      "travel",
+                      "gift",
+                      "other"
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "destination_currency",
+                  "recipient",
+                  "source_currency"
+                ],
+                "properties": {
+                  "destination_currency": {
+                    "type": "string",
+                    "enum": [
+                      "XAF",
+                      "XOF"
+                    ]
+                  },
+                  "source_currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/$defs/transfer_amount"
+                  },
+                  "recipient": {
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "mobile_money"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "mobile_money"
+                        ]
+                      },
+                      "name": {
+                        "type": "object",
+                        "description": "The Customer's full name.",
+                        "properties": {
+                          "first": {
+                            "type": "string",
+                            "description": "The Customer's first name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "middle": {
+                            "type": "string",
+                            "description": "The Customer's middle name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          },
+                          "last": {
+                            "type": "string",
+                            "description": "The Customer's last name.",
+                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                          }
+                        },
+                        "required": [
+                          "first",
+                          "last"
+                        ]
+                      },
+                      "mobile_money": {
+                        "type": "object",
+                        "required": [
+                          "network",
+                          "country",
+                          "msisdn"
+                        ],
+                        "properties": {
+                          "network": {
+                            "description": "recipient network",
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 25,
+                            "pattern": "^[a-zA-Z0-9]*$"
+                          },
+                          "country": {
+                            "description": "recipient country",
+                            "type": "string",
+                            "pattern": "^[A-Z]{2}$"
+                          },
+                          "msisdn": {
+                            "description": "recipient phone number",
+                            "type": "string",
+                            "minLength": 6,
+                            "maxLength": 25,
+                            "pattern": "^[0-9]+$"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "sender": {
+                    "$ref": "#/$defs/generic_sender"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "action",
+          "payment_instruction",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "wallet"
+            ]
+          },
+          "action": {
+            "description": "To define whether the transfer should be processed immediately, scheduled for a later date, or deferred for future processing",
+            "type": "string",
+            "enum": [
+              "instant",
+              "deferred",
+              "scheduled"
+            ]
+          },
+          "reference": {
+            "$ref": "#/$defs/reference"
+          },
+          "narration": {
+            "description": "transfer description. This cannot be greater than 180 characters",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 180
+          },
+          "disburse_option": {
+            "$ref": "#/$defs/disburse_option"
+          },
+          "callback_url": {
+            "description": "To set a callback url for receiving payout webhook, this will take precedent over the merchant's default webhook url",
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/$defs/meta"
+          },
+          "payment_instruction": {
+            "type": "object",
+            "required": [
+              "recipient",
+              "destination_currency",
+              "source_currency",
+              "amount"
+            ],
+            "properties": {
+              "source_currency": {
+                "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                "type": "string"
+              },
+              "destination_currency": {
+                "type": "string",
+                "description": "The currency in which the transfer amount will be credited to the recipient. It must be provided in ISO 4217 format (e.g., USD, EUR, EGP)"
+              },
+              "amount": {
+                "$ref": "#/$defs/transfer_amount"
+              },
+              "recipient": {
+                "type": "object",
+                "required": [
+                  "wallet"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "wallet"
+                    ]
+                  },
+                  "name": {
+                    "$ref": "#/$defs/name"
+                  },
+                  "wallet": {
+                    "type": "object",
+                    "required": [
+                      "provider",
+                      "identifier"
+                    ],
+                    "properties": {
+                      "provider": {
+                        "type": "string",
+                        "enum": [
+                          "flutterwave"
+                        ],
+                        "description": "Specifies the payment or service provider. Currently, only \"flutterwave\" is supported"
+                      },
+                      "identifier": {
+                        "description": "A unique identifier assigned to the merchant by the payment or service provider.",
+                        "type": "string",
+                        "minLength": 7,
+                        "maxLength": 25,
+                        "pattern": "^[a-zA-Z0-9]*$"
+                      }
+                    }
+                  }
+                }
+              },
+              "sender": {
+                "$ref": "#/$defs/generic_sender"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "$defs": {
       "disburse_option": {
         "type": "object",
+        "description": "To specify the date and time for disbursement, this is required when action is set to scheduled.",
         "properties": {
-          "date_time": { "type": "string", "description": "Scheduled disbursement date/time in 'YYYY-MM-DD HH:MM:SS' (24-hour) format." },
-          "timezone": { "type": "string", "description": "IANA timezone (Africa/Cairo, Africa/Lagos, America/New_York, Asia/Dubai, Europe/London, UTC, ...)." }
-        },
-        "description": "Optional disbursement scheduling."
+          "date_time": {
+            "type": "string",
+            "description": "the scheduled date and time for when the transfer should be disbursed to the recipient's account. It should be in the 'YYYY-MM-DD HH:MM:SS' 24hr format."
+          },
+          "timezone": {
+            "type": "string",
+            "enum": [
+              "Africa/Cairo",
+              "Africa/Accra",
+              "Africa/Nairobi",
+              "Africa/Lagos",
+              "Africa/Freetown",
+              "Africa/Dar_es_Salaam",
+              "Africa/Kampala",
+              "Africa/Douala",
+              "Africa/Ndjamena",
+              "Africa/Kinshasa",
+              "Africa/Lubumbashi",
+              "Africa/Libreville",
+              "Africa/Porto-Novo",
+              "Africa/Abidjan",
+              "Africa/Dakar",
+              "Africa/Johannesburg",
+              "America/New_York",
+              "America/Los_Angeles",
+              "America/Sao_Paulo",
+              "Asia/Dubai",
+              "Asia/Kolkata",
+              "Asia/Tokyo",
+              "Australia/Sydney",
+              "Europe/London",
+              "Europe/Berlin",
+              "Europe/Moscow",
+              "Pacific/Auckland",
+              "Pacific/Honolulu",
+              "UTC"
+            ]
+          }
+        }
       },
-      "callback_url": {
-        "type": "string",
-        "format": "uri",
-        "description": "Webhook URL Flutterwave POSTs to on transfer status changes. Overrides the merchant default webhook URL."
+      "generic_sender": {
+        "type": "object",
+        "description": "Sender information.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "phone": {
+            "type": "object",
+            "description": "The customer's mobile number.",
+            "required": [
+              "country_code",
+              "number"
+            ],
+            "properties": {
+              "country_code": {
+                "description": "The dialling country code e.g. 234 for NG.",
+                "type": "string",
+                "pattern": "^[0-9]{1,3}$"
+              },
+              "number": {
+                "description": "Unformatted 7-10-digit phone number without the country code.",
+                "type": "string",
+                "pattern": "^[0-9]{7,10}$"
+              }
+            }
+          },
+          "email": {
+            "type": "string",
+            "description": "The Customer's email address.",
+            "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+          },
+          "address": {
+            "type": "object",
+            "description": "Customer address information.",
+            "required": [
+              "city",
+              "country",
+              "line1",
+              "postal_code",
+              "state"
+            ],
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "The name of the city.",
+                "pattern": "^.+$"
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "postal_code": {
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region.",
+                "pattern": "^.+$"
+              }
+            }
+          }
+        }
       },
       "meta": {
         "type": "object",
-        "description": "Arbitrary key/value metadata stored on the transfer.",
-        "additionalProperties": { "type": "string" }
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
+      "name": {
+        "type": "object",
+        "description": "The Customer's full name.",
+        "properties": {
+          "first": {
+            "type": "string",
+            "description": "The Customer's first name.",
+            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+          },
+          "middle": {
+            "type": "string",
+            "description": "The Customer's middle name.",
+            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+          },
+          "last": {
+            "type": "string",
+            "description": "The Customer's last name.",
+            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+          }
+        }
+      },
+      "reference": {
+        "type": "string",
+        "pattern": "^[a-zA-Z0-9\\-]+$",
+        "minLength": 6,
+        "maxLength": 42,
+        "description": "A custom identifier to track the transaction, This must be unique across all your transactions."
+      },
+      "transfer_amount": {
+        "type": "object",
+        "required": [
+          "value",
+          "applies_to"
+        ],
+        "properties": {
+          "value": {
+            "description": "Amount to be sent to the recipient. This is a positive integer in the smallest currency unit",
+            "type": "number",
+            "format": "decimal",
+            "minimum": 1
+          },
+          "applies_to": {
+            "type": "string",
+            "enum": [
+              "destination_currency",
+              "source_currency"
+            ],
+            "description": "Specifies whether the transfer amount is in destination_currency (no conversion) or source_currency (this will be converted to destination currency)"
+          }
+        }
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
-    "description": "201 Created. Standard Flutterwave envelope with the full orchestrated transfer object.",
     "properties": {
-      "status": { "type": "string", "enum": ["success", "failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
       "data": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "description": "Transfer ID — use with /transfers/{id} for retrieval, update and retry." },
-          "type": { "type": "string", "enum": ["bank", "mobile_money", "wallet", "cash_pickup", "crypto"] },
-          "action": { "type": "string", "enum": ["instant", "deferred", "scheduled", "retry", "duplicate"] },
-          "reference": { "type": "string" },
-          "status": {
-            "type": "string",
-            "enum": ["NEW", "PENDING", "FAILED", "SUCCESSFUL", "CANCELLED", "INITIATED"],
-            "description": "Transfer state (UPPERCASE per Flutterwave v4)."
+          "id": {
+            "description": "The unique identifier for the transfer",
+            "type": "string"
           },
-          "narration": { "type": ["string", "null"] },
-          "source_currency": { "type": "string" },
-          "destination_currency": { "type": "string" },
+          "type": {
+            "type": "string",
+            "description": "The type of transfer, indicating the method used to transfer funds.",
+            "enum": [
+              "bank",
+              "mobile_money",
+              "wallet",
+              "cash_pickup",
+              "crypto"
+            ]
+          },
+          "action": {
+            "description": "Whether to process the transfer instantly or at a later date.",
+            "type": "string",
+            "enum": [
+              "instant",
+              "deferred",
+              "scheduled",
+              "retry",
+              "duplicate"
+            ]
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 42,
+            "description": "A custom identifier to track the transaction, This must be unique across all your transactions."
+          },
+          "status": {
+            "description": "The status of the transfer.",
+            "type": "string",
+            "enum": [
+              "NEW",
+              "PENDING",
+              "FAILED",
+              "SUCCESSFUL",
+              "CANCELLED",
+              "INITIATED"
+            ]
+          },
+          "reversal": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "reversal_datetime": {
+                "description": "The transfer reversal date.",
+                "type": "string",
+                "format": "date-time"
+              },
+              "initial_status": {
+                "description": "The original status of the transfer before reversal.",
+                "type": "string"
+              },
+              "reconciliation_status": {
+                "description": "The final status.",
+                "type": "string"
+              },
+              "reconciliation_type": {
+                "description": "Specifies either debit or credit.",
+                "type": "string",
+                "enum": [
+                  "D",
+                  "C"
+                ]
+              }
+            }
+          },
+          "narration": {
+            "type": "string",
+            "description": "A brief description or message accompanying the transfer, provided by the sender to describe the purpose of the transfer."
+          },
+          "source_currency": {
+            "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+            "type": "string"
+          },
+          "destination_currency": {
+            "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+            "type": "string"
+          },
           "amount": {
             "type": "object",
+            "required": [
+              "value",
+              "applies_to"
+            ],
             "properties": {
-              "value": { "type": "number" },
-              "applies_to": { "type": "string", "enum": ["destination_currency", "source_currency"] }
+              "value": {
+                "description": "Amount to be sent to the recipient. This is a positive integer in the smallest currency unit",
+                "type": "number",
+                "format": "decimal",
+                "minimum": 1
+              },
+              "applies_to": {
+                "type": "string",
+                "enum": [
+                  "destination_currency",
+                  "source_currency"
+                ],
+                "description": "Specifies whether the transfer amount is in destination_currency (no conversion) or source_currency (this will be converted to destination currency)"
+              }
             }
           },
           "fee": {
             "type": "object",
             "properties": {
-              "currency": { "type": "string" },
-              "value": { "type": "number", "minimum": 0 }
+              "currency": {
+                "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                "type": "string"
+              },
+              "value": {
+                "type": "number",
+                "description": "The amount charged as a fee for the transfer.",
+                "format": "double",
+                "minimum": 0
+              }
             }
           },
           "debit_information": {
             "type": "object",
             "properties": {
-              "currency": { "type": "string" },
-              "actual_debit_amount": { "type": "number" },
-              "rate_used": { "type": "number" },
-              "vat": { "type": "number" }
+              "currency": {
+                "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                "type": "string"
+              },
+              "actual_debit_amount": {
+                "type": "number",
+                "description": "The exact amount deducted for the transfer, including applicable fees.",
+                "format": "decimal",
+                "minimum": 0
+              },
+              "rate_used": {
+                "type": "number",
+                "description": "The exchange rate applied to calculate the transfer amount.",
+                "format": "decimal",
+                "minimum": 0
+              },
+              "vat": {
+                "type": "number",
+                "description": "The Value-Added Tax (VAT) amount charged for the transfer.",
+                "format": "decimal",
+                "minimum": 0
+              }
             }
           },
           "extra_information": {
             "type": "object",
-            "properties": { "amount_credited": { "type": "string" } }
+            "properties": {
+              "amount_credited": {
+                "type": "string",
+                "description": "The exact amount credited to the recipient's account after the transfer is processed, which may differ from the original transfer amount due to fees, exchange rates, or other adjustments."
+              }
+            },
+            "description": "Additional information about the transfer, which may include details such as the amount credited or any other relevant information that may be useful for the transfer."
           },
           "payment_information": {
             "type": "object",
-            "properties": { "proof": { "type": "string" } }
-          },
-          "disburse_option": {
-            "type": ["object", "null"],
             "properties": {
-              "date_time": { "type": ["string", "null"] },
-              "timezone": { "type": "string" }
+              "proof": {
+                "type": "string",
+                "description": "Session ID"
+              }
             }
           },
-          "callback_url": { "type": ["string", "null"] },
-          "provider_response": {
+          "retry": {
             "type": "object",
             "properties": {
-              "type": { "type": "string" },
-              "code": { "type": "string", "description": "4-digit numeric string." },
-              "message": { "type": "string" }
+              "parent_id": {
+                "type": "string",
+                "description": "The unique identifier of the original transfer that is being retried."
+              },
+              "parent_reference": {
+                "type": "string",
+                "description": "The external reference of the original transfer that is being retried."
+              }
+            },
+            "description": "Contains the information of the initial transfer that was retried."
+          },
+          "duplicate": {
+            "type": "object",
+            "properties": {
+              "parent_id": {
+                "type": "string",
+                "description": "The unique identifier of the original transfer that is being retried."
+              },
+              "parent_reference": {
+                "type": "string",
+                "description": "The external reference of the original transfer that is being retried."
+              }
+            },
+            "description": "Contains the information of the initial transfer that was duplicated."
+          },
+          "disburse_option": {
+            "type": "object",
+            "description": "To specify the date and time for disbursement, this is required when action is set to scheduled.",
+            "properties": {
+              "date_time": {
+                "type": "string",
+                "description": "the scheduled date and time for when the transfer should be disbursed to the recipient's account. It should be in the 'YYYY-MM-DD HH:MM:SS' 24hr format."
+              },
+              "timezone": {
+                "type": "string",
+                "enum": [
+                  "Africa/Cairo",
+                  "Africa/Accra",
+                  "Africa/Nairobi",
+                  "Africa/Lagos",
+                  "Africa/Freetown",
+                  "Africa/Dar_es_Salaam",
+                  "Africa/Kampala",
+                  "Africa/Douala",
+                  "Africa/Ndjamena",
+                  "Africa/Kinshasa",
+                  "Africa/Lubumbashi",
+                  "Africa/Libreville",
+                  "Africa/Porto-Novo",
+                  "Africa/Abidjan",
+                  "Africa/Dakar",
+                  "Africa/Johannesburg",
+                  "America/New_York",
+                  "America/Los_Angeles",
+                  "America/Sao_Paulo",
+                  "Asia/Dubai",
+                  "Asia/Kolkata",
+                  "Asia/Tokyo",
+                  "Australia/Sydney",
+                  "Europe/London",
+                  "Europe/Berlin",
+                  "Europe/Moscow",
+                  "Pacific/Auckland",
+                  "Pacific/Honolulu",
+                  "UTC"
+                ]
+              }
+            }
+          },
+          "callback_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A URL where callbacks or notifications will be sent."
+          },
+          "provider_response": {
+            "type": "object",
+            "required": [
+              "type",
+              "code"
+            ],
+            "description": "Represents payout error codes. The `type` and `code` fields are separate enums where:\n- `type` indicates the nature of the error.\n- `code` provides the specific error code associated with the error type.\n- `message` explains the meaning of the `type-code` pair\n",
+            "properties": {
+              "message": {
+                "type": "string",
+                "description": "The processor message for the transfer."
+              },
+              "type": {
+                "type": "string",
+                "description": "The type of the payout error, representing the specific error scenario.\n",
+                "enum": [
+                  "transfer_amount_exceeds_limit",
+                  "transfer_amount_below_limit",
+                  "monthly_transfer_limit_exceeded",
+                  "daily_transfer_limit_exceeded",
+                  "transfer_limit_not_set_for_currency",
+                  "payout_creation_failed",
+                  "insufficient_balance",
+                  "service_unavailable",
+                  "transfer_failed",
+                  "pricing_not_set",
+                  "currency_conversion_not_set",
+                  "rejected_recipient_merchant",
+                  "invalid_bank_code",
+                  "unable_to_determine_country",
+                  "invalid_wallet_currency"
+                ]
+              },
+              "code": {
+                "type": "string",
+                "description": "The unique code associated with the error type. This code follows a pattern of four digits.\n"
+              }
             }
           },
           "recipient": {
-            "type": "object",
-            "description": "Resolved recipient including the auto-created recipient.id."
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "bank",
+                  "type"
+                ],
+                "properties": {
+                  "id": {
+                    "description": "ID of the transfer recipient",
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "bank"
+                    ]
+                  },
+                  "name": {
+                    "$ref": "#/$defs/name"
+                  },
+                  "currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "national_identification": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "PASSPORT",
+                          "DRIVERS_LICENSE",
+                          "NATIONAL_ID"
+                        ]
+                      },
+                      "identifier": {
+                        "type": "string",
+                        "minLength": 4,
+                        "maxLength": 40
+                      },
+                      "expiration_date": {
+                        "type": "string"
+                      }
+                    },
+                    "description": "Sender government identification"
+                  },
+                  "phone": {
+                    "$ref": "#/$defs/phone"
+                  },
+                  "date_of_birth": {
+                    "$ref": "#/$defs/date_of_birth"
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "The Customer's email address."
+                  },
+                  "address": {
+                    "$ref": "#/$defs/address"
+                  },
+                  "bank": {
+                    "type": "object",
+                    "required": [
+                      "account_number",
+                      "code"
+                    ],
+                    "properties": {
+                      "account_number": {
+                        "description": "The Recipient's account number.",
+                        "type": "string"
+                      },
+                      "account_type": {
+                        "description": "The Recipient's account type.",
+                        "type": "string",
+                        "enum": [
+                          "checking",
+                          "savings",
+                          "individual",
+                          "corporate"
+                        ]
+                      },
+                      "code": {
+                        "description": "The Recipient's bank code.",
+                        "type": "string"
+                      },
+                      "branch": {
+                        "description": "The Recipient's bank branch.",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "The Recipient's bank name.",
+                        "type": "string"
+                      },
+                      "routing_number": {
+                        "description": "The Recipient bank routing number.",
+                        "type": "string"
+                      },
+                      "swift_code": {
+                        "description": "The Recipient bank swift code.",
+                        "type": "string"
+                      },
+                      "sort_code": {
+                        "description": "The Recipient bank sort code.",
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "name",
+                  "type"
+                ],
+                "properties": {
+                  "id": {
+                    "description": "ID of the transfer recipient",
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "mobile_money"
+                    ]
+                  },
+                  "name": {
+                    "$ref": "#/$defs/name"
+                  },
+                  "currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "national_identification": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "PASSPORT",
+                          "DRIVERS_LICENSE",
+                          "NATIONAL_ID"
+                        ]
+                      },
+                      "identifier": {
+                        "type": "string",
+                        "minLength": 4,
+                        "maxLength": 40
+                      },
+                      "expiration_date": {
+                        "type": "string"
+                      }
+                    },
+                    "description": "Sender government identification"
+                  },
+                  "phone": {
+                    "$ref": "#/$defs/phone"
+                  },
+                  "date_of_birth": {
+                    "$ref": "#/$defs/date_of_birth"
+                  },
+                  "email": {
+                    "$ref": "#/$defs/email"
+                  },
+                  "address": {
+                    "$ref": "#/$defs/address"
+                  },
+                  "mobile_money": {
+                    "type": "object",
+                    "required": [
+                      "network",
+                      "country",
+                      "msisdn"
+                    ],
+                    "properties": {
+                      "network": {
+                        "description": "recipient network",
+                        "type": "string"
+                      },
+                      "country": {
+                        "description": "recipient country",
+                        "type": "string"
+                      },
+                      "msisdn": {
+                        "description": "recipient phone number",
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "ID of the transfer recipient",
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "wallet"
+                    ]
+                  },
+                  "name": {
+                    "$ref": "#/$defs/name"
+                  },
+                  "currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "wallet": {
+                    "type": "object",
+                    "required": [
+                      "provider",
+                      "identifier"
+                    ],
+                    "properties": {
+                      "provider": {
+                        "type": "string",
+                        "enum": [
+                          "flutterwave"
+                        ],
+                        "description": "Specifies the payment or service provider. Currently, only \"flutterwave\" is supported"
+                      },
+                      "identifier": {
+                        "description": "A unique identifier assigned to the merchant by the payment or service provider.",
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "ID of the transfer recipient",
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "cash_pickup"
+                    ]
+                  },
+                  "name": {
+                    "$ref": "#/$defs/name"
+                  },
+                  "currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "national_identification": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "PASSPORT",
+                          "DRIVERS_LICENSE",
+                          "NATIONAL_ID"
+                        ]
+                      },
+                      "identifier": {
+                        "type": "string",
+                        "minLength": 4,
+                        "maxLength": 40
+                      },
+                      "expiration_date": {
+                        "type": "string"
+                      }
+                    },
+                    "description": "Sender government identification"
+                  },
+                  "phone": {
+                    "$ref": "#/$defs/phone"
+                  },
+                  "date_of_birth": {
+                    "$ref": "#/$defs/date_of_birth"
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "The Customer's email address."
+                  },
+                  "address": {
+                    "$ref": "#/$defs/address"
+                  },
+                  "cash_pickup": {
+                    "type": "object",
+                    "required": [
+                      "provider"
+                    ],
+                    "properties": {
+                      "provider": {
+                        "description": "cashpickup provider",
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "ID of the transfer recipient",
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "crypto"
+                    ]
+                  },
+                  "name": {
+                    "$ref": "#/$defs/name"
+                  },
+                  "currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "crypto": {
+                    "type": "object",
+                    "required": [
+                      "network",
+                      "address"
+                    ],
+                    "properties": {
+                      "network": {
+                        "description": "recipient crypto network",
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 25
+                      },
+                      "address": {
+                        "description": "recipient crypto address",
+                        "type": "string",
+                        "minLength": 26,
+                        "maxLength": 64
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            ],
+            "description": "The recipient details."
           },
           "sender": {
             "type": "object",
-            "description": "Resolved sender including the auto-created sender.id."
-          },
-          "transfer_purpose": { "type": "string" },
-          "meta": { "type": "object", "additionalProperties": { "type": "string" } },
-          "created_datetime": { "type": "string", "format": "date-time" },
-          "reversal": {
-            "type": ["object", "null"],
             "properties": {
-              "reversal_datetime": { "type": "string", "format": "date-time" },
-              "initial_status": { "type": "string" },
-              "reconciliation_status": { "type": "string" },
-              "reconciliation_type": { "type": "string", "enum": ["D", "C"] }
+              "id": {
+                "description": "ID of the transfer sender",
+                "type": "string"
+              },
+              "name": {
+                "$ref": "#/$defs/name",
+                "description": "The Sender's full name."
+              },
+              "national_identification": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "PASSPORT",
+                      "DRIVERS_LICENSE",
+                      "NATIONAL_ID"
+                    ]
+                  },
+                  "identifier": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 40
+                  },
+                  "expiration_date": {
+                    "type": "string"
+                  }
+                },
+                "description": "The Sender's government identification."
+              },
+              "phone": {
+                "$ref": "#/$defs/phone",
+                "description": "The Sender's mobile number."
+              },
+              "date_of_birth": {
+                "description": "The Sender's date of birth.",
+                "type": "string"
+              },
+              "email": {
+                "$ref": "#/$defs/email",
+                "description": "The Sender's email address."
+              },
+              "address": {
+                "$ref": "#/$defs/address",
+                "description": "The Sender's residential address."
+              }
+            },
+            "description": "The sender details."
+          },
+          "transfer_purpose": {
+            "description": "The reason for the transfer.",
+            "type": "string",
+            "enum": [
+              "family_maintenance",
+              "personal",
+              "education",
+              "medical",
+              "donation",
+              "business",
+              "salary_payment",
+              "investment",
+              "loan_repayment",
+              "bill_payment",
+              "travel",
+              "gift",
+              "other"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
             }
+          },
+          "created_datetime": {
+            "type": "string",
+            "description": "The date and time when the transfer was submitted for processing.",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "$defs": {
+      "address": {
+        "type": "object",
+        "description": "Customer address information.",
+        "required": [
+          "line1",
+          "city",
+          "state",
+          "country",
+          "postal_code"
+        ],
+        "properties": {
+          "city": {
+            "type": "string",
+            "description": "The name of the city."
+          },
+          "country": {
+            "description": "ISO2 country code",
+            "type": "string"
+          },
+          "line1": {
+            "type": "string",
+            "description": "The first line of the Customer's address."
+          },
+          "line2": {
+            "type": "string",
+            "description": "The second line of the Customer's address."
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "description": "The state or region."
+          }
+        }
+      },
+      "date_of_birth": {
+        "type": "string",
+        "description": "The customer's birthdate in ISO 8601 (YYYY-MM-DD) format."
+      },
+      "email": {
+        "type": "string",
+        "description": "The Customer's email address."
+      },
+      "name": {
+        "type": "object",
+        "description": "The Customer's full name.",
+        "properties": {
+          "first": {
+            "type": "string",
+            "description": "The Customer's first name."
+          },
+          "middle": {
+            "type": "string",
+            "description": "The Customer's middle name."
+          },
+          "last": {
+            "type": "string",
+            "description": "The Customer's last name."
+          }
+        }
+      },
+      "phone": {
+        "type": "object",
+        "description": "The customer's mobile number.",
+        "required": [
+          "number",
+          "country_code"
+        ],
+        "properties": {
+          "country_code": {
+            "description": "The dialling country code e.g. 234 for NG.",
+            "type": "string"
+          },
+          "number": {
+            "description": "Unformatted 7-10-digit phone number without the country code.",
+            "type": "string"
           }
         }
       }
@@ -218,24 +3342,53 @@
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: 201409 REFERENCE_ALREADY_EXISTS, 228400 TRANSFER_AMOUNT_LIMIT, 203400 UNSUPPORTED_BANK_INSTRUCTION, 209400 UNSUPPORTED_MOMO_INSTRUCTION, 202400 UNSUPPORTED_WALLET_INSTRUCTION, 230400 UNSUPPORTED_MOBILE_MONEY_COUNTRY, 230401 INVALID_MOBILE_NUMBER, 211400 INVALID_TRANSFER_TYPE, 220400 IP_WHITELISTING_REQUIRED, 221400 NON_WHITELISTED_IP."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "validation_errors": {
             "type": "array",
+            "description": "On 400 validation errors.",
             "items": {
               "type": "object",
               "properties": {
-                "field_name": { "type": "string" },
-                "message": { "type": "string" }
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -244,12 +3397,27 @@
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "POST /direct-transfers is the orchestrator variant: it accepts inline sender and recipient objects and creates those records on the fly, returning their ids in the response. Use it when you do not want to pre-call POST /transfers/senders and POST /transfers/recipients. For repeated payouts to the same beneficiary, switch to POST /transfers with stored sender_id/recipient_id.",
-    "payment_instruction.type is a discriminator that fixes the destination corridor (bank_ngn, bank_usd, bank_gbp, bank_eur, bank_egp, bank_etb, bank_ghs, bank_mwk, bank_zar). The required shape of recipient and sender changes per type — sending a bank_ngn recipient under bank_usd returns 400 with validation_errors.",
-    "Reference is optional but if supplied must be 6-42 alphanumeric+hyphen characters and unique. Always send X-Trace-Id (12-255 chars, required) and X-Idempotency-Key (12-255 chars, optional but strongly recommended) so retries are safe and the request is correlated in Flutterwave's logs.",
-    "amount.applies_to controls whether amount.value is denominated in destination_currency or source_currency — pick deliberately on cross-currency corridors, because Flutterwave will FX the other side using its quoted rate.",
-    "For bank_egp, transfer_purpose is required and national_identification (type/identifier/expiration_date) plus date_of_birth on the sender are mandatory. Skipping them returns 400.",
-    "Response status values are UPPERCASE (NEW, PENDING, FAILED, SUCCESSFUL, CANCELLED, INITIATED). Do not lowercase before comparison."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: send X-Idempotency-Key on this POST. Docs (Idempotency): \"For all `POST` endpoints, include an idempotency key in the request header (`X-Idempotency-Key`).\" The API reference marks it optional; the headers guide lists it under 'Mandatory API Headers'. A reused key replays the first response (\"the response will include the header `X-Idempotency-Cache-Hit: true`\"), so reuse the key when retrying the same operation and use a new one for a new operation. X-Trace-Id is optional. For both: \"It must be a string using only alphanumeric ASCII characters.\" \"Its length should be between 12 and 255 characters.\" The idempotency page also says \"We recommend using a **UUID** string as your idempotency key\": strip the UUID's hyphens to satisfy both.",
+    "Required: action (instant | deferred | scheduled), type and payment_instruction. type picks the branch: bank, mobile_money or wallet (wallet = another Flutterwave merchant, identified by its merchant ID). The API also has cash_pickup (EGP) and crypto (USDC/USDT/RLUSD) branches, left out of this spec. The guide's \"Available methods are `bank`, `mobile_moeny`, and `wallet`.\" has a typo: the schema enum is mobile_money.",
+    "payment_instruction is chosen by destination_currency (required): it sets the recipient (and sender) shape, e.g. bank NGN → recipient.bank{account_number, code}; bank GHS/RWF/SLL/UGX/XAF/XOF → name + bank{…, branch}; mobile money → recipient.mobile_money{network, msisdn, country for XAF/XOF}; EGP also needs payment_instruction.transfer_purpose. source_currency + amount{value, applies_to} are always required. Bank EGP / EUR / GBP and mobile money EGP also require payment_instruction.sender (KYC: EGP needs name, national_identification, date_of_birth, phone, email, address); some guide examples omit sender or transfer_purpose — follow the reference.",
+    "Corridors in the guides but not in the API reference: mobile money MWK (network AIRTELMW) and bank AUD and INR. The schema rejects them; open question, check with Flutterwave before relying on them. Names: ASCII letters, 2-50 characters.",
+    "A 2xx is not a completed payout. Docs (General Transfer Flow): \"The `data.status` field in the response will always return `NEW` upon initiating a transfer.\" Final status (SUCCESSFUL / FAILED) comes from the transfer.disburse webhook, the per-transfer callback_url, or get_transfer. On FAILED read data.provider_response: type is a lowercase enum (e.g. 'insufficient_balance') and code a 4-digit string (e.g. '0307'); the payout error table spells the same reasons in uppercase (0307 INSUFFICIENT_BALANCE).",
+    "Open question: amount.value is described as \"This is a positive integer in the smallest currency unit\", but every guide example reads as major units: the limit error says \"Amount must be at least 100NGN.\" and the FX guide sends \"value\": 300 for \"if a customer wants to send 300 USD\". Test in sandbox before going live. applies_to = source_currency (debit exactly this) or destination_currency (recipient receives exactly this). Docs (Transfer Orchestrator): \"Transfer limits are based on the `destination_currency`.\"",
+    "Scheduling: disburse_option {date_time 'YYYY-MM-DD HH:MM:SS', timezone from the enum} is required when action is 'scheduled' (204400 REQUIRES_DISBURSE_OPTION, 205400 REQUIRES_TIMEZONE, 206400 REQUIRES_DATETIME, 231400 INVALID_DISBURSE_DATETIME); the payout error table: \"For scheduled payouts, the `date_time `value must be more than 30minutes in the future.\" (207400). A deferred or scheduled transfer is released or cancelled with update_transfer.",
+    "Prerequisites (transfer guides): whitelist your server IPs and fund the source balance — otherwise 220400 IP_WHITELISTING_REQUIRED / 221400 NON_WHITELISTED_IP, or provider_response {type 'insufficient_balance', code '0307'} (the sandbox's insufficient_balance scenario answers with a 400 instead). \"Whitelist your IP addresses\"",
+    "Sandbox: Docs (Testing): \"If you do not pass the `X-Scenario-Key` header, the transfer remains in a `pending` state and no webhook is sent for the test.\" Send X-Scenario-Key: scenario:successful (or reversed, failed, insufficient_balance, duplicate_reference…). Open question: the transfer guides say the opposite (\"To test the successful transfers, send a request without adding any extra headers.\"); the testing page is the more specific one.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 201409 REFERENCE_ALREADY_EXISTS, 228400 TRANSFER_AMOUNT_LIMIT, 203400 UNSUPPORTED_BANK_INSTRUCTION, 209400 UNSUPPORTED_MOMO_INSTRUCTION, 202400 UNSUPPORTED_WALLET_INSTRUCTION, 230400 UNSUPPORTED_MOBILE_MONEY_COUNTRY, 230401 INVALID_MOBILE_NUMBER, 211400 INVALID_TRANSFER_TYPE, 220400 IP_WHITELISTING_REQUIRED, 221400 NON_WHITELISTED_IP. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/direct_transfers_post.md",
+    "source_reference": "Initiate an Orchestrator transfer. (POST /direct-transfers)",
+    "extracted_at": "2026-10-24T23:14:56.000Z",
+    "snapshot_hash": "79013eee28660bbd604c2763773225b2965e766791e40f0b486520be6fb18694",
+    "spans": [
+      "Initiate an Orchestrator transfer.",
+      "Create a transfer with Orchestrator helper.",
+      "\"/direct-transfers\""
+    ]
+  }
 }

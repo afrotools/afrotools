@@ -4,7 +4,23 @@
   "capability": "list_bank_branches",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,41 +32,58 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/banks/{id}/branches"
   },
-  "example_prompt": "List the branches for the selected bank so I can ask the user to pick their home branch before processing a payout.",
+  "example_prompt": "List a bank's branches to fill bank.branch for a Ghanaian (or RWF, SLL, UGX, XAF, XOF) payout recipient.",
   "input_schema": {
     "type": "object",
+    "required": [
+      "id"
+    ],
     "properties": {
       "id": {
-        "type": "string",
-        "description": "Bank id returned by GET /banks (e.g. bnk_xC78Ibn). Substituted into the URL path."
-      },
-      "trace_id": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Optional X-Trace-Id header value for request correlation."
+        "description": "Path parameter. The Bank's unique ID.",
+        "type": "string"
       }
-    },
-    "required": ["id"]
+    }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
-      "status": { "type": "string", "enum": ["success", "failed"], "description": "Envelope status." },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
       "data": {
         "type": "array",
-        "description": "Array of branch objects for the requested bank.",
         "items": {
           "type": "object",
-          "required": ["id", "code", "name"],
           "properties": {
-            "id": { "type": "string", "description": "Branch identifier (e.g. brh_Ka89d1)." },
-            "code": { "type": "string", "description": "Local branch / sort code (e.g. GH190101)." },
-            "name": { "type": "string", "description": "Branch name (e.g. STANBIC BANK GHANA LTD-ACCRA MAIN)." },
-            "swift_code": { "type": "string", "description": "8-character SWIFT/BIC code (e.g. SBICGHAC)." },
-            "bic": { "type": "string", "description": "11-character SWIFT/BIC code (e.g. SBICGHACXXX)." }
+            "id": {
+              "type": "string",
+              "description": "The bank branch ID.",
+              "format": "string"
+            },
+            "code": {
+              "type": "string",
+              "description": "The bank code."
+            },
+            "name": {
+              "type": "string",
+              "description": "The bank name."
+            },
+            "swift_code": {
+              "type": "string",
+              "description": "The SWIFT code for the bank."
+            },
+            "bic": {
+              "type": "string",
+              "description": "The Bank Identification Code (BIC)."
+            }
           }
         }
       }
@@ -58,24 +91,53 @@
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: none specific."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "validation_errors": {
             "type": "array",
+            "description": "On 400 validation errors.",
             "items": {
               "type": "object",
               "properties": {
-                "field_name": { "type": "string" },
-                "message": { "type": "string" }
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -84,9 +146,21 @@
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "Not every bank has branches (mobile-first and digital-only banks return an empty array). Treat an empty data array as a valid 'no branches required' state, not an error.",
-    "The id path parameter must be the bank id returned by GET /banks (e.g. bnk_xC78Ibn). Passing a sort code, SWIFT code, or commercial name will return 404 NOT_FOUND.",
-    "Both swift_code (8 chars) and bic (11 chars, with XXX branch suffix) are returned. Use bic for SWIFT MT103 wires; use code for local routing."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: X-Trace-Id is optional on this GET (the headers guide lists it under 'Optional API Headers'; \"It must be a string using only alphanumeric ASCII characters.\", 12-255 characters). The API reference documents no X-Idempotency-Key for this endpoint.",
+    "The path id is the bank's id from list_banks (bnk_…), not its code.",
+    "Branches are required for recipient types bank_ghs, bank_rwf, bank_sll, bank_ugx, bank_xaf and bank_xof. Docs (Bank Account Transfers): \"Required only for certain currency transfers (e.g., GHS bank transfers).\" Use data[].code as recipient.bank.branch: the guide asks for the \"bank branch code\" and its GHS example sends \"branch\": \"001\".",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: none specific. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/bank_branches_get.md",
+    "source_reference": "Retrieve bank branches (GET /banks/{id}/branches)",
+    "extracted_at": "2026-10-24T23:14:48.000Z",
+    "snapshot_hash": "f9206cd30b96152239fd032bbb53766fc9246be18d4481da58ab2d4b9fbbd6bd",
+    "spans": [
+      "Retrieve bank branches",
+      "Retrieve branches by bank id",
+      "\"/banks/{id}/branches\""
+    ]
+  }
 }

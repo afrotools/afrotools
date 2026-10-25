@@ -4,7 +4,23 @@
   "capability": "list_mobile_networks",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,40 +32,67 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/mobile-networks"
   },
-  "example_prompt": "List the mobile money networks available in Kenya so I can render them in a payment method picker.",
+  "example_prompt": "List the mobile money networks Flutterwave supports in a country, to fill mobile_money.network on a payout recipient.",
   "input_schema": {
     "type": "object",
+    "required": [
+      "country"
+    ],
     "properties": {
       "country": {
         "type": "string",
-        "enum": ["CG", "CM", "CI", "EG", "ET", "GA", "GH", "KE", "MW", "RW", "SN", "TZ", "TD", "UG", "ZM"],
-        "description": "ISO 3166-1 alpha-2 country code. Required: mobile network catalogue is per-country."
-      },
-      "trace_id": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Optional X-Trace-Id header value for request correlation."
+        "description": "Query parameter. The ISO 3166-1 alpha-2 country code.",
+        "enum": [
+          "CG",
+          "CM",
+          "CI",
+          "EG",
+          "ET",
+          "GA",
+          "GH",
+          "KE",
+          "MW",
+          "RW",
+          "SN",
+          "TZ",
+          "TD",
+          "UG",
+          "ZM"
+        ]
       }
-    },
-    "required": ["country"]
+    }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
-      "status": { "type": "string", "enum": ["success", "failed"], "description": "Envelope status." },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
       "data": {
         "type": "array",
-        "description": "Array of mobile network operators supported in the requested country.",
         "items": {
           "type": "object",
-          "required": ["id", "network", "name"],
           "properties": {
-            "id": { "type": "string", "description": "Mobile network identifier (e.g. mob_cYjd92Qk) used in subsequent charge / wallet calls." },
-            "network": { "type": "string", "description": "Network short code (e.g. MTN, AIRTEL)." },
-            "name": { "type": "string", "description": "Operator commercial name (e.g. MTN Mobile Money)." }
+            "id": {
+              "type": "string",
+              "description": "The mobile network ID.",
+              "format": "string"
+            },
+            "network": {
+              "type": "string",
+              "description": "The mobile network."
+            },
+            "name": {
+              "type": "string",
+              "description": "The name of the mobile network operator."
+            }
           }
         }
       }
@@ -57,24 +100,53 @@
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: none specific."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "validation_errors": {
             "type": "array",
+            "description": "On 400 validation errors.",
             "items": {
               "type": "object",
               "properties": {
-                "field_name": { "type": "string" },
-                "message": { "type": "string" }
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -83,9 +155,20 @@
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "The country query parameter is mandatory — the mobile network catalogue differs per country. Omitting it returns 400 REQUEST_NOT_VALID with a validation_errors entry on 'country'.",
-    "Supported countries are restricted to the ISO 3166-1 alpha-2 enum: CG, CM, CI, EG, ET, GA, GH, KE, MW, RW, SN, TZ, TD, UG, ZM. Passing a country outside this set returns 400.",
-    "Cache the response per country: the operator list changes very rarely and re-fetching on every checkout wastes both a token slot and a /mobile-networks call."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: X-Trace-Id is optional on this GET (the headers guide lists it under 'Optional API Headers'; \"It must be a string using only alphanumeric ASCII characters.\", 12-255 characters). The API reference documents no X-Idempotency-Key for this endpoint.",
+    "country is required (enum of 15 ISO alpha-2 codes). Docs (General Transfer Flow): \"Use the Retrieve [mobile networks endpoint](/v4.0/reference/mobile_networks_get) to fetch available mobile money networks by country and pass the appropriate `network` value.\" Use data[].network, not data[].id.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: none specific. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/mobile_networks_get.md",
+    "source_reference": "Retrieve mobile networks (GET /mobile-networks)",
+    "extracted_at": "2026-10-24T23:14:59.000Z",
+    "snapshot_hash": "e2257ccae2753d7152535a122b96ad3fec5f5ed1676305091c81e0edeaff0ee8",
+    "spans": [
+      "Retrieve mobile networks",
+      "Retrieve supported mobile networks by country.",
+      "\"/mobile-networks\""
+    ]
+  }
 }

@@ -4,7 +4,23 @@
   "capability": "list_banks",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,40 +32,72 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/banks"
   },
-  "example_prompt": "Fetch the list of Nigerian banks supported by Flutterwave so I can populate a bank-transfer dropdown.",
+  "example_prompt": "List the banks Flutterwave can pay out to in a country, to let the user pick their bank and get its code.",
   "input_schema": {
     "type": "object",
+    "required": [
+      "country"
+    ],
     "properties": {
       "country": {
         "type": "string",
-        "enum": ["CM", "CI", "CG", "EG", "ET", "GA", "GH", "IN", "KE", "MW", "NG", "RW", "SL", "SN", "TD", "TZ", "UG", "US", "ZA", "ZM"],
-        "description": "ISO 3166-1 alpha-2 country code. Required."
-      },
-      "trace_id": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Optional X-Trace-Id header value for request correlation."
+        "description": "Query parameter. ISO 2 country code.",
+        "enum": [
+          "CM",
+          "CI",
+          "CG",
+          "EG",
+          "ET",
+          "GA",
+          "GH",
+          "IN",
+          "KE",
+          "MW",
+          "NG",
+          "RW",
+          "SL",
+          "SN",
+          "TD",
+          "TZ",
+          "UG",
+          "US",
+          "ZA",
+          "ZM"
+        ]
       }
-    },
-    "required": ["country"]
+    }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
-      "status": { "type": "string", "enum": ["success", "failed"], "description": "Envelope status." },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
       "data": {
         "type": "array",
-        "description": "Array of bank objects supported in the requested country.",
         "items": {
           "type": "object",
-          "required": ["id", "code", "name"],
           "properties": {
-            "id": { "type": "string", "description": "Bank identifier (e.g. bnk_cYjd92Qk) used to fetch branches and create payouts." },
-            "code": { "type": "string", "description": "Local bank code (e.g. 035 for Access Bank in NG)." },
-            "name": { "type": "string", "description": "Bank commercial name (e.g. Access Bank)." }
+            "id": {
+              "type": "string",
+              "description": "The bank ID.",
+              "format": "string"
+            },
+            "code": {
+              "type": "string",
+              "description": "The bank code."
+            },
+            "name": {
+              "type": "string",
+              "description": "The bank name."
+            }
           }
         }
       }
@@ -57,24 +105,53 @@
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: none specific."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "validation_errors": {
             "type": "array",
+            "description": "On 400 validation errors.",
             "items": {
               "type": "object",
               "properties": {
-                "field_name": { "type": "string" },
-                "message": { "type": "string" }
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -83,9 +160,21 @@
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "The country query parameter is required. Calling /banks without country returns 400 REQUEST_NOT_VALID with validation_errors[0].field_name == 'country'.",
-    "Use bank.id (e.g. bnk_cYjd92Qk) when chaining into GET /banks/{id}/branches; use bank.code when building a payout where the destination provider expects the local routing code.",
-    "Bank lists change rarely — cache the response per country with a 24h TTL to avoid burning a token request on every checkout."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: X-Trace-Id is optional on this GET (the headers guide lists it under 'Optional API Headers'; \"It must be a string using only alphanumeric ASCII characters.\", 12-255 characters). The API reference documents no X-Idempotency-Key for this endpoint.",
+    "country is required (enum of 20 ISO alpha-2 codes). Use data[].code as recipient.bank.code (e.g. \"044\" for Access Bank in the docs' examples); data[].id (bnk_…) is only for list_bank_branches.",
+    "The same list feeds the USSD payment method: Docs (USSD): \"Use the [get banks endpoint](/v4.0/reference/banks_get)  with the query parameter `country=NG` to fetch Nigerian bank codes.\"",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: none specific. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/banks_get.md",
+    "source_reference": "Retrieve banks (GET /banks)",
+    "extracted_at": "2026-10-24T23:14:49.000Z",
+    "snapshot_hash": "c710620ce35bc74dcc4ae6bfdb51e11ef25844c6e54d54c357817cef72b31d1d",
+    "spans": [
+      "Retrieve banks",
+      "Retrieve supported banks by country.",
+      "\"/banks\""
+    ]
+  }
 }

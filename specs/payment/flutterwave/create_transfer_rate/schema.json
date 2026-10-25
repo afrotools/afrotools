@@ -4,7 +4,23 @@
   "capability": "create_transfer_rate",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,114 +32,185 @@
     "method": "POST",
     "url": "https://f4bexperience.flutterwave.com/transfers/rates"
   },
-  "example_prompt": "Request a Flutterwave FX rate quote to deliver a specific destination amount (e.g. 100 EUR) and find out how much NGN must be debited.",
+  "example_prompt": "Show the user the live Flutterwave exchange rate for a cross-currency payout before they confirm it.",
   "input_schema": {
     "type": "object",
-    "required": ["source", "destination"],
+    "required": [
+      "source",
+      "destination"
+    ],
     "properties": {
       "source": {
         "type": "object",
-        "required": ["currency"],
-        "description": "Source side of the conversion (currency being debited from the wallet).",
+        "required": [
+          "currency"
+        ],
         "properties": {
           "currency": {
-            "type": "string",
-            "description": "ISO 4217 source currency code being debited (e.g. \"NGN\")."
+            "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+            "type": "string"
           }
         }
       },
       "destination": {
         "type": "object",
-        "required": ["currency", "amount"],
-        "description": "Destination side of the conversion (currency being credited to the recipient and the amount to deliver).",
+        "required": [
+          "currency",
+          "amount"
+        ],
         "properties": {
           "currency": {
-            "type": "string",
-            "description": "ISO 4217 destination currency code (e.g. \"EUR\")."
+            "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+            "type": "string"
           },
           "amount": {
+            "description": "This is the amount to be converted",
             "type": "number",
-            "minimum": 0.000001,
-            "description": "Amount to convert (in destination currency). Minimum 0.000001."
+            "minimum": 1e-06,
+            "format": "decimal"
           }
         }
       },
       "precision": {
+        "description": "This is used to signify how many decimal places you want amount returned. if no precision is set, 6 will be used",
         "type": "integer",
         "minimum": 2,
-        "maximum": 9,
-        "default": 6,
-        "description": "Number of decimal places used in the returned rate/amount (2-9, default 6)."
-      },
-      "trace_id": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Required X-Trace-Id header value (12-255 chars) for request correlation."
-      },
-      "idempotency_key": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Optional X-Idempotency-Key header value (12-255 chars). Same key returns the original response."
+        "maximum": 9
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
-      "status": { "type": "string", "enum": ["success"], "description": "\"success\" on 201." },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
       "data": {
         "type": "object",
-        "required": ["id", "rate"],
         "properties": {
-          "id": { "type": "string", "description": "Rate quote id (e.g. \"rex_iq0wkX8NE4uQ\" in sandbox). Store this — required to call get_transfer_rate and to lock the rate on a transfer." },
-          "rate": { "type": "string", "description": "Conversion rate from source to destination currency, returned as a string." },
+          "id": {
+            "description": "The unique identifier for the rate conversion.",
+            "type": "string"
+          },
+          "rate": {
+            "type": "string",
+            "description": "The exchange rate applied to calculate the transfer amount."
+          },
           "source": {
-            "type": "object",
-            "properties": {
-              "amount": { "type": "string", "description": "Amount in source currency, returned as a string." },
-              "currency": { "type": "string" }
-            }
+            "$ref": "#/$defs/currency_amount",
+            "description": "Information on the transfer's source."
           },
           "destination": {
-            "type": "object",
-            "properties": {
-              "amount": { "type": "string", "description": "Amount in destination currency, returned as a string." },
-              "currency": { "type": "string" }
-            }
+            "$ref": "#/$defs/currency_amount",
+            "description": "Information on the transfer's destination."
           },
-          "created_datetime": { "type": "string", "format": "date-time" }
+          "created_datetime": {
+            "type": "string",
+            "description": "The date and time when the rate conversion was created.",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "$defs": {
+      "currency": {
+        "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+        "type": "string"
+      },
+      "currency_amount": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "string",
+            "description": "The amount in decimals."
+          },
+          "currency": {
+            "$ref": "#/$defs/currency"
+          }
         }
       }
     }
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
-          "validation_errors": { "type": "array", "items": { "type": "object", "properties": { "field_name": { "type": "string" }, "message": { "type": "string" } } } }
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: 501422 RATE_UNAVAILABLE_ERROR, 213400 UNSUPPORTED_CURRENCY_PAIRS."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "validation_errors": {
+            "type": "array",
+            "description": "On 400 validation errors.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
       }
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "The destination side carries the amount (the amount the recipient receives); source only carries the currency. The API computes the source debit amount and returns both source.amount and destination.amount. Sending an amount on source is rejected as REQUEST_NOT_VALID.",
-    "Successful creation returns HTTP 201, not 200. Treat both as success when reading response.ok.",
-    "Numeric fields (rate, source.amount, destination.amount) are returned as STRINGS — not numbers. Parse them with Number() / parseFloat() (or keep them as strings if you need decimal precision).",
-    "precision must be between 2 and 9 inclusive (default 6); values outside this range return 400 REQUEST_NOT_VALID. The default of 6 is appropriate for most XOF/XAF/NGN/KES corridors.",
-    "X-Trace-Id is required on this endpoint (12-255 chars). Pass X-Idempotency-Key (12-255 chars) on retry-prone networks; replays return the original quote instead of producing a new one."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: send X-Idempotency-Key on this POST. Docs (Idempotency): \"For all `POST` endpoints, include an idempotency key in the request header (`X-Idempotency-Key`).\" The API reference marks it optional; the headers guide lists it under 'Mandatory API Headers'. A reused key replays the first response (\"the response will include the header `X-Idempotency-Cache-Hit: true`\"), so reuse the key when retrying the same operation and use a new one for a new operation. X-Trace-Id is optional. For both: \"It must be a string using only alphanumeric ASCII characters.\" \"Its length should be between 12 and 255 characters.\" The idempotency page also says \"We recommend using a **UUID** string as your idempotency key\": strip the UUID's hyphens to satisfy both.",
+    "The quote does not lock the rate: Docs (Real-time FX conversion): \"Fetching the live exchange rate is optional. Flutterwave automatically uses real-time rates when you start a transfer.\" create_transfer takes no rate id. The rate actually used is in the transfer's debit_information.",
+    "Body: source {currency}, destination {currency, amount}, optional precision (2-9, default 6). The response gives the source amount needed for the destination amount.",
+    "Limits apply to the converted amount: Docs (Transfer Orchestrator): \"If the converted amount exceeds or falls below the allowed limits for the destination currency, the transfer will fail.\"",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 501422 RATE_UNAVAILABLE_ERROR, 213400 UNSUPPORTED_CURRENCY_PAIRS. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/transfer_rates_post.md",
+    "source_reference": "Rate conversion (POST /transfers/rates)",
+    "extracted_at": "2026-10-24T23:15:11.000Z",
+    "snapshot_hash": "85862cdfbb3e62b4bd6d39abf6f1605d33c5ab68960f98b77458cd381fbad940",
+    "spans": [
+      "Rate conversion",
+      "Retrieve transfer rate for international transfers",
+      "\"/transfers/rates\""
+    ]
+  }
 }

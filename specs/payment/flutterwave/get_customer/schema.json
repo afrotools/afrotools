@@ -5,13 +5,17 @@
   "capability_type": "synchronous",
   "status": "ready",
   "currency": [
+    "EGP",
+    "ETB",
     "GHS",
     "KES",
+    "MWK",
     "NGN",
     "RWF",
-    "SLE",
+    "SLL",
     "TZS",
     "UGX",
+    "USD",
     "XAF",
     "XOF",
     "ZAR",
@@ -28,63 +32,120 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/customers/{id}"
   },
-  "example_prompt": "Retrieve a single Flutterwave customer by their unique customer ID.",
+  "example_prompt": "Fetch a saved Flutterwave customer by id to charge a returning buyer.",
   "input_schema": {
     "type": "object",
-    "required": ["id"],
+    "required": [
+      "id"
+    ],
     "properties": {
       "id": {
-        "type": "string",
-        "description": "Unique customer identifier (path parameter, e.g. cus_3XarBILKQS) returned by create_customer or list_customers."
+        "description": "Path parameter. ID of the customer.",
+        "type": "string"
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
       "status": {
         "type": "string",
-        "enum": ["success"]
+        "enum": [
+          "success",
+          "failed"
+        ]
       },
-      "message": { "type": "string" },
+      "message": {
+        "type": "string"
+      },
       "data": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "email": { "type": "string", "format": "email" },
+          "id": {
+            "type": "string",
+            "description": "ID of the customer."
+          },
+          "address": {
+            "type": "object",
+            "description": "Customer address information.",
+            "required": [
+              "line1",
+              "city",
+              "state",
+              "country",
+              "postal_code"
+            ],
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "The name of the city."
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address."
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address."
+              },
+              "postal_code": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region."
+              }
+            }
+          },
+          "email": {
+            "type": "string",
+            "description": "The Customer's email address."
+          },
           "name": {
             "type": "object",
-            "description": "Present only when provided as nested object during customer creation.",
+            "description": "The Customer's full name.",
             "properties": {
-              "first": { "type": "string" },
-              "middle": { "type": ["string", "null"] },
-              "last": { "type": "string" }
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name."
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name."
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name."
+              }
             }
           },
           "phone": {
             "type": "object",
-            "description": "Present only when provided as nested object during customer creation.",
+            "description": "The customer's mobile number.",
+            "required": [
+              "number",
+              "country_code"
+            ],
             "properties": {
-              "country_code": { "type": "string" },
-              "number": { "type": "string" }
-            }
-          },
-          "address": {
-            "type": ["object", "null"],
-            "description": "Present only when provided during customer creation.",
-            "properties": {
-              "line1": { "type": "string" },
-              "line2": { "type": ["string", "null"] },
-              "city": { "type": "string" },
-              "state": { "type": "string" },
-              "country": { "type": "string" },
-              "postal_code": { "type": "string" }
+              "country_code": {
+                "description": "The dialling country code e.g. 234 for NG.",
+                "type": "string"
+              },
+              "number": {
+                "description": "Unformatted 7-10-digit phone number without the country code.",
+                "type": "string"
+              }
             }
           },
           "meta": {
-            "type": ["object", "null"],
-            "additionalProperties": true
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           },
           "created_datetime": {
             "type": "string",
@@ -96,37 +157,76 @@
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: none specific (the general table's 10404 RESOURCE_NOT_FOUND)."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "validation_errors": {
             "type": "array",
+            "description": "On 400 validation errors.",
             "items": {
               "type": "object",
               "properties": {
-                "field_name": { "type": "string" },
-                "message": { "type": "string" }
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
               }
-            },
-            "description": "Present on 400 validation errors."
+            }
           }
         }
       }
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "Customer IDs returned by Flutterwave are opaque strings (e.g. cus_3XarBILKQS). Do not apply encodeURIComponent to these IDs when constructing the path — pass them in the URL as-is.",
-    "Always send an X-Trace-Id header (12-255 chars) so Flutterwave support can find the request in their logs if anything goes wrong.",
-    "An unknown customer ID returns HTTP 404 with error.type 'NOT_FOUND' and code '10404', not an empty 200. Handle 404 separately from network errors.",
-    "Validation error items use the key 'field_name' (not 'field') — match on error.validation_errors[].field_name when surfacing per-field errors to users."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: X-Trace-Id is optional on this GET (the headers guide lists it under 'Optional API Headers'; \"It must be a string using only alphanumeric ASCII characters.\", 12-255 characters). The API reference documents no X-Idempotency-Key for this endpoint.",
+    "Docs (Card Payments): \"To fetch an existing customer's details, use the [retrieve customer](/v4.0/reference/customers_get) endpoint  with the customer's `id`. This is useful when initiating charges for returning users.\"",
+    "The API reference lists only 200/400/401/403 for this endpoint; an unknown id falls under the general error table (10404 RESOURCE_NOT_FOUND). The exact HTTP status is not documented.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: none specific (the general table's 10404 RESOURCE_NOT_FOUND). Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/customers_get.md",
+    "source_reference": "Retrieve a customer (GET /customers/{id})",
+    "extracted_at": "2026-10-24T23:14:54.000Z",
+    "snapshot_hash": "72c844d3eaa8f5e9a6f9504983c2aa58359026d38962046e9d7303d40eebfa12",
+    "spans": [
+      "Retrieve a customer",
+      "Retrieve a customer.",
+      "\"/customers/{id}\""
+    ]
+  }
 }

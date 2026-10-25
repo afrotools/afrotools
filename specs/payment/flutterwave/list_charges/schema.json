@@ -4,7 +4,23 @@
   "capability": "list_charges",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,220 +32,1156 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/charges"
   },
-  "example_prompt": "List successful Flutterwave charges in NGN from the last 30 days, paginating 20 per page.",
+  "example_prompt": "List Flutterwave charges paid into a virtual account (or by customer, status or date) to reconcile payments.",
   "input_schema": {
     "type": "object",
     "properties": {
       "status": {
         "type": "string",
-        "enum": ["succeeded", "pending", "failed", "voided"],
-        "description": "Filter by charge status."
+        "description": "Query parameter. The status of the charge.",
+        "enum": [
+          "succeeded",
+          "pending",
+          "failed",
+          "voided"
+        ]
       },
       "reference": {
         "type": "string",
-        "minLength": 6,
-        "maxLength": 42,
-        "pattern": "^[a-zA-Z0-9\\-]+$",
-        "description": "Filter by the merchant-supplied unique reference (6-42 alphanumeric chars with hyphens)."
-      },
-      "from": {
-        "type": "string",
-        "format": "date-time",
-        "description": "ISO 8601 date-time lower bound on creation date (e.g. 2025-04-21T10:55:16Z)."
+        "description": "Query parameter. A custom identifier to track the transaction, This must be unique across all your transactions."
       },
       "to": {
         "type": "string",
         "format": "date-time",
-        "description": "ISO 8601 date-time upper bound on creation date (e.g. 2025-05-21T10:48:18Z)."
+        "description": "Query parameter. The end date and time for a period. This parameter is used in conjunction with the 'from' parameter to define a time range. The value should be in **ISO 8601 format**."
+      },
+      "from": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Query parameter. The start date and time for a period. This parameter is used in conjunction with the 'to' parameter to define a time range. The value should be in ISO 8601 format."
       },
       "customer_id": {
         "type": "string",
-        "description": "Filter by the customer that owns the charges (e.g. cus_3XarBILKQS)."
+        "description": "Query parameter. The customer ID"
       },
       "virtual_account_id": {
         "type": "string",
-        "description": "Filter by the virtual account that received the charges (e.g. van_gLKQRnsjzA)."
+        "description": "Query parameter. The virtual account ID"
       },
       "payment_method_id": {
         "type": "string",
-        "description": "Filter by the payment method used (e.g. pmd_WRq7L4TM8p)."
+        "description": "Query parameter. ID of the payment method."
       },
       "order_id": {
         "type": "string",
-        "description": "Filter by the parent order id (e.g. ord_WRq7L4TM8p — preauth/capture flows)."
+        "description": "Query parameter. ID of the order."
       },
       "page": {
         "type": "integer",
         "minimum": 1,
         "default": 1,
-        "description": "Page number (1-indexed; most recent records on page 1)."
+        "description": "Query parameter. The page of the data to retrieve. The most recent data entry is on page 1."
       },
       "size": {
         "type": "integer",
         "minimum": 10,
         "maximum": 50,
         "default": 10,
-        "description": "Page size (10 to 50)."
-      },
-      "trace_id": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Optional X-Trace-Id header value for request correlation."
+        "description": "Query parameter. Length of data returned. Defaults to 10."
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
       "status": {
         "type": "string",
-        "enum": ["success", "failed"],
-        "description": "Outcome flag."
+        "enum": [
+          "success",
+          "failed"
+        ]
       },
-      "message": { "type": "string" },
+      "message": {
+        "type": "string"
+      },
       "meta": {
         "type": "object",
         "properties": {
           "page_info": {
             "type": "object",
             "properties": {
-              "total": { "type": "integer" },
-              "current_page": { "type": "integer" },
-              "total_pages": { "type": "integer" }
+              "total": {
+                "type": "integer",
+                "description": "The total number of items available across all pages",
+                "format": "int64"
+              },
+              "current_page": {
+                "type": "integer",
+                "description": "The current page number being viewed",
+                "format": "int64"
+              },
+              "total_pages": {
+                "type": "integer",
+                "description": "The total number of pages required to display all items.",
+                "format": "int64"
+              }
             }
           }
         }
       },
       "data": {
         "type": "array",
-        "description": "Array of charge objects (max 10 per page by default).",
         "items": {
           "type": "object",
           "properties": {
-            "id": { "type": "string", "description": "Charge id (e.g. chg_nONgeAGY97)." },
-            "amount": { "type": "number" },
+            "id": {
+              "description": "ID of the charge.",
+              "type": "string"
+            },
+            "amount": {
+              "type": "number",
+              "format": "decimal",
+              "description": "The payment amount in decimals.",
+              "minimum": 0.01
+            },
             "fees": {
               "type": "array",
-              "description": "Fee breakdown applied to the charge.",
+              "description": "Fees charged on payment amount",
               "items": {
                 "type": "object",
                 "properties": {
                   "type": {
                     "type": "string",
-                    "description": "Fee classification: vat | app | merchant | stamp_duty."
+                    "description": "The specific type of fee. i.e., \"vat\", \"app\", \"merchant\", \"stamp_duty\"."
                   },
-                  "amount": { "type": "number" }
+                  "amount": {
+                    "type": "number",
+                    "format": "decimal",
+                    "description": "The fee amount in decimal format."
+                  }
                 }
               }
             },
             "billing_details": {
               "type": "object",
+              "description": "The customer's billing information.",
               "properties": {
-                "email": { "type": "string" },
+                "email": {
+                  "type": "string",
+                  "description": "The Customer's email address."
+                },
                 "name": {
                   "type": "object",
+                  "description": "The Customer's full name.",
                   "properties": {
-                    "first": { "type": "string" },
-                    "middle": { "type": "string" },
-                    "last": { "type": "string" }
+                    "first": {
+                      "type": "string",
+                      "description": "The Customer's first name."
+                    },
+                    "middle": {
+                      "type": "string",
+                      "description": "The Customer's middle name."
+                    },
+                    "last": {
+                      "type": "string",
+                      "description": "The Customer's last name."
+                    }
                   }
                 },
                 "phone": {
                   "type": "object",
+                  "description": "The customer's mobile number.",
+                  "required": [
+                    "number",
+                    "country_code"
+                  ],
                   "properties": {
-                    "country_code": { "type": "string" },
-                    "number": { "type": "string" }
+                    "country_code": {
+                      "description": "The dialling country code e.g. 234 for NG.",
+                      "type": "string"
+                    },
+                    "number": {
+                      "description": "Unformatted 7-10-digit phone number without the country code.",
+                      "type": "string"
+                    }
                   }
                 }
               }
             },
-            "currency": { "type": "string" },
-            "customer_id": { "type": "string" },
-            "description": { "type": ["string", "null"] },
-            "disputed": { "type": "boolean" },
-            "settled": { "type": "boolean" },
-            "settlement_id": {
-              "type": "array",
-              "items": { "type": "string" }
+            "currency": {
+              "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+              "type": "string"
             },
-            "meta": { "type": ["object", "null"], "additionalProperties": true },
+            "customer_id": {
+              "description": "ID of the customer.",
+              "type": "string"
+            },
+            "description": {
+              "description": "The charge's description.",
+              "type": "string"
+            },
+            "disputed": {
+              "description": "Boolean indicating if the charge was disputed.",
+              "type": "boolean"
+            },
+            "settled": {
+              "description": "Boolean indicating if the transaction has been settled.",
+              "type": "boolean"
+            },
+            "settlement_id": {
+              "description": "Id for the settlement the transaction belongs to.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "meta": {
+              "$ref": "#/$defs/meta"
+            },
             "next_action": {
-              "type": ["object", "null"],
-              "description": "Discriminated by type: redirect_url | requires_otp | requires_pin | requires_additional_fields | requires_requery | requires_capture | payment_instruction | requires_bank_transfer | qr_code.",
-              "properties": {
-                "type": { "type": "string" }
-              },
-              "additionalProperties": true
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "redirect_url",
+                    "type"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "redirect_url"
+                      ]
+                    },
+                    "redirect_url": {
+                      "type": "object",
+                      "required": [
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "description": "Payment screen URL to redirect customer to."
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "requires_additional_fields",
+                    "type"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "requires_additional_fields"
+                      ]
+                    },
+                    "requires_additional_fields": {
+                      "type": "object",
+                      "required": [
+                        "fields"
+                      ],
+                      "properties": {
+                        "fields": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "type"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "requires_pin"
+                      ]
+                    },
+                    "requires_pin": {
+                      "type": "object"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "type"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "requires_requery"
+                      ]
+                    },
+                    "requires_requery": {
+                      "type": "object"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "type"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "requires_otp"
+                      ]
+                    },
+                    "requires_otp": {
+                      "type": "object"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "payment_instruction",
+                    "type"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "payment_instruction"
+                      ]
+                    },
+                    "payment_instruction": {
+                      "type": "object",
+                      "required": [
+                        "note"
+                      ],
+                      "properties": {
+                        "note": {
+                          "type": "string",
+                          "description": "Custom field containing the payment instruction."
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "type"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "requires_capture"
+                      ]
+                    },
+                    "requires_capture": {
+                      "type": "object"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "type"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "requires_bank_transfer"
+                      ]
+                    },
+                    "requires_bank_transfer": {
+                      "type": "object",
+                      "required": [
+                        "account_number",
+                        "account_bank_name"
+                      ],
+                      "properties": {
+                        "account_number": {
+                          "type": "string",
+                          "description": "The account number designated for receiving payments."
+                        },
+                        "account_bank_name": {
+                          "type": "string",
+                          "description": "The Bank name."
+                        },
+                        "account_expiration_datetime": {
+                          "type": "string",
+                          "description": "Specifies when the virtual account expires.",
+                          "format": "date-time"
+                        },
+                        "note": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "qr_code",
+                    "type"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "qr_code"
+                      ]
+                    },
+                    "qr_code": {
+                      "type": "object",
+                      "required": [
+                        "image"
+                      ],
+                      "properties": {
+                        "image": {
+                          "type": "string",
+                          "description": "Qr code"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
             },
             "payment_method_details": {
-              "type": "object",
-              "description": "Payment method snapshot. type discriminates the sub-object (card, bank_account, mobile_money, opay, applepay, googlepay, ussd, bank_transfer).",
-              "properties": {
-                "id": { "type": "string" },
-                "type": {
-                  "type": "string",
-                  "enum": ["card", "bank_account", "mobile_money", "opay", "applepay", "googlepay", "ussd", "bank_transfer"]
+              "oneOf": [
+                {
+                  "required": [
+                    "card",
+                    "id",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "$ref": "#/$defs/payment_method_id"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The type of the payment method.",
+                      "enum": [
+                        "card"
+                      ]
+                    },
+                    "customer_id": {
+                      "description": "ID of the customer.",
+                      "type": "string"
+                    },
+                    "meta": {
+                      "$ref": "#/$defs/meta"
+                    },
+                    "device_fingerprint": {
+                      "description": "The customer's device fingerprint.",
+                      "type": "string"
+                    },
+                    "client_ip": {
+                      "description": "The customer's device IP.",
+                      "type": "string"
+                    },
+                    "created_datetime": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "The date and time when the virtual account was created."
+                    },
+                    "card": {
+                      "type": "object",
+                      "required": [
+                        "expiry_month",
+                        "expiry_year",
+                        "first6",
+                        "last4",
+                        "network"
+                      ],
+                      "properties": {
+                        "expiry_month": {
+                          "type": "integer",
+                          "description": "Expiry month of the card."
+                        },
+                        "expiry_year": {
+                          "type": "integer",
+                          "description": "Expiry year of the card."
+                        },
+                        "first6": {
+                          "type": "string",
+                          "description": "Bank identification number (BIN) of the card.",
+                          "minLength": 6,
+                          "maxLength": 6
+                        },
+                        "last4": {
+                          "type": "string",
+                          "description": "The last four digits of the card number.",
+                          "minLength": 4,
+                          "maxLength": 4
+                        },
+                        "network": {
+                          "type": "string",
+                          "description": "The card network.",
+                          "enum": [
+                            "MASTERCARD",
+                            "VISA",
+                            "AMERICAN EXPRESS",
+                            "DISCOVER",
+                            "VERVE",
+                            "AFRIGO",
+                            "UNKNOWN"
+                          ]
+                        },
+                        "billing_address": {
+                          "type": "object",
+                          "description": "Customer address information.",
+                          "required": [
+                            "line1",
+                            "city",
+                            "state",
+                            "country",
+                            "postal_code"
+                          ],
+                          "properties": {
+                            "city": {
+                              "type": "string",
+                              "description": "The name of the city."
+                            },
+                            "country": {
+                              "description": "ISO2 country code",
+                              "type": "string"
+                            },
+                            "line1": {
+                              "type": "string",
+                              "description": "The first line of the Customer's address."
+                            },
+                            "line2": {
+                              "type": "string",
+                              "description": "The second line of the Customer's address."
+                            },
+                            "postal_code": {
+                              "type": "string"
+                            },
+                            "state": {
+                              "type": "string",
+                              "description": "The state or region."
+                            }
+                          }
+                        },
+                        "cof": {
+                          "type": "object",
+                          "required": [
+                            "enabled"
+                          ],
+                          "properties": {
+                            "enabled": {
+                              "type": "boolean",
+                              "description": "Indicates whether the recurring card charge with Credential-on-File (COF) is enabled."
+                            },
+                            "agreement_id": {
+                              "type": "string",
+                              "description": "A unique reference generated by Flutterwave during the initial Customer Initiated Transaction (CIT)."
+                            },
+                            "recurring_amount_variability": {
+                              "type": "string",
+                              "description": "This indicates whether the amount charged for subsequent payments remains the same, or differs.",
+                              "enum": [
+                                "VARIABLE"
+                              ]
+                            },
+                            "agreement_type": {
+                              "type": "string",
+                              "definition": "This indicates the type of charge agreement with Flutterwave.",
+                              "enum": [
+                                "UNSCHEDULED"
+                              ]
+                            },
+                            "trace_id": {
+                              "type": "string",
+                              "description": "A reference generated by the card scheme during the initial Customer Initiated Transaction (CIT)."
+                            }
+                          }
+                        },
+                        "card_holder_name": {
+                          "type": "string",
+                          "description": "Name on the card"
+                        }
+                      }
+                    }
+                  },
+                  "type": "object"
                 },
-                "customer_id": { "type": "string" }
-              },
-              "additionalProperties": true
+                {
+                  "required": [
+                    "id",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "$ref": "#/$defs/payment_method_id"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The type of the payment method.",
+                      "enum": [
+                        "bank_account"
+                      ]
+                    },
+                    "customer_id": {
+                      "description": "ID of the customer.",
+                      "type": "string"
+                    },
+                    "meta": {
+                      "$ref": "#/$defs/meta"
+                    },
+                    "device_fingerprint": {
+                      "description": "The customer's device fingerprint.",
+                      "type": "string"
+                    },
+                    "client_ip": {
+                      "description": "The customer's device IP.",
+                      "type": "string"
+                    },
+                    "created_datetime": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "The date and time when the virtual account was created."
+                    },
+                    "bank_account": {
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                },
+                {
+                  "required": [
+                    "id",
+                    "mobile_money",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "$ref": "#/$defs/payment_method_id"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The type of the payment method.",
+                      "enum": [
+                        "mobile_money"
+                      ]
+                    },
+                    "customer_id": {
+                      "description": "ID of the customer.",
+                      "type": "string"
+                    },
+                    "meta": {
+                      "$ref": "#/$defs/meta"
+                    },
+                    "device_fingerprint": {
+                      "description": "The customer's device fingerprint.",
+                      "type": "string"
+                    },
+                    "client_ip": {
+                      "description": "The customer's device IP.",
+                      "type": "string"
+                    },
+                    "created_datetime": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "The date and time when the virtual account was created."
+                    },
+                    "mobile_money": {
+                      "type": "object",
+                      "required": [
+                        "network",
+                        "phone_number",
+                        "country_code"
+                      ],
+                      "properties": {
+                        "network": {
+                          "type": "string",
+                          "description": "The mobile network of the customer's phone number."
+                        },
+                        "country_code": {
+                          "type": "string",
+                          "description": "The dialling country code e.g. 233 for GH."
+                        },
+                        "phone_number": {
+                          "type": "string",
+                          "description": "The phone number of customer."
+                        },
+                        "qr_code": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "type": "object"
+                },
+                {
+                  "required": [
+                    "id",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "$ref": "#/$defs/payment_method_id"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The type of the payment method.",
+                      "enum": [
+                        "opay"
+                      ]
+                    },
+                    "customer_id": {
+                      "description": "ID of the customer.",
+                      "type": "string"
+                    },
+                    "meta": {
+                      "$ref": "#/$defs/meta"
+                    },
+                    "device_fingerprint": {
+                      "description": "The customer's device fingerprint.",
+                      "type": "string"
+                    },
+                    "client_ip": {
+                      "description": "The customer's device IP.",
+                      "type": "string"
+                    },
+                    "created_datetime": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "The date and time when the virtual account was created."
+                    },
+                    "opay": {
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                },
+                {
+                  "required": [
+                    "id",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "$ref": "#/$defs/payment_method_id"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The type of the payment method.",
+                      "enum": [
+                        "applepay"
+                      ]
+                    },
+                    "customer_id": {
+                      "description": "ID of the customer.",
+                      "type": "string"
+                    },
+                    "meta": {
+                      "$ref": "#/$defs/meta"
+                    },
+                    "device_fingerprint": {
+                      "description": "The customer's device fingerprint.",
+                      "type": "string"
+                    },
+                    "client_ip": {
+                      "description": "The customer's device IP.",
+                      "type": "string"
+                    },
+                    "created_datetime": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "The date and time when the virtual account was created."
+                    },
+                    "applepay": {
+                      "type": "object",
+                      "properties": {
+                        "card_holder_name": {
+                          "type": "string",
+                          "description": "The cardholder name."
+                        }
+                      }
+                    }
+                  },
+                  "type": "object"
+                },
+                {
+                  "required": [
+                    "id",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "$ref": "#/$defs/payment_method_id"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The type of the payment method.",
+                      "enum": [
+                        "googlepay"
+                      ]
+                    },
+                    "customer_id": {
+                      "description": "ID of the customer.",
+                      "type": "string"
+                    },
+                    "meta": {
+                      "$ref": "#/$defs/meta"
+                    },
+                    "device_fingerprint": {
+                      "description": "The customer's device fingerprint.",
+                      "type": "string"
+                    },
+                    "client_ip": {
+                      "description": "The customer's device IP.",
+                      "type": "string"
+                    },
+                    "created_datetime": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "The date and time when the virtual account was created."
+                    },
+                    "googlepay": {
+                      "type": "object",
+                      "properties": {
+                        "card_holder_name": {
+                          "type": "string",
+                          "description": "The cardholder name."
+                        }
+                      }
+                    }
+                  },
+                  "type": "object"
+                },
+                {
+                  "required": [
+                    "id",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "$ref": "#/$defs/payment_method_id"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The type of the payment method.",
+                      "enum": [
+                        "ussd"
+                      ]
+                    },
+                    "customer_id": {
+                      "description": "ID of the customer.",
+                      "type": "string"
+                    },
+                    "meta": {
+                      "$ref": "#/$defs/meta"
+                    },
+                    "device_fingerprint": {
+                      "description": "The customer's device fingerprint.",
+                      "type": "string"
+                    },
+                    "client_ip": {
+                      "description": "The customer's device IP.",
+                      "type": "string"
+                    },
+                    "created_datetime": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "The date and time when the virtual account was created."
+                    },
+                    "ussd": {
+                      "type": "object",
+                      "properties": {
+                        "account_bank": {
+                          "type": "string",
+                          "description": "The bank code of the USSD string to generate."
+                        }
+                      }
+                    }
+                  },
+                  "type": "object"
+                },
+                {
+                  "required": [
+                    "bank_transfer",
+                    "id",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "$ref": "#/$defs/payment_method_id"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The type of the payment method.",
+                      "enum": [
+                        "bank_transfer"
+                      ]
+                    },
+                    "customer_id": {
+                      "description": "ID of the customer.",
+                      "type": "string"
+                    },
+                    "meta": {
+                      "$ref": "#/$defs/meta"
+                    },
+                    "device_fingerprint": {
+                      "description": "The customer's device fingerprint.",
+                      "type": "string"
+                    },
+                    "client_ip": {
+                      "description": "The customer's device IP.",
+                      "type": "string"
+                    },
+                    "created_datetime": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "The date and time when the virtual account was created."
+                    },
+                    "bank_transfer": {
+                      "type": "object",
+                      "required": [
+                        "account_type"
+                      ],
+                      "properties": {
+                        "account_expires_in": {
+                          "type": "integer",
+                          "description": "The expiry time of the virtual account.",
+                          "maximum": 432000
+                        },
+                        "account_display_name": {
+                          "type": "string",
+                          "description": "The name that is shown to the customer when the account is resolved to a name.",
+                          "minLength": 3,
+                          "maxLength": 256
+                        },
+                        "account_type": {
+                          "type": "string",
+                          "description": "The type of virtual account.",
+                          "enum": [
+                            "static",
+                            "dynamic"
+                          ]
+                        },
+                        "originator_bank_name": {
+                          "type": "string",
+                          "description": "The sender's Bank name"
+                        },
+                        "originator_account_number": {
+                          "type": "string",
+                          "description": "The Sender's masked account number"
+                        },
+                        "originator_name": {
+                          "type": "string",
+                          "description": "The sender's name"
+                        },
+                        "virtual_account_number": {
+                          "type": "string",
+                          "description": "The virtual account number that was credited."
+                        }
+                      }
+                    }
+                  },
+                  "type": "object"
+                },
+                {
+                  "required": [
+                    "id",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "$ref": "#/$defs/payment_method_id"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The type of the payment method.",
+                      "enum": [
+                        "paypal"
+                      ]
+                    },
+                    "customer_id": {
+                      "description": "ID of the customer.",
+                      "type": "string"
+                    },
+                    "meta": {
+                      "$ref": "#/$defs/meta"
+                    },
+                    "device_fingerprint": {
+                      "description": "The customer's device fingerprint.",
+                      "type": "string"
+                    },
+                    "client_ip": {
+                      "description": "The customer's device IP.",
+                      "type": "string"
+                    },
+                    "created_datetime": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "The date and time when the virtual account was created."
+                    },
+                    "paypal": {
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                }
+              ]
             },
-            "redirect_url": { "type": ["string", "null"] },
-            "refunded": { "type": "boolean" },
-            "reference": { "type": "string" },
+            "redirect_url": {
+              "type": "string",
+              "description": "Specifies the URL to redirect to."
+            },
+            "refunded": {
+              "description": "Boolean indicating if the transaction has been refunded.",
+              "type": "boolean"
+            },
+            "reference": {
+              "type": "string",
+              "minLength": 6,
+              "maxLength": 42,
+              "description": "A custom identifier to track the transaction, This must be unique across all your transactions."
+            },
             "status": {
               "type": "string",
-              "enum": ["succeeded", "pending", "failed", "voided"]
+              "description": "The status of the charge.",
+              "enum": [
+                "succeeded",
+                "pending",
+                "failed",
+                "voided"
+              ]
             },
             "processor_response": {
               "type": "object",
+              "required": [
+                "type",
+                "code"
+              ],
               "properties": {
-                "type": { "type": "string", "description": "e.g. approved, refer_to_issuer." },
-                "code": { "type": "string", "description": "Processor response code (e.g. \"00\")." }
-              }
+                "type": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "A human-readable description of the processor response. For failed transactions, this is the reason provided by the processor."
+                }
+              },
+              "description": "Documented values: approved/00, refer_to_issuer/01, refer_to_issuer_special_condition/02, invalid_merchant/03, pick_up_card_no_fraud/04, do_not_honor/05, error/06, pick_up_card_fraud/07, partial_approval/10, invalid_transaction/12, invalid_amount/13, invalid_account_number/14, no_such_issuer/15, reenter_transaction/19, no_action_taken/21, unable_to_locate_record_in_file/25, file_temporarily_not_available/28, lost_card_pick_up/41, stolen_card_pick_up/43, insufficient_funds/51, no_checking_account/52, no_savings_account/53, expired_card/54, incorrect_pin/55, transaction_not_permitted_card/57, transaction_not_permitted_terminal/58, suspected_fraud/59, exceeds_approval_amount_limit/61, invalid_restricted_service_code/62, security_violation/63, transaction_does_not_fulfill_aml_req/64, exceeds_withdrawal_limit/65, pin_data_required/70, pin_entry_tries_exceeded/75, unsolicited_reversal/76, blocked_first_use/78, already_reversed/79, negative_cvv_result/82, no_reason_to_decline/85, cannot_verify_pin/86, issuer_unavailable/91, unable_to_route_transaction/92, cannot_complete_violation_of_law/93, system_error/96, invalid_cvv/97."
             },
-            "created_datetime": { "type": "string", "format": "date-time" }
+            "created_datetime": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Timestamp for when the transaction was created."
+            },
+            "descriptor": {
+              "description": "The name of the processor",
+              "type": "string"
+            }
           }
         }
+      }
+    },
+    "$defs": {
+      "meta": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
+      "payment_method_id": {
+        "type": "string",
+        "description": "ID of the payment method."
       }
     }
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: 701500 INVALID_PAGINATION_TYPE."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "validation_errors": {
             "type": "array",
+            "description": "On 400 validation errors.",
             "items": {
               "type": "object",
               "properties": {
-                "field_name": { "type": "string" },
-                "message": { "type": "string" }
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
               }
-            },
-            "description": "Present on 400 validation errors."
+            }
           }
         }
       }
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "Page size is bounded by the API: 10 minimum, 50 maximum. Requesting size=5 or size=100 returns a 400 error.",
-    "from and to must be valid ISO 8601 date-times (e.g. 2024-01-01T00:00:00Z). Date-only strings are rejected.",
-    "Pagination uses meta.page_info.total / current_page / total_pages — not a flat meta.total. Increment page until current_page === total_pages.",
-    "Each charge in data[] uses created_datetime (not created_at) and embeds nested billing_details, payment_method_details, fees[], settlement_id[], and a discriminated next_action object. Do not assume flat fields.",
-    "All query parameters are optional. Omit them all to receive the first 10 charges across every status."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: X-Trace-Id is optional on this GET (the headers guide lists it under 'Optional API Headers'; \"It must be a string using only alphanumeric ASCII characters.\", 12-255 characters). The API reference documents no X-Idempotency-Key for this endpoint.",
+    "Pay with bank transfer reconciliation: Docs (Pay With Bank Transfer): \"track all the payments made into a virtual account by [querying the charge list](/reference/charges_list) using the virtual account's ID.\" → GET /charges?virtual_account_id=van_…",
+    "from / to are ISO 8601 date-times (format date-time, e.g. 2025-04-21T10:55:16Z). status filter: succeeded, pending, failed, voided.",
+    "Pagination: page ≥ 1 (default 1, most recent first), size 10-50 (default 10); read meta.page_info.total_pages. The API reference caps some list responses at 10 items (maxItems 10) although size goes up to 50: always paginate. The API reference caps data at 10 items (maxItems 10) although size goes up to 50.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 701500 INVALID_PAGINATION_TYPE. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/charges_list.md",
+    "source_reference": "List charges (GET /charges)",
+    "extracted_at": "2026-10-24T23:14:52.000Z",
+    "snapshot_hash": "0441a06b91981665ee4dd78107f2fd751eec3646a6512ae9a9b738e8584e9527",
+    "spans": [
+      "List charges",
+      "\"/charges\""
+    ]
+  }
 }

@@ -5,13 +5,17 @@
   "capability_type": "synchronous",
   "status": "ready",
   "currency": [
+    "EGP",
+    "ETB",
     "GHS",
     "KES",
+    "MWK",
     "NGN",
     "RWF",
-    "SLE",
+    "SLL",
     "TZS",
     "UGX",
+    "USD",
     "XAF",
     "XOF",
     "ZAR",
@@ -28,134 +32,210 @@
     "method": "POST",
     "url": "https://f4bexperience.flutterwave.com/customers"
   },
-  "example_prompt": "Create a Flutterwave customer with an email address, full name and phone number so they can be billed later.",
+  "example_prompt": "Create a Flutterwave customer from the buyer's email (plus name and phone when available) before charging them.",
   "input_schema": {
     "type": "object",
-    "required": ["email", "name", "phone"],
+    "required": [
+      "email"
+    ],
     "properties": {
+      "address": {
+        "type": "object",
+        "description": "Customer address information.",
+        "required": [
+          "line1",
+          "city",
+          "state",
+          "country",
+          "postal_code"
+        ],
+        "properties": {
+          "city": {
+            "type": "string",
+            "description": "The name of the city.",
+            "pattern": "^.+$"
+          },
+          "country": {
+            "description": "ISO2 country code",
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "line1": {
+            "type": "string",
+            "description": "The first line of the Customer's address.",
+            "pattern": "^.+$"
+          },
+          "line2": {
+            "type": "string",
+            "description": "The second line of the Customer's address.",
+            "pattern": "^.+$"
+          },
+          "postal_code": {
+            "type": "string",
+            "pattern": "^.+$"
+          },
+          "state": {
+            "type": "string",
+            "description": "The state or region.",
+            "pattern": "^.+$"
+          }
+        }
+      },
       "email": {
         "type": "string",
-        "format": "email",
-        "description": "Customer email address (required)."
+        "description": "The Customer's email address.",
+        "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+      },
+      "meta": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
       },
       "name": {
         "type": "object",
-        "description": "Structured customer name (required).",
-        "required": ["first", "last"],
+        "description": "The Customer's full name.",
         "properties": {
           "first": {
             "type": "string",
-            "minLength": 2,
-            "maxLength": 50,
-            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$",
-            "description": "First name (2-50 chars). Pattern ^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$ — letters, spaces, commas, periods, apostrophes, hyphens; cannot be only punctuation."
+            "description": "The Customer's first name.",
+            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
           },
           "middle": {
             "type": "string",
-            "minLength": 2,
-            "maxLength": 50,
-            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$",
-            "description": "Middle name (2-50 chars, optional). Same pattern as first."
+            "description": "The Customer's middle name.",
+            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
           },
           "last": {
             "type": "string",
-            "minLength": 2,
-            "maxLength": 50,
-            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$",
-            "description": "Last name (2-50 chars). Same pattern as first."
+            "description": "The Customer's last name.",
+            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
           }
         }
       },
       "phone": {
         "type": "object",
-        "description": "Structured customer phone (required).",
-        "required": ["country_code", "number"],
+        "description": "The customer's mobile number.",
+        "required": [
+          "number",
+          "country_code"
+        ],
         "properties": {
           "country_code": {
+            "description": "The dialling country code e.g. 234 for NG.",
             "type": "string",
-            "pattern": "^[0-9]{1,3}$",
-            "description": "Dialing prefix without '+' (1-3 digits, e.g. '234' for Nigeria)."
+            "pattern": "^[0-9]{1,3}$"
           },
           "number": {
+            "description": "Unformatted 7-10-digit phone number without the country code.",
             "type": "string",
-            "pattern": "^[0-9]{7,10}$",
-            "description": "Local subscriber number (7-10 digits, digits only)."
+            "pattern": "^[0-9]{7,10}$"
           }
         }
-      },
-      "address": {
-        "type": "object",
-        "description": "Optional postal address. When provided, line1, city, state, postal_code and country are required (non-empty).",
-        "required": ["line1", "city", "state", "postal_code", "country"],
-        "properties": {
-          "line1": { "type": "string", "minLength": 1, "description": "Street address line 1 (non-empty)." },
-          "line2": { "type": "string", "description": "Street address line 2 (optional)." },
-          "city": { "type": "string", "minLength": 1 },
-          "state": { "type": "string", "minLength": 1 },
-          "postal_code": { "type": "string", "minLength": 1 },
-          "country": {
-            "type": "string",
-            "pattern": "^[A-Z]{2}$",
-            "description": "ISO 3166-1 alpha-2 country code, uppercase (e.g. 'US', 'NG')."
-          }
-        }
-      },
-      "meta": {
-        "type": "object",
-        "description": "Free-form metadata stored against the customer (string key -> string value).",
-        "additionalProperties": { "type": "string" }
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
       "status": {
         "type": "string",
-        "enum": ["success"]
+        "enum": [
+          "success",
+          "failed"
+        ]
       },
-      "message": { "type": "string" },
+      "message": {
+        "type": "string"
+      },
       "data": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "Unique customer identifier (e.g. cus_3XarBILKQS)."
+            "description": "ID of the customer."
           },
-          "email": { "type": "string", "format": "email" },
+          "address": {
+            "type": "object",
+            "description": "Customer address information.",
+            "required": [
+              "line1",
+              "city",
+              "state",
+              "country",
+              "postal_code"
+            ],
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "The name of the city."
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address."
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address."
+              },
+              "postal_code": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region."
+              }
+            }
+          },
+          "email": {
+            "type": "string",
+            "description": "The Customer's email address."
+          },
           "name": {
             "type": "object",
-            "description": "Present only when provided as nested object during creation.",
+            "description": "The Customer's full name.",
             "properties": {
-              "first": { "type": "string" },
-              "middle": { "type": ["string", "null"] },
-              "last": { "type": "string" }
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name."
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name."
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name."
+              }
             }
           },
           "phone": {
             "type": "object",
-            "description": "Present only when provided as nested object during creation.",
+            "description": "The customer's mobile number.",
+            "required": [
+              "number",
+              "country_code"
+            ],
             "properties": {
-              "country_code": { "type": "string" },
-              "number": { "type": "string" }
-            }
-          },
-          "address": {
-            "type": ["object", "null"],
-            "description": "Present only when provided during creation.",
-            "properties": {
-              "line1": { "type": "string" },
-              "line2": { "type": ["string", "null"] },
-              "city": { "type": "string" },
-              "state": { "type": "string" },
-              "postal_code": { "type": "string" },
-              "country": { "type": "string" }
+              "country_code": {
+                "description": "The dialling country code e.g. 234 for NG.",
+                "type": "string"
+              },
+              "number": {
+                "description": "Unformatted 7-10-digit phone number without the country code.",
+                "type": "string"
+              }
             }
           },
           "meta": {
-            "type": ["object", "null"],
-            "additionalProperties": true
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           },
           "created_datetime": {
             "type": "string",
@@ -167,40 +247,76 @@
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: none specific to customers; 409 is documented without a cause."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "validation_errors": {
             "type": "array",
+            "description": "On 400 validation errors.",
             "items": {
               "type": "object",
               "properties": {
-                "field_name": { "type": "string" },
-                "message": { "type": "string" }
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
               }
-            },
-            "description": "Present on 400 validation errors."
+            }
           }
         }
       }
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "name and phone are nested objects, not flat strings. Sending name as a string (e.g. 'name': 'Jane Doe') triggers a 400 validation error — use { first, last } at minimum.",
-    "name.first / name.middle / name.last must each be 2-50 chars and contain only letters, spaces, hyphens, apostrophes, commas, and periods. Single-character names ('A') and digits in names fail validation.",
-    "phone.country_code must be 1-3 digits without the leading '+' (e.g. '234' for Nigeria). phone.number must be 7-10 digits, local subscriber portion only — leading zeros and the country code go in country_code.",
-    "Always send an X-Idempotency-Key header (12-255 chars) on POST /customers so safe retries do not create duplicate customer records. Also send X-Trace-Id for support traceability.",
-    "Creating a customer with an email that already exists for the merchant returns HTTP 409 (error.type 'RESOURCE_CONFLICT', code '10409') — handle this case by fetching the existing customer instead of treating it as a hard error.",
-    "Validation error items use the key 'field_name' (not 'field') — match on error.validation_errors[].field_name when surfacing per-field errors to users.",
-    "Flat fields like first_name, last_name, phone_number are silently ignored — the API accepts them without error but does not store them. Only nested objects (name.first, name.last, phone.country_code, phone.number) are stored and returned in responses. Always use nested format."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: send X-Idempotency-Key on this POST. Docs (Idempotency): \"For all `POST` endpoints, include an idempotency key in the request header (`X-Idempotency-Key`).\" The API reference marks it optional; the headers guide lists it under 'Mandatory API Headers'. A reused key replays the first response (\"the response will include the header `X-Idempotency-Cache-Hit: true`\"), so reuse the key when retrying the same operation and use a new one for a new operation. X-Trace-Id is optional. For both: \"It must be a string using only alphanumeric ASCII characters.\" \"Its length should be between 12 and 255 characters.\" The idempotency page also says \"We recommend using a **UUID** string as your idempotency key\": strip the UUID's hyphens to satisfy both.",
+    "Docs (General Flow): \"Only the `email` is required, but we recommend collecting as much information as possible.\" name, phone and address are optional, but when you send phone it needs country_code (1-3 digits) and number (7-10 digits, no country code), and address needs city, country (ISO alpha-2), line1, postal_code, state.",
+    "Store data.id (cus_…): create_payment_method and create_charge take it as customer_id. The docs don't say whether email is unique; to avoid duplicates, call search_customers with the email first.",
+    "Success is HTTP 201 in the API reference; the guides label their samples '200 OK'. Treat any 2xx as success.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: none specific to customers; 409 is documented without a cause. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/customers_create.md",
+    "source_reference": "Create a customer (POST /customers)",
+    "extracted_at": "2026-10-24T23:14:54.000Z",
+    "snapshot_hash": "03fb839bdaeaec8f97537a3dd04d9136653d9e27a3e24bb89ce2a5b47cf1dfb0",
+    "spans": [
+      "Create a customer",
+      "\"/customers\""
+    ]
+  }
 }

@@ -5,13 +5,17 @@
   "capability_type": "synchronous",
   "status": "ready",
   "currency": [
+    "EGP",
+    "ETB",
     "GHS",
     "KES",
+    "MWK",
     "NGN",
     "RWF",
-    "SLE",
+    "SLL",
     "TZS",
     "UGX",
+    "USD",
     "XAF",
     "XOF",
     "ZAR",
@@ -28,92 +32,161 @@
     "method": "POST",
     "url": "https://f4bexperience.flutterwave.com/customers/search"
   },
-  "example_prompt": "Search Flutterwave customers by email to look up an existing customer before creating a new one.",
+  "example_prompt": "Find an existing Flutterwave customer by email before creating a new one.",
   "input_schema": {
     "type": "object",
-    "required": ["email"],
-    "description": "Search payload (JSON body). The endpoint also accepts page and size query parameters for paginating the matches.",
+    "required": [
+      "email"
+    ],
     "properties": {
-      "email": {
-        "type": "string",
-        "format": "email",
-        "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$",
-        "description": "Email address to search for (exact match, required). The only documented search field."
-      },
       "page": {
         "type": "integer",
         "minimum": 1,
         "default": 1,
-        "description": "Query parameter — page number to retrieve (1-based). The most recent data entry is on page 1."
+        "description": "Query parameter. The page of the data to retrieve. The most recent data entry is on page 1."
       },
       "size": {
         "type": "integer",
         "minimum": 10,
         "maximum": 50,
         "default": 10,
-        "description": "Query parameter — number of customers per page (10-50, default 10)."
+        "description": "Query parameter. Length of data returned. Defaults to 10."
+      },
+      "email": {
+        "type": "string",
+        "description": "The Customer's email address.",
+        "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
       "status": {
         "type": "string",
-        "enum": ["success"]
+        "enum": [
+          "success",
+          "failed"
+        ]
       },
-      "message": { "type": "string" },
+      "message": {
+        "type": "string"
+      },
       "meta": {
         "type": "object",
         "properties": {
           "page_info": {
             "type": "object",
             "properties": {
-              "total": { "type": "integer", "description": "Total items across all pages." },
-              "current_page": { "type": "integer" },
-              "total_pages": { "type": "integer" }
+              "total": {
+                "type": "integer",
+                "description": "The total number of items available across all pages",
+                "format": "int64"
+              },
+              "current_page": {
+                "type": "integer",
+                "description": "The current page number being viewed",
+                "format": "int64"
+              },
+              "total_pages": {
+                "type": "integer",
+                "description": "The total number of pages required to display all items.",
+                "format": "int64"
+              }
             }
           }
         }
       },
       "data": {
         "type": "array",
-        "description": "Maximum 10 items per response.",
         "items": {
           "type": "object",
           "properties": {
-            "id": { "type": "string", "description": "Unique customer identifier (e.g. cus_3XarBILKQS)." },
-            "email": { "type": "string", "format": "email" },
+            "id": {
+              "type": "string",
+              "description": "ID of the customer."
+            },
+            "address": {
+              "type": "object",
+              "description": "Customer address information.",
+              "required": [
+                "line1",
+                "city",
+                "state",
+                "country",
+                "postal_code"
+              ],
+              "properties": {
+                "city": {
+                  "type": "string",
+                  "description": "The name of the city."
+                },
+                "country": {
+                  "description": "ISO2 country code",
+                  "type": "string"
+                },
+                "line1": {
+                  "type": "string",
+                  "description": "The first line of the Customer's address."
+                },
+                "line2": {
+                  "type": "string",
+                  "description": "The second line of the Customer's address."
+                },
+                "postal_code": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string",
+                  "description": "The state or region."
+                }
+              }
+            },
+            "email": {
+              "type": "string",
+              "description": "The Customer's email address."
+            },
             "name": {
               "type": "object",
+              "description": "The Customer's full name.",
               "properties": {
-                "first": { "type": "string" },
-                "middle": { "type": ["string", "null"] },
-                "last": { "type": "string" }
+                "first": {
+                  "type": "string",
+                  "description": "The Customer's first name."
+                },
+                "middle": {
+                  "type": "string",
+                  "description": "The Customer's middle name."
+                },
+                "last": {
+                  "type": "string",
+                  "description": "The Customer's last name."
+                }
               }
             },
             "phone": {
               "type": "object",
+              "description": "The customer's mobile number.",
+              "required": [
+                "number",
+                "country_code"
+              ],
               "properties": {
-                "country_code": { "type": "string" },
-                "number": { "type": "string" }
-              }
-            },
-            "address": {
-              "type": ["object", "null"],
-              "properties": {
-                "line1": { "type": "string" },
-                "line2": { "type": ["string", "null"] },
-                "city": { "type": "string" },
-                "state": { "type": "string" },
-                "country": { "type": "string" },
-                "postal_code": { "type": "string" }
+                "country_code": {
+                  "description": "The dialling country code e.g. 234 for NG.",
+                  "type": "string"
+                },
+                "number": {
+                  "description": "Unformatted 7-10-digit phone number without the country code.",
+                  "type": "string"
+                }
               }
             },
             "meta": {
-              "type": ["object", "null"],
-              "additionalProperties": true
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
             },
             "created_datetime": {
               "type": "string",
@@ -126,39 +199,76 @@
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: none specific."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "validation_errors": {
             "type": "array",
+            "description": "On 400 validation errors.",
             "items": {
               "type": "object",
               "properties": {
-                "field_name": { "type": "string" },
-                "message": { "type": "string" }
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
               }
-            },
-            "description": "Present on 400 validation errors."
+            }
           }
         }
       }
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "Despite being a read operation, search uses POST with a JSON body — GET /customers does NOT accept search filters. The request body shape is { \"email\": \"...\" } only; email is the sole documented search field and it is required.",
-    "Email value must satisfy the pattern ^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$. A 400 with error.type 'REQUEST_NOT_VALID' is returned for malformed values.",
-    "Pagination uses URL query parameters (?page=&size=), not body fields. size must be in [10, 50]; values outside that range return HTTP 400 with a validation error.",
-    "The pagination meta object only contains total, current_page and total_pages — there is no 'size' or 'per_page' field in meta.page_info. Maximum 10 items are returned in data per response.",
-    "Always send an X-Trace-Id header (12-255 chars) so Flutterwave support can find the request in their logs.",
-    "Validation error items use the key 'field_name' (not 'field') — match on error.validation_errors[].field_name when surfacing per-field errors to users."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: send X-Idempotency-Key on this POST. Docs (Idempotency): \"For all `POST` endpoints, include an idempotency key in the request header (`X-Idempotency-Key`).\" The API reference doesn't list it for this endpoint; sending it is harmless and follows the guide. A reused key replays the first response (\"the response will include the header `X-Idempotency-Cache-Hit: true`\"), so reuse the key when retrying the same operation and use a new one for a new operation. X-Trace-Id is optional. For both: \"It must be a string using only alphanumeric ASCII characters.\" \"Its length should be between 12 and 255 characters.\" The idempotency page also says \"We recommend using a **UUID** string as your idempotency key\": strip the UUID's hyphens to satisfy both.",
+    "The body takes a single required field, email (the API reference defines no phone or name filter). page and size are query parameters. The matching rule (exact or partial) is not documented.",
+    "Use it to avoid duplicate customers: search by email, reuse data[0].id if present, otherwise create_customer.",
+    "Pagination: page ≥ 1 (default 1, most recent first), size 10-50 (default 10); read meta.page_info.total_pages. The API reference caps some list responses at 10 items (maxItems 10) although size goes up to 50: always paginate.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: none specific. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/customers_search.md",
+    "source_reference": "Search customers (POST /customers/search)",
+    "extracted_at": "2026-10-24T23:14:56.000Z",
+    "snapshot_hash": "39fb44845c7e1d6f18475624f68699699c5c59f3ea4d15ffef6e5b9891135f30",
+    "spans": [
+      "Search customers",
+      "\"/customers/search\""
+    ]
+  }
 }

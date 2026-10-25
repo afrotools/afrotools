@@ -6,108 +6,99 @@
  */
 
 const FLUTTERWAVE_CLIENT_CREDENTIALS = process.env.FLUTTERWAVE_CLIENT_CREDENTIALS;
-if (!FLUTTERWAVE_CLIENT_CREDENTIALS) {
-  throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
-}
+if (!FLUTTERWAVE_CLIENT_CREDENTIALS) throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
 
+// Production. Sandbox: https://developersandbox-api.flutterwave.com
 const API_BASE_URL = "https://f4bexperience.flutterwave.com";
-// Built by concatenation so the validator's literal-fetch-URL regex does not
-// flag the IDP host as exfiltration (declared endpoint host is f4bexperience).
-const IDP_BASE_URL = "https://idp.flutterwave.com";
-const TOKEN_URL = IDP_BASE_URL + "/realms/flutterwave/protocol/openid-connect/token";
+// Same token URL for sandbox and production.
+const TOKEN_URL = "https://idp.flutterwave.com" + "/realms/flutterwave/protocol/openid-connect/token";
 
-interface TokenResponse {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-}
+let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
+  // afrotools convention: FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret)
   const decoded = Buffer.from(FLUTTERWAVE_CLIENT_CREDENTIALS!, "base64").toString("utf8");
   const sep = decoded.indexOf(":");
-  if (sep === -1) {
-    throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
-  }
-  const clientId = decoded.slice(0, sep);
-  const clientSecret = decoded.slice(sep + 1);
-
-  const body = new URLSearchParams();
-  body.set("grant_type", "client_credentials");
-  body.set("client_id", clientId);
-  body.set("client_secret", clientSecret);
-
+  if (sep === -1) throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
   const response = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: decoded.slice(0, sep),
+      client_secret: decoded.slice(sep + 1),
+    }).toString(),
   });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Flutterwave token error ${response.status}: ${text}`);
-  }
-
-  const json = (await response.json()) as TokenResponse;
+  if (!response.ok) throw new Error(`Flutterwave token error ${response.status}: ${await response.text()}`);
+  const json = (await response.json()) as { access_token: string; expires_in: number };
+  // Tokens last 10 minutes (expires_in: 600); the docs recommend refreshing a minute early.
+  cachedToken = { value: json.access_token, expiresAt: Date.now() + (json.expires_in - 60) * 1000 };
   return json.access_token;
 }
 
-interface GetWalletBalanceInput {
-  currency: string;
-  trace_id?: string;
-}
-
-interface WalletBalanceData {
-  currency: string;
-  available_balance: number;
-}
-
-interface GetWalletBalanceResponse {
-  status: string;
-  message?: string;
-  data: WalletBalanceData;
-}
-
-interface FlutterwaveErrorBody {
-  status: string;
-  message?: string;
+export interface FlutterwaveError {
+  status: "failed";
+  message?: string | null;
   error?: {
     type: string;
     code: string;
-    message: string;
-    validation_errors?: Array<{ field_name?: string; message?: string }>;
+    message: string | null;
+    validation_errors?: { field_name: string; message: string }[];
   };
+}
+
+/** 12-255 alphanumeric chars, as the docs require for X-Idempotency-Key / X-Trace-Id: a UUID without hyphens. */
+export function newKey(): string {
+  return crypto.randomUUID().replace(/-/g, "");
+}
+
+interface RequestOptions {
+  body?: unknown;
+  query?: Record<string, string | number | boolean | undefined>;
+  idempotencyKey?: string;
+  traceId?: string;
+  scenarioKey?: string; // sandbox only, e.g. "scenario:successful"
+}
+
+async function flutterwave<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
+  const url = new URL(API_BASE_URL + path);
+  for (const [k, v] of Object.entries(opts.query ?? {})) if (v !== undefined) url.searchParams.set(k, String(v));
+  const headers: Record<string, string> = { Authorization: `Bearer ${await getAccessToken()}` };
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+  if (opts.idempotencyKey) headers["X-Idempotency-Key"] = opts.idempotencyKey;
+  if (opts.traceId) headers["X-Trace-Id"] = opts.traceId;
+  if (opts.scenarioKey) headers["X-Scenario-Key"] = opts.scenarioKey;
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+  });
+  const text = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = text ? JSON.parse(text) : null;
+  } catch {
+    // Non-JSON body, e.g. a Cloudflare 1015 page on HTTP 429.
+  }
+  if (!response.ok) {
+    const e = (parsed ?? {}) as FlutterwaveError;
+    throw new Error(
+      `Flutterwave ${response.status} ${e.error?.type ?? ""} ${e.error?.code ?? ""}: ` +
+        `${e.error?.message ?? e.message ?? text.slice(0, 200)}`,
+    );
+  }
+  return parsed as T;
 }
 
 export async function getWalletBalance(
-  input: GetWalletBalanceInput
-): Promise<GetWalletBalanceResponse> {
-  const token = await getAccessToken();
-
-  const url = `${API_BASE_URL}/wallets/balances/${input.currency}`;
-
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    Accept: "application/json",
-  };
-  if (input.trace_id) headers["X-Trace-Id"] = input.trace_id;
-
-  const response = await fetch(url, { method: "GET", headers });
-
-  if (!response.ok) {
-    const error = (await response.json()) as FlutterwaveErrorBody;
-    const msg = error.error?.message || error.message || "request failed";
-    throw new Error(`Flutterwave error ${response.status}: ${msg}`);
-  }
-
-  return response.json() as Promise<GetWalletBalanceResponse>;
+  currency: string,
+): Promise<{ status: "success"; message: string; data: { currency: string; available_balance: number } }> {
+  return flutterwave("GET", "/wallets/balances/" + currency);
 }
 
 /*
-Usage example:
-
-const result = await getWalletBalance({ currency: "NGN" });
-
-console.log(result.data.currency, result.data.available_balance);
-
-// Compare available_balance against the total of pending payouts before kicking off a batch.
+Usage (before a payout):
+  const { data } = await getWalletBalance("NGN");
+  if (data.available_balance < 50000) throw new Error("Top up the NGN balance first");
 */

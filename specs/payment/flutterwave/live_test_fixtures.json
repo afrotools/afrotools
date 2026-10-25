@@ -7,28 +7,26 @@
       "path_params": { "currency": "NGN" }
     },
     {
-      "capability": "get_wallet_statement",
-      "query_params": { "currency": "NGN", "size": "10" }
+      "capability": "list_banks",
+      "query_params": { "country": "NG" }
     },
     {
-      "capability": "list_wallet_balances"
+      "capability": "list_mobile_networks",
+      "query_params": { "country": "GH" }
     },
     {
-      "capability": "list_transfer_recipients",
-      "query_params": { "size": "10" }
-    },
-    {
-      "capability": "list_customers",
-      "query_params": { "page": "1", "size": "10" }
+      "capability": "lookup_bank_account",
+      "body": { "currency": "NGN", "account": { "code": "044", "number": "0690000040" } },
+      "headers": { "X-Idempotency-Key": "afrotoolslookup$ts" }
     },
     {
       "capability": "create_customer",
       "body": {
         "email": "live-$ts@afrotools.dev",
         "name": { "first": "Live", "last": "Test" },
-        "phone": { "country_code": "234", "number": "8012345678" }
+        "phone": { "country_code": "233", "number": "2441234567" }
       },
-      "headers": { "X-Idempotency-Key": "cus-$ts" },
+      "headers": { "X-Idempotency-Key": "afrotoolscus$ts" },
       "store_as": "customer"
     },
     {
@@ -36,13 +34,18 @@
       "path_params": { "id": "$customer.data.id" }
     },
     {
+      "capability": "search_customers",
+      "body": { "email": "live-$ts@afrotools.dev" },
+      "headers": { "X-Idempotency-Key": "afrotoolssearch$ts" }
+    },
+    {
       "capability": "create_payment_method",
       "body": {
         "type": "mobile_money",
         "customer_id": "$customer.data.id",
-        "mobile_money": { "network": "MTN", "country_code": "233", "phone_number": "244000001" }
+        "mobile_money": { "network": "MTN", "country_code": "233", "phone_number": "2441234567" }
       },
-      "headers": { "X-Idempotency-Key": "pm-$ts" },
+      "headers": { "X-Idempotency-Key": "afrotoolspm$ts" },
       "discriminated_union": {
         "type_field": "type",
         "sibling_keys": ["card", "bank_account", "mobile_money", "opay", "applepay", "googlepay", "ussd"]
@@ -50,41 +53,91 @@
       "store_as": "payment_method"
     },
     {
-      "capability": "create_virtual_account",
-      "body": {
-        "customer_id": "$customer.data.id",
-        "amount": 0,
-        "reference": "va-$ts",
-        "currency": "NGN",
-        "account_type": "static",
-        "bvn": "12345678901"
-      },
-      "headers": { "X-Idempotency-Key": "va-$ts" }
-    },
-    {
-      "capability": "create_transfer_rate",
-      "body": {
-        "source": { "currency": "NGN" },
-        "destination": { "currency": "EUR", "amount": 10 }
-      },
-      "headers": { "X-Idempotency-Key": "rate-$ts" },
-      "store_as": "rate"
-    },
-    {
       "capability": "create_charge",
       "body": {
-        "amount": 1,
+        "amount": 10,
         "currency": "GHS",
-        "reference": "chg-$ts",
+        "reference": "afrotools-chg-$ts",
         "customer_id": "$customer.data.id",
         "payment_method_id": "$payment_method.data.id"
       },
-      "headers": { "X-Idempotency-Key": "chg-$ts" },
+      "headers": { "X-Idempotency-Key": "afrotoolschg$ts" },
       "store_as": "charge"
     },
     {
       "capability": "get_charge",
       "path_params": { "id": "$charge.data.id" }
+    },
+    {
+      "capability": "list_charges",
+      "query_params": { "customer_id": "$customer.data.id", "size": "10" }
+    },
+    {
+      "capability": "create_virtual_account",
+      "body": {
+        "customer_id": "$customer.data.id",
+        "reference": "afrotools-va-$ts",
+        "currency": "NGN",
+        "account_type": "static",
+        "amount": 0,
+        "bvn": "12345678901"
+      },
+      "headers": { "X-Idempotency-Key": "afrotoolsva$ts" },
+      "store_as": "virtual_account"
+    },
+    {
+      "capability": "get_virtual_account",
+      "path_params": { "id": "$virtual_account.data.id" }
+    },
+    {
+      "capability": "create_transfer_recipient",
+      "body": {
+        "type": "mobile_money_ghs",
+        "name": { "first": "Live", "last": "Test" },
+        "mobile_money": { "network": "MTN", "msisdn": "23324$ts" }
+      },
+      "headers": { "X-Idempotency-Key": "afrotoolsrcp$ts" },
+      "store_as": "recipient"
+    },
+    {
+      "capability": "list_transfer_recipients",
+      "query_params": { "size": "10" }
+    },
+    {
+      "capability": "create_transfer_rate",
+      "body": { "source": { "currency": "NGN" }, "destination": { "currency": "EUR", "amount": 10 } },
+      "headers": { "X-Idempotency-Key": "afrotoolsrate$ts" }
+    },
+    {
+      "capability": "create_transfer",
+      "body": {
+        "action": "instant",
+        "reference": "afrotools-trf-$ts",
+        "narration": "afrotools live test",
+        "payment_instruction": {
+          "source_currency": "GHS",
+          "amount": { "value": 10, "applies_to": "destination_currency" },
+          "recipient_id": "$recipient.data.id"
+        }
+      },
+      "headers": { "X-Idempotency-Key": "afrotoolstrf$ts", "X-Scenario-Key": "scenario:successful" },
+      "store_as": "transfer"
+    },
+    {
+      "capability": "get_transfer",
+      "path_params": { "id": "$transfer.data.id" }
+    },
+    {
+      "capability": "list_transfers",
+      "query_params": { "size": "10" }
+    },
+    {
+      "capability": "list_chargebacks",
+      "query_params": { "size": "10" }
+    },
+    {
+      "capability": "list_settlements",
+      "query_params": { "size": "10" }
     }
   ]
 }

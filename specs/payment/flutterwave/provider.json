@@ -2,11 +2,11 @@
   "slug": "flutterwave",
   "name": "Flutterwave",
   "category": "payment",
-  "country_code": ["NG", "GH", "KE", "UG", "TZ", "RW", "ZA", "ZM", "CM", "CI", "SN", "GA", "SL"],
+  "country_code": ["NG", "GH", "KE", "UG", "TZ", "RW", "ZA", "ZM", "CM", "CI", "SN", "GA", "SL", "CG", "EG", "ET", "MW", "TD"],
   "website": "https://flutterwave.com",
-  "docs_url": "https://developer.flutterwave.com",
+  "docs_url": "https://developer.flutterwave.com/v4.0/docs/getting-started",
   "docs_public": true,
   "sandbox": true,
-  "description": "Flutterwave is a pan-African payments platform offering card, mobile money, bank transfer, USSD and wallet payment collection plus payouts to bank accounts, mobile money wallets and Flutterwave wallets across Nigeria, Ghana, Kenya, Uganda, Tanzania, Rwanda, South Africa, Zambia, Cameroon, Côte d'Ivoire, Senegal, Gabon and Sierra Leone.",
-  "example_prompt": "Integrate Flutterwave v4 to accept card and mobile money payments and pay out to local bank accounts across multiple African markets."
+  "description": "Flutterwave (API v4) collects payments by card, mobile money, USSD, OPay, Pay with Bank and bank transfer to virtual accounts, and pays out to bank accounts, mobile money wallets and Flutterwave wallets; the countries are those its bank and mobile-network endpoints list in Africa.",
+  "example_prompt": "Integrate Flutterwave v4: create a customer and payment method, charge it and handle next_action, verify the charge via webhook, then pay sellers out to their bank or mobile money accounts."
 }

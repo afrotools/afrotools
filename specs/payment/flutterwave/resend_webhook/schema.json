@@ -1,0 +1,147 @@
+{
+  "spec_version": "1.0",
+  "provider_api_version": "v4",
+  "capability": "resend_webhook",
+  "capability_type": "asynchronous",
+  "status": "ready",
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
+  "auth": {
+    "type": "oauth2",
+    "location": "header",
+    "field": "Authorization",
+    "format": "Bearer {access_token}",
+    "env_var": "FLUTTERWAVE_CLIENT_CREDENTIALS"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://f4bexperience.flutterwave.com/resend-webhook"
+  },
+  "example_prompt": "Ask Flutterwave to resend a missed charge.completed or transfer.disburse webhook for a given charge or transfer id.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "id",
+      "type"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "ID of the entity or webhook message to resend. Accepts entity IDs (e.g., chg_xxx, ord_xxx, trf_xxx) or webhook message IDs (wbk_xxx)."
+      },
+      "type": {
+        "type": "string",
+        "enum": [
+          "charge.completed",
+          "transfer.disburse",
+          "transfer.reversal",
+          "order.authorization"
+        ],
+        "description": "Type of the entity to resend webhook for."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "error"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: 1600400 WEBHOOK_URL_INVALID, 1601404 WEBHOOK_ENDPOINT_NOT_FOUND (no webhook configured), 1602422 UNPROCESSABLE_SVIX_RESPONSE, 1603500 INTERNAL_SERVER_ERROR_SVIX."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "validation_errors": {
+            "type": "array",
+            "description": "On 400 validation errors.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "gotchas": [
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: send X-Idempotency-Key on this POST. Docs (Idempotency): \"For all `POST` endpoints, include an idempotency key in the request header (`X-Idempotency-Key`).\" The API reference marks it optional; the headers guide lists it under 'Mandatory API Headers'. A reused key replays the first response (\"the response will include the header `X-Idempotency-Cache-Hit: true`\"), so reuse the key when retrying the same operation and use a new one for a new operation. X-Trace-Id is optional. For both: \"It must be a string using only alphanumeric ASCII characters.\" \"Its length should be between 12 and 255 characters.\" The idempotency page also says \"We recommend using a **UUID** string as your idempotency key\": strip the UUID's hyphens to satisfy both.",
+    "Body: id = the entity id (chg_…, ord_…, trf_…) or a webhook message id (wbk_…); type = charge.completed, transfer.disburse, transfer.reversal or order.authorization. refund.completed is not in the enum, so refund webhooks cannot be resent this way: use get_refund.",
+    "The 201 body is only {status, message}; the event itself arrives on your webhook URL, signed like any other.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 1600400 WEBHOOK_URL_INVALID, 1601404 WEBHOOK_ENDPOINT_NOT_FOUND (no webhook configured), 1602422 UNPROCESSABLE_SVIX_RESPONSE, 1603500 INTERNAL_SERVER_ERROR_SVIX. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/resend_webhook.md",
+    "source_reference": "Resend Webhook (POST /resend-webhook)",
+    "extracted_at": "2026-10-24T23:15:07.000Z",
+    "snapshot_hash": "66dcf0187d4c59f34da103e1565bd358998e5616f205bf5d75359afb0e872ea4",
+    "spans": [
+      "Resend Webhook",
+      "\"/resend-webhook\""
+    ]
+  }
+}

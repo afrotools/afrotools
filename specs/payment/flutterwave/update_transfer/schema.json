@@ -4,7 +4,23 @@
   "capability": "update_transfer",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,96 +32,215 @@
     "method": "PUT",
     "url": "https://f4bexperience.flutterwave.com/transfers/{id}"
   },
-  "example_prompt": "Initiate or close a deferred Flutterwave transfer that has not yet been disbursed, or re-schedule its disburse time.",
+  "example_prompt": "Release or cancel a deferred or scheduled Flutterwave payout, or move its scheduled date.",
   "input_schema": {
     "type": "object",
-    "required": ["id"],
+    "required": [
+      "id"
+    ],
     "properties": {
       "id": {
-        "type": "string",
-        "description": "Path parameter: the Flutterwave transfer ID to update (e.g. trf_yuK89vb)."
+        "description": "Path parameter. ID of the transfer",
+        "type": "string"
       },
       "initiate": {
         "type": "boolean",
-        "description": "Set to true to initiate a deferred or scheduled transfer (move it to PENDING/INITIATED)."
+        "description": "Used to initiate a deferred or scheduled transfer"
       },
       "close": {
         "type": "boolean",
-        "description": "Set to true to close (cancel) a deferred or scheduled transfer."
+        "description": "Used to close a deferred or scheduled transfer."
       },
       "disburse_option": {
         "type": "object",
-        "description": "Updated scheduling details for action=scheduled transfers.",
+        "description": "To specify the date and time for disbursement, this is required when action is set to scheduled.",
         "properties": {
           "date_time": {
             "type": "string",
-            "description": "Scheduled disbursement date-time in 'YYYY-MM-DD HH:MM:SS' 24-hour format."
+            "description": "the scheduled date and time for when the transfer should be disbursed to the recipient's account. It should be in the 'YYYY-MM-DD HH:MM:SS' 24hr format."
           },
           "timezone": {
             "type": "string",
-            "description": "IANA timezone identifier (e.g. Africa/Lagos)."
+            "enum": [
+              "Africa/Cairo",
+              "Africa/Accra",
+              "Africa/Nairobi",
+              "Africa/Lagos",
+              "Africa/Freetown",
+              "Africa/Dar_es_Salaam",
+              "Africa/Kampala",
+              "Africa/Douala",
+              "Africa/Ndjamena",
+              "Africa/Kinshasa",
+              "Africa/Lubumbashi",
+              "Africa/Libreville",
+              "Africa/Porto-Novo",
+              "Africa/Abidjan",
+              "Africa/Dakar",
+              "Africa/Johannesburg",
+              "America/New_York",
+              "America/Los_Angeles",
+              "America/Sao_Paulo",
+              "Asia/Dubai",
+              "Asia/Kolkata",
+              "Asia/Tokyo",
+              "Australia/Sydney",
+              "Europe/London",
+              "Europe/Berlin",
+              "Europe/Moscow",
+              "Pacific/Auckland",
+              "Pacific/Honolulu",
+              "UTC"
+            ]
           }
         }
-      },
-      "trace_id": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Optional X-Trace-Id header value for request correlation."
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
-      "status": { "type": "string", "enum": ["success", "failed"], "description": "Envelope status." },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
       "data": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "description": "Transfer ID (echoed)." },
+          "id": {
+            "description": "The unique identifier for the transfer.",
+            "type": "string"
+          },
           "action": {
+            "description": "Specifies if the transfer is processed immediately or later.",
             "type": "string",
-            "description": "instant | deferred | scheduled | retry | duplicate | closed"
+            "enum": [
+              "instant",
+              "deferred",
+              "scheduled",
+              "retry",
+              "duplicate",
+              "closed"
+            ]
           },
           "status": {
             "type": "string",
-            "description": "NEW | PENDING | INITIATED | CANCELLED"
+            "description": "The current status of the transfer. `NEW` indicates the transfer is being processed, while `CANCELLED` indicates the transfer has been cancelled.",
+            "enum": [
+              "NEW",
+              "PENDING",
+              "INITIATED",
+              "CANCELLED"
+            ]
           },
           "disburse_option": {
             "type": "object",
-            "description": "Current scheduling details after the update.",
+            "description": "To specify the date and time for disbursement, this is required when action is set to scheduled.",
             "properties": {
-              "date_time": { "type": "string" },
-              "timezone": { "type": "string" }
+              "date_time": {
+                "type": "string",
+                "description": "the scheduled date and time for when the transfer should be disbursed to the recipient's account. It should be in the 'YYYY-MM-DD HH:MM:SS' 24hr format."
+              },
+              "timezone": {
+                "type": "string",
+                "enum": [
+                  "Africa/Cairo",
+                  "Africa/Accra",
+                  "Africa/Nairobi",
+                  "Africa/Lagos",
+                  "Africa/Freetown",
+                  "Africa/Dar_es_Salaam",
+                  "Africa/Kampala",
+                  "Africa/Douala",
+                  "Africa/Ndjamena",
+                  "Africa/Kinshasa",
+                  "Africa/Lubumbashi",
+                  "Africa/Libreville",
+                  "Africa/Porto-Novo",
+                  "Africa/Abidjan",
+                  "Africa/Dakar",
+                  "Africa/Johannesburg",
+                  "America/New_York",
+                  "America/Los_Angeles",
+                  "America/Sao_Paulo",
+                  "Asia/Dubai",
+                  "Asia/Kolkata",
+                  "Asia/Tokyo",
+                  "Australia/Sydney",
+                  "Europe/London",
+                  "Europe/Berlin",
+                  "Europe/Moscow",
+                  "Pacific/Auckland",
+                  "Pacific/Honolulu",
+                  "UTC"
+                ]
+              }
             }
           },
-          "updated_datetime": { "type": "string", "format": "date-time" }
+          "updated_datetime": {
+            "type": "string",
+            "description": "The date and time when the transfer was submitted for processing.",
+            "format": "date-time"
+          }
         }
       }
     }
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: 302400 INVALID_TRANSFER_STATUS (not in NEW status), 303400 TRANSFER_NOT_DEFERRED_SCHEDULED, 304400 TIME_LIMIT_EXCEEDED, 208400 INVALID_DISBURSE_ACTION."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "validation_errors": {
             "type": "array",
+            "description": "On 400 validation errors.",
             "items": {
               "type": "object",
               "properties": {
-                "field_name": { "type": "string" },
-                "message": { "type": "string" }
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -114,9 +249,22 @@
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "This endpoint can only be used to update instructions about a deferred (or scheduled) payout. Use 'initiate: true' to trigger it and 'close: true' to cancel it. Once a transfer has moved past the deferred/scheduled state it cannot be updated and the call returns 409 RESOURCE_CONFLICT.",
-    "Do NOT attempt to send 'narration', 'meta', amount, recipient, sender, currency, or any field of payment_instruction in the body — only initiate, close, and disburse_option are accepted. Sending unsupported fields returns 400 REQUEST_NOT_VALID.",
-    "disburse_option.date_time uses the 'YYYY-MM-DD HH:MM:SS' format (note the space, not 'T'), paired with an IANA timezone string in disburse_option.timezone. Pass both together when rescheduling."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: X-Trace-Id is optional on this PUT (the headers guide lists it under 'Optional API Headers'; \"It must be a string using only alphanumeric ASCII characters.\", 12-255 characters). The API reference documents no X-Idempotency-Key for this endpoint.",
+    "Body (API reference): initiate: true releases a deferred or scheduled transfer, close: true cancels it, disburse_option reschedules it. Only works while the transfer is NEW and deferred or scheduled.",
+    "Open question: the guides describe a different body: Docs (General Transfer Flow): \"setting `action` to `instant` to process the transfer or  set it to `close` to cancel it.\" The API reference schema has no action field; follow the reference and verify in sandbox.",
+    "The API reference lists 200/400/401/403 (no 409): wrong-state errors are the 30x400 codes above.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 302400 INVALID_TRANSFER_STATUS (not in NEW status), 303400 TRANSFER_NOT_DEFERRED_SCHEDULED, 304400 TIME_LIMIT_EXCEEDED, 208400 INVALID_DISBURSE_ACTION. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/transfer_put.md",
+    "source_reference": "Update a transfer (PUT /transfers/{id})",
+    "extracted_at": "2026-10-24T23:15:10.000Z",
+    "snapshot_hash": "ec0d2095243d04f1d6ce33232a23089d15261d4d5b55dbc2bf88116f00aa9400",
+    "spans": [
+      "Update a transfer",
+      "This can only be used to update instructions about a deferred payout.",
+      "\"/transfers/{id}\""
+    ]
+  }
 }

@@ -4,7 +4,23 @@
   "capability": "update_chargeback",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,110 +32,245 @@
     "method": "PUT",
     "url": "https://f4bexperience.flutterwave.com/chargebacks/{id}"
   },
-  "example_prompt": "Attach additional evidence to a pending Flutterwave chargeback and accept it.",
+  "example_prompt": "Accept a Flutterwave chargeback, or decline it with proof of delivery, before its due date.",
   "input_schema": {
     "type": "object",
-    "required": ["id"],
+    "required": [
+      "id"
+    ],
     "properties": {
       "id": {
         "type": "string",
-        "description": "The chargeback id (path parameter)."
+        "description": "Path parameter. ID of the chargeback"
       },
       "status": {
         "type": "string",
-        "enum": ["accepted", "declined"],
-        "description": "New status. Only accepted or declined are accepted on update."
+        "description": "The status indicates the final resolution of a dispute or request, showing whether it has been accepted or declined.",
+        "enum": [
+          "accepted",
+          "declined",
+          "partially-accepted"
+        ]
       },
       "uploaded_proof": {
         "type": "string",
-        "description": "URL to an uploaded proof document."
+        "description": "Link to proof against chargeback"
       },
       "comment": {
         "type": "string",
-        "description": "Additional comment about the update."
+        "description": "Additional comments for the chargeback"
       },
       "provider": {
         "type": "string",
-        "description": "Provider name (e.g. Visa)."
+        "description": "Provider for the chargeback"
       },
       "arn": {
         "type": "string",
-        "description": "Acquirer Reference Number."
+        "description": "Acquirer reference number for transaction"
       },
       "due_datetime": {
         "type": "string",
-        "format": "date-time",
-        "description": "ISO 8601 date-time to override the chargeback due date."
+        "description": "The due_datetime specifies the exact date and time by which an action or response is required. This is typically used to set deadlines for submitting documentation or responding to a chargeback.",
+        "format": "date-time"
       },
       "proof_data": {
         "type": "string",
-        "description": "Base64-encoded proof document body (alternative to uploaded_proof URL)."
+        "description": "Base64 encoded string of proof against chargeback"
       },
-      "trace_id": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Optional X-Trace-Id header value (12-255 chars) for request correlation."
+      "amount": {
+        "type": "number",
+        "format": "decimal",
+        "description": "The payment amount in decimals.",
+        "minimum": 0.01
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
-      "status": { "type": "string", "enum": ["success"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
       "data": {
         "type": "object",
+        "description": "A chargeback object",
         "properties": {
-          "id": { "type": "string" },
-          "charge_id": { "type": "string" },
-          "amount": { "type": "number" },
-          "meta": { "type": "object", "additionalProperties": true },
+          "id": {
+            "type": "string",
+            "description": "ID of the chargeback"
+          },
+          "charge_id": {
+            "type": "string",
+            "description": "ID of the charge tied to this chargeback"
+          },
+          "amount": {
+            "type": "number",
+            "format": "decimal",
+            "description": "The payment amount in decimals.",
+            "minimum": 0.01
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
           "stage": {
             "type": "string",
-            "enum": ["new", "second", "pre-arbitration", "arbitration", "invalid"]
+            "description": "The stage describes the current phase of a chargeback dispute",
+            "enum": [
+              "new",
+              "second",
+              "pre-arbitration",
+              "arbitration",
+              "invalid"
+            ]
           },
           "status": {
             "type": "string",
-            "enum": ["pending", "accepted", "declined", "initiated", "won", "lost", "reversed", "new"]
+            "description": "The status field tracks the current state or outcome of a chargeback dispute, providing a comprehensive overview of its lifecycle.",
+            "enum": [
+              "pending",
+              "accepted",
+              "declined",
+              "initiated",
+              "won",
+              "lost",
+              "reversed",
+              "new"
+            ]
           },
-          "type": { "type": "string", "enum": ["local", "international"] },
-          "due_datetime": { "type": "string", "format": "date-time" },
-          "created_datetime": { "type": "string", "format": "date-time" },
-          "updated_datetime": { "type": "string", "format": "date-time" },
-          "settlement_id": { "type": "string" },
-          "uploaded_proof": { "type": "string" },
-          "comment": { "type": "string" },
-          "provider": { "type": "string" },
-          "arn": { "type": "string" },
-          "initiator": { "type": "string" }
+          "type": {
+            "type": "string",
+            "description": "The type categorizes the chargeback based on whether it originates from a transaction within the same country (local) or across different countries (international).",
+            "enum": [
+              "local",
+              "international"
+            ]
+          },
+          "due_datetime": {
+            "type": "string",
+            "description": "The due_datetime specifies the exact date and time by which an action or response is required. This is typically used to set deadlines for submitting documentation or responding to a chargeback.",
+            "format": "date-time"
+          },
+          "created_datetime": {
+            "type": "string",
+            "description": "The created_datetime indicates the exact date and time when the chargeback record was initially created in the system. This timestamp helps in tracking the age of the dispute.",
+            "format": "date-time"
+          },
+          "updated_datetime": {
+            "type": "string",
+            "description": "The updated_datetime specifies the most recent date and time when any information related to the chargeback record was modified or updated. This helps in tracking the last activity on the dispute.",
+            "format": "date-time"
+          },
+          "settlement_id": {
+            "type": "string",
+            "description": "ID of the settlement tied to this chargeback"
+          },
+          "uploaded_proof": {
+            "type": "string",
+            "description": "Link to proof against chargeback"
+          },
+          "comment": {
+            "type": "string",
+            "description": "Additional comments for the chargeback"
+          },
+          "provider": {
+            "type": "string",
+            "description": "Provider for the chargeback"
+          },
+          "arn": {
+            "type": "string",
+            "description": "Acquirer reference number for transaction"
+          },
+          "initiator": {
+            "type": "string",
+            "description": "Initiator of the chargeback"
+          }
         }
       }
     }
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
-          "validation_errors": { "type": "array", "items": { "type": "object", "properties": { "field_name": { "type": "string" }, "message": { "type": "string" } } } }
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: 1700404 CHARGEBACK_NOT_FOUND, 1703400 CHARGEBACK_DECLINE_INVALID, 1704400 CHARGEBACK_PROOF_INVALID, 1705500 CHARGEBACK_PROOF_UPLOAD_FAILED, 1706400 CHARGEBACK_DUE_DATE_INVALID (deadline passed), 1707400 CHARGEBACK_AMOUNT_INVALID."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "validation_errors": {
+            "type": "array",
+            "description": "On 400 validation errors.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
       }
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "On update, status only accepts the enum values accepted or declined. Other final states (won/lost/reversed) are set by the system, not by the merchant.",
-    "Two ways to attach proof: uploaded_proof (URL to an already-hosted document) or proof_data (base64-encoded document body). Pick one — do not send both.",
-    "Status transitions are typically one-way once accepted or declined; inspect the response.data.status to confirm the new state before notifying the customer."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: X-Trace-Id is optional on this PUT (the headers guide lists it under 'Optional API Headers'; \"It must be a string using only alphanumeric ASCII characters.\", 12-255 characters). The API reference documents no X-Idempotency-Key for this endpoint.",
+    "status you can set: accepted, declined, partially-accepted. won / lost / reversed are set by Flutterwave.",
+    "Decline: Docs (Chargebacks): \"with the `status` set to `declined` and the link to the evidence passed as `uploaded_proof`.\" The error table adds that declined chargebacks must have a comment and proof (1703400). proof_data (base64) is the documented alternative to the uploaded_proof link.",
+    "Open question: partially-accepted and the amount field are in the API reference only; the guide doesn't describe them, and the response's status enum doesn't list partially-accepted.",
+    "Answer before data.due_datetime (48 hours): after it, 1706400 CHARGEBACK_DUE_DATE_INVALID.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 1700404 CHARGEBACK_NOT_FOUND, 1703400 CHARGEBACK_DECLINE_INVALID, 1704400 CHARGEBACK_PROOF_INVALID, 1705500 CHARGEBACK_PROOF_UPLOAD_FAILED, 1706400 CHARGEBACK_DUE_DATE_INVALID (deadline passed), 1707400 CHARGEBACK_AMOUNT_INVALID. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/chargeback_put.md",
+    "source_reference": "Update a chargeback (PUT /chargebacks/{id})",
+    "extracted_at": "2026-10-24T23:14:49.000Z",
+    "snapshot_hash": "90728971c94e2e89d5c61b47e8d79e05e1456d365879e66669d8ce51c5760544",
+    "spans": [
+      "Update a chargeback",
+      "\"/chargebacks/{id}\""
+    ]
+  }
 }

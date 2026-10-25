@@ -105,7 +105,7 @@ One `provider.json` per provider directory. Carries provider-level metadata migr
 | capability | string | snake_case — matches the directory name |
 | capability_type | enum | `synchronous`, `asynchronous`, `webhook`, or `sdk` |
 | status | enum | `unverified`, `draft`, `ready`, `verified`, `deprecated`, `archived` |
-| currency | string[] | ISO 4217 codes. Required when the provider's `category` is `"payment"` (and must match its `country_code` — see `COUNTRY_CURRENCY_MAP` in `scripts/validate.js`); optional otherwise — omit it for identity, communications, etc. |
+| currency | string[] | ISO 4217 codes. Required when the provider's `category` is `"payment"` (and must match its `country_code` — see `COUNTRY_CURRENCY_MAP` in `scripts/validate.js`; a pre-redenomination code the provider still uses, such as `SLL`, is accepted via `LEGACY_CURRENCY_CODES`); optional otherwise — omit it for identity, communications, etc. |
 | sandbox | boolean | true if provider has a sandbox environment |
 | docs_url | string | Can be `""` — provider has no public docs URL |
 | docs_public | boolean | false if provider does not publish API docs publicly |

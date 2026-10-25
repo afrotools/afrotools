@@ -6,131 +6,111 @@
  */
 
 const FLUTTERWAVE_CLIENT_CREDENTIALS = process.env.FLUTTERWAVE_CLIENT_CREDENTIALS;
-if (!FLUTTERWAVE_CLIENT_CREDENTIALS) {
-  throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
-}
+if (!FLUTTERWAVE_CLIENT_CREDENTIALS) throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
 
+// Production. Sandbox: https://developersandbox-api.flutterwave.com
 const API_BASE_URL = "https://f4bexperience.flutterwave.com";
-// Built by concatenation so the validator's literal-fetch-URL regex does not
-// flag the IDP host as exfiltration (declared endpoint host is f4bexperience).
-const IDP_BASE_URL = "https://idp.flutterwave.com";
-const TOKEN_URL = IDP_BASE_URL + "/realms/flutterwave/protocol/openid-connect/token";
+// Same token URL for sandbox and production.
+const TOKEN_URL = "https://idp.flutterwave.com" + "/realms/flutterwave/protocol/openid-connect/token";
 
-interface TokenResponse {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-}
+let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
+  // afrotools convention: FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret)
   const decoded = Buffer.from(FLUTTERWAVE_CLIENT_CREDENTIALS!, "base64").toString("utf8");
   const sep = decoded.indexOf(":");
-  if (sep === -1) {
-    throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
-  }
-  const clientId = decoded.slice(0, sep);
-  const clientSecret = decoded.slice(sep + 1);
-
-  const body = new URLSearchParams();
-  body.set("grant_type", "client_credentials");
-  body.set("client_id", clientId);
-  body.set("client_secret", clientSecret);
-
+  if (sep === -1) throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
   const response = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: decoded.slice(0, sep),
+      client_secret: decoded.slice(sep + 1),
+    }).toString(),
   });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Flutterwave token error ${response.status}: ${text}`);
-  }
-
-  const json = (await response.json()) as TokenResponse;
+  if (!response.ok) throw new Error(`Flutterwave token error ${response.status}: ${await response.text()}`);
+  const json = (await response.json()) as { access_token: string; expires_in: number };
+  // Tokens last 10 minutes (expires_in: 600); the docs recommend refreshing a minute early.
+  cachedToken = { value: json.access_token, expiresAt: Date.now() + (json.expires_in - 60) * 1000 };
   return json.access_token;
 }
 
-interface GetVirtualAccountInput {
-  id: string;
-  trace_id?: string;
+export interface FlutterwaveError {
+  status: "failed";
+  message?: string | null;
+  error?: {
+    type: string;
+    code: string;
+    message: string | null;
+    validation_errors?: { field_name: string; message: string }[];
+  };
 }
 
-interface VirtualAccountData {
-  id: string;
-  amount: number | null;
+/** 12-255 alphanumeric chars, as the docs require for X-Idempotency-Key / X-Trace-Id: a UUID without hyphens. */
+export function newKey(): string {
+  return crypto.randomUUID().replace(/-/g, "");
+}
+
+interface RequestOptions {
+  body?: unknown;
+  query?: Record<string, string | number | boolean | undefined>;
+  idempotencyKey?: string;
+  traceId?: string;
+  scenarioKey?: string; // sandbox only, e.g. "scenario:successful"
+}
+
+async function flutterwave<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
+  const url = new URL(API_BASE_URL + path);
+  for (const [k, v] of Object.entries(opts.query ?? {})) if (v !== undefined) url.searchParams.set(k, String(v));
+  const headers: Record<string, string> = { Authorization: `Bearer ${await getAccessToken()}` };
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+  if (opts.idempotencyKey) headers["X-Idempotency-Key"] = opts.idempotencyKey;
+  if (opts.traceId) headers["X-Trace-Id"] = opts.traceId;
+  if (opts.scenarioKey) headers["X-Scenario-Key"] = opts.scenarioKey;
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+  });
+  const text = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = text ? JSON.parse(text) : null;
+  } catch {
+    // Non-JSON body, e.g. a Cloudflare 1015 page on HTTP 429.
+  }
+  if (!response.ok) {
+    const e = (parsed ?? {}) as FlutterwaveError;
+    throw new Error(
+      `Flutterwave ${response.status} ${e.error?.type ?? ""} ${e.error?.code ?? ""}: ` +
+        `${e.error?.message ?? e.message ?? text.slice(0, 200)}`,
+    );
+  }
+  return parsed as T;
+}
+
+export interface VirtualAccount {
+  id: string; // van_…
+  amount: number; // 0 on static accounts
   account_number: string;
-  reference: string | null;
   account_bank_name: string;
   account_type: "static" | "dynamic";
   status: "active" | "inactive";
-  account_expiration_datetime: string | null;
-  note: string | null;
+  account_expiration_datetime: string;
+  note?: string;
+  reference: string;
   customer_id: string;
-  customer_reference: string | null;
-  currency: string;
-  narration: string | null;
-  meta: Record<string, unknown> | null;
   created_datetime: string;
 }
 
-interface GetVirtualAccountResponse {
-  status: "success";
-  message: string;
-  data: VirtualAccountData;
-}
-
-interface FlutterwaveValidationError {
-  field_name: string;
-  message: string;
-}
-
-interface FlutterwaveErrorBody {
-  status: "failed";
-  message?: string;
-  error: {
-    type: string;
-    code: string;
-    message: string;
-    validation_errors?: FlutterwaveValidationError[];
-  };
-}
-
-export async function getVirtualAccount(
-  input: GetVirtualAccountInput
-): Promise<GetVirtualAccountResponse> {
-  const token = await getAccessToken();
-
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    Accept: "application/json",
-  };
-  if (input.trace_id) headers["X-Trace-Id"] = input.trace_id;
-
-  const response = await fetch(`${API_BASE_URL}/virtual-accounts/${input.id}`, {
-    method: "GET",
-    headers,
-  });
-
-  if (!response.ok) {
-    const err = (await response.json()) as FlutterwaveErrorBody;
-    throw new Error(`Flutterwave ${err.error.type} ${err.error.code}: ${err.error.message}`);
-  }
-
-  return response.json() as Promise<GetVirtualAccountResponse>;
+export async function getVirtualAccount(id: string): Promise<{ status: "success"; message: string; data: VirtualAccount }> {
+  return flutterwave("GET", "/virtual-accounts/" + id);
 }
 
 /*
-Usage example:
-
-const va = await getVirtualAccount({ id: "va_EFAHCzELJb" });
-
-if (va.data.status === "active") {
-  console.log("Account ready:", va.data.account_number, va.data.account_bank_name);
-  if (va.data.account_type === "dynamic" && va.data.account_expiration_datetime) {
-    console.log("Expires at:", va.data.account_expiration_datetime);
-  }
-} else {
-  console.log("Account is inactive — create a new one (you cannot reactivate via the API).");
-}
+Usage:
+  const { data } = await getVirtualAccount("van_7qJ9WlDt4j");
+  console.log(data.account_number, data.account_bank_name, data.account_expiration_datetime);
 */

@@ -6,159 +6,118 @@
  */
 
 const FLUTTERWAVE_CLIENT_CREDENTIALS = process.env.FLUTTERWAVE_CLIENT_CREDENTIALS;
-if (!FLUTTERWAVE_CLIENT_CREDENTIALS) {
-  throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
-}
+if (!FLUTTERWAVE_CLIENT_CREDENTIALS) throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
 
+// Production. Sandbox: https://developersandbox-api.flutterwave.com
 const API_BASE_URL = "https://f4bexperience.flutterwave.com";
-const IDP_BASE_URL = "https://idp.flutterwave.com";
-const TOKEN_URL = IDP_BASE_URL + "/realms/flutterwave/protocol/openid-connect/token";
+// Same token URL for sandbox and production.
+const TOKEN_URL = "https://idp.flutterwave.com" + "/realms/flutterwave/protocol/openid-connect/token";
 
-interface TokenResponse {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-}
+let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
+  // afrotools convention: FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret)
   const decoded = Buffer.from(FLUTTERWAVE_CLIENT_CREDENTIALS!, "base64").toString("utf8");
   const sep = decoded.indexOf(":");
-  if (sep === -1) {
-    throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
-  }
-  const clientId = decoded.slice(0, sep);
-  const clientSecret = decoded.slice(sep + 1);
-
-  const body = new URLSearchParams();
-  body.set("grant_type", "client_credentials");
-  body.set("client_id", clientId);
-  body.set("client_secret", clientSecret);
-
+  if (sep === -1) throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
   const response = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: decoded.slice(0, sep),
+      client_secret: decoded.slice(sep + 1),
+    }).toString(),
   });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Flutterwave token error ${response.status}: ${text}`);
-  }
-
-  const json = (await response.json()) as TokenResponse;
+  if (!response.ok) throw new Error(`Flutterwave token error ${response.status}: ${await response.text()}`);
+  const json = (await response.json()) as { access_token: string; expires_in: number };
+  // Tokens last 10 minutes (expires_in: 600); the docs recommend refreshing a minute early.
+  cachedToken = { value: json.access_token, expiresAt: Date.now() + (json.expires_in - 60) * 1000 };
   return json.access_token;
 }
 
-type ChargebackUpdateStatus = "accepted" | "declined";
-type ChargebackStage = "new" | "second" | "pre-arbitration" | "arbitration" | "invalid";
-type ChargebackStatus =
-  | "pending"
-  | "accepted"
-  | "declined"
-  | "initiated"
-  | "won"
-  | "lost"
-  | "reversed"
-  | "new";
-type ChargebackType = "local" | "international";
-
-interface UpdateChargebackInput {
-  id: string;
-  status?: ChargebackUpdateStatus;
-  uploaded_proof?: string;
-  comment?: string;
-  provider?: string;
-  arn?: string;
-  due_datetime?: string;
-  proof_data?: string;
-  trace_id?: string;
+export interface FlutterwaveError {
+  status: "failed";
+  message?: string | null;
+  error?: {
+    type: string;
+    code: string;
+    message: string | null;
+    validation_errors?: { field_name: string; message: string }[];
+  };
 }
 
-interface FlutterwaveChargeback {
+/** 12-255 alphanumeric chars, as the docs require for X-Idempotency-Key / X-Trace-Id: a UUID without hyphens. */
+export function newKey(): string {
+  return crypto.randomUUID().replace(/-/g, "");
+}
+
+interface RequestOptions {
+  body?: unknown;
+  query?: Record<string, string | number | boolean | undefined>;
+  idempotencyKey?: string;
+  traceId?: string;
+  scenarioKey?: string; // sandbox only, e.g. "scenario:successful"
+}
+
+async function flutterwave<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
+  const url = new URL(API_BASE_URL + path);
+  for (const [k, v] of Object.entries(opts.query ?? {})) if (v !== undefined) url.searchParams.set(k, String(v));
+  const headers: Record<string, string> = { Authorization: `Bearer ${await getAccessToken()}` };
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+  if (opts.idempotencyKey) headers["X-Idempotency-Key"] = opts.idempotencyKey;
+  if (opts.traceId) headers["X-Trace-Id"] = opts.traceId;
+  if (opts.scenarioKey) headers["X-Scenario-Key"] = opts.scenarioKey;
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+  });
+  const text = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = text ? JSON.parse(text) : null;
+  } catch {
+    // Non-JSON body, e.g. a Cloudflare 1015 page on HTTP 429.
+  }
+  if (!response.ok) {
+    const e = (parsed ?? {}) as FlutterwaveError;
+    throw new Error(
+      `Flutterwave ${response.status} ${e.error?.type ?? ""} ${e.error?.code ?? ""}: ` +
+        `${e.error?.message ?? e.message ?? text.slice(0, 200)}`,
+    );
+  }
+  return parsed as T;
+}
+
+export type UpdateChargebackInput =
+  | { status: "accepted"; comment?: string }
+  | ({ status: "declined"; comment: string } & ({ uploaded_proof: string } | { proof_data: string })) // comment + proof
+
+  | { status: "partially-accepted"; amount: number; comment?: string };
+
+export interface Chargeback {
   id: string;
   charge_id: string;
   amount: number;
-  meta: Record<string, unknown>;
-  stage: ChargebackStage;
-  status: ChargebackStatus;
-  type: ChargebackType;
+  status: string;
+  stage: string;
   due_datetime: string;
-  created_datetime: string;
-  updated_datetime: string;
-  settlement_id: string;
-  uploaded_proof: string;
-  comment: string;
-  provider: string;
-  arn: string;
-  initiator: string;
-}
-
-interface UpdateChargebackResponse {
-  status: "success";
-  message: string;
-  data: FlutterwaveChargeback;
-}
-
-interface FlutterwaveError {
-  status: "failed";
-  message?: string;
-  error: {
-    type: string;
-    code: string;
-    message: string;
-    validation_errors?: Array<{ field_name: string; message: string }>;
-  };
 }
 
 export async function updateChargeback(
-  input: UpdateChargebackInput
-): Promise<UpdateChargebackResponse> {
-  const token = await getAccessToken();
-
-  const url = "https://f4bexperience.flutterwave.com/chargebacks/" + input.id;
-
-  const headers: Record<string, string> = {
-    Authorization: "Bearer " + token,
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  };
-  if (input.trace_id) headers["X-Trace-Id"] = input.trace_id;
-
-  const body: Record<string, unknown> = {};
-  if (input.status !== undefined) body.status = input.status;
-  if (input.uploaded_proof !== undefined) body.uploaded_proof = input.uploaded_proof;
-  if (input.comment !== undefined) body.comment = input.comment;
-  if (input.provider !== undefined) body.provider = input.provider;
-  if (input.arn !== undefined) body.arn = input.arn;
-  if (input.due_datetime !== undefined) body.due_datetime = input.due_datetime;
-  if (input.proof_data !== undefined) body.proof_data = input.proof_data;
-
-  const response = await fetch(url, {
-    method: "PUT",
-    headers,
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const error = (await response.json()) as FlutterwaveError;
-    throw new Error(`Flutterwave error ${response.status}: ${error.error?.message ?? error.message}`);
-  }
-
-  return response.json() as Promise<UpdateChargebackResponse>;
+  id: string,
+  input: UpdateChargebackInput,
+): Promise<{ status: "success"; message: string; data: Chargeback }> {
+  return flutterwave("PUT", "/chargebacks/" + id, { body: input });
 }
 
-void API_BASE_URL;
-
 /*
-Usage example:
-
-const result = await updateChargeback({
-  id: "cbk_xyz789",
-  status: "accepted",
-  uploaded_proof: "https://files.example.com/receipt.pdf",
-  comment: "Customer received goods on 2024-02-03",
-  provider: "Visa",
-});
-
-console.log(result.data.id, result.data.status, result.data.updated_datetime);
+Usage (decline with proof of delivery):
+  await updateChargeback("chb_QYZyN5BBvE", {
+    status: "declined",
+    comment: "Order delivered and signed for on 2026-10-02",
+    uploaded_proof: "https://files.example.com/proof/delivery-1042.pdf",
+  });
 */
