@@ -270,6 +270,15 @@ function validateSchema(specPath) {
       return fail(specPath, `provider.json channels must not contain duplicates`);
     }
   }
+  if ("environments" in providerManifest && !validateEnvironments(providerManifest.environments)) {
+    const errors = (validateEnvironments.errors ?? []).map((e) => `${e.instancePath || "/"} ${e.message}`);
+    return fail(specPath, `provider.json environments invalid (atss.schema.json $defs/environments): ${errors.join("; ")}`);
+  }
+  const baseUrls = Object.values(providerManifest.environments ?? {}).map((/** @type {any} */ e) => e.base_url);
+  if (baseUrls.length > 0 && !["webhook", "sdk"].includes(schema.capability_type) &&
+      !baseUrls.some((/** @type {string} */ b) => String(schema.endpoint?.url).startsWith(`${b}/`))) {
+    return fail(specPath, `endpoint.url "${schema.endpoint?.url}" is on none of the provider.json environments (${baseUrls.join(", ")})`);
+  }
 
   // Required fields present
   for (const field of REQUIRED_FIELDS) {
@@ -385,12 +394,65 @@ function validateEvidence(specPath, schema) {
 }
 
 const SPEC_VERSIONS = ["1.0", "1.1"];
-const ATSS_1_1_FIELDS = ["verification", "open_questions"];
+const ATSS_1_1_FIELDS = ["verification", "open_questions", "webhook"];
+const AUTH_1_1_FIELDS = ["credentials", "signing", "token_exchange", "apply"];
 const ajv = new Ajv2020({ allErrors: true });
 addFormats(ajv);
-const validateAtss11Blocks = ajv.compile(
-  JSON.parse(fs.readFileSync(path.resolve(__dirname, "../atss.schema.json"), "utf8"))
-);
+const atssSchema = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../atss.schema.json"), "utf8"));
+const validateAtss11Blocks = ajv.compile(atssSchema);
+const validateEnvironments = ajv.getSchema(`${atssSchema.$id}#/$defs/environments`);
+
+/**
+ * Env vars a spec declares: auth.credentials, and the secret named in webhook.signature.key.
+ * @param {any} schema
+ * @returns {Set<string>}
+ */
+function declaredEnvVars(schema) {
+  const vars = new Set();
+  const auth = schema.auth;
+  if (auth && typeof auth === "object" && !Array.isArray(auth)) {
+    if (auth.env_var) vars.add(auth.env_var);
+    for (const c of auth.credentials ?? []) vars.add(c.env_var);
+  }
+  if (Array.isArray(auth)) auth.forEach((/** @type {any} */ a) => a.env_var && vars.add(a.env_var));
+  for (const m of String(schema.webhook?.signature?.key ?? "").matchAll(/\{([A-Z][A-Z0-9_]*)\}/g)) vars.add(m[1]);
+  return vars;
+}
+
+/**
+ * Every {placeholder} of the auth and webhook templates must resolve: a declared credential,
+ * {signature} (auth.signing / webhook.signature), {access_token} (auth.token_exchange),
+ * {raw_body} (webhook.signature.message only).
+ * @param {any} schema
+ * @returns {string[]} unresolved placeholders, as "where: {name}"
+ */
+function unresolvedPlaceholders(schema) {
+  const auth = schema.auth ?? {};
+  const credentials = new Set((auth.credentials ?? []).map((/** @type {any} */ c) => c.env_var));
+  /** @type {[string, any, Set<string>][]} */
+  const templates = [];
+  const authTokens = new Set([...credentials, ...(auth.signing ? ["signature"] : []), ...(auth.token_exchange ? ["access_token"] : [])]);
+  if (auth.signing) {
+    templates.push(["auth.signing.key", auth.signing.key, credentials], ["auth.signing.message", auth.signing.message, credentials]);
+  }
+  (auth.token_exchange?.headers ?? []).forEach((/** @type {any} */ h, /** @type {number} */ i) =>
+    templates.push([`auth.token_exchange.headers[${i}]`, h.value, new Set([...credentials, ...(auth.signing ? ["signature"] : [])])]));
+  (auth.apply ?? []).forEach((/** @type {any} */ a, /** @type {number} */ i) => templates.push([`auth.apply[${i}]`, a.value, authTokens]));
+  const sig = schema.webhook?.signature;
+  if (sig) {
+    const secrets = new Set([...String(sig.key).matchAll(/\{([A-Z][A-Z0-9_]*)\}/g)].map((m) => m[1]));
+    templates.push(
+      ["webhook.signature.key", sig.key, secrets],
+      ["webhook.signature.message", sig.message, new Set(["raw_body"])],
+      ["webhook.signature.format", sig.format, new Set(["signature"])]
+    );
+  }
+  const unresolved = [];
+  for (const [where, value, allowed] of templates) {
+    for (const m of String(value).matchAll(/\{([^{}]+)\}/g)) if (!allowed.has(m[1])) unresolved.push(`${where}: {${m[1]}}`);
+  }
+  return unresolved;
+}
 
 /**
  * Hash of what a verification vouches for: schema.json without its own `verification` block,
@@ -419,9 +481,29 @@ function validateAtss11(specPath, schema) {
     const errors = (validateAtss11Blocks.errors ?? []).map((e) => `${e.instancePath || "/"} ${e.message}`);
     return fail(specPath, `ATSS 1.1 block(s) invalid (atss.schema.json): ${errors.join("; ")}`);
   }
-  const used = ATSS_1_1_FIELDS.filter((f) => f in schema);
+  const used = [
+    ...ATSS_1_1_FIELDS.filter((f) => f in schema),
+    ...AUTH_1_1_FIELDS.filter((f) => schema.auth && typeof schema.auth === "object" && f in schema.auth).map((f) => `auth.${f}`),
+  ];
   if (used.length > 0 && schema.spec_version !== "1.1") {
     return fail(specPath, `${used.join(", ")} need spec_version "1.1", got "${schema.spec_version}"`);
+  }
+  const auth = schema.auth ?? {};
+  if (Array.isArray(auth.credentials)) {
+    const names = auth.credentials.map((/** @type {any} */ c) => c.env_var);
+    const dup = names.filter((/** @type {string} */ n, /** @type {number} */ i) => names.indexOf(n) !== i);
+    if (dup.length > 0) return fail(specPath, `auth.credentials lists ${[...new Set(dup)].join(", ")} more than once`);
+    if (auth.type === "none") return fail(specPath, `auth.credentials on an auth of type "none"`);
+    if (auth.env_var && !names.includes(auth.env_var)) {
+      return fail(specPath, `auth.env_var "${auth.env_var}" is missing from auth.credentials`);
+    }
+  }
+  if ("webhook" in schema && schema.capability_type !== "webhook") {
+    return fail(specPath, `"webhook" is only allowed on a capability_type "webhook", got "${schema.capability_type}"`);
+  }
+  const unresolved = unresolvedPlaceholders(schema);
+  if (unresolved.length > 0) {
+    return fail(specPath, `placeholder(s) that resolve to nothing — declare the env var in auth.credentials, or add the block that produces it: ${unresolved.join("; ")}`);
   }
   const v = schema.verification;
   if (schema.status === "verified" && !v) {
@@ -592,19 +674,20 @@ function scanCanonicalExample(source, schema) {
     }
   }
 
-  // 2. process.env references not in auth.env_var → warning only.
-  //    Multi-credential APIs legitimately use env vars for required params (e.g. website_id).
-  const declaredEnvVars = new Set();
-  const auth = schema.auth;
-  if (auth && typeof auth === "object" && !Array.isArray(auth) && auth.env_var) declaredEnvVars.add(auth.env_var);
-  if (Array.isArray(auth)) auth.forEach((/** @type {any} */ a) => a.env_var && declaredEnvVars.add(a.env_var));
-
-  const envRe = /process\.env\.([A-Z_][A-Z0-9_]*)/g;
-  for (const em of source.matchAll(envRe)) {
-    const v = em[1];
+  // 2. process.env references not declared → warning on a 1.0 auth (multi-credential APIs used env vars
+  //    for required params, e.g. website_id), error once the spec lists its auth.credentials (ATSS 1.1).
+  const declared = declaredEnvVars(schema);
+  const strict = Array.isArray(schema.auth?.credentials);
+  const used = [
+    ...[...source.matchAll(/process\.env(?:\.([A-Z_][A-Z0-9_]*)|\[\s*['"`]([A-Z_][A-Z0-9_]*)['"`]\s*\])/g)].map((m) => m[1] ?? m[2]),
+    ...[...source.matchAll(/\{([^{}]*)\}\s*=\s*process\.env\b/g)].flatMap((m) =>
+      m[1].split(",").map((p) => p.split(":")[0].trim()).filter((p) => /^[A-Z_][A-Z0-9_]*$/.test(p))),
+  ];
+  for (const v of used) {
     const isInfra = INFRA_ENV_PREFIXES.some((p) => v.startsWith(p)) || INFRA_ENV_VARS.has(v);
-    if (!isInfra && !declaredEnvVars.has(v))
-      warnings.push(`[WARN] process.env.${v} utilisé mais non déclaré dans auth.env_var`);
+    if (isInfra || declared.has(v)) continue;
+    if (strict) errors.push(`[UNDECLARED ENV] process.env.${v} utilisé mais absent de auth.credentials`);
+    else warnings.push(`[WARN] process.env.${v} utilisé mais non déclaré dans auth.env_var`);
   }
 
   // 3. Dangerous code patterns in canonical_example source

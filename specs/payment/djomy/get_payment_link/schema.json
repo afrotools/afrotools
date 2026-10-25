@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v1.0",
   "capability": "get_payment_link",
   "capability_type": "synchronous",
@@ -12,7 +12,48 @@
     "location": "header",
     "field": "Authorization",
     "format": "Bearer {access_token}",
-    "env_var": "DJOMY_CLIENT_ID"
+    "env_var": "DJOMY_CLIENT_ID",
+    "credentials": [
+      {
+        "env_var": "DJOMY_CLIENT_ID",
+        "description": "clientId (API key), provided in the Djomy merchant space"
+      },
+      {
+        "env_var": "DJOMY_CLIENT_SECRET",
+        "description": "clientSecret (secret key), provided in the Djomy merchant space"
+      }
+    ],
+    "signing": {
+      "algorithm": "HMAC-SHA256",
+      "key": "{DJOMY_CLIENT_SECRET}",
+      "message": "{DJOMY_CLIENT_ID}",
+      "encoding": "hex"
+    },
+    "token_exchange": {
+      "method": "POST",
+      "path": "/v1/auth",
+      "headers": [
+        {
+          "in": "header",
+          "name": "X-API-KEY",
+          "value": "{DJOMY_CLIENT_ID}:{signature}"
+        }
+      ],
+      "token_field": "data.accessToken",
+      "expires_in_s": 3600
+    },
+    "apply": [
+      {
+        "in": "header",
+        "name": "X-API-KEY",
+        "value": "{DJOMY_CLIENT_ID}:{signature}"
+      },
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {access_token}"
+      }
+    ]
   },
   "endpoint": {
     "method": "GET",
@@ -193,8 +234,10 @@
     "Pass paymentLinkReference (not reference) as the path parameter. The reference field is deprecated — always use paymentLinkReference returned by create_payment_link.",
     "A 404 is returned if the reference does not exist or belongs to a different merchant account. Check that you are using the correct credentials and the correct reference.",
     "For UNIQUE links, data.status becomes REVOKED after one successful payment — not PAID. PAID is only set in specific conditions. Use data.numberOfUsage > 0 as the reliable indicator that a UNIQUE link has been used.",
-    "Auth requires two steps: (1) compute HMAC-SHA256(clientId, clientSecret) as hex, (2) call POST /v1/auth with header X-API-KEY: clientId:hexSignature to get a Bearer token.",
-    "The base URL in this spec is the sandbox (https://sandbox-api.djomy.africa). Replace with the production URL for live payments.",
-    "Pass the reference directly as a path segment — do not URL-encode it. The paymentLinkReference format contains only safe characters."
+    "Pass the reference directly as a path segment — do not URL-encode it. The paymentLinkReference format contains only safe characters.",
+    "A missing or invalid X-API-KEY returns HTTP 401 (documented as \"Clé API manquante ou invalide\")."
+  ],
+  "open_questions": [
+    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it."
   ]
 }

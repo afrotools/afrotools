@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/afrotools/afrotools/blob/main/atss.schema.json",
   "title": "ATSS 1.1 — capability blocks added in 1.1",
-  "description": "Validated by scripts/validate.js on every schema.json. The 1.0 fields are checked by validate.js itself; see ATSS.md for every rule.",
+  "description": "Validated by scripts/validate.js on every schema.json ($defs/environments on provider.json). The 1.0 fields are checked by validate.js itself; see ATSS.md for every rule.",
   "type": "object",
   "properties": {
     "verification": { "$ref": "#/$defs/verification" },
@@ -10,6 +10,60 @@
       "type": "array",
       "minItems": 1,
       "items": { "type": "string", "pattern": "\\S" }
+    },
+    "auth": {
+      "type": "object",
+      "properties": {
+        "credentials": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["env_var", "description"],
+            "properties": {
+              "env_var": { "$ref": "#/$defs/env_var" },
+              "description": { "type": "string", "pattern": "\\S" }
+            }
+          }
+        },
+        "signing": { "type": "object", "$ref": "#/$defs/hmac", "unevaluatedProperties": false },
+        "token_exchange": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "path", "token_field"],
+          "properties": {
+            "method": { "enum": ["GET", "POST"] },
+            "path": { "type": "string", "pattern": "^/" },
+            "headers": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/apply/items", "properties": { "in": { "const": "header" } } }
+            },
+            "token_field": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*$" },
+            "expires_in_s": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "apply": { "$ref": "#/$defs/apply" }
+      }
+    },
+    "webhook": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signature"],
+      "properties": {
+        "signature": {
+          "type": "object",
+          "allOf": [{ "$ref": "#/$defs/hmac" }],
+          "required": ["header", "format"],
+          "properties": {
+            "header": { "type": "string", "pattern": "^[A-Za-z0-9-]+$" },
+            "key": { "type": "string", "pattern": "^\\{[A-Z][A-Z0-9_]*\\}$" },
+            "format": { "type": "string", "pattern": "\\{signature\\}" }
+          },
+          "unevaluatedProperties": false
+        }
+      }
     }
   },
   "$defs": {
@@ -27,7 +81,54 @@
       "if": { "properties": { "method": { "const": "community_report" } } },
       "then": {
         "required": ["ref"],
-        "properties": { "ref": { "pattern": "^https://github\\.com/afrotools/afrotools/issues/[0-9]+$" } }
+        "properties": { "ref": { "type": "string", "pattern": "^https://github\\.com/afrotools/afrotools/issues/[0-9]+$" } }
+      }
+    },
+    "env_var": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+    "template": {
+      "description": "Text with {placeholders}: a credential's env var, {signature}, {access_token}, or {raw_body} (webhook only).",
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "hmac": {
+      "type": "object",
+      "required": ["algorithm", "key", "message", "encoding"],
+      "properties": {
+        "algorithm": { "enum": ["HMAC-SHA256"] },
+        "key": { "$ref": "#/$defs/template" },
+        "message": { "$ref": "#/$defs/template" },
+        "encoding": { "enum": ["hex"] }
+      }
+    },
+    "apply": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["in", "name", "value"],
+        "properties": {
+          "in": { "enum": ["header", "query", "body"] },
+          "name": { "type": "string", "pattern": "\\S" },
+          "value": { "$ref": "#/$defs/template" }
+        }
+      }
+    },
+    "environments": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "sandbox": { "$ref": "#/$defs/environment" },
+        "production": { "$ref": "#/$defs/environment" }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_url"],
+      "properties": {
+        "base_url": { "type": "string", "pattern": "^https://[A-Za-z0-9.-]+(:[0-9]+)?$" }
       }
     }
   }

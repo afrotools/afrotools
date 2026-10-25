@@ -13,14 +13,19 @@ type WebhookEventType =
   | "payment.redirected"
   | "payment.cancelled"
   | "payment.pending"
+  | "payment.timeout"
   | "payment.success"
-  | "payment.failed";
+  | "payment.failed"
+  | "payment.refunded"
+  | "payout.success"
+  | "payout.failed";
 
 interface WebhookPayload {
   eventType: WebhookEventType;
   eventId: string;
   message: string;
-  data: Record<string, unknown>;
+  // V2 (default for new configurations): { payment } or { payout }. V1: the payment fields directly.
+  data: { payment?: Record<string, unknown>; payout?: Record<string, unknown> } & Record<string, unknown>;
   paymentLinkReference?: string;
   timestamp: string;
   metadata?: Record<string, unknown>;
@@ -65,9 +70,10 @@ export async function handleDjomyWebhook(
   // Only act on success events for order fulfillment.
   // For other event types, acknowledge and return without processing.
   if (payload.eventType === "payment.success") {
-    // Extract transactionId from data and call verify_payment server-side
-    // before fulfilling the order. Never trust the webhook payload alone.
-    const transactionId = payload.data?.transactionId as string | undefined;
+    // Extract transactionId (data.payment in V2, data in V1) and call verify_payment
+    // server-side before fulfilling the order. Never trust the webhook payload alone.
+    const payment = payload.data?.payment ?? payload.data;
+    const transactionId = payment?.transactionId as string | undefined;
     if (transactionId) {
       // TODO: call verifyPayment(transactionId) and fulfill only if status === "SUCCESS"
       console.log(`Payment success event for transaction: ${transactionId}`);

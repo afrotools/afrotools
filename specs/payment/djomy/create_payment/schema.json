@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v1.0",
   "capability": "create_payment",
   "capability_type": "synchronous",
@@ -12,7 +12,48 @@
     "location": "header",
     "field": "Authorization",
     "format": "Bearer {access_token}",
-    "env_var": "DJOMY_CLIENT_ID"
+    "env_var": "DJOMY_CLIENT_ID",
+    "credentials": [
+      {
+        "env_var": "DJOMY_CLIENT_ID",
+        "description": "clientId (API key), provided in the Djomy merchant space"
+      },
+      {
+        "env_var": "DJOMY_CLIENT_SECRET",
+        "description": "clientSecret (secret key), provided in the Djomy merchant space"
+      }
+    ],
+    "signing": {
+      "algorithm": "HMAC-SHA256",
+      "key": "{DJOMY_CLIENT_SECRET}",
+      "message": "{DJOMY_CLIENT_ID}",
+      "encoding": "hex"
+    },
+    "token_exchange": {
+      "method": "POST",
+      "path": "/v1/auth",
+      "headers": [
+        {
+          "in": "header",
+          "name": "X-API-KEY",
+          "value": "{DJOMY_CLIENT_ID}:{signature}"
+        }
+      ],
+      "token_field": "data.accessToken",
+      "expires_in_s": 3600
+    },
+    "apply": [
+      {
+        "in": "header",
+        "name": "X-API-KEY",
+        "value": "{DJOMY_CLIENT_ID}:{signature}"
+      },
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {access_token}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
@@ -211,12 +252,13 @@
     }
   },
   "gotchas": [
-    "Auth requires two steps: (1) compute HMAC-SHA256(clientId, clientSecret) as hex, (2) call POST /v1/auth with header X-API-KEY: clientId:hexSignature to get a Bearer token. Both DJOMY_CLIENT_ID and DJOMY_CLIENT_SECRET env vars are required.",
-    "Every authenticated request requires BOTH headers: Authorization: Bearer {token} AND X-API-KEY: clientId:HMAC. The X-API-KEY must be recomputed for each request. Omitting it returns 401 even with a valid Bearer token.",
     "For Orange Money (OM) and MTN MoMo (MOMO) direct payments, status returns PENDING immediately. The payer receives an OTP from their operator. You must then call confirm_otp with the transactionId and the OTP to complete the payment.",
     "Always verify payment status server-side via verify_payment before fulfilling an order. Never trust only the callback or paymentUrl redirect.",
-    "The base URL in this spec is the sandbox (https://sandbox-api.djomy.africa). Replace with the production URL for live payments.",
     "metadata must be a flat object — no arrays or nested structures. Values can be strings, numbers, or booleans.",
-    "[VERY IMPORTANT] Unless the user explicitly requests the direct flow (no redirect, OTP collected in your own UI), always use create_payment_gateway instead. create_payment requires you to know the payment method and payer identifier upfront and to handle OTP confirmation yourself. create_payment_gateway delegates everything to the Djomy portal."
+    "[VERY IMPORTANT] Unless the user explicitly requests the direct flow (no redirect, OTP collected in your own UI), always use create_payment_gateway instead. create_payment requires you to know the payment method and payer identifier upfront and to handle OTP confirmation yourself. create_payment_gateway delegates everything to the Djomy portal.",
+    "A missing or invalid X-API-KEY returns HTTP 401 (documented as \"Clé API manquante ou invalide\")."
+  ],
+  "open_questions": [
+    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it."
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v1.0",
   "capability": "create_payment_link",
   "capability_type": "synchronous",
@@ -12,7 +12,48 @@
     "location": "header",
     "field": "Authorization",
     "format": "Bearer {access_token}",
-    "env_var": "DJOMY_CLIENT_ID"
+    "env_var": "DJOMY_CLIENT_ID",
+    "credentials": [
+      {
+        "env_var": "DJOMY_CLIENT_ID",
+        "description": "clientId (API key), provided in the Djomy merchant space"
+      },
+      {
+        "env_var": "DJOMY_CLIENT_SECRET",
+        "description": "clientSecret (secret key), provided in the Djomy merchant space"
+      }
+    ],
+    "signing": {
+      "algorithm": "HMAC-SHA256",
+      "key": "{DJOMY_CLIENT_SECRET}",
+      "message": "{DJOMY_CLIENT_ID}",
+      "encoding": "hex"
+    },
+    "token_exchange": {
+      "method": "POST",
+      "path": "/v1/auth",
+      "headers": [
+        {
+          "in": "header",
+          "name": "X-API-KEY",
+          "value": "{DJOMY_CLIENT_ID}:{signature}"
+        }
+      ],
+      "token_field": "data.accessToken",
+      "expires_in_s": 3600
+    },
+    "apply": [
+      {
+        "in": "header",
+        "name": "X-API-KEY",
+        "value": "{DJOMY_CLIENT_ID}:{signature}"
+      },
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {access_token}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
@@ -262,7 +303,10 @@
     "Use paymentLinkReference (not reference) to retrieve or track the link. The reference field is deprecated according to the API spec.",
     "For UNIQUE links, Djomy automatically deactivates the link after the first successful payment. Do not rely on a second payment going through.",
     "sendSms: true requires phoneNumber to be set. If phoneNumber is omitted, the SMS will not be sent and no error is returned.",
-    "Auth requires two steps: (1) compute HMAC-SHA256(clientId, clientSecret) as hex, (2) call POST /v1/auth with header X-API-KEY: clientId:hexSignature to get a Bearer token.",
-    "countryCode must be uppercase (GN, SL, LR). The API validates against the pattern ^[A-Z]{2}$ and will reject lowercase values."
+    "countryCode must be uppercase (GN, SL, LR). The API validates against the pattern ^[A-Z]{2}$ and will reject lowercase values.",
+    "A missing or invalid X-API-KEY returns HTTP 401 (documented as \"Clé API manquante ou invalide\")."
+  ],
+  "open_questions": [
+    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it."
   ]
 }
