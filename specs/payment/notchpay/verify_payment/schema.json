@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "verify_payment",
   "capability_type": "synchronous",
@@ -16,7 +16,20 @@
     "location": "header",
     "field": "Authorization",
     "format": "{token}",
-    "env_var": "NOTCHPAY_PUBLIC_KEY"
+    "env_var": "NOTCHPAY_PUBLIC_KEY",
+    "credentials": [
+      {
+        "env_var": "NOTCHPAY_PUBLIC_KEY",
+        "description": "Notch Pay public key, sent as is in Authorization; a key containing test_ works in sandbox (same host for test and live)"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "{NOTCHPAY_PUBLIC_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "GET",
@@ -38,32 +51,77 @@
   "response_schema": {
     "type": "object",
     "properties": {
-      "status": { "type": "string", "description": "\"OK\" on success." },
-      "message": { "type": "string", "description": "\"Transaction retrieved\"." },
-      "code": { "type": "integer", "description": "200 on success." },
+      "status": {
+        "type": "string",
+        "description": "\"OK\" on success."
+      },
+      "message": {
+        "type": "string",
+        "description": "\"Transaction retrieved\"."
+      },
+      "code": {
+        "type": "integer",
+        "description": "200 on success."
+      },
       "transaction": {
         "type": "object",
         "properties": {
-          "reference": { "type": "string" },
-          "amount": { "type": "number" },
-          "currency": { "type": "string" },
-          "status": { "type": "string", "description": "Payment status: \"pending\", \"complete\", \"failed\", \"canceled\"." },
-          "description": { "type": "string" },
-          "customer": { "type": "string" },
-          "charge": { "type": "string" },
-          "callback": { "type": ["string", "null"] },
-          "sandbox": { "type": "integer", "description": "1 in sandbox mode, 0 in live." },
-          "fees": { "type": "array" },
+          "reference": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "Payment status: \"pending\", \"complete\", \"failed\", \"canceled\"."
+          },
+          "description": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "string"
+          },
+          "charge": {
+            "type": "string"
+          },
+          "callback": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sandbox": {
+            "type": "integer",
+            "description": "1 in sandbox mode, 0 in live."
+          },
+          "fees": {
+            "type": "array"
+          },
           "amounts": {
             "type": "object",
             "properties": {
-              "total": { "type": "number" },
-              "converted": { "type": "number" },
-              "currency": { "type": "string" },
-              "rate": { "type": "number" }
+              "total": {
+                "type": "number"
+              },
+              "converted": {
+                "type": "number"
+              },
+              "currency": {
+                "type": "string"
+              },
+              "rate": {
+                "type": "number"
+              }
             }
           },
-          "created_at": { "type": "string", "format": "date-time" }
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       }
     }

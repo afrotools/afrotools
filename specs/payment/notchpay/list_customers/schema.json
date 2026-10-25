@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "list_customers",
   "capability_type": "synchronous",
@@ -16,7 +16,20 @@
     "location": "header",
     "field": "Authorization",
     "format": "{token}",
-    "env_var": "NOTCHPAY_PUBLIC_KEY"
+    "env_var": "NOTCHPAY_PUBLIC_KEY",
+    "credentials": [
+      {
+        "env_var": "NOTCHPAY_PUBLIC_KEY",
+        "description": "Notch Pay public key, sent as is in Authorization; a key containing test_ works in sandbox (same host for test and live)"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "{NOTCHPAY_PUBLIC_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "GET",
@@ -63,19 +76,31 @@
               "type": "string"
             },
             "phone": {
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "name": {
               "type": "string"
             },
             "company_name": {
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "tax_number": {
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "metadata": {
-              "type": ["object", "null"]
+              "type": [
+                "object",
+                "null"
+              ]
             },
             "created_at": {
               "type": "string",

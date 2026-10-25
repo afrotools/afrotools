@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "list_customer_payments",
   "capability_type": "synchronous",
@@ -16,7 +16,20 @@
     "location": "header",
     "field": "Authorization",
     "format": "{token}",
-    "env_var": "NOTCHPAY_PUBLIC_KEY"
+    "env_var": "NOTCHPAY_PUBLIC_KEY",
+    "credentials": [
+      {
+        "env_var": "NOTCHPAY_PUBLIC_KEY",
+        "description": "Notch Pay public key, sent as is in Authorization; a key containing test_ works in sandbox (same host for test and live)"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "{NOTCHPAY_PUBLIC_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "GET",
@@ -59,15 +72,41 @@
         "items": {
           "type": "object",
           "properties": {
-            "id": { "type": "string" },
-            "reference": { "type": "string" },
-            "amount": { "type": "number" },
-            "currency": { "type": "string" },
-            "status": { "type": "string" },
-            "customer": { "type": "string" },
-            "created_at": { "type": "string", "format": "date-time" },
-            "completed_at": { "type": ["string", "null"], "format": "date-time" },
-            "payment_method": { "type": ["string", "null"] }
+            "id": {
+              "type": "string"
+            },
+            "reference": {
+              "type": "string"
+            },
+            "amount": {
+              "type": "number"
+            },
+            "currency": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "customer": {
+              "type": "string"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "completed_at": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            },
+            "payment_method": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
           }
         }
       },

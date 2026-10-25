@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "create_payment",
   "capability_type": "synchronous",
@@ -16,7 +16,20 @@
     "location": "header",
     "field": "Authorization",
     "format": "{token}",
-    "env_var": "NOTCHPAY_PUBLIC_KEY"
+    "env_var": "NOTCHPAY_PUBLIC_KEY",
+    "credentials": [
+      {
+        "env_var": "NOTCHPAY_PUBLIC_KEY",
+        "description": "Notch Pay public key, sent as is in Authorization; a key containing test_ works in sandbox (same host for test and live)"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "{NOTCHPAY_PUBLIC_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
@@ -57,9 +70,16 @@
             "type": "object",
             "description": "Inline customer object — Notch Pay creates or matches the customer based on these fields.",
             "properties": {
-              "name": { "type": "string" },
-              "email": { "type": "string", "format": "email" },
-              "phone": { "type": "string" }
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              },
+              "phone": {
+                "type": "string"
+              }
             }
           }
         ],
@@ -96,10 +116,18 @@
         "items": {
           "type": "object",
           "properties": {
-            "name": { "type": "string" },
-            "quantity": { "type": "integer" },
-            "amount": { "type": "number" },
-            "description": { "type": "string" }
+            "name": {
+              "type": "string"
+            },
+            "quantity": {
+              "type": "integer"
+            },
+            "amount": {
+              "type": "number"
+            },
+            "description": {
+              "type": "string"
+            }
           }
         }
       },
@@ -107,25 +135,51 @@
         "type": "object",
         "description": "Optional shipping information attached to the payment.",
         "properties": {
-          "name": { "type": "string" },
-          "amount": { "type": "number" },
-          "country": { "type": "string" },
-          "city": { "type": "string" },
-          "address_line1": { "type": "string" },
-          "address_line2": { "type": "string" },
-          "postal_code": { "type": "string" }
+          "name": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "country": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "address_line1": {
+            "type": "string"
+          },
+          "address_line2": {
+            "type": "string"
+          },
+          "postal_code": {
+            "type": "string"
+          }
         }
       },
       "address": {
         "type": "object",
         "description": "Optional billing address.",
         "properties": {
-          "country": { "type": "string" },
-          "state": { "type": "string" },
-          "city": { "type": "string" },
-          "postal_code": { "type": "string" },
-          "address_line1": { "type": "string" },
-          "address_line2": { "type": "string" }
+          "country": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "address_line1": {
+            "type": "string"
+          },
+          "address_line2": {
+            "type": "string"
+          }
         }
       },
       "customer_meta": {
@@ -138,35 +192,89 @@
   "response_schema": {
     "type": "object",
     "properties": {
-      "status": { "type": "string", "description": "\"Accepted\" on success." },
-      "message": { "type": "string", "description": "\"Payment initialized\"." },
-      "code": { "type": "integer", "description": "201 on success." },
+      "status": {
+        "type": "string",
+        "description": "\"Accepted\" on success."
+      },
+      "message": {
+        "type": "string",
+        "description": "\"Payment initialized\"."
+      },
+      "code": {
+        "type": "integer",
+        "description": "201 on success."
+      },
       "transaction": {
         "type": "object",
         "properties": {
-          "reference": { "type": "string", "description": "Transaction reference. Store this before redirecting — required to call verify_payment. Format: trx.{id}" },
-          "amount": { "type": "number" },
-          "currency": { "type": "string" },
-          "status": { "type": "string", "description": "\"pending\" initially." },
-          "description": { "type": "string" },
-          "customer": { "type": "string", "description": "Customer ID (cus.xxx format)." },
-          "charge": { "type": "string", "description": "Who bears the fees: \"business\" or \"customer\"." },
-          "callback": { "type": ["string", "null"], "description": "Callback URL or null if not set." },
-          "sandbox": { "type": "integer", "description": "1 in test/sandbox mode, 0 in live." },
-          "fees": { "type": "array", "description": "Array of applied fee objects (empty if no fees)." },
+          "reference": {
+            "type": "string",
+            "description": "Transaction reference. Store this before redirecting — required to call verify_payment. Format: trx.{id}"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "\"pending\" initially."
+          },
+          "description": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "string",
+            "description": "Customer ID (cus.xxx format)."
+          },
+          "charge": {
+            "type": "string",
+            "description": "Who bears the fees: \"business\" or \"customer\"."
+          },
+          "callback": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Callback URL or null if not set."
+          },
+          "sandbox": {
+            "type": "integer",
+            "description": "1 in test/sandbox mode, 0 in live."
+          },
+          "fees": {
+            "type": "array",
+            "description": "Array of applied fee objects (empty if no fees)."
+          },
           "amounts": {
             "type": "object",
             "properties": {
-              "total": { "type": "number" },
-              "converted": { "type": "number" },
-              "currency": { "type": "string" },
-              "rate": { "type": "number" }
+              "total": {
+                "type": "number"
+              },
+              "converted": {
+                "type": "number"
+              },
+              "currency": {
+                "type": "string"
+              },
+              "rate": {
+                "type": "number"
+              }
             }
           },
-          "created_at": { "type": "string", "format": "date-time" }
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
-      "authorization_url": { "type": "string", "format": "uri", "description": "URL to redirect the user to complete the payment." }
+      "authorization_url": {
+        "type": "string",
+        "format": "uri",
+        "description": "URL to redirect the user to complete the payment."
+      }
     }
   },
   "error_schema": {
