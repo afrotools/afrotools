@@ -68,8 +68,17 @@ for the target provider and capability before writing any implementation code.
 
 ## After the integration
 
-When the user confirms the integration works against the real API (sandbox or production), or
-you find that the spec is wrong, offer to report it — it is how specs get verified and fixed:
+Reports are how specs get verified and fixed. The user usually tests later, so do not wait for
+them to say it worked:
+
+- **The spec is not `verified`** — when you finish the integration, tell the user once that this
+  spec has never been tested against the provider's API, and that when they have tested it
+  (sandbox or production) you can prepare a report: a working report makes it `verified`,
+  credited to them.
+- **The spec is `verified`** — offer a report only if something failed.
+- **The spec is wrong** (the API does not match it) — offer a report right away.
+
+When they come back with a result:
 
 ```
 afrotools.report_integration({ provider: "<slug>", capabilities: [{ capability: "<capability>", result: "worked" }, …], summary: "<one line>", details: "<what was called, what came back, what differed>" })
