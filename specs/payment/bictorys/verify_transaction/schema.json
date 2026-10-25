@@ -1,16 +1,31 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2026-06-05",
   "capability": "verify_transaction",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["XOF"],
+  "currency": [
+    "XOF"
+  ],
   "auth": {
     "type": "api_key",
     "location": "header",
     "field": "X-API-Key",
     "format": "{token}",
-    "env_var": "BICTORYS_PRIVATE_KEY"
+    "env_var": "BICTORYS_PRIVATE_KEY",
+    "credentials": [
+      {
+        "env_var": "BICTORYS_PRIVATE_KEY",
+        "description": "Bictorys private API key sent as X-API-Key on this endpoint; sandbox and production keys differ"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "X-API-Key",
+        "value": "{BICTORYS_PRIVATE_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "GET",
@@ -19,7 +34,9 @@
   "example_prompt": "Verify the status of a payment transaction to confirm it succeeded before fulfilling an order.",
   "input_schema": {
     "type": "object",
-    "required": ["transactionId"],
+    "required": [
+      "transactionId"
+    ],
     "properties": {
       "transactionId": {
         "type": "string",
@@ -30,7 +47,10 @@
   },
   "response_schema": {
     "type": "object",
-    "required": ["id", "status"],
+    "required": [
+      "id",
+      "status"
+    ],
     "properties": {
       "id": {
         "type": "string",
@@ -47,12 +67,28 @@
       },
       "type": {
         "type": "string",
-        "enum": ["payment", "transfer", "refund", "settlement"],
+        "enum": [
+          "payment",
+          "transfer",
+          "refund",
+          "settlement"
+        ],
         "description": "Transaction type."
       },
       "pspName": {
         "type": "string",
-        "enum": ["wave_money", "orange_money", "maxit", "mtn_money", "free_money", "moov", "mobicash", "togocell", "bictorys", "card"],
+        "enum": [
+          "wave_money",
+          "orange_money",
+          "maxit",
+          "mtn_money",
+          "free_money",
+          "moov",
+          "mobicash",
+          "togocell",
+          "bictorys",
+          "card"
+        ],
         "description": "Payment method used."
       },
       "paymentMeans": {
@@ -61,7 +97,10 @@
       },
       "paymentChannel": {
         "type": "string",
-        "enum": ["Terminal", "Online"]
+        "enum": [
+          "Terminal",
+          "Online"
+        ]
       },
       "amount": {
         "type": "number",
@@ -89,7 +128,12 @@
       },
       "orderType": {
         "type": "string",
-        "enum": ["flat", "order", "invoice", "paymentlink"],
+        "enum": [
+          "flat",
+          "order",
+          "invoice",
+          "paymentlink"
+        ],
         "description": "Origin of the charge."
       },
       "orderId": {
@@ -98,7 +142,15 @@
       },
       "status": {
         "type": "string",
-        "enum": ["succeeded", "failed", "cancelled", "pending", "processing", "reversed", "authorized"],
+        "enum": [
+          "succeeded",
+          "failed",
+          "cancelled",
+          "pending",
+          "processing",
+          "reversed",
+          "authorized"
+        ],
         "description": "Transaction status. Only \"succeeded\" means the payment is complete and funds are captured."
       },
       "timestamp": {
@@ -109,10 +161,18 @@
       "customerObject": {
         "type": "object",
         "properties": {
-          "name": { "type": "string" },
-          "email": { "type": "string" },
-          "phone": { "type": "number" },
-          "country": { "type": "string" }
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "number"
+          },
+          "country": {
+            "type": "string"
+          }
         }
       }
     }
@@ -120,8 +180,12 @@
   "error_schema": {
     "type": "object",
     "properties": {
-      "status": { "type": "string" },
-      "title": { "type": "string" },
+      "status": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
       "details": {
         "type": "string",
         "description": "Bictorys error code. Examples: \"E400-0: Bad transactionId is passed\", \"E404-1: Cannot find resource\"."
