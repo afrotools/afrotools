@@ -1,7 +1,7 @@
 /**
  * @provider Wave
  * @capability refund_checkout
- * @atss 1.0
+ * @atss 1.1
  * @capability_type synchronous
  */
 
