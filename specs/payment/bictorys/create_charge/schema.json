@@ -8,7 +8,7 @@
     "method": "app",
     "environment": "production",
     "at": "2026-10-24",
-    "spec_hash": "sha256:618c3c11c397260fe846e6a7d48883dd096e0907de20f0f34374db477743cf2e"
+    "spec_hash": "sha256:186e324f1ebab7ccb9cdc564a9c3f69bda928fd143710938e61345dfab392a1d"
   },
   "currency": [
     "XOF"
