@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v2",
   "capability": "get_delivery_claim",
   "capability_type": "synchronous",
@@ -9,7 +9,20 @@
     "location": "header",
     "header": "Authorization",
     "format": "Bearer {token}",
-    "env_var": "YANGO_DELIVERY_TOKEN"
+    "env_var": "YANGO_DELIVERY_TOKEN",
+    "credentials": [
+      {
+        "env_var": "YANGO_DELIVERY_TOKEN",
+        "description": "OAuth token from your Yango Delivery account (Integration tab, Get token); changing the account password invalidates it"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {YANGO_DELIVERY_TOKEN}"
+      }
+    ]
   },
   "endpoint": {
     "url": "https://b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/info",
@@ -958,6 +971,9 @@
     "Accept-Language is a required header on this endpoint (e.g. en); this example sends en.",
     "delivery.yango.com lists Côte d'Ivoire, Ghana, Senegal and Zambia under Africa. The Côte d'Ivoire and Senegal pages mention API integrations; the Ghana and Zambia pages say 'integrations' without naming the API. Every example in this reference uses UAE data (AED prices, +971 phone numbers): confirm with your Yango Delivery manager that API access is open in your country.",
     "Errors return { code, message }: branch on code. Documented on this endpoint: 400 bad_request; 404 not_found; 429 too_many_requests. The error guide adds 401 unauthorized (invalid token) and 500 (try again or change the request)."
+  ],
+  "open_questions": [
+    "No test environment is documented: the API reference gives only the service URL b2b.delivery.yango.tech, and confirming a claim starts a real courier search. Ask your Yango Delivery manager for a test account."
   ],
   "evidence": {
     "source_url": "https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsInfo.md",

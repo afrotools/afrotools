@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v2",
   "capability": "get_tracking_links",
   "capability_type": "synchronous",
@@ -9,7 +9,20 @@
     "location": "header",
     "header": "Authorization",
     "format": "Bearer {token}",
-    "env_var": "YANGO_DELIVERY_TOKEN"
+    "env_var": "YANGO_DELIVERY_TOKEN",
+    "credentials": [
+      {
+        "env_var": "YANGO_DELIVERY_TOKEN",
+        "description": "OAuth token from your Yango Delivery account (Integration tab, Get token); changing the account password invalidates it"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {YANGO_DELIVERY_TOKEN}"
+      }
+    ]
   },
   "endpoint": {
     "url": "https://b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/tracking-links",
@@ -102,6 +115,9 @@
     "sharing_link is only available on destination points: pick the route point of type destination.",
     "A 409 means 'Inactive claim or no courier tracking links' (codes unknown_tracking_links, inappropriate_status): this example throws on it, so handle the error.",
     "Errors return { code, message }: branch on code. Documented on this endpoint: 404 not_found; 409 unknown_tracking_links, inappropriate_status; 429 too_many_requests. The error guide adds 401 unauthorized (invalid token) and 500 (try again or change the request)."
+  ],
+  "open_questions": [
+    "No test environment is documented: the API reference gives only the service URL b2b.delivery.yango.tech, and confirming a claim starts a real courier search. Ask your Yango Delivery manager for a test account."
   ],
   "evidence": {
     "source_url": "https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsTrackingLinks.md",

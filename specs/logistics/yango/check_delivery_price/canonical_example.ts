@@ -1,7 +1,7 @@
 /**
  * @provider Yango Delivery
  * @capability check_delivery_price
- * @atss 1.0
+ * @atss 1.1
  * @capability_type synchronous
  */
 
