@@ -16,10 +16,17 @@ for the target provider and capability before writing any implementation code.
 ## Workflow
 
 1. Identify the provider slug and capability from the user's request.
-   - Discover what's actually available with `afrotools.search_specs({ category: "payment" })`
-     or `afrotools.list_providers()`. Never assume a provider has (or lacks) a spec from
-     memory or from a previous session — the registry grows independently of this skill.
-   - If the requested provider or capability isn't returned:
+   - Discover what's actually available with `afrotools.list_providers()`: it lists every
+     provider with its countries and the exact names of its capabilities. To narrow down, use
+     `afrotools.search_specs({ category: "payment", country_code: "<ISO alpha-2, uppercase>" })`
+     (or `provider`) — keep a filter on: a whole-category search can be too large to read.
+     Never assume a provider has (or lacks) a spec from memory or from a previous session —
+     the registry grows independently of this skill.
+   - Capability names are each provider's own: pick them from the provider's `capabilities`
+     list, never guess one. A `get_spec` "not found" means the name is wrong, not that the
+     provider is missing — check the list again before concluding anything.
+   - Only if the provider is absent from `list_providers()`, or none of its capabilities
+     covers what the user needs:
      1. Call `afrotools.request_spec({ provider: "<slug>", capability: "<capability>" })`
         so the maintainers are notified of the demand.
      2. Tell the user: "The spec for {provider} isn't available yet — I've logged
@@ -30,11 +37,11 @@ for the target provider and capability before writing any implementation code.
    ```
    afrotools.get_spec({ provider: "<slug>", capability: "<capability>" })
    ```
-   If the user is building a full payment flow (checkout + verification + webhook),
-   fetch all three capabilities upfront:
-   - `create_payment` — to initiate a payment and get the payment URL
-   - `verify_payment` — to confirm payment status server-side
-   - `webhook_payment_completed` — to handle async callbacks
+   If the user is building a full payment flow, fetch upfront the provider's capability for
+   each step, choosing the names from its `capabilities` list (they differ per provider):
+   - initiating the payment (and getting the payment URL, if it is a hosted checkout)
+   - confirming the payment status server-side
+   - the payment webhook, for async callbacks
 
 3. Read the spec carefully before writing code:
    - `auth` — how to authenticate (header name, env var)
