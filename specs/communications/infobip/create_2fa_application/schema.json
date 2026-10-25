@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "3.255.0",
   "capability": "create_2fa_application",
   "capability_type": "synchronous",
@@ -9,7 +9,24 @@
     "location": "header",
     "field": "Authorization",
     "format": "App {token}",
-    "env_var": "INFOBIP_API_KEY"
+    "env_var": "INFOBIP_API_KEY",
+    "credentials": [
+      {
+        "env_var": "INFOBIP_API_KEY",
+        "description": "API key (Authorization: App <key>); keys have an expiry date and can be revoked"
+      },
+      {
+        "env_var": "INFOBIP_BASE_URL",
+        "description": "your account's base URL, https://xxxxx.api.infobip.com, shown in the Infobip API Resource hub — it identifies the account, the key authenticates it"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "App {INFOBIP_API_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "url": "https://xxxxx.api.infobip.com/2fa/2/applications",

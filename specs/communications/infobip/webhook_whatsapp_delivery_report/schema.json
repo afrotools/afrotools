@@ -1,9 +1,9 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "3.255.0",
   "capability": "webhook_whatsapp_delivery_report",
   "capability_type": "webhook",
-  "status": "draft",
+  "status": "ready",
   "auth": {
     "type": "none"
   },
@@ -184,6 +184,9 @@
   "gotchas": [
     "Set the URL per message with notifyUrl, or ask Infobip support to set an account-level URL. One URL receives all report types (delivery and seen reports), so check the payload shape.",
     "Infobip can authenticate the calls it makes to your webhook (security settings of type BASIC, HMAC, OAUTH or CUSTOM, created with POST /subscriptions/1/security), but the OpenAPI doesn't describe the header or signature it then sends — this spec has no verification step, and the docs don't say whether those settings apply to a per-message URL. Treat the payload as untrusted until confirmed (for SMS, the message status is in get_sms_logs)."
+  ],
+  "open_questions": [
+    "Webhook authentication: Infobip can secure the calls to your webhook (security settings of type BASIC, HMAC, OAUTH or CUSTOM, POST /subscriptions/1/security), but the OpenAPI does not describe the header or signature it then sends, nor whether those settings apply to a per-message URL. Until that is documented, treat the payload as untrusted."
   ],
   "evidence": {
     "source_url": "https://api.infobip.com/platform/1/openapi",

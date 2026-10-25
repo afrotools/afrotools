@@ -1,9 +1,9 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "3.255.0",
   "capability": "webhook_sms_delivery_report",
   "capability_type": "webhook",
-  "status": "draft",
+  "status": "ready",
   "auth": {
     "type": "none"
   },
@@ -187,6 +187,9 @@
     "One call carries up to 100 reports by default (maxBucketSize in the Subscriptions API changes it): process every entry of results[].",
     "Return 200 to accept the callback. If your URL becomes unavailable, Infobip retries on the cycle 1min + (1min * retryNumber * retryNumber).",
     "Infobip can authenticate the calls it makes to your webhook (security settings of type BASIC, HMAC, OAUTH or CUSTOM, created with POST /subscriptions/1/security), but the OpenAPI doesn't describe the header or signature it then sends — this spec has no verification step, and the docs don't say whether those settings apply to a per-message URL. Treat the payload as untrusted until confirmed (for SMS, the message status is in get_sms_logs)."
+  ],
+  "open_questions": [
+    "Webhook authentication: Infobip can secure the calls to your webhook (security settings of type BASIC, HMAC, OAUTH or CUSTOM, POST /subscriptions/1/security), but the OpenAPI does not describe the header or signature it then sends, nor whether those settings apply to a per-message URL. Until that is documented, treat the payload as untrusted."
   ],
   "evidence": {
     "source_url": "https://api.infobip.com/platform/1/openapi",

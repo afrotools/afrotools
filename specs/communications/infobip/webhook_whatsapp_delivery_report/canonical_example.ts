@@ -1,7 +1,7 @@
 /**
  * @provider Infobip
  * @capability webhook_whatsapp_delivery_report
- * @atss 1.0
+ * @atss 1.1
  * @capability_type webhook
  */
 
