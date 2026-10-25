@@ -106,7 +106,7 @@ draft → ready → verified → deprecated → archived
 
 - `draft` — work in progress, not yet validated
 - `ready` — schema valid, canonical_example compiles, gotchas present. Visible in MCP.
-- `verified` — ready + working example in afrotools/examples. Earns "AI Ready" badge.
+- `verified` — ready + tested by a maintainer: a working example in afrotools/examples, or a passing `test:live` run (see ATSS.md § verified). "AI Ready" is a promise of the whole registry, not earned per provider — see ATSS.md § AI Ready.
 - Only maintainers can set `verified`, `deprecated`, or `archived`.
 
 ## Running validation

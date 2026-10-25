@@ -262,11 +262,12 @@ A `ready` spec is visible in the MCP server.
 
 `test:live` only ever targets a sandbox — it refuses to run against a provider with no sandbox (real production traffic, no automated safety net). Providers without a sandbox are verified through `afrotools/examples` only; see `CONTRIBUTING.md` § Live verification.
 
-A `verified` spec contributes to the provider's "AI Ready" badge.
+### AI Ready
 
-### AI Ready badge rule
-
-A provider is AI Ready only when ALL its capabilities are `verified`.
+AI Ready is a promise of the whole registry, not a per-provider badge: every published provider
+has ATSS specs an agent can integrate from without parsing documentation pages. It does not mean
+a spec is error-free — a spec can be wrong until it is tested, which is what `status` tells the
+agent. Never describe AI Ready as "verified", "tested" or "production-ready".
 
 ---
 
