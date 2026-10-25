@@ -125,5 +125,8 @@
     "Check both conditions before fulfilling: top-level status === 'success' AND data.status === 'paid'. Checking only data.status is not sufficient — an invalid reference can return a non-success top-level status.",
     "Pass the reference directly as a path segment — do not URL-encode it. The format KDV-* contains only safe characters.",
     "mode: 'test' appears in sandbox responses — check this field to distinguish test vs live transactions."
+  ],
+  "open_questions": [
+    "Sandbox: provider.json says a sandbox exists and responses carry mode: \"test\", but no sandbox host is documented here — same host with test keys, or another host?"
   ]
 }
