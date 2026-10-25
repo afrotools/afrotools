@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v2",
   "capability": "check_payment_status",
   "capability_type": "synchronous",
@@ -12,7 +12,20 @@
     "location": "body",
     "field": "auth_token",
     "format": "{token}",
-    "env_var": "PAYGATE_AUTH_TOKEN"
+    "env_var": "PAYGATE_AUTH_TOKEN",
+    "credentials": [
+      {
+        "env_var": "PAYGATE_AUTH_TOKEN",
+        "description": "PayGate API key from the merchant dashboard (auth_token in the body, token in the payment-page URL)"
+      }
+    ],
+    "apply": [
+      {
+        "in": "body",
+        "name": "auth_token",
+        "value": "{PAYGATE_AUTH_TOKEN}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
