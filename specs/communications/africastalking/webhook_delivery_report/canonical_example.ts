@@ -1,12 +1,12 @@
 /**
  * @provider Africa's Talking
  * @capability webhook_delivery_report
- * @atss 1.0
+ * @atss 1.1
  * @capability_type webhook
  */
 
-// Webhook payload types received from Africa's Talking
-// AT POSTs as application/x-www-form-urlencoded
+// Africa's Talking POSTs delivery reports as application/x-www-form-urlencoded.
+// Set the URL in the dashboard: SMS -> SMS Callback URLs -> Delivery Reports.
 
 type DeliveryStatus =
   | "Sent"
@@ -18,60 +18,66 @@ type DeliveryStatus =
   | "AbsentSubscriber"
   | "Expired";
 
-type FailureReason =
-  | "InsufficientCredit"
-  | "InvalidLinkId"
-  | "UserIsInactive"
-  | "UserInBlackList"
-  | "UserAccountSuspended"
-  | "NotNetworkSubcriber"
-  | "UserNotSubscribedToProduct"
-  | "UserDoesNotExist"
-  | "DeliveryFailure"
-  | "DoNotDisturbRejection";
+// Only the statuses the docs mark as "a final status". Whether AbsentSubscriber and Expired are
+// final is not documented.
+const FINAL_STATUSES = new Set<DeliveryStatus>(["Rejected", "Success", "Failed"]);
 
-interface DeliveryReportPayload {
-  id: string;
+export interface DeliveryReport {
+  id: string; // = messageId of the send_sms response
   status: DeliveryStatus;
   phoneNumber: string;
-  networkCode: string;
-  failureReason?: FailureReason;
-  retryCount?: string; // AT sends form-encoded — parse to integer if needed
+  networkCode: string; // "99999" = Athena, the sandbox
+  failureReason?: string; // only when status is Rejected or Failed
+  retryCount?: number; // premium SMS only
 }
 
-// Handler function — wire this to your web framework's POST route
-export function handleDeliveryReport(payload: DeliveryReportPayload): void {
-  const { id, status, phoneNumber, networkCode, failureReason } = payload;
+export function parseDeliveryReport(rawBody: string): DeliveryReport {
+  const form = new URLSearchParams(rawBody);
+  const id = form.get("id");
+  const status = form.get("status") as DeliveryStatus | null;
+  if (!id || !status) throw new Error("Not an Africa's Talking delivery report");
+  const retryCount = form.get("retryCount");
+  return {
+    id,
+    status,
+    phoneNumber: form.get("phoneNumber") ?? "",
+    networkCode: form.get("networkCode") ?? "",
+    failureReason: form.get("failureReason") ?? undefined,
+    retryCount: retryCount === null ? undefined : Number(retryCount),
+  };
+}
 
-  if (status === "Success") {
-    // Message delivered to handset
-    console.log(`SMS ${id} delivered to ${phoneNumber} via network ${networkCode}`);
-  } else if (status === "Failed" || status === "Rejected") {
-    // Handle failure — failureReason has details
-    console.log(`SMS ${id} failed for ${phoneNumber}: ${failureReason ?? "unknown reason"}`);
-  } else {
-    // Intermediate statuses: Sent, Submitted, Buffered, AbsentSubscriber, Expired
-    console.log(`SMS ${id} status update for ${phoneNumber}: ${status}`);
-  }
+/**
+ * The docs describe no signature: only act on ids you sent (`knownMessageIds`),
+ * and keep the callback URL unguessable.
+ */
+export function handleDeliveryReport(
+  rawBody: string,
+  knownMessageIds: Set<string>
+): { report: DeliveryReport; final: boolean } | null {
+  const report = parseDeliveryReport(rawBody);
+  if (!knownMessageIds.has(report.id)) return null;
+  return { report, final: FINAL_STATUSES.has(report.status) };
 }
 
 /*
-Usage (Express example):
+Usage (Node, no framework):
 
-import express from "express";
-const app = express();
+import { createServer } from "node:http";
 
-app.post("/sms/delivery-report", express.urlencoded({ extended: true }), (req, res) => {
-  // Always respond 200 immediately — AT may retry on non-200 responses
-  res.sendStatus(200);
-  handleDeliveryReport(req.body as DeliveryReportPayload);
-});
-
-Configure callback URL: AT Dashboard → SMS → SMS Callback URLs → Delivery Reports
-
-Notes:
-- AT sends payloads as application/x-www-form-urlencoded (not JSON)
-- "Success" status means delivered to handset — distinct from the "Success" in send_sms response
-- failureReason is only present when status is "Rejected" or "Failed"
-- In sandbox, networkCode "99999" means Athena (AT's test network)
+createServer((req, res) => {
+  let raw = "";
+  req.on("data", (chunk) => (raw += chunk));
+  req.on("end", () => {
+    res.writeHead(200).end(); // the docs document no expected response; answer fast
+    try {
+      const result = handleDeliveryReport(raw, sentMessageIds);
+      if (result?.final && result.report.status !== "Success") {
+        console.warn(`SMS ${result.report.id} not delivered: ${result.report.failureReason ?? result.report.status}`);
+      }
+    } catch {
+      // not a delivery report: the URL is public and unsigned — ignore it
+    }
+  });
+}).listen(3000);
 */

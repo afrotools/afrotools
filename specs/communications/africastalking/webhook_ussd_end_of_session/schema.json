@@ -1,0 +1,106 @@
+{
+  "spec_version": "1.1",
+  "provider_api_version": "2024-01-01",
+  "capability": "webhook_ussd_end_of_session",
+  "capability_type": "webhook",
+  "status": "ready",
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_webhook_url}"
+  },
+  "example_prompt": "Receive Africa's Talking's end-of-session notification for each USSD session: status, cost, duration and the user's input.",
+  "input_schema": {
+    "type": "object",
+    "description": "Form fields (application/x-www-form-urlencoded) of the notification \"at the end of a USSD session\", sent to a second callback URL.",
+    "required": [
+      "date",
+      "sessionId",
+      "serviceCode",
+      "networkCode",
+      "phoneNumber",
+      "status",
+      "cost",
+      "durationInMillis",
+      "hopsCount",
+      "hopsMetadata",
+      "input",
+      "lastAppResponse"
+    ],
+    "properties": {
+      "date": {
+        "type": "string",
+        "description": "When the notification was sent, in UTC. Format: yyyy-MM-dd HH:mm:ss."
+      },
+      "sessionId": {
+        "type": "string",
+        "description": "The same id as in the requests sent to the callback URL during the session (webhook_ussd_session)."
+      },
+      "serviceCode": {
+        "type": "string",
+        "description": "The USSD code assigned to your application."
+      },
+      "networkCode": {
+        "type": "string",
+        "description": "Telco of the mobile number: 62006 AirtelTigo Ghana, 62002 Vodafone Ghana, 62001 MTN Ghana, 62120 Airtel Nigeria, 62130 MTN Nigeria, 62150 Glo Nigeria, 62160 Etisalat Nigeria, 63510 MTN Rwanda, 63513 Tigo Rwanda, 63514 Airtel Rwanda, 63601 EthioTelecom Ethiopia, 63902 Safaricom Kenya, 63903 Airtel Kenya, 63907 Orange Kenya, 63999 Equitel Kenya, 64002 Tigo Tanzania, 64004 Vodacom Tanzania, 64005 Airtel Tanzania, 64101 Airtel Uganda, 64110 MTN Uganda, 64114 Africell Uganda, 64501 Airtel Zambia, 64502 MTN Zambia, 65001 TNM Malawi, 65010 Airtel Malawi, 65501 Vodacom South Africa, 65502 Telkom South Africa, 65507 CellC South Africa, 65510 MTN South Africa, 99999 Athena (sandbox only)."
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "The number of the mobile subscriber that interacted with your ussd application during the session."
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "Incomplete",
+          "Success",
+          "Failed"
+        ],
+        "description": "Incomplete: terminated while the user was on a menu where further input was required. Success: the session reached its expected end. Failed: terminated due to an error received from your server while expecting a response — typically with errorMessage."
+      },
+      "cost": {
+        "type": "string",
+        "description": "The cost of the USSD session."
+      },
+      "durationInMillis": {
+        "type": "string",
+        "description": "The duration of the USSD session, in milliseconds."
+      },
+      "hopsCount": {
+        "type": "integer",
+        "description": "The count of the steps the user passed through during the session (sent as a form field, so a string on the wire)."
+      },
+      "hopsMetadata": {
+        "type": "string",
+        "description": "The metadata associated with each hop, as multiple substrings delimited by the pipe | character."
+      },
+      "input": {
+        "type": "string",
+        "description": "All the user input entered during the session, concatenated with *."
+      },
+      "lastAppResponse": {
+        "type": "string",
+        "description": "The last response from your callback URL before the session ended; for a Failed session, the exact response."
+      },
+      "errorMessage": {
+        "type": "string",
+        "description": "Optional. The error message received from the callback URL for a Failed session."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "Not documented: the docs do not say what your endpoint must return (see open_questions). Returning HTTP 200 quickly is the safe default."
+  },
+  "error_schema": {},
+  "gotchas": [
+    "Separate URL: \"you need to setup another callback URL for event notification on your USSD code listed in USSD -> Service Codes on the dashboard.\" It is not the session callback.",
+    "Join it to the session with sessionId. status Failed means your callback answered with an error: lastAppResponse holds \"the exact response from the callback\".",
+    "The body is a form (application/x-www-form-urlencoded): hopsCount and durationInMillis arrive as strings.",
+    "Sandbox: networkCode 99999 is Athena, which \"only applies when working in the sandbox environment\"."
+  ],
+  "open_questions": [
+    "The docs describe no way to authenticate this notification (no signature, secret or source IP list): anyone who knows the callback URL can POST to it. The docs also do not say what response it expects or whether it is retried."
+  ]
+}

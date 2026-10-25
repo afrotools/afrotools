@@ -4,7 +4,6 @@
   "capability": "webhook_bulk_opt_out",
   "capability_type": "webhook",
   "status": "draft",
-  "currency": ["EGP", "GHS", "KES", "LSL", "MWK", "NAD", "NGN", "RWF", "SZL", "TZS", "UGX", "XOF", "ZAR", "ZMW"],
   "auth": {
     "type": "none"
   },
@@ -16,7 +15,10 @@
   "input_schema": {},
   "response_schema": {
     "type": "object",
-    "required": ["senderId", "phoneNumber"],
+    "required": [
+      "senderId",
+      "phoneNumber"
+    ],
     "properties": {
       "senderId": {
         "type": "string",

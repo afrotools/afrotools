@@ -4,7 +4,6 @@
   "capability": "send_bulk_sms",
   "capability_type": "synchronous",
   "status": "draft",
-  "currency": ["EGP", "GHS", "KES", "LSL", "MWK", "NAD", "NGN", "RWF", "SZL", "TZS", "UGX", "XOF", "ZAR", "ZMW"],
   "auth": {
     "type": "api_key",
     "location": "header",
@@ -19,7 +18,12 @@
   "example_prompt": "Send bulk SMS using Africa's Talking new bulk endpoint (JSON-friendly, requires senderId).",
   "input_schema": {
     "type": "object",
-    "required": ["username", "phoneNumbers", "message", "senderId"],
+    "required": [
+      "username",
+      "phoneNumbers",
+      "message",
+      "senderId"
+    ],
     "properties": {
       "username": {
         "type": "string",
@@ -39,7 +43,10 @@
       },
       "enqueue": {
         "type": "integer",
-        "enum": [0, 1],
+        "enum": [
+          0,
+          1
+        ],
         "default": 1,
         "description": "Set to 1 to queue the message without waiting for telco acknowledgement (default)."
       },
@@ -55,11 +62,16 @@
   },
   "response_schema": {
     "type": "object",
-    "required": ["SMSMessageData"],
+    "required": [
+      "SMSMessageData"
+    ],
     "properties": {
       "SMSMessageData": {
         "type": "object",
-        "required": ["Message", "Recipients"],
+        "required": [
+          "Message",
+          "Recipients"
+        ],
         "properties": {
           "Message": {
             "type": "string",
@@ -69,7 +81,13 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["statusCode", "number", "status", "cost", "messageId"],
+              "required": [
+                "statusCode",
+                "number",
+                "status",
+                "cost",
+                "messageId"
+              ],
               "properties": {
                 "statusCode": {
                   "type": "integer",

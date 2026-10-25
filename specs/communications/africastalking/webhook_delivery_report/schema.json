@@ -1,10 +1,9 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "webhook_delivery_report",
   "capability_type": "webhook",
-  "status": "draft",
-  "currency": ["EGP", "GHS", "KES", "LSL", "MWK", "NAD", "NGN", "RWF", "SZL", "TZS", "UGX", "XOF", "ZAR", "ZMW"],
+  "status": "ready",
   "auth": {
     "type": "none"
   },
@@ -12,28 +11,42 @@
     "method": "POST",
     "url": "{your_webhook_url}"
   },
-  "example_prompt": "Handle Africa's Talking delivery report webhooks to track SMS delivery status.",
-  "input_schema": {},
-  "response_schema": {
+  "example_prompt": "Handle Africa's Talking SMS delivery reports to know whether each message reached the handset.",
+  "input_schema": {
     "type": "object",
-    "required": ["id", "status", "phoneNumber", "networkCode"],
+    "description": "Form fields (application/x-www-form-urlencoded) Africa's Talking POSTs \"whenever the mobile service provider confirms or rejects delivery of a message\".",
+    "required": [
+      "id",
+      "status",
+      "phoneNumber",
+      "networkCode"
+    ],
     "properties": {
       "id": {
         "type": "string",
-        "description": "Message ID — same value as messageId returned in the send_sms response."
+        "description": "A unique identifier for each message: the same id as the messageId in the send_sms response."
       },
       "status": {
         "type": "string",
-        "enum": ["Sent", "Submitted", "Buffered", "Rejected", "Success", "Failed", "AbsentSubscriber", "Expired"],
-        "description": "Final delivery status of the message on the handset."
+        "enum": [
+          "Sent",
+          "Submitted",
+          "Buffered",
+          "Rejected",
+          "Success",
+          "Failed",
+          "AbsentSubscriber",
+          "Expired"
+        ],
+        "description": "Sent: sent by Africa's Talking's network. Submitted: submitted to the MSP. Buffered: queued by the MSP. Rejected: rejected by the MSP (final). Success: delivered to the receiver's handset (final). Failed: could not be delivered to the handset (final). AbsentSubscriber: SIM not reachable (phone off or no coverage). Expired: discarded by the telco (content or sender ID flagged on its firewall)."
       },
       "phoneNumber": {
         "type": "string",
-        "description": "Recipient's phone number."
+        "description": "The phone number the message was sent out to."
       },
       "networkCode": {
         "type": "string",
-        "description": "Telco network code (e.g. 63902 for Safaricom, 99999 for Athena sandbox)."
+        "description": "Telco that handled the message: 62120 Airtel Nigeria, 62130 MTN Nigeria, 62150 Glo Nigeria, 62160 Etisalat Nigeria, 63510 MTN Rwanda, 63513 Tigo Rwanda, 63514 Airtel Rwanda, 63902 Safaricom, 63903 Airtel Kenya, 63907 Orange Kenya, 63999 Equitel Kenya, 64002 Tigo Tanzania, 64003 Zantel Tanzania, 64004 Vodacom Tanzania, 64005 Airtel Tanzania, 64007 TTCL Tanzania, 64009 Halotel Tanzania, 64101 Airtel Uganda, 64110 MTN Uganda, 64111 UTL Uganda, 64114 Africell Uganda, 65001 TNM Malawi, 65010 Airtel Malawi, 99999 Athena (sandbox only)."
       },
       "failureReason": {
         "type": "string",
@@ -49,20 +62,28 @@
           "DeliveryFailure",
           "DoNotDisturbRejection"
         ],
-        "description": "Only present when status is Rejected or Failed. Reason the message could not be delivered."
+        "description": "Only provided if status is Rejected or Failed. DeliveryFailure: any reason not listed, or the MSP gave none — in the sandbox, you may not be logged into the simulator (Help Center)."
       },
       "retryCount": {
         "type": "integer",
-        "description": "Number of delivery retries. Only present for premium SMS."
+        "description": "Number of times sending to the device was retried before it succeeded or definitely failed. Premium SMS only."
       }
     }
   },
+  "response_schema": {
+    "type": "object",
+    "description": "Not documented: the docs do not say what your endpoint must return (see open_questions). Returning HTTP 200 quickly is the safe default."
+  },
   "error_schema": {},
   "gotchas": [
-    "Configure the callback URL in the AT dashboard (SMS → SMS Callback URLs → Delivery Reports), not in the API call. There is no per-request callback URL parameter.",
-    "The status field here is the final delivery status (did it reach the handset?) — different from the status field in the send_sms response (was the request accepted?). Success here means delivered to handset.",
-    "failureReason is only present when status is Rejected or Failed. Do not expect it in other cases.",
-    "In sandbox, networkCode 99999 means Athena — Africa's Talking's test network. This code only appears in sandbox.",
-    "DoNotDisturbRejection only applies to Nigeria: promotional sender IDs cannot send between 8am–8pm per NCC rules. AT returns HTTP 409 and statusCode 409 for those recipients — handle it separately from other failures."
+    "Set the URL in the dashboard: SMS -> SMS Callback URLs -> Delivery Reports. There is no per-request callback parameter in send_sms.",
+    "Match a report to its message with id = the messageId of the send_sms response. The docs mark Rejected, Success and Failed as final statuses.",
+    "The body is a form (application/x-www-form-urlencoded), not JSON: every field arrives as a string, retryCount included.",
+    "Sandbox: networkCode 99999 is Athena, \"a custom networkCode that only applies when working in the sandbox environment\".",
+    "Treat the payload as untrusted: the docs describe no signature. Act only on ids you know (for a delivery report, a messageId returned by send_sms) and keep the callback URL unguessable."
+  ],
+  "open_questions": [
+    "The docs describe no way to authenticate these notifications (no signature, secret or source IP list), nor the response your endpoint must return or any retry: anyone who knows the URL can POST to it.",
+    "Whether AbsentSubscriber and Expired are final: the API reference marks only Rejected, Success and Failed as \"a final status\"; the Help Center lists Submitted and Buffered among \"the final delivery reports\"."
   ]
 }

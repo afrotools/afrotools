@@ -1,10 +1,9 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "webhook_incoming_sms",
   "capability_type": "webhook",
-  "status": "draft",
-  "currency": ["EGP", "GHS", "KES", "LSL", "MWK", "NAD", "NGN", "RWF", "SZL", "TZS", "UGX", "XOF", "ZAR", "ZMW"],
+  "status": "ready",
   "auth": {
     "type": "none"
   },
@@ -12,49 +11,66 @@
     "method": "POST",
     "url": "{your_webhook_url}"
   },
-  "example_prompt": "Handle incoming SMS messages sent to your Africa's Talking shortcode.",
-  "input_schema": {},
-  "response_schema": {
+  "example_prompt": "Receive the SMS your users send to your Africa's Talking shortcode (two-way SMS, keywords).",
+  "input_schema": {
     "type": "object",
-    "required": ["date", "from", "id", "text", "to", "cost", "networkCode"],
+    "description": "Form fields (application/x-www-form-urlencoded) Africa's Talking POSTs \"whenever a message is sent to any of your registered shortcodes\".",
+    "required": [
+      "date",
+      "from",
+      "id",
+      "text",
+      "to",
+      "cost",
+      "networkCode"
+    ],
     "properties": {
       "date": {
         "type": "string",
-        "description": "ISO 8601 datetime when the message was received."
+        "description": "The date and time when the message was received (format not documented)."
       },
       "from": {
         "type": "string",
-        "description": "Sender's phone number."
+        "description": "The number that sent the message."
       },
       "id": {
         "type": "string",
-        "description": "Internal Africa's Talking message ID."
+        "description": "The internal ID Africa's Talking uses to store this message."
       },
       "linkId": {
         "type": "string",
-        "description": "Only present for on-demand premium SMS responses. Pass this value in the linkId field of send_premium_sms when replying."
+        "description": "Optional. Required when responding to an on-demand user request with a premium message (premium SMS has no spec in this registry)."
       },
       "text": {
         "type": "string",
-        "description": "Message content sent by the user."
+        "description": "The message content."
       },
       "to": {
         "type": "string",
-        "description": "Your registered shortcode that received the message."
+        "description": "The number to which the message was sent (your shortcode)."
       },
       "cost": {
         "type": "string",
-        "description": "Cost of the message in the format 'KES 1.00' (currency code + space + decimal amount)."
+        "description": "(3-digit Currency Code)(space)(Decimal Value), e.g. \"KES 1.00\"."
       },
       "networkCode": {
         "type": "string",
-        "description": "Telco network code of the sender."
+        "description": "Telco that handled the message: 62120 Airtel Nigeria, 62130 MTN Nigeria, 62150 Glo Nigeria, 62160 Etisalat Nigeria, 63510 MTN Rwanda, 63513 Tigo Rwanda, 63514 Airtel Rwanda, 63902 Safaricom, 63903 Airtel Kenya, 63907 Orange Kenya, 63999 Equitel Kenya, 64002 Tigo Tanzania, 64003 Zantel Tanzania, 64004 Vodacom Tanzania, 64005 Airtel Tanzania, 64007 TTCL Tanzania, 64009 Halotel Tanzania, 64101 Airtel Uganda, 64110 MTN Uganda, 64111 UTL Uganda, 64114 Africell Uganda, 65001 TNM Malawi, 65010 Airtel Malawi, 99999 Athena (sandbox only)."
       }
     }
   },
+  "response_schema": {
+    "type": "object",
+    "description": "Not documented: the docs do not say what your endpoint must return (see open_questions). Returning HTTP 200 quickly is the safe default."
+  },
   "error_schema": {},
   "gotchas": [
-    "Configure the incoming messages callback URL in the AT dashboard, not in the API call. Africa's Talking strongly recommends this webhook over the fetch_messages polling endpoint.",
-    "linkId is only present for on-demand premium SMS — use its value in the linkId field of send_premium_sms when replying to the user's on-demand request."
+    "Set the URL in the dashboard: SMS -> SMS Callback URLs -> Incoming Messages. Only messages sent to your registered shortcodes arrive here.",
+    "The body is a form (application/x-www-form-urlencoded), not JSON.",
+    "A reply is a separate send_sms (suggestion: to = from). Replies to premium on-demand requests need linkId and premium SMS, which this registry does not cover.",
+    "Treat the payload as untrusted: the docs describe no signature. Keep the callback URL unguessable and validate text before acting on it."
+  ],
+  "open_questions": [
+    "The docs describe no way to authenticate these notifications (no signature, secret or source IP list), nor the response your endpoint must return or any retry: anyone who knows the URL can POST to it."
   ]
 }
