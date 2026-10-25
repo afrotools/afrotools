@@ -1,7 +1,7 @@
 /**
  * @provider LengoPay
  * @capability list_cashin_transactions
- * @atss 1.0
+ * @atss 1.1
  * @capability_type synchronous
  */
 
