@@ -4,7 +4,23 @@
   "capability": "webhook_event",
   "capability_type": "webhook",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "api_key",
     "location": "header",
@@ -16,174 +32,1360 @@
     "method": "POST",
     "url": "{your_webhook_url}"
   },
-  "example_prompt": "Receive any Flutterwave webhook event (charge.completed, refund.completed, transfer.disburse, transfer.reversal, order.authorization), verify the HMAC-SHA256 signature, then dispatch to the appropriate handler.",
+  "example_prompt": "Receive Flutterwave webhooks (charge.completed, transfer.disburse, transfer.reversal, refund.completed), verify the flutterwave-signature HMAC and update the payment or payout.",
   "input_schema": {
-    "type": "object",
-    "required": ["type", "timestamp", "data"],
-    "description": "Flutterwave webhook envelope. All event types share this top-level structure; the `data` object is discriminated by `type`.",
-    "properties": {
-      "type": {
-        "type": "string",
-        "enum": ["charge.completed", "refund.completed", "transfer.disburse", "transfer.reversal", "order.authorization"],
-        "description": "Event type. Dispatch on this field in your handler."
-      },
-      "id": {
-        "type": "string",
-        "description": "Top-level event id. Present on charge.completed deliveries (e.g. \"wbk_W5p6ktwU0jQ8RO4By860\"). Use for deduplication."
-      },
-      "webhook_id": {
-        "type": "string",
-        "description": "Alternative top-level event id. Present on refund.completed, transfer.disburse, transfer.reversal deliveries instead of `id`. Flutterwave is inconsistent — always read whichever is present."
-      },
-      "timestamp": {
-        "type": "integer",
-        "description": "Unix epoch timestamp (milliseconds for charge.completed, seconds for other types) when the event was emitted."
-      },
-      "data": {
-        "type": "object",
-        "description": "Event payload. Shape varies by type — see oneOf branches below.",
-        "additionalProperties": true
-      }
-    },
+    "description": "Request body Flutterwave POSTs to your webhook URL. Discriminated on `type`.",
     "oneOf": [
       {
-        "title": "charge.completed",
+        "type": "object",
+        "description": "Base webhook payload schema",
+        "required": [
+          "data",
+          "timestamp",
+          "type",
+          "webhook_id"
+        ],
         "properties": {
-          "type": { "const": "charge.completed" },
+          "webhook_id": {
+            "type": "string",
+            "description": "Webhook event identifier"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Webhook event timestamp"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "charge.completed"
+            ]
+          },
           "data": {
             "type": "object",
-            "required": ["id", "status", "amount", "currency", "reference", "customer_id"],
             "properties": {
-              "id": { "type": "string", "description": "Charge id. Re-fetch via GET /charges/{id} server-side before fulfilling." },
-              "status": { "type": "string", "enum": ["succeeded", "pending", "failed", "voided"], "description": "Charge lifecycle state. Always check explicitly — failed/voided charges also trigger this event." },
-              "amount": { "type": "number" },
-              "currency": { "type": "string" },
-              "reference": { "type": "string" },
-              "customer_id": { "type": "string" },
-              "payment_method_id": { "type": "string" },
-              "payment_method": { "type": "object", "additionalProperties": true },
-              "processor_response": { "type": "object", "additionalProperties": true },
-              "order_id": { "type": ["string", "null"] },
-              "meta": { "type": ["object", "null"], "additionalProperties": true },
-              "created_datetime": { "type": "string", "format": "date-time" },
-              "updated_datetime": { "type": "string", "format": "date-time" }
-            }
-          }
-        }
-      },
-      {
-        "title": "refund.completed",
-        "properties": {
-          "type": { "const": "refund.completed" },
-          "data": {
-            "type": "object",
-            "required": ["id", "charge_id", "status"],
-            "properties": {
-              "id": { "type": "string", "description": "Refund id." },
-              "charge_id": { "type": "string", "description": "Id of the original charge being refunded." },
-              "amount_refunded": { "type": "number", "description": "Amount refunded (may be less than original for partial refunds)." },
-              "reason": {
+              "id": {
                 "type": "string",
-                "enum": ["duplicate", "fraudulent", "requested_by_customer", "expired_uncaptured_charge"]
+                "description": "ID of the charge"
+              },
+              "amount": {
+                "$ref": "#/$defs/amount"
+              },
+              "currency": {
+                "$ref": "#/$defs/currency"
+              },
+              "customer": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "ID of the customer."
+                  },
+                  "address": {
+                    "$ref": "#/$defs/address"
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "The Customer's email address."
+                  },
+                  "name": {
+                    "type": "object",
+                    "description": "The Customer's full name.",
+                    "properties": {
+                      "first": {
+                        "type": "string",
+                        "description": "The Customer's first name."
+                      },
+                      "middle": {
+                        "type": "string",
+                        "description": "The Customer's middle name."
+                      },
+                      "last": {
+                        "type": "string",
+                        "description": "The Customer's last name."
+                      }
+                    }
+                  },
+                  "phone": {
+                    "type": "object",
+                    "description": "The customer's mobile number.",
+                    "required": [
+                      "number",
+                      "country_code"
+                    ],
+                    "properties": {
+                      "country_code": {
+                        "description": "The dialling country code e.g. 234 for NG.",
+                        "type": "string"
+                      },
+                      "number": {
+                        "description": "Unformatted 7-10-digit phone number without the country code.",
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "meta": {
+                    "$ref": "#/$defs/meta"
+                  },
+                  "created_datetime": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the charge."
+              },
+              "meta": {
+                "$ref": "#/$defs/meta"
+              },
+              "payment_method": {
+                "oneOf": [
+                  {
+                    "required": [
+                      "card",
+                      "id",
+                      "type"
+                    ],
+                    "properties": {
+                      "id": {
+                        "$ref": "#/$defs/payment_method_id"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "The type of the payment method.",
+                        "enum": [
+                          "card"
+                        ]
+                      },
+                      "customer_id": {
+                        "description": "ID of the customer.",
+                        "type": "string"
+                      },
+                      "meta": {
+                        "$ref": "#/$defs/meta"
+                      },
+                      "device_fingerprint": {
+                        "description": "The customer's device fingerprint.",
+                        "type": "string"
+                      },
+                      "client_ip": {
+                        "description": "The customer's device IP.",
+                        "type": "string"
+                      },
+                      "created_datetime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date and time when the virtual account was created."
+                      },
+                      "card": {
+                        "type": "object",
+                        "required": [
+                          "expiry_month",
+                          "expiry_year",
+                          "first6",
+                          "last4",
+                          "network"
+                        ],
+                        "properties": {
+                          "expiry_month": {
+                            "type": "integer",
+                            "description": "Expiry month of the card."
+                          },
+                          "expiry_year": {
+                            "type": "integer",
+                            "description": "Expiry year of the card."
+                          },
+                          "first6": {
+                            "type": "string",
+                            "description": "Bank identification number (BIN) of the card.",
+                            "minLength": 6,
+                            "maxLength": 6
+                          },
+                          "last4": {
+                            "type": "string",
+                            "description": "The last four digits of the card number.",
+                            "minLength": 4,
+                            "maxLength": 4
+                          },
+                          "network": {
+                            "type": "string",
+                            "description": "The card network.",
+                            "enum": [
+                              "MASTERCARD",
+                              "VISA",
+                              "AMERICAN EXPRESS",
+                              "DISCOVER",
+                              "VERVE",
+                              "AFRIGO",
+                              "UNKNOWN"
+                            ]
+                          },
+                          "billing_address": {
+                            "$ref": "#/$defs/address"
+                          },
+                          "cof": {
+                            "type": "object",
+                            "required": [
+                              "enabled"
+                            ],
+                            "properties": {
+                              "enabled": {
+                                "type": "boolean",
+                                "description": "Indicates whether the recurring card charge with Credential-on-File (COF) is enabled."
+                              },
+                              "agreement_id": {
+                                "type": "string",
+                                "description": "A unique reference generated by Flutterwave during the initial Customer Initiated Transaction (CIT)."
+                              },
+                              "recurring_amount_variability": {
+                                "type": "string",
+                                "description": "This indicates whether the amount charged for subsequent payments remains the same, or differs.",
+                                "enum": [
+                                  "VARIABLE"
+                                ]
+                              },
+                              "agreement_type": {
+                                "type": "string",
+                                "definition": "This indicates the type of charge agreement with Flutterwave.",
+                                "enum": [
+                                  "UNSCHEDULED"
+                                ]
+                              },
+                              "trace_id": {
+                                "type": "string",
+                                "description": "A reference generated by the card scheme during the initial Customer Initiated Transaction (CIT)."
+                              }
+                            }
+                          },
+                          "card_holder_name": {
+                            "type": "string",
+                            "description": "Name on the card"
+                          }
+                        }
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "required": [
+                      "id",
+                      "type"
+                    ],
+                    "properties": {
+                      "id": {
+                        "$ref": "#/$defs/payment_method_id"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "The type of the payment method.",
+                        "enum": [
+                          "bank_account"
+                        ]
+                      },
+                      "customer_id": {
+                        "description": "ID of the customer.",
+                        "type": "string"
+                      },
+                      "meta": {
+                        "$ref": "#/$defs/meta"
+                      },
+                      "device_fingerprint": {
+                        "description": "The customer's device fingerprint.",
+                        "type": "string"
+                      },
+                      "client_ip": {
+                        "description": "The customer's device IP.",
+                        "type": "string"
+                      },
+                      "created_datetime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date and time when the virtual account was created."
+                      },
+                      "bank_account": {
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "required": [
+                      "id",
+                      "mobile_money",
+                      "type"
+                    ],
+                    "properties": {
+                      "id": {
+                        "$ref": "#/$defs/payment_method_id"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "The type of the payment method.",
+                        "enum": [
+                          "mobile_money"
+                        ]
+                      },
+                      "customer_id": {
+                        "description": "ID of the customer.",
+                        "type": "string"
+                      },
+                      "meta": {
+                        "$ref": "#/$defs/meta"
+                      },
+                      "device_fingerprint": {
+                        "description": "The customer's device fingerprint.",
+                        "type": "string"
+                      },
+                      "client_ip": {
+                        "description": "The customer's device IP.",
+                        "type": "string"
+                      },
+                      "created_datetime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date and time when the virtual account was created."
+                      },
+                      "mobile_money": {
+                        "type": "object",
+                        "required": [
+                          "network",
+                          "phone_number",
+                          "country_code"
+                        ],
+                        "properties": {
+                          "network": {
+                            "type": "string",
+                            "description": "The mobile network of the customer's phone number."
+                          },
+                          "country_code": {
+                            "type": "string",
+                            "description": "The dialling country code e.g. 233 for GH."
+                          },
+                          "phone_number": {
+                            "type": "string",
+                            "description": "The phone number of customer."
+                          },
+                          "qr_code": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "required": [
+                      "id",
+                      "type"
+                    ],
+                    "properties": {
+                      "id": {
+                        "$ref": "#/$defs/payment_method_id"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "The type of the payment method.",
+                        "enum": [
+                          "opay"
+                        ]
+                      },
+                      "customer_id": {
+                        "description": "ID of the customer.",
+                        "type": "string"
+                      },
+                      "meta": {
+                        "$ref": "#/$defs/meta"
+                      },
+                      "device_fingerprint": {
+                        "description": "The customer's device fingerprint.",
+                        "type": "string"
+                      },
+                      "client_ip": {
+                        "description": "The customer's device IP.",
+                        "type": "string"
+                      },
+                      "created_datetime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date and time when the virtual account was created."
+                      },
+                      "opay": {
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "required": [
+                      "id",
+                      "type"
+                    ],
+                    "properties": {
+                      "id": {
+                        "$ref": "#/$defs/payment_method_id"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "The type of the payment method.",
+                        "enum": [
+                          "applepay"
+                        ]
+                      },
+                      "customer_id": {
+                        "description": "ID of the customer.",
+                        "type": "string"
+                      },
+                      "meta": {
+                        "$ref": "#/$defs/meta"
+                      },
+                      "device_fingerprint": {
+                        "description": "The customer's device fingerprint.",
+                        "type": "string"
+                      },
+                      "client_ip": {
+                        "description": "The customer's device IP.",
+                        "type": "string"
+                      },
+                      "created_datetime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date and time when the virtual account was created."
+                      },
+                      "applepay": {
+                        "type": "object",
+                        "properties": {
+                          "card_holder_name": {
+                            "type": "string",
+                            "description": "The cardholder name."
+                          }
+                        }
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "required": [
+                      "id",
+                      "type"
+                    ],
+                    "properties": {
+                      "id": {
+                        "$ref": "#/$defs/payment_method_id"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "The type of the payment method.",
+                        "enum": [
+                          "googlepay"
+                        ]
+                      },
+                      "customer_id": {
+                        "description": "ID of the customer.",
+                        "type": "string"
+                      },
+                      "meta": {
+                        "$ref": "#/$defs/meta"
+                      },
+                      "device_fingerprint": {
+                        "description": "The customer's device fingerprint.",
+                        "type": "string"
+                      },
+                      "client_ip": {
+                        "description": "The customer's device IP.",
+                        "type": "string"
+                      },
+                      "created_datetime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date and time when the virtual account was created."
+                      },
+                      "googlepay": {
+                        "type": "object",
+                        "properties": {
+                          "card_holder_name": {
+                            "type": "string",
+                            "description": "The cardholder name."
+                          }
+                        }
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "required": [
+                      "id",
+                      "type"
+                    ],
+                    "properties": {
+                      "id": {
+                        "$ref": "#/$defs/payment_method_id"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "The type of the payment method.",
+                        "enum": [
+                          "ussd"
+                        ]
+                      },
+                      "customer_id": {
+                        "description": "ID of the customer.",
+                        "type": "string"
+                      },
+                      "meta": {
+                        "$ref": "#/$defs/meta"
+                      },
+                      "device_fingerprint": {
+                        "description": "The customer's device fingerprint.",
+                        "type": "string"
+                      },
+                      "client_ip": {
+                        "description": "The customer's device IP.",
+                        "type": "string"
+                      },
+                      "created_datetime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date and time when the virtual account was created."
+                      },
+                      "ussd": {
+                        "type": "object",
+                        "properties": {
+                          "account_bank": {
+                            "type": "string",
+                            "description": "The bank code of the USSD string to generate."
+                          }
+                        }
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "required": [
+                      "bank_transfer",
+                      "id",
+                      "type"
+                    ],
+                    "properties": {
+                      "id": {
+                        "$ref": "#/$defs/payment_method_id"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "The type of the payment method.",
+                        "enum": [
+                          "bank_transfer"
+                        ]
+                      },
+                      "customer_id": {
+                        "description": "ID of the customer.",
+                        "type": "string"
+                      },
+                      "meta": {
+                        "$ref": "#/$defs/meta"
+                      },
+                      "device_fingerprint": {
+                        "description": "The customer's device fingerprint.",
+                        "type": "string"
+                      },
+                      "client_ip": {
+                        "description": "The customer's device IP.",
+                        "type": "string"
+                      },
+                      "created_datetime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date and time when the virtual account was created."
+                      },
+                      "bank_transfer": {
+                        "type": "object",
+                        "required": [
+                          "account_type"
+                        ],
+                        "properties": {
+                          "account_expires_in": {
+                            "type": "integer",
+                            "description": "The expiry time of the virtual account.",
+                            "maximum": 432000
+                          },
+                          "account_display_name": {
+                            "type": "string",
+                            "description": "The name that is shown to the customer when the account is resolved to a name.",
+                            "minLength": 3,
+                            "maxLength": 256
+                          },
+                          "account_type": {
+                            "type": "string",
+                            "description": "The type of virtual account.",
+                            "enum": [
+                              "static",
+                              "dynamic"
+                            ]
+                          },
+                          "originator_bank_name": {
+                            "type": "string",
+                            "description": "The sender's Bank name"
+                          },
+                          "originator_account_number": {
+                            "type": "string",
+                            "description": "The Sender's masked account number"
+                          },
+                          "originator_name": {
+                            "type": "string",
+                            "description": "The sender's name"
+                          },
+                          "virtual_account_number": {
+                            "type": "string",
+                            "description": "The virtual account number that was credited."
+                          }
+                        }
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "required": [
+                      "id",
+                      "type"
+                    ],
+                    "properties": {
+                      "id": {
+                        "$ref": "#/$defs/payment_method_id"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "The type of the payment method.",
+                        "enum": [
+                          "paypal"
+                        ]
+                      },
+                      "customer_id": {
+                        "description": "ID of the customer.",
+                        "type": "string"
+                      },
+                      "meta": {
+                        "$ref": "#/$defs/meta"
+                      },
+                      "device_fingerprint": {
+                        "description": "The customer's device fingerprint.",
+                        "type": "string"
+                      },
+                      "client_ip": {
+                        "description": "The customer's device IP.",
+                        "type": "string"
+                      },
+                      "created_datetime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date and time when the virtual account was created."
+                      },
+                      "paypal": {
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  }
+                ]
+              },
+              "redirect_url": {
+                "type": "string",
+                "description": "Specifies the URL to redirect to."
+              },
+              "reference": {
+                "$ref": "#/$defs/reference"
               },
               "status": {
                 "type": "string",
-                "enum": ["pending", "requires_action", "succeeded", "failed", "cancelled", "completed", "new"]
+                "description": "The status of the charge"
               },
-              "meta": { "type": ["object", "null"], "additionalProperties": { "type": "string" } },
-              "created_datetime": { "type": "string", "format": "date-time" }
+              "processor_response": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "code"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string",
+                    "description": "A human-readable description of the processor response. For failed transactions, this is the reason provided by the processor."
+                  }
+                },
+                "description": "Documented values: approved/00, refer_to_issuer/01, refer_to_issuer_special_condition/02, invalid_merchant/03, pick_up_card_no_fraud/04, do_not_honor/05, error/06, pick_up_card_fraud/07, partial_approval/10, invalid_transaction/12, invalid_amount/13, invalid_account_number/14, no_such_issuer/15, reenter_transaction/19, no_action_taken/21, unable_to_locate_record_in_file/25, file_temporarily_not_available/28, lost_card_pick_up/41, stolen_card_pick_up/43, insufficient_funds/51, no_checking_account/52, no_savings_account/53, expired_card/54, incorrect_pin/55, transaction_not_permitted_card/57, transaction_not_permitted_terminal/58, suspected_fraud/59, exceeds_approval_amount_limit/61, invalid_restricted_service_code/62, security_violation/63, transaction_does_not_fulfill_aml_req/64, exceeds_withdrawal_limit/65, pin_data_required/70, pin_entry_tries_exceeded/75, unsolicited_reversal/76, blocked_first_use/78, already_reversed/79, negative_cvv_result/82, no_reason_to_decline/85, cannot_verify_pin/86, issuer_unavailable/91, unable_to_route_transaction/92, cannot_complete_violation_of_law/93, system_error/96, invalid_cvv/97."
+              },
+              "created_datetime": {
+                "type": "string",
+                "format": "date-time"
+              }
             }
           }
-        }
+        },
+        "title": "charge.completed"
       },
       {
-        "title": "transfer.disburse",
+        "type": "object",
+        "description": "Base webhook payload schema",
+        "required": [
+          "data",
+          "timestamp",
+          "type",
+          "webhook_id"
+        ],
         "properties": {
-          "type": { "const": "transfer.disburse" },
+          "webhook_id": {
+            "type": "string",
+            "description": "Webhook event identifier"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Webhook event timestamp"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "refund.completed"
+            ]
+          },
           "data": {
+            "description": "A refund of a previously created charge",
             "type": "object",
-            "required": ["id", "status"],
-            "description": "Transfer disbursement details. Re-fetch via GET /transfers/{id} server-side.",
             "properties": {
-              "id": { "type": "string", "description": "Transfer id." },
-              "amount": { "type": "number" },
-              "currency": { "type": "string" },
-              "reference": { "type": "string" },
-              "status": { "type": "string", "description": "succeeded | failed | pending" },
-              "narration": { "type": "string" },
-              "meta": { "type": ["object", "null"], "additionalProperties": true },
-              "created_datetime": { "type": "string", "format": "date-time" }
-            },
-            "additionalProperties": true
+              "id": {
+                "description": "ID of the refund",
+                "type": "string"
+              },
+              "amount_refunded": {
+                "type": "number",
+                "format": "decimal",
+                "description": "The payment amount in decimals.",
+                "minimum": 0.01
+              },
+              "meta": {
+                "$ref": "#/$defs/meta"
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "duplicate",
+                  "fraudulent",
+                  "requested_by_customer",
+                  "expired_uncaptured_charge"
+                ],
+                "description": "Reason for the refund"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "requires_action",
+                  "succeeded",
+                  "failed",
+                  "cancelled",
+                  "completed",
+                  "new"
+                ],
+                "description": "Status of the refund"
+              },
+              "charge_id": {
+                "type": "string",
+                "description": "ID of the charge tied to this refund"
+              },
+              "created_datetime": {
+                "type": "string"
+              }
+            }
           }
-        }
+        },
+        "title": "refund.completed"
       },
       {
-        "title": "transfer.reversal",
+        "type": "object",
+        "description": "Base webhook payload schema",
+        "required": [
+          "data",
+          "timestamp",
+          "type",
+          "webhook_id"
+        ],
         "properties": {
-          "type": { "const": "transfer.reversal" },
+          "webhook_id": {
+            "type": "string",
+            "description": "Webhook event identifier"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Webhook event timestamp"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "transfer.disburse"
+            ]
+          },
           "data": {
             "type": "object",
-            "required": ["id", "status"],
-            "description": "Transfer reversal details. Re-fetch via GET /transfers/{id} server-side.",
             "properties": {
-              "id": { "type": "string", "description": "Transfer id that was reversed." },
-              "amount": { "type": "number" },
-              "currency": { "type": "string" },
-              "reference": { "type": "string" },
-              "status": { "type": "string" },
-              "meta": { "type": ["object", "null"], "additionalProperties": true },
-              "created_datetime": { "type": "string", "format": "date-time" }
-            },
-            "additionalProperties": true
+              "id": {
+                "type": "string",
+                "description": "The unique identifier for the transfer"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "bank"
+                ]
+              },
+              "source_currency": {
+                "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                "type": "string"
+              },
+              "destination_currency": {
+                "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                "type": "string"
+              },
+              "amount": {
+                "description": "Amount to be sent to the recipient. This is a positive integer in the smallest currency unit",
+                "type": "integer",
+                "format": "decimal",
+                "minimum": 1
+              },
+              "reference": {
+                "$ref": "#/$defs/reference"
+              },
+              "proof": {
+                "type": "string",
+                "description": "Transfer proof"
+              },
+              "status": {
+                "description": "The status of the transfer.",
+                "type": "string",
+                "enum": [
+                  "FAILED",
+                  "SUCCESSFUL"
+                ]
+              },
+              "disburse_datetime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "bank": {
+                "type": "object",
+                "properties": {
+                  "account_number": {
+                    "description": "recipient account number",
+                    "type": "string",
+                    "minLength": 10
+                  },
+                  "code": {
+                    "description": "recipient bank code",
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 10
+                  },
+                  "branch": {
+                    "description": "recipient bank branch",
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "name": {
+                    "description": "recipient bank name",
+                    "type": "string"
+                  },
+                  "routing_number": {
+                    "description": "recipient bank routing number",
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "swift_code": {
+                    "description": "recipient bank swift code",
+                    "type": "string",
+                    "minLength": 2
+                  }
+                }
+              },
+              "mobile_money": {
+                "type": "object",
+                "properties": {
+                  "network": {
+                    "description": "recipient network",
+                    "type": "string"
+                  },
+                  "country": {
+                    "description": "recipient country",
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 25
+                  },
+                  "msisdn": {
+                    "description": "recipient phone number",
+                    "type": "string",
+                    "minLength": 6,
+                    "maxLength": 25
+                  }
+                }
+              },
+              "wallet": {
+                "type": "object",
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "enum": [
+                      "flutterwave"
+                    ],
+                    "description": "Specifies the payment or service provider. Currently, only \"flutterwave\" is supported"
+                  },
+                  "identifier": {
+                    "description": "A unique identifier assigned to the merchant by the payment or service provider.",
+                    "type": "string",
+                    "minLength": 7,
+                    "maxLength": 25
+                  }
+                }
+              },
+              "cash_pickup": {
+                "type": "object",
+                "properties": {
+                  "network": {
+                    "description": "cashpickup network",
+                    "type": "string"
+                  }
+                }
+              },
+              "fee": {
+                "type": "object",
+                "properties": {
+                  "currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "number",
+                    "description": "The amount charged as a fee for the transfer.",
+                    "format": "double",
+                    "minimum": 0
+                  }
+                }
+              },
+              "debit_information": {
+                "type": "object",
+                "properties": {
+                  "currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "actual_debit_amount": {
+                    "type": "number",
+                    "description": "The exact amount deducted for the transfer, including applicable fees.",
+                    "format": "decimal",
+                    "minimum": 0
+                  },
+                  "rate_used": {
+                    "type": "number",
+                    "description": "The exchange rate applied to calculate the transfer amount.",
+                    "format": "decimal",
+                    "minimum": 0
+                  },
+                  "vat": {
+                    "type": "number",
+                    "description": "The Value-Added Tax (VAT) amount charged for the transfer.",
+                    "format": "decimal",
+                    "minimum": 0
+                  }
+                }
+              },
+              "payment_information": {
+                "type": "object",
+                "properties": {
+                  "proof": {
+                    "type": "string",
+                    "description": "Session ID"
+                  }
+                }
+              },
+              "provider_response": {
+                "$ref": "#/$defs/provider_response"
+              },
+              "meta": {
+                "$ref": "#/$defs/meta"
+              }
+            }
           }
-        }
+        },
+        "title": "transfer.disburse"
       },
       {
-        "title": "order.authorization",
+        "type": "object",
+        "description": "Base webhook payload schema",
+        "required": [
+          "data",
+          "timestamp",
+          "type",
+          "webhook_id"
+        ],
         "properties": {
-          "type": { "const": "order.authorization" },
+          "webhook_id": {
+            "type": "string",
+            "description": "Webhook event identifier"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Webhook event timestamp"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "transfer.reversal"
+            ]
+          },
           "data": {
             "type": "object",
-            "required": ["id", "status"],
-            "description": "Order authorization details (pre-auth/capture flow). Re-fetch via GET /orders/{id} server-side.",
             "properties": {
-              "id": { "type": "string", "description": "Order id." },
-              "status": { "type": "string" },
-              "amount": { "type": "number" },
-              "currency": { "type": "string" },
-              "reference": { "type": "string" },
-              "customer_id": { "type": "string" },
-              "meta": { "type": ["object", "null"], "additionalProperties": true },
-              "created_datetime": { "type": "string", "format": "date-time" }
-            },
-            "additionalProperties": true
+              "id": {
+                "type": "string",
+                "description": "The unique identifier for the transfer"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "bank"
+                ]
+              },
+              "source_currency": {
+                "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                "type": "string"
+              },
+              "destination_currency": {
+                "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                "type": "string"
+              },
+              "amount": {
+                "description": "Amount to be sent to the recipient. This is a positive integer in the smallest currency unit",
+                "type": "integer",
+                "format": "decimal",
+                "minimum": 1
+              },
+              "reference": {
+                "$ref": "#/$defs/reference"
+              },
+              "proof": {
+                "type": "string",
+                "description": "Transfer proof"
+              },
+              "status": {
+                "description": "The status of the transfer.",
+                "type": "string",
+                "enum": [
+                  "FAILED",
+                  "SUCCESSFUL"
+                ]
+              },
+              "disburse_datetime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "bank": {
+                "type": "object",
+                "properties": {
+                  "account_number": {
+                    "description": "recipient account number",
+                    "type": "string",
+                    "minLength": 10
+                  },
+                  "code": {
+                    "description": "recipient bank code",
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 10
+                  },
+                  "branch": {
+                    "description": "recipient bank branch",
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "name": {
+                    "description": "recipient bank name",
+                    "type": "string"
+                  },
+                  "routing_number": {
+                    "description": "recipient bank routing number",
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "swift_code": {
+                    "description": "recipient bank swift code",
+                    "type": "string",
+                    "minLength": 2
+                  }
+                }
+              },
+              "mobile_money": {
+                "type": "object",
+                "properties": {
+                  "network": {
+                    "description": "recipient network",
+                    "type": "string"
+                  },
+                  "country": {
+                    "description": "recipient country",
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 25
+                  },
+                  "msisdn": {
+                    "description": "recipient phone number",
+                    "type": "string",
+                    "minLength": 6,
+                    "maxLength": 25
+                  }
+                }
+              },
+              "wallet": {
+                "type": "object",
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "enum": [
+                      "flutterwave"
+                    ],
+                    "description": "Specifies the payment or service provider. Currently, only \"flutterwave\" is supported"
+                  },
+                  "identifier": {
+                    "description": "A unique identifier assigned to the merchant by the payment or service provider.",
+                    "type": "string",
+                    "minLength": 7,
+                    "maxLength": 25
+                  }
+                }
+              },
+              "cash_pickup": {
+                "type": "object",
+                "properties": {
+                  "network": {
+                    "description": "cashpickup network",
+                    "type": "string"
+                  }
+                }
+              },
+              "fee": {
+                "type": "object",
+                "properties": {
+                  "currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "number",
+                    "description": "The amount charged as a fee for the transfer.",
+                    "format": "double",
+                    "minimum": 0
+                  }
+                }
+              },
+              "debit_information": {
+                "type": "object",
+                "properties": {
+                  "currency": {
+                    "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                    "type": "string"
+                  },
+                  "actual_debit_amount": {
+                    "type": "number",
+                    "description": "The exact amount deducted for the transfer, including applicable fees.",
+                    "format": "decimal",
+                    "minimum": 0
+                  },
+                  "rate_used": {
+                    "type": "number",
+                    "description": "The exchange rate applied to calculate the transfer amount.",
+                    "format": "decimal",
+                    "minimum": 0
+                  },
+                  "vat": {
+                    "type": "number",
+                    "description": "The Value-Added Tax (VAT) amount charged for the transfer.",
+                    "format": "decimal",
+                    "minimum": 0
+                  }
+                }
+              },
+              "payment_information": {
+                "type": "object",
+                "properties": {
+                  "proof": {
+                    "type": "string",
+                    "description": "Session ID"
+                  }
+                }
+              },
+              "provider_response": {
+                "$ref": "#/$defs/provider_response"
+              },
+              "meta": {
+                "$ref": "#/$defs/meta"
+              },
+              "reversal": {
+                "type": "object",
+                "properties": {
+                  "reversal_datetime": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "initial_status": {
+                    "type": "string"
+                  },
+                  "reconciliation_status": {
+                    "type": "string"
+                  },
+                  "reconciliation_type": {
+                    "type": "string",
+                    "enum": [
+                      "D",
+                      "C"
+                    ]
+                  }
+                }
+              }
+            }
           }
-        }
+        },
+        "title": "transfer.reversal"
       }
-    ]
+    ],
+    "$defs": {
+      "address": {
+        "type": "object",
+        "description": "Customer address information.",
+        "required": [
+          "line1",
+          "city",
+          "state",
+          "country",
+          "postal_code"
+        ],
+        "properties": {
+          "city": {
+            "type": "string",
+            "description": "The name of the city."
+          },
+          "country": {
+            "description": "ISO2 country code",
+            "type": "string"
+          },
+          "line1": {
+            "type": "string",
+            "description": "The first line of the Customer's address."
+          },
+          "line2": {
+            "type": "string",
+            "description": "The second line of the Customer's address."
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "description": "The state or region."
+          }
+        }
+      },
+      "amount": {
+        "type": "number",
+        "format": "decimal",
+        "description": "The payment amount in decimals.",
+        "minimum": 0.01
+      },
+      "currency": {
+        "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+        "type": "string"
+      },
+      "meta": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
+      "payment_method_id": {
+        "type": "string",
+        "description": "ID of the payment method."
+      },
+      "provider_response": {
+        "type": "object",
+        "required": [
+          "type",
+          "code"
+        ],
+        "description": "Represents payout error codes. The `type` and `code` fields are separate enums where:\n- `type` indicates the nature of the error.\n- `code` provides the specific error code associated with the error type.\n- `message` explains the meaning of the `type-code` pair\n",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "The processor message for the transfer."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the payout error, representing the specific error scenario.\n",
+            "enum": [
+              "transfer_amount_exceeds_limit",
+              "transfer_amount_below_limit",
+              "monthly_transfer_limit_exceeded",
+              "daily_transfer_limit_exceeded",
+              "transfer_limit_not_set_for_currency",
+              "payout_creation_failed",
+              "insufficient_balance",
+              "service_unavailable",
+              "transfer_failed",
+              "pricing_not_set",
+              "currency_conversion_not_set",
+              "rejected_recipient_merchant",
+              "invalid_bank_code",
+              "unable_to_determine_country",
+              "invalid_wallet_currency"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "description": "The unique code associated with the error type. This code follows a pattern of four digits.\n"
+          }
+        }
+      },
+      "reference": {
+        "type": "string",
+        "minLength": 6,
+        "maxLength": 42,
+        "description": "A custom identifier to track the transaction, This must be unique across all your transactions."
+      }
+    }
   },
   "response_schema": {
     "type": "object",
-    "description": "Your endpoint must respond with HTTP 200 and an (optionally empty) body within 60 seconds.",
-    "properties": {}
+    "description": "Return HTTP 200 within 60 seconds; Flutterwave ignores the response body and headers."
   },
-  "error_schema": {
-    "type": "object",
-    "description": "Webhooks do not return errors to Flutterwave. Any non-2xx response triggers retries.",
-    "properties": {}
-  },
+  "error_schema": {},
   "gotchas": [
-    "The signature header is 'flutterwave-signature' (v4). The old v3 header 'verif-hash' is no longer used.",
-    "Flutterwave signs the raw request body with HMAC-SHA256 and encodes the result as base64 — not hex. Compute: `crypto.createHmac('sha256', secret).update(rawBody).digest('base64')` and compare with the 'flutterwave-signature' header. A hex digest will never match.",
-    "Always use the raw request body (string or Buffer) for HMAC computation — never re-serialise parsed JSON, as key order may change and break verification.",
-    "Use a constant-time comparison (e.g. node:crypto timingSafeEqual) instead of === to prevent timing-side-channel attacks.",
-    "The top-level event id field differs by type: charge.completed uses 'id', while refund.completed, transfer.disburse, and transfer.reversal use 'webhook_id'. Always read whichever is present for deduplication.",
-    "Always re-verify the resource server-side via the corresponding GET endpoint before fulfilling or adjusting ledgers — never trust webhook payload data alone.",
-    "Deduplicate on the event id/webhook_id — Flutterwave may redeliver the same event after a transient failure on your side.",
-    "Respond with HTTP 200 within 60 seconds. Any non-2xx response or timeout triggers automatic retries (3 attempts at 30-minute intervals). Offload heavy processing to a background job.",
-    "data.status for charge.completed is not always 'succeeded' — failed and voided charges also trigger the event. Always check the status field explicitly.",
-    "The payload schemas for transfer.disburse, transfer.reversal, and order.authorization are documented from the Flutterwave reference but not verified against live deliveries — treat additionalProperties as likely.",
-    "Exclude your webhook endpoint from CSRF protection. Frameworks like Next.js (middleware), Django, Rails, and Laravel apply CSRF checks globally — incoming POST requests from Flutterwave carry no CSRF token and will be rejected with 403 unless the route is explicitly exempt."
-  ]
+    "Signature: Docs (Webhooks): \"Flutterwave uses the secret hash you specify on your dashboard to hash the webhook response using `HMAC-SHA256`.\" The value arrives in the flutterwave-signature header; the documented sample computes createHmac('sha256', secretHash).update(rawBody).digest('base64'). Use the raw body and a constant-time compare. Open question: the same page's framework examples (Node, PHP, Python) instead compare the header directly with the secret hash; follow the signing section and confirm with resend_webhook in sandbox. The secret hash is the one you set in Dashboard → Settings → Webhooks (env FLUTTERWAVE_WEBHOOK_SECRET); it is not an API key.",
+    "Respond fast: \"your endpoint **must** return a `200` HTTP status code\"; \"Webhook requests time out after **60 seconds**.\" Retries: \"Be sure to enable webhook retries on your dashboard.\" — \"we'll retry the webhook call **3 times**, with a **30-minute** interval between each attempt.\"",
+    "\"Occasionally, we might send the same webhook event more than once.\" Deduplicate on webhook_id (the API reference requires it on every event; the webhooks page sample shows `id` instead, so read webhook_id ?? id), and record an event as processed only after the work succeeded.",
+    "Status casing differs by event: charge.completed / refund.completed use lowercase (succeeded, failed…), transfer.disburse / transfer.reversal use uppercase SUCCESSFUL / FAILED. The customer id is data.customer.id (no data.customer_id). timestamp is Unix epoch milliseconds in every sample. data.created_datetime is an ISO string in the API reference but an epoch float in the webhooks page sample: accept both.",
+    "Never fulfil on the webhook alone: Docs (Webhooks): \"always re-query our API to verify the transaction details.\" (get_charge, get_transfer, get_refund).",
+    "order.authorization (card pre-authorisation orders) also exists but is out of scope here. Missed a delivery? resend_webhook (POST /resend-webhook {id, type}). \"Web frameworks like Rails or Django check POST requests for `CSRF` tokens\": exempt this route."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/docs/webhooks.md",
+    "source_reference": "Webhooks (signature, timeout, retries) + the `webhooks` section of the API reference OpenAPI",
+    "extracted_at": "2026-10-24T23:14:47.000Z",
+    "snapshot_hash": "c8e63dba4fec7060af82e576d9d5b2b5d02dd5020dfe980ea8d1adbc217a7bcd",
+    "spans": [
+      "`HMAC-SHA256`",
+      "`flutterwave-signature`",
+      "Webhook requests time out after **60 seconds**."
+    ]
+  }
 }

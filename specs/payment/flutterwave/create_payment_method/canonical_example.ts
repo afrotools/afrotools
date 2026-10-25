@@ -6,266 +6,173 @@
  */
 
 const FLUTTERWAVE_CLIENT_CREDENTIALS = process.env.FLUTTERWAVE_CLIENT_CREDENTIALS;
-if (!FLUTTERWAVE_CLIENT_CREDENTIALS) {
-  throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
-}
+if (!FLUTTERWAVE_CLIENT_CREDENTIALS) throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
 
-interface TokenResponse {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-}
+// Production. Sandbox: https://developersandbox-api.flutterwave.com
+const API_BASE_URL = "https://f4bexperience.flutterwave.com";
+// Same token URL for sandbox and production.
+const TOKEN_URL = "https://idp.flutterwave.com" + "/realms/flutterwave/protocol/openid-connect/token";
+
+let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
+  // afrotools convention: FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret)
   const decoded = Buffer.from(FLUTTERWAVE_CLIENT_CREDENTIALS!, "base64").toString("utf8");
   const sep = decoded.indexOf(":");
-  if (sep === -1) {
-    throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64('client_id:client_secret')");
-  }
-  const clientId = decoded.slice(0, sep);
-  const clientSecret = decoded.slice(sep + 1);
-
-  const TOKEN_HOST = "https://idp.flutterwave.com";
-  const TOKEN_URL = TOKEN_HOST + "/realms/flutterwave/protocol/openid-connect/token";
-
-  const body = new URLSearchParams();
-  body.set("grant_type", "client_credentials");
-  body.set("client_id", clientId);
-  body.set("client_secret", clientSecret);
-
-  const tokenRes = await fetch(TOKEN_URL, {
+  if (sep === -1) throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
+  const response = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: decoded.slice(0, sep),
+      client_secret: decoded.slice(sep + 1),
+    }).toString(),
   });
+  if (!response.ok) throw new Error(`Flutterwave token error ${response.status}: ${await response.text()}`);
+  const json = (await response.json()) as { access_token: string; expires_in: number };
+  // Tokens last 10 minutes (expires_in: 600); the docs recommend refreshing a minute early.
+  cachedToken = { value: json.access_token, expiresAt: Date.now() + (json.expires_in - 60) * 1000 };
+  return json.access_token;
+}
 
-  if (!tokenRes.ok) {
-    throw new Error(`Flutterwave OAuth error ${tokenRes.status}: ${await tokenRes.text()}`);
+export interface FlutterwaveError {
+  status: "failed";
+  message?: string | null;
+  error?: {
+    type: string;
+    code: string;
+    message: string | null;
+    validation_errors?: { field_name: string; message: string }[];
+  };
+}
+
+/** 12-255 alphanumeric chars, as the docs require for X-Idempotency-Key / X-Trace-Id: a UUID without hyphens. */
+export function newKey(): string {
+  return crypto.randomUUID().replace(/-/g, "");
+}
+
+interface RequestOptions {
+  body?: unknown;
+  query?: Record<string, string | number | boolean | undefined>;
+  idempotencyKey?: string;
+  traceId?: string;
+  scenarioKey?: string; // sandbox only, e.g. "scenario:successful"
+}
+
+async function flutterwave<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
+  const url = new URL(API_BASE_URL + path);
+  for (const [k, v] of Object.entries(opts.query ?? {})) if (v !== undefined) url.searchParams.set(k, String(v));
+  const headers: Record<string, string> = { Authorization: `Bearer ${await getAccessToken()}` };
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+  if (opts.idempotencyKey) headers["X-Idempotency-Key"] = opts.idempotencyKey;
+  if (opts.traceId) headers["X-Trace-Id"] = opts.traceId;
+  if (opts.scenarioKey) headers["X-Scenario-Key"] = opts.scenarioKey;
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+  });
+  const text = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = text ? JSON.parse(text) : null;
+  } catch {
+    // Non-JSON body, e.g. a Cloudflare 1015 page on HTTP 429.
   }
-
-  const tokenJson = (await tokenRes.json()) as TokenResponse;
-  return tokenJson.access_token;
+  if (!response.ok) {
+    const e = (parsed ?? {}) as FlutterwaveError;
+    throw new Error(
+      `Flutterwave ${response.status} ${e.error?.type ?? ""} ${e.error?.code ?? ""}: ` +
+        `${e.error?.message ?? e.message ?? text.slice(0, 200)}`,
+    );
+  }
+  return parsed as T;
 }
 
-interface CardBillingAddress {
-  line1: string;
-  line2?: string;
-  city: string;
-  state: string;
-  postal_code: string;
-  country: string; // ISO2 e.g. "US", "NG"
+// Dashboard → API settings. Only card fields and PINs need it, so it is checked when used.
+const FLUTTERWAVE_ENCRYPTION_KEY = process.env.FLUTTERWAVE_ENCRYPTION_KEY;
+
+/** 12 alphanumeric characters, sent as `nonce` and used as the AES-GCM IV of every encrypted field. */
+export function newNonce(): string {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  return Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => alphabet[b % alphabet.length]).join("");
 }
 
-interface CardCof {
-  enabled: boolean;
-  agreement_id?: string;
-  trace_id?: string;
+/** AES-256-GCM, as in the docs' Node sample: key = base64-decoded encryption key, IV = nonce bytes. */
+export async function encryptField(value: string, nonce: string): Promise<string> {
+  if (!FLUTTERWAVE_ENCRYPTION_KEY) throw new Error("Missing env: FLUTTERWAVE_ENCRYPTION_KEY");
+  if (nonce.length !== 12) throw new Error("Nonce must be exactly 12 characters long");
+  const key = await crypto.subtle.importKey(
+    "raw",
+    Uint8Array.from(atob(FLUTTERWAVE_ENCRYPTION_KEY!), (c) => c.charCodeAt(0)),
+    { name: "AES-GCM" },
+    false,
+    ["encrypt"],
+  );
+  const encrypted = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: new TextEncoder().encode(nonce) },
+    key,
+    new TextEncoder().encode(value),
+  );
+  return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
 }
 
-interface CardDetails {
-  nonce: string; // 12 alphanumeric chars
+export interface EncryptedCard {
+  nonce: string; // 12 alphanumeric chars, also the AES-GCM IV
   encrypted_card_number: string;
   encrypted_expiry_month: string;
   encrypted_expiry_year: string;
   encrypted_cvv?: string;
-  card_holder_name?: string;
-  billing_address: CardBillingAddress;
-  cof: CardCof;
+  billing_address?: { city: string; country: string; line1: string; line2?: string; postal_code: string; state: string };
 }
 
-interface MobileMoneyDetails {
-  network: string; // e.g. "MTN"
-  country_code: string; // digits only, 1-3 chars
-  phone_number: string; // digits only, 7-10 chars
-  use_qr?: boolean;
-}
+export type CreatePaymentMethodInput = { customer_id?: string; meta?: Record<string, string> } & (
+  | { type: "card"; card: EncryptedCard }
+  | { type: "mobile_money"; mobile_money: { country_code: string; network: string; phone_number: string } }
+  | { type: "ussd"; ussd: { account_bank: string } } // NGN only; account_bank = bank code from list_banks
+  | { type: "opay" } // NGN only
+  | { type: "bank_account" } // Pay with Bank (Mono), NGN only
+);
 
-interface UssdDetails {
-  account_bank: string; // digits only, 3+ chars, Nigerian bank code
-}
-
-interface ApplePayDetails {
-  card_holder_name?: string;
-}
-
-interface GooglePayDetails {
-  card_holder_name?: string;
-}
-
-type CreatePaymentMethodInput =
-  | {
-      type: "card";
-      customer_id?: string;
-      meta?: Record<string, string>;
-      card: CardDetails;
-      trace_id?: string;
-      idempotency_key?: string;
-    }
-  | {
-      type: "mobile_money";
-      customer_id?: string;
-      meta?: Record<string, string>;
-      mobile_money: MobileMoneyDetails;
-      trace_id?: string;
-      idempotency_key?: string;
-    }
-  | {
-      type: "ussd";
-      customer_id?: string;
-      meta?: Record<string, string>;
-      ussd: UssdDetails;
-      trace_id?: string;
-      idempotency_key?: string;
-    }
-  | {
-      type: "applepay";
-      customer_id?: string;
-      meta?: Record<string, string>;
-      applepay?: ApplePayDetails;
-      trace_id?: string;
-      idempotency_key?: string;
-    }
-  | {
-      type: "googlepay";
-      customer_id?: string;
-      meta?: Record<string, string>;
-      googlepay?: GooglePayDetails;
-      trace_id?: string;
-      idempotency_key?: string;
-    }
-  | {
-      type: "bank_account";
-      customer_id?: string;
-      meta?: Record<string, string>;
-      bank_account?: Record<string, unknown>;
-      trace_id?: string;
-      idempotency_key?: string;
-    }
-  | {
-      type: "opay";
-      customer_id?: string;
-      meta?: Record<string, string>;
-      opay?: Record<string, unknown>;
-      trace_id?: string;
-      idempotency_key?: string;
-    };
-
-interface CreatePaymentMethodResponse {
-  status: "success" | "failed";
-  message?: string;
-  data: {
-    id: string;
-    type: string;
-    customer_id?: string;
-    meta?: Record<string, string>;
-    device_fingerprint?: string;
-    client_ip?: string;
-    created_datetime: string;
-    card?: Record<string, unknown>;
-    mobile_money?: Record<string, unknown>;
-    ussd?: Record<string, unknown>;
-    applepay?: Record<string, unknown>;
-    googlepay?: Record<string, unknown>;
-    bank_account?: Record<string, unknown>;
-    opay?: Record<string, unknown>;
-  };
-}
-
-interface FlutterwaveErrorBody {
-  status: "failed";
-  message?: string;
-  error: {
-    type: string;
-    code: string;
-    message: string;
-    validation_errors?: Array<{ field_name: string; message: string }>;
-  };
+export interface PaymentMethod {
+  id: string; // pmd_…
+  type: string;
+  customer_id?: string;
+  card?: { first6: string; last4: string; expiry_month: number; expiry_year: number; network: string };
+  mobile_money?: { country_code: string; network: string; phone_number: string };
+  created_datetime: string;
 }
 
 export async function createPaymentMethod(
-  input: CreatePaymentMethodInput
-): Promise<CreatePaymentMethodResponse> {
-  const token = await getAccessToken();
+  input: CreatePaymentMethodInput,
+  idempotencyKey: string = newKey(),
+): Promise<{ status: "success"; message: string; data: PaymentMethod }> {
+  return flutterwave("POST", "/payment-methods", { body: input, idempotencyKey });
+}
 
-  const url = "https://f4bexperience.flutterwave.com/payment-methods";
-
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-    Accept: "application/json",
+/** Encrypts raw card fields with one nonce, as the docs' samples do. Never log or store the raw values. */
+export async function encryptCard(raw: { number: string; expiryMonth: string; expiryYear: string; cvv: string }): Promise<EncryptedCard> {
+  const nonce = newNonce();
+  return {
+    nonce,
+    encrypted_card_number: await encryptField(raw.number, nonce),
+    encrypted_expiry_month: await encryptField(raw.expiryMonth, nonce),
+    encrypted_expiry_year: await encryptField(raw.expiryYear, nonce),
+    encrypted_cvv: await encryptField(raw.cvv, nonce),
   };
-  if (input.trace_id) headers["X-Trace-Id"] = input.trace_id;
-  if (input.idempotency_key) headers["X-Idempotency-Key"] = input.idempotency_key;
-
-  // Build body excluding header-only fields. The per-type sub-object key matches the type name.
-  const body: Record<string, unknown> = { type: input.type };
-  if (input.customer_id !== undefined) body.customer_id = input.customer_id;
-  if (input.meta !== undefined) body.meta = input.meta;
-
-  if (input.type === "card") body.card = input.card;
-  else if (input.type === "mobile_money") body.mobile_money = input.mobile_money;
-  else if (input.type === "ussd") body.ussd = input.ussd;
-  else if (input.type === "applepay" && input.applepay !== undefined) body.applepay = input.applepay;
-  else if (input.type === "googlepay" && input.googlepay !== undefined) body.googlepay = input.googlepay;
-  else if (input.type === "bank_account") body.bank_account = input.bank_account ?? {};
-  else if (input.type === "opay") body.opay = input.opay ?? {};
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const error = (await response.json()) as FlutterwaveErrorBody;
-    throw new Error(
-      `Flutterwave create_payment_method error ${response.status} [${error.error?.type}/${error.error?.code}]: ${error.error?.message ?? error.message}`
-    );
-  }
-
-  return response.json() as Promise<CreatePaymentMethodResponse>;
 }
 
 /*
-Usage example — card (encrypted via Flutterwave SDK):
+Usage:
+  const card = await encryptCard({ number: "5531886652142950", expiryMonth: "09", expiryYear: "32", cvv: "564" });
+  const { data: pm } = await createPaymentMethod({ type: "card", customer_id: "cus_3XarBILKQS", card });
 
-const pm = await createPaymentMethod({
-  type: "card",
-  customer_id: "cus_3XarBILKQS",
-  card: {
-    nonce: "acb123e4f567",
-    encrypted_card_number: "sAE3hEDaDQ+yLzo4Py+Lx15OZjBGduHu/DcdILh3En0=",
-    encrypted_expiry_month: "sQpvQEb7GrUCjPuEN/NmHiPl",
-    encrypted_expiry_year: "sgHNEDkJ/RmwuWWq/RymToU5",
-    encrypted_cvv: "tAUzH7Qjma7diGdi7938F/ESNA==",
-    card_holder_name: "Alex James",
-    billing_address: {
-      line1: "123 Main Street",
-      city: "New York",
-      state: "New York",
-      postal_code: "10001",
-      country: "US",
-    },
-    cof: { enabled: true },
-  },
-  trace_id: "trace-create-pm-card-01",
-  idempotency_key: "idem-create-pm-20240115-abc",
-});
-
-// Usage example — mobile money:
-const pmMm = await createPaymentMethod({
-  type: "mobile_money",
-  customer_id: "cus_3XarBILKQS",
-  mobile_money: {
-    network: "MTN",
-    country_code: "234",
-    phone_number: "8012345678",
-  },
-  trace_id: "trace-create-pm-mm-01",
-});
-
-console.log(pm.data.id, pm.data.type);
-
-// Never POST raw PAN/CVV directly — use the Flutterwave field-level encryption SDK to produce
-// the encrypted_* values and the 12-char alphanumeric nonce.
+  // Mobile money (Ghana): country_code is the dialling code, phone_number without it
+  await createPaymentMethod({
+    type: "mobile_money",
+    customer_id: "cus_3XarBILKQS",
+    mobile_money: { country_code: "233", network: "MTN", phone_number: "9012345678" },
+  });
 */

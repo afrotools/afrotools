@@ -611,6 +611,13 @@ function setsEqual(a, b) {
   return true;
 }
 
+/**
+ * Pre-redenomination codes some providers still use, mapped to the code in COUNTRY_CURRENCY_MAP.
+ * Flutterwave's v4 API only knows SLL (Sierra Leone redenominated to SLE in 2022).
+ * @type {Record<string, string>}
+ */
+const LEGACY_CURRENCY_CODES = { SLL: "SLE" };
+
 /** Reverse of COUNTRY_CURRENCY_MAP: Map<currency, country[]> */
 const CURRENCY_COUNTRIES_MAP = (() => {
   /** @type {Map<string, string[]>} */
@@ -631,7 +638,9 @@ const CURRENCY_COUNTRIES_MAP = (() => {
 function checkCountryCurrencyCoherence(specPath, schema) {
   const rel = path.relative(SPECS_ROOT, specPath);
   const countries = /** @type {string[]} */ (schema.country_code || []);
-  const currencies = new Set(/** @type {string[]} */ (schema.currency || []));
+  const currencies = new Set(
+    /** @type {string[]} */ (schema.currency || []).map((c) => LEGACY_CURRENCY_CODES[c] || c)
+  );
   /** @type {string[]} */ const errors = [];
 
   // Every country must have its expected currency present

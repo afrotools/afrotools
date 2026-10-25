@@ -4,7 +4,23 @@
   "capability": "lookup_bank_account",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,124 +32,369 @@
     "method": "POST",
     "url": "https://f4bexperience.flutterwave.com/banks/account-resolve"
   },
-  "example_prompt": "Resolve the account holder name for NGN account 0690000040 at bank code 058 before initiating a Nigerian bank transfer.",
+  "example_prompt": "Resolve a Nigerian bank account number to the account holder's name before paying out with Flutterwave.",
   "input_schema": {
     "type": "object",
-    "description": "Body shape is discriminated by the currency field. NGN expects a simple {code, number}; GBP expects {code, number, type, name|business_name}; USD expects {code, number, country}.",
     "oneOf": [
       {
-        "title": "NGN",
         "type": "object",
-        "required": ["currency", "account"],
         "properties": {
-          "currency": { "type": "string", "enum": ["NGN"] },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 currency code.",
+            "enum": [
+              "NGN"
+            ]
+          },
           "account": {
             "type": "object",
-            "required": ["code", "number"],
             "properties": {
               "code": {
                 "type": "string",
-                "pattern": "^[0-9]{3,10}$",
-                "description": "Local CBN bank code (3-10 digits)."
+                "description": "The bank code.",
+                "pattern": "^\\d+$",
+                "minLength": 3,
+                "maxLength": 10
               },
               "number": {
                 "type": "string",
-                "pattern": "^[0-9]{10}$",
-                "description": "10-digit Nigerian NUBAN account number."
+                "description": "The bank account number.",
+                "minLength": 10,
+                "maxLength": 10,
+                "pattern": "^\\d+$"
               }
-            }
+            },
+            "required": [
+              "code",
+              "number"
+            ]
           }
-        }
+        },
+        "required": [
+          "account",
+          "currency"
+        ]
       },
       {
-        "title": "GBP",
         "type": "object",
-        "required": ["currency", "account"],
         "properties": {
-          "currency": { "type": "string", "enum": ["GBP"] },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 currency code.",
+            "enum": [
+              "GBP"
+            ]
+          },
           "account": {
-            "type": "object",
-            "required": ["code", "number", "type"],
-            "properties": {
-              "code": { "type": "string", "minLength": 2, "maxLength": 10, "description": "UK sort code or routing code." },
-              "number": { "type": "string", "description": "GBP account number." },
-              "type": { "type": "string", "enum": ["personal", "corporate"] },
-              "name": {
+            "oneOf": [
+              {
                 "type": "object",
-                "description": "Required when type=personal.",
                 "properties": {
-                  "first": { "type": "string", "minLength": 2, "maxLength": 50 },
-                  "last": { "type": "string", "minLength": 2, "maxLength": 50 },
-                  "middle": { "type": "string", "minLength": 2, "maxLength": 50 }
+                  "code": {
+                    "type": "string",
+                    "description": "The bank or institution code.",
+                    "minLength": 2,
+                    "maxLength": 10
+                  },
+                  "number": {
+                    "type": "string",
+                    "description": "The bank account number.",
+                    "minLength": 4,
+                    "maxLength": 50
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "The bank account type.",
+                    "enum": [
+                      "individual"
+                    ]
+                  },
+                  "name": {
+                    "type": "object",
+                    "description": "The Customer's full name.",
+                    "properties": {
+                      "first": {
+                        "type": "string",
+                        "description": "The Customer's first name.",
+                        "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                      },
+                      "middle": {
+                        "type": "string",
+                        "description": "The Customer's middle name.",
+                        "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                      },
+                      "last": {
+                        "type": "string",
+                        "description": "The Customer's last name.",
+                        "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+                      }
+                    },
+                    "required": [
+                      "first",
+                      "last"
+                    ]
+                  }
                 },
-                "required": ["first", "last"]
+                "required": [
+                  "code",
+                  "name",
+                  "number",
+                  "type"
+                ]
               },
-              "business_name": {
-                "type": "string",
-                "minLength": 2,
-                "maxLength": 50,
-                "description": "Required when type=corporate."
+              {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "The bank or institution code.",
+                    "minLength": 2,
+                    "maxLength": 10
+                  },
+                  "number": {
+                    "type": "string",
+                    "description": "The bank account number.",
+                    "minLength": 4,
+                    "maxLength": 50
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "The bank account type.",
+                    "enum": [
+                      "corporate"
+                    ]
+                  },
+                  "business_name": {
+                    "type": "string",
+                    "description": "The business name attached to the bank account.",
+                    "minLength": 2,
+                    "maxLength": 50
+                  }
+                },
+                "required": [
+                  "business_name",
+                  "code",
+                  "number",
+                  "type"
+                ]
               }
-            }
+            ]
           }
-        }
+        },
+        "required": [
+          "account",
+          "currency"
+        ]
       },
       {
-        "title": "USD",
         "type": "object",
-        "required": ["currency", "account"],
         "properties": {
-          "currency": { "type": "string", "enum": ["USD"] },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 currency code.",
+            "enum": [
+              "USD"
+            ]
+          },
+          "account": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "The bank or institution code.",
+                    "minLength": 2,
+                    "maxLength": 10
+                  },
+                  "number": {
+                    "type": "string",
+                    "description": "The bank account number.",
+                    "minLength": 4,
+                    "maxLength": 50
+                  },
+                  "country": {
+                    "type": "string",
+                    "enum": [
+                      "NG"
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "country",
+                  "number"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "account",
+          "currency"
+        ]
+      },
+      {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 currency code.",
+            "enum": [
+              "GHS"
+            ]
+          },
           "account": {
             "type": "object",
-            "required": ["code", "number", "country"],
             "properties": {
-              "code": { "type": "string", "minLength": 2, "maxLength": 10, "description": "US routing code." },
-              "number": { "type": "string", "description": "USD account number." },
-              "country": { "type": "string", "enum": ["NG"], "description": "Only NG is currently supported as the account holder country for USD lookups." }
-            }
+              "code": {
+                "type": "string",
+                "description": "The bank code.",
+                "pattern": "^\\d+$",
+                "minLength": 3,
+                "maxLength": 10
+              },
+              "number": {
+                "type": "string",
+                "description": "The bank account number.",
+                "minLength": 10,
+                "maxLength": 13,
+                "pattern": "^\\d+$"
+              }
+            },
+            "required": [
+              "code",
+              "number"
+            ]
           }
-        }
+        },
+        "required": [
+          "account",
+          "currency"
+        ]
+      },
+      {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 currency code.",
+            "enum": [
+              "UGX"
+            ]
+          },
+          "account": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "The bank code.",
+                "pattern": "^\\d+$",
+                "minLength": 3,
+                "maxLength": 10
+              },
+              "number": {
+                "type": "string",
+                "description": "The bank account number.",
+                "minLength": 10,
+                "maxLength": 14,
+                "pattern": "^\\d+$"
+              }
+            },
+            "required": [
+              "code",
+              "number"
+            ]
+          }
+        },
+        "required": [
+          "account",
+          "currency"
+        ]
       }
     ]
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
-      "status": { "type": "string", "enum": ["success", "failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
       "data": {
         "type": "object",
-        "required": ["bank_code", "account_number", "account_name"],
         "properties": {
-          "bank_code": { "type": "string", "description": "Bank code that was resolved." },
-          "account_number": { "type": "string", "description": "Account number that was resolved." },
-          "account_name": { "type": "string", "description": "Legal name registered on the account." }
+          "bank_code": {
+            "type": "string",
+            "description": "The bank code."
+          },
+          "account_number": {
+            "type": "string",
+            "description": "The bank account number."
+          },
+          "account_name": {
+            "type": "string",
+            "description": "The bank account name."
+          }
         }
       }
     }
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: 250400 ACCOUNT_VERIFICATION_FAILED, 251400 INVALID_ACCOUNT, 252400 UNKNOWN_BANK_CODE."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "validation_errors": {
             "type": "array",
+            "description": "On 400 validation errors.",
             "items": {
               "type": "object",
               "properties": {
-                "field_name": { "type": "string" },
-                "message": { "type": "string" }
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -142,9 +403,22 @@
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "The request body is discriminated by currency. NGN expects {currency:'NGN', account:{code, number}}. GBP and USD have different nested shapes (GBP needs type+name|business_name; USD needs account.country='NG'). Sending an NGN-shaped body for a GBP lookup returns 400 REQUEST_NOT_VALID.",
-    "Always confirm the returned account_name with the user before triggering a payout. Account-name spoofing is the most common social-engineering attack on payout flows.",
-    "Headers X-Trace-Id (12-255 chars) and X-Scenario-Key (1-1000 chars, sandbox only) are optional. Use X-Scenario-Key in sandbox to simulate auth_redirect / failed_lookup behaviours."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: send X-Idempotency-Key on this POST. Docs (Idempotency): \"For all `POST` endpoints, include an idempotency key in the request header (`X-Idempotency-Key`).\" The API reference doesn't list it for this endpoint; sending it is harmless and follows the guide. A reused key replays the first response (\"the response will include the header `X-Idempotency-Cache-Hit: true`\"), so reuse the key when retrying the same operation and use a new one for a new operation. X-Trace-Id is optional. For both: \"It must be a string using only alphanumeric ASCII characters.\" \"Its length should be between 12 and 255 characters.\" The idempotency page also says \"We recommend using a **UUID** string as your idempotency key\": strip the UUID's hyphens to satisfy both.",
+    "The body is a union on currency: NGN, GHS, UGX → account{code, number}; GBP → account{type individual | corporate, code, number, name}; USD → account{code, number, country: 'NG'} (USD accounts at Nigerian banks only). Other currencies can't be resolved here. Open question (GBP): the account-type branches are keyed individual / corporate, but the individual branch's own default is 'personal'.",
+    "Docs (Introduction): \"This step is important to ensure that your transfer is processed successfully to the correct recipient.\" Compare data.account_name with the name the user typed before creating the recipient.",
+    "Sandbox example from the docs: account {code: \"044\", number: \"0690000040\"}. The sandbox transfer scenario account_verification_failed exists for transfers; no lookup-specific scenario is documented.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 250400 ACCOUNT_VERIFICATION_FAILED, 251400 INVALID_ACCOUNT, 252400 UNKNOWN_BANK_CODE. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/bank_account_resolve_post.md",
+    "source_reference": "Bank Account Look Up (POST /banks/account-resolve)",
+    "extracted_at": "2026-10-24T23:14:48.000Z",
+    "snapshot_hash": "9ff81c348e75bac1087dc0a5ef2d39d9c545327c6999f4e402b5fdc5e4013e14",
+    "spans": [
+      "Bank Account Look Up",
+      "Resolve your customer's bank account information",
+      "\"/banks/account-resolve\""
+    ]
+  }
 }

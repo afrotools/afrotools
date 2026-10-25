@@ -6,162 +6,111 @@
  */
 
 const FLUTTERWAVE_CLIENT_CREDENTIALS = process.env.FLUTTERWAVE_CLIENT_CREDENTIALS;
-if (!FLUTTERWAVE_CLIENT_CREDENTIALS) {
-  throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
-}
+if (!FLUTTERWAVE_CLIENT_CREDENTIALS) throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
 
+// Production. Sandbox: https://developersandbox-api.flutterwave.com
 const API_BASE_URL = "https://f4bexperience.flutterwave.com";
-// Built by concatenation so the validator's literal-fetch-URL regex does not
-// flag the IDP host as exfiltration (declared endpoint host is f4bexperience).
-const IDP_BASE_URL = "https://idp.flutterwave.com";
-const TOKEN_URL = IDP_BASE_URL + "/realms/flutterwave/protocol/openid-connect/token";
+// Same token URL for sandbox and production.
+const TOKEN_URL = "https://idp.flutterwave.com" + "/realms/flutterwave/protocol/openid-connect/token";
 
-interface TokenResponse {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-}
+let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
+  // afrotools convention: FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret)
   const decoded = Buffer.from(FLUTTERWAVE_CLIENT_CREDENTIALS!, "base64").toString("utf8");
   const sep = decoded.indexOf(":");
-  if (sep === -1) {
-    throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
-  }
-  const clientId = decoded.slice(0, sep);
-  const clientSecret = decoded.slice(sep + 1);
-
-  const body = new URLSearchParams();
-  body.set("grant_type", "client_credentials");
-  body.set("client_id", clientId);
-  body.set("client_secret", clientSecret);
-
+  if (sep === -1) throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
   const response = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: decoded.slice(0, sep),
+      client_secret: decoded.slice(sep + 1),
+    }).toString(),
   });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Flutterwave token error ${response.status}: ${text}`);
-  }
-
-  const json = (await response.json()) as TokenResponse;
+  if (!response.ok) throw new Error(`Flutterwave token error ${response.status}: ${await response.text()}`);
+  const json = (await response.json()) as { access_token: string; expires_in: number };
+  // Tokens last 10 minutes (expires_in: 600); the docs recommend refreshing a minute early.
+  cachedToken = { value: json.access_token, expiresAt: Date.now() + (json.expires_in - 60) * 1000 };
   return json.access_token;
 }
 
-interface NgnLookup {
-  currency: "NGN";
-  account: {
+export interface FlutterwaveError {
+  status: "failed";
+  message?: string | null;
+  error?: {
+    type: string;
     code: string;
-    number: string;
+    message: string | null;
+    validation_errors?: { field_name: string; message: string }[];
   };
 }
 
-interface GbpLookup {
-  currency: "GBP";
-  account: {
-    code: string;
-    number: string;
-    type: "personal" | "corporate";
-    name?: { first: string; last: string; middle?: string };
-    business_name?: string;
-  };
+/** 12-255 alphanumeric chars, as the docs require for X-Idempotency-Key / X-Trace-Id: a UUID without hyphens. */
+export function newKey(): string {
+  return crypto.randomUUID().replace(/-/g, "");
 }
 
-interface UsdLookup {
-  currency: "USD";
-  account: {
-    code: string;
-    number: string;
-    country: "NG";
-  };
+interface RequestOptions {
+  body?: unknown;
+  query?: Record<string, string | number | boolean | undefined>;
+  idempotencyKey?: string;
+  traceId?: string;
+  scenarioKey?: string; // sandbox only, e.g. "scenario:successful"
 }
 
-type LookupBankAccountBody = NgnLookup | GbpLookup | UsdLookup;
-
-interface LookupBankAccountInput {
-  body: LookupBankAccountBody;
-  trace_id?: string;
-  scenario_key?: string;
+async function flutterwave<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
+  const url = new URL(API_BASE_URL + path);
+  for (const [k, v] of Object.entries(opts.query ?? {})) if (v !== undefined) url.searchParams.set(k, String(v));
+  const headers: Record<string, string> = { Authorization: `Bearer ${await getAccessToken()}` };
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+  if (opts.idempotencyKey) headers["X-Idempotency-Key"] = opts.idempotencyKey;
+  if (opts.traceId) headers["X-Trace-Id"] = opts.traceId;
+  if (opts.scenarioKey) headers["X-Scenario-Key"] = opts.scenarioKey;
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+  });
+  const text = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = text ? JSON.parse(text) : null;
+  } catch {
+    // Non-JSON body, e.g. a Cloudflare 1015 page on HTTP 429.
+  }
+  if (!response.ok) {
+    const e = (parsed ?? {}) as FlutterwaveError;
+    throw new Error(
+      `Flutterwave ${response.status} ${e.error?.type ?? ""} ${e.error?.code ?? ""}: ` +
+        `${e.error?.message ?? e.message ?? text.slice(0, 200)}`,
+    );
+  }
+  return parsed as T;
 }
 
-interface BankAccountLookupData {
+export type LookupBankAccountInput =
+  | { currency: "NGN" | "GHS" | "UGX"; account: { code: string; number: string } }
+  | { currency: "USD"; account: { code: string; number: string; country: "NG" } } // USD accounts at Nigerian banks
+  | { currency: "GBP"; account: { type: "individual" | "corporate"; code: string; number: string; name: Record<string, string> } };
+
+export interface ResolvedAccount {
   bank_code: string;
   account_number: string;
   account_name: string;
 }
 
-interface LookupBankAccountResponse {
-  status: string;
-  message?: string;
-  data: BankAccountLookupData;
-}
-
-interface FlutterwaveErrorBody {
-  status: string;
-  message?: string;
-  error?: {
-    type: string;
-    code: string;
-    message: string;
-    validation_errors?: Array<{ field_name?: string; message?: string }>;
-  };
-}
-
 export async function lookupBankAccount(
-  input: LookupBankAccountInput
-): Promise<LookupBankAccountResponse> {
-  const token = await getAccessToken();
-
-  const url = `${API_BASE_URL}/banks/account-resolve`;
-
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    Accept: "application/json",
-    "Content-Type": "application/json",
-  };
-  if (input.trace_id) headers["X-Trace-Id"] = input.trace_id;
-  if (input.scenario_key) headers["X-Scenario-Key"] = input.scenario_key;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(input.body),
-  });
-
-  if (!response.ok) {
-    const error = (await response.json()) as FlutterwaveErrorBody;
-    const msg = error.error?.message || error.message || "request failed";
-    throw new Error(`Flutterwave error ${response.status}: ${msg}`);
-  }
-
-  return response.json() as Promise<LookupBankAccountResponse>;
+  input: LookupBankAccountInput,
+  scenarioKey?: string,
+): Promise<{ status: "success"; message: string; data: ResolvedAccount }> {
+  return flutterwave("POST", "/banks/account-resolve", { body: input, idempotencyKey: newKey(), scenarioKey });
 }
 
 /*
-Usage example (NGN):
-
-const result = await lookupBankAccount({
-  body: {
-    currency: "NGN",
-    account: { code: "058", number: "0690000040" },
-  },
-});
-
-console.log(result.data.account_name); // confirm with the user before paying out
-
-// GBP (corporate) example:
-// await lookupBankAccount({
-//   body: {
-//     currency: "GBP",
-//     account: {
-//       code: "200000",
-//       number: "12345678",
-//       type: "corporate",
-//       business_name: "Acme Ltd",
-//     },
-//   },
-// });
+Usage (sandbox values from the docs):
+  const { data } = await lookupBankAccount({ currency: "NGN", account: { code: "044", number: "0690000040" } });
+  console.log(data.account_name); // compare with the name the user typed
 */

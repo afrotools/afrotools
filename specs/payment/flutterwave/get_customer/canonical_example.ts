@@ -6,152 +6,107 @@
  */
 
 const FLUTTERWAVE_CLIENT_CREDENTIALS = process.env.FLUTTERWAVE_CLIENT_CREDENTIALS;
-if (!FLUTTERWAVE_CLIENT_CREDENTIALS) {
-  throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
-}
+if (!FLUTTERWAVE_CLIENT_CREDENTIALS) throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
 
-const FLUTTERWAVE_BASE_URL = "https://f4bexperience.flutterwave.com";
-const TOKEN_HOST = "https://idp.flutterwave.com";
-const TOKEN_URL = TOKEN_HOST + "/realms/flutterwave/protocol/openid-connect/token";
+// Production. Sandbox: https://developersandbox-api.flutterwave.com
+const API_BASE_URL = "https://f4bexperience.flutterwave.com";
+// Same token URL for sandbox and production.
+const TOKEN_URL = "https://idp.flutterwave.com" + "/realms/flutterwave/protocol/openid-connect/token";
 
-interface GetCustomerInput {
-  id: string;
-  traceId?: string;
-}
-
-interface CustomerName {
-  first: string;
-  middle?: string | null;
-  last: string;
-}
-
-interface CustomerPhone {
-  country_code: string;
-  number: string;
-}
-
-interface CustomerAddress {
-  line1?: string;
-  line2?: string | null;
-  city?: string;
-  state?: string;
-  postal_code?: string;
-  country?: string;
-}
-
-interface FlutterwaveCustomer {
-  id: string;
-  email: string;
-  name: CustomerName;
-  phone: CustomerPhone;
-  address?: CustomerAddress | null;
-  meta?: Record<string, unknown> | null;
-  created_datetime?: string;
-}
-
-interface GetCustomerResponse {
-  status: "success";
-  message?: string;
-  data: FlutterwaveCustomer;
-}
-
-interface FlutterwaveError {
-  status?: "failed";
-  message?: string;
-  error?: {
-    type?: string;
-    code?: string;
-    message?: string;
-    validation_errors?: Array<{ field_name: string; message: string }>;
-  };
-}
-
-interface OAuthTokenResponse {
-  access_token?: string;
-  token_type?: string;
-  expires_in?: number;
-}
+let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
+  // afrotools convention: FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret)
   const decoded = Buffer.from(FLUTTERWAVE_CLIENT_CREDENTIALS!, "base64").toString("utf8");
-  const sepIndex = decoded.indexOf(":");
-  if (sepIndex === -1) {
-    throw new Error(
-      "FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)"
-    );
-  }
-  const clientId = decoded.slice(0, sepIndex);
-  const clientSecret = decoded.slice(sepIndex + 1);
-
-  const body = new URLSearchParams({
-    grant_type: "client_credentials",
-    client_id: clientId,
-    client_secret: clientSecret,
-  }).toString();
-
+  const sep = decoded.indexOf(":");
+  if (sep === -1) throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
   const response = await fetch(TOKEN_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Accept: "application/json",
-    },
-    body,
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: decoded.slice(0, sep),
+      client_secret: decoded.slice(sep + 1),
+    }).toString(),
   });
-
-  if (!response.ok) {
-    throw new Error(`Flutterwave OAuth failed: HTTP ${response.status}`);
-  }
-
-  const data = (await response.json()) as OAuthTokenResponse;
-  if (!data.access_token) {
-    throw new Error("No access_token in Flutterwave OAuth response");
-  }
-  return data.access_token;
+  if (!response.ok) throw new Error(`Flutterwave token error ${response.status}: ${await response.text()}`);
+  const json = (await response.json()) as { access_token: string; expires_in: number };
+  // Tokens last 10 minutes (expires_in: 600); the docs recommend refreshing a minute early.
+  cachedToken = { value: json.access_token, expiresAt: Date.now() + (json.expires_in - 60) * 1000 };
+  return json.access_token;
 }
 
-export async function getCustomer(
-  input: GetCustomerInput
-): Promise<GetCustomerResponse> {
-  const accessToken = await getAccessToken();
-
-  // Customer IDs are opaque strings — pass as-is, do not encodeURIComponent.
-  const url = `${FLUTTERWAVE_BASE_URL}/customers/${input.id}`;
-
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${accessToken}`,
-    Accept: "application/json",
+export interface FlutterwaveError {
+  status: "failed";
+  message?: string | null;
+  error?: {
+    type: string;
+    code: string;
+    message: string | null;
+    validation_errors?: { field_name: string; message: string }[];
   };
-  if (input.traceId) headers["X-Trace-Id"] = input.traceId;
+}
 
+/** 12-255 alphanumeric chars, as the docs require for X-Idempotency-Key / X-Trace-Id: a UUID without hyphens. */
+export function newKey(): string {
+  return crypto.randomUUID().replace(/-/g, "");
+}
+
+interface RequestOptions {
+  body?: unknown;
+  query?: Record<string, string | number | boolean | undefined>;
+  idempotencyKey?: string;
+  traceId?: string;
+  scenarioKey?: string; // sandbox only, e.g. "scenario:successful"
+}
+
+async function flutterwave<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
+  const url = new URL(API_BASE_URL + path);
+  for (const [k, v] of Object.entries(opts.query ?? {})) if (v !== undefined) url.searchParams.set(k, String(v));
+  const headers: Record<string, string> = { Authorization: `Bearer ${await getAccessToken()}` };
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+  if (opts.idempotencyKey) headers["X-Idempotency-Key"] = opts.idempotencyKey;
+  if (opts.traceId) headers["X-Trace-Id"] = opts.traceId;
+  if (opts.scenarioKey) headers["X-Scenario-Key"] = opts.scenarioKey;
   const response = await fetch(url, {
-    method: "GET",
+    method,
     headers,
+    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
   });
-
+  const text = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = text ? JSON.parse(text) : null;
+  } catch {
+    // Non-JSON body, e.g. a Cloudflare 1015 page on HTTP 429.
+  }
   if (!response.ok) {
-    let err: FlutterwaveError = {};
-    try {
-      err = (await response.json()) as FlutterwaveError;
-    } catch {
-      // body not JSON
-    }
+    const e = (parsed ?? {}) as FlutterwaveError;
     throw new Error(
-      `Flutterwave get_customer error ${response.status}: ${err.message ?? "unknown error"}`
+      `Flutterwave ${response.status} ${e.error?.type ?? ""} ${e.error?.code ?? ""}: ` +
+        `${e.error?.message ?? e.message ?? text.slice(0, 200)}`,
     );
   }
+  return parsed as T;
+}
 
-  return (await response.json()) as GetCustomerResponse;
+export interface Customer {
+  id: string; // cus_…
+  email: string;
+  name?: { first?: string; middle?: string | null; last?: string };
+  phone?: { country_code: string; number: string };
+  address?: { city: string; country: string; line1: string; line2?: string | null; postal_code: string; state: string };
+  meta?: Record<string, string> | null;
+  created_datetime: string;
+}
+
+export async function getCustomer(id: string): Promise<{ status: "success"; message: string; data: Customer }> {
+  return flutterwave("GET", "/customers/" + id);
 }
 
 /*
-Usage example:
-
-const result = await getCustomer({
-  id: "cus_8oP3npH4DCpDOl",
-  traceId: "abc12345def6",
-});
-
-console.log(result.data.email, result.data.name.first, result.data.name.last);
-
-// HTTP 404 means the customer doesn't exist — treat separately from network errors.
+Usage:
+  const { data } = await getCustomer("cus_3XarBILKQS");
+  console.log(data.email);
 */

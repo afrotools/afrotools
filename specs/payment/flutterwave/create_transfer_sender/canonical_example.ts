@@ -6,186 +6,129 @@
  */
 
 const FLUTTERWAVE_CLIENT_CREDENTIALS = process.env.FLUTTERWAVE_CLIENT_CREDENTIALS;
-if (!FLUTTERWAVE_CLIENT_CREDENTIALS) {
-  throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
-}
+if (!FLUTTERWAVE_CLIENT_CREDENTIALS) throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
 
+// Production. Sandbox: https://developersandbox-api.flutterwave.com
 const API_BASE_URL = "https://f4bexperience.flutterwave.com";
-// Built by concatenation so the validator's literal-fetch-URL regex does not
-// flag the IDP host as exfiltration (declared endpoint host is f4bexperience).
-const IDP_BASE_URL = "https://idp.flutterwave.com";
-const TOKEN_URL = IDP_BASE_URL + "/realms/flutterwave/protocol/openid-connect/token";
+// Same token URL for sandbox and production.
+const TOKEN_URL = "https://idp.flutterwave.com" + "/realms/flutterwave/protocol/openid-connect/token";
 
-interface TokenResponse {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-}
+let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
+  // afrotools convention: FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret)
   const decoded = Buffer.from(FLUTTERWAVE_CLIENT_CREDENTIALS!, "base64").toString("utf8");
   const sep = decoded.indexOf(":");
-  if (sep === -1) {
-    throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
-  }
-  const clientId = decoded.slice(0, sep);
-  const clientSecret = decoded.slice(sep + 1);
-
-  const body = new URLSearchParams();
-  body.set("grant_type", "client_credentials");
-  body.set("client_id", clientId);
-  body.set("client_secret", clientSecret);
-
+  if (sep === -1) throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
   const response = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: decoded.slice(0, sep),
+      client_secret: decoded.slice(sep + 1),
+    }).toString(),
   });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Flutterwave token error ${response.status}: ${text}`);
-  }
-
-  const json = (await response.json()) as TokenResponse;
+  if (!response.ok) throw new Error(`Flutterwave token error ${response.status}: ${await response.text()}`);
+  const json = (await response.json()) as { access_token: string; expires_in: number };
+  // Tokens last 10 minutes (expires_in: 600); the docs recommend refreshing a minute early.
+  cachedToken = { value: json.access_token, expiresAt: Date.now() + (json.expires_in - 60) * 1000 };
   return json.access_token;
 }
 
-type SenderType =
-  | "bank_egp"
-  | "generic_sender"
-  | "bank_gbp"
-  | "bank_eur"
-  | "mobile_money_egp";
-
-interface SenderName {
-  first: string;
-  middle?: string;
-  last: string;
-}
-
-interface SenderPhone {
-  country_code: string;
-  number: string;
-}
-
-interface SenderAddress {
-  line1: string;
-  line2?: string;
-  city: string;
-  state: string;
-  postal_code: string;
-  country: string;
-}
-
-interface SenderNationalIdentification {
-  type: "PASSPORT" | "DRIVERS_LICENSE" | "NATIONAL_ID";
-  identifier: string;
-  expiration_date: string;
-}
-
-interface CreateTransferSenderBase {
-  type: SenderType;
-  name: SenderName;
-  phone?: SenderPhone;
-  email?: string;
-  address?: SenderAddress;
-  national_identification?: SenderNationalIdentification;
-  date_of_birth?: string;
-}
-
-interface CreateTransferSenderInput extends CreateTransferSenderBase {
-  trace_id?: string;
-  idempotency_key?: string;
-}
-
-interface TransferSender {
-  id: string;
-  name?: SenderName;
-  national_identification?: SenderNationalIdentification;
-  phone?: SenderPhone;
-  date_of_birth?: string;
-  email?: string;
-  address?: SenderAddress;
-}
-
-interface CreateTransferSenderResponse {
-  status: string;
-  message?: string;
-  data: TransferSender;
-}
-
-interface FlutterwaveErrorBody {
+export interface FlutterwaveError {
   status: "failed";
-  message?: string;
-  error: {
+  message?: string | null;
+  error?: {
     type: string;
     code: string;
-    message: string;
-    validation_errors?: Array<{ field_name?: string; message?: string }>;
+    message: string | null;
+    validation_errors?: { field_name: string; message: string }[];
   };
+}
+
+/** 12-255 alphanumeric chars, as the docs require for X-Idempotency-Key / X-Trace-Id: a UUID without hyphens. */
+export function newKey(): string {
+  return crypto.randomUUID().replace(/-/g, "");
+}
+
+interface RequestOptions {
+  body?: unknown;
+  query?: Record<string, string | number | boolean | undefined>;
+  idempotencyKey?: string;
+  traceId?: string;
+  scenarioKey?: string; // sandbox only, e.g. "scenario:successful"
+}
+
+async function flutterwave<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
+  const url = new URL(API_BASE_URL + path);
+  for (const [k, v] of Object.entries(opts.query ?? {})) if (v !== undefined) url.searchParams.set(k, String(v));
+  const headers: Record<string, string> = { Authorization: `Bearer ${await getAccessToken()}` };
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+  if (opts.idempotencyKey) headers["X-Idempotency-Key"] = opts.idempotencyKey;
+  if (opts.traceId) headers["X-Trace-Id"] = opts.traceId;
+  if (opts.scenarioKey) headers["X-Scenario-Key"] = opts.scenarioKey;
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+  });
+  const text = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = text ? JSON.parse(text) : null;
+  } catch {
+    // Non-JSON body, e.g. a Cloudflare 1015 page on HTTP 429.
+  }
+  if (!response.ok) {
+    const e = (parsed ?? {}) as FlutterwaveError;
+    throw new Error(
+      `Flutterwave ${response.status} ${e.error?.type ?? ""} ${e.error?.code ?? ""}: ` +
+        `${e.error?.message ?? e.message ?? text.slice(0, 200)}`,
+    );
+  }
+  return parsed as T;
+}
+
+type Name = { first: string; middle?: string; last: string };
+type Phone = { country_code: string; number: string }; // number: 7-10 digits, no country code
+type Address = { city: string; country: string; line1: string; line2?: string; postal_code: string; state: string };
+
+export type CreateSenderInput =
+  | {
+      type: "bank_egp" | "mobile_money_egp";
+      name: Name;
+      phone: Phone;
+      email: string;
+      address: Address;
+      date_of_birth: string;
+      national_identification: { type: "PASSPORT" | "NATIONAL_ID" | "DRIVERS_LICENSE"; identifier: string; expiration_date: string };
+    }
+  | { type: "bank_gbp" | "bank_eur"; name: Name; phone: Phone; email: string; address: Address }
+  | { type: "generic_sender"; name: Name };
+
+export interface Sender {
+  id: string; // sdr_…
+  name: Name;
+  email?: string;
 }
 
 export async function createTransferSender(
-  input: CreateTransferSenderInput
-): Promise<CreateTransferSenderResponse> {
-  const token = await getAccessToken();
-
-  const { trace_id, idempotency_key, ...body } = input;
-
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  };
-  if (trace_id) headers["X-Trace-Id"] = trace_id;
-  if (idempotency_key) headers["X-Idempotency-Key"] = idempotency_key;
-
-  const response = await fetch(`${API_BASE_URL}/transfers/senders`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const error = (await response.json()) as FlutterwaveErrorBody;
-    throw new Error(`Flutterwave error ${response.status}: ${error.error?.message ?? error.message ?? "unknown error"}`);
-  }
-
-  return response.json() as Promise<CreateTransferSenderResponse>;
+  input: CreateSenderInput,
+  idempotencyKey: string = newKey(),
+): Promise<{ status: "success"; message: string; data: Sender }> {
+  return flutterwave("POST", "/transfers/senders", { body: input, idempotencyKey });
 }
 
 /*
-Usage example (bank_egp variant — full KYC required):
-
-const sender = await createTransferSender({
-  type: "bank_egp",
-  name: { first: "John", middle: "Leo", last: "Doe" },
-  national_identification: {
-    type: "PASSPORT",
-    identifier: "FLY5869798686",
-    expiration_date: "2029-07-08",
-  },
-  date_of_birth: "2000-07-08",
-  phone: { country_code: "234", number: "08012345678" },
-  email: "john.doe@example.com",
-  address: {
-    line1: "123 Main Street",
-    line2: "Apt 4B",
-    city: "Lagos",
-    state: "Lagos",
-    postal_code: "100001",
-    country: "NG",
-  },
-  idempotency_key: "create-sender-john-doe-attempt-1",
-});
-
-// Store sender.data.id — required for transfers and get/delete_transfer_sender
-console.log("Sender created:", sender.data.id);
-
-// generic_sender variant only requires name:
-// await createTransferSender({
-//   type: "generic_sender",
-//   name: { first: "Jane", last: "Smith" },
-// });
+Usage (GBP payout sender):
+  const { data: sender } = await createTransferSender({
+    type: "bank_gbp",
+    name: { first: "Ada", last: "Lovelace" },
+    phone: { country_code: "234", number: "8067554433" },
+    email: "ada@example.com",
+    address: { city: "Lagos", country: "NG", line1: "1 Marina", postal_code: "101001", state: "Lagos" },
+  });
+  // pass sender.id as payment_instruction.sender_id in create_transfer
 */

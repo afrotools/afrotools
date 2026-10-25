@@ -204,6 +204,12 @@ test("payment spec with a currency not matching its countries fails validation",
   assert.match(stderr, /COHERENCE/);
 });
 
+test("legacy currency code SLL satisfies Sierra Leone", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { currency: ["SLL"] }, extraProvider: { country_code: ["SL"] } });
+  assert.equal(runValidate(dir).code, 0);
+});
+
 test("non-array currency fails validation outside payment", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
   writeFixtureSpec(dir, { status: "ready", extraSchema: { currency: "XOF" }, extraProvider: { category: "identity" } });

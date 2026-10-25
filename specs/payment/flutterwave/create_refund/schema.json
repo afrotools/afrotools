@@ -2,9 +2,25 @@
   "spec_version": "1.0",
   "provider_api_version": "v4",
   "capability": "create_refund",
-  "capability_type": "synchronous",
+  "capability_type": "asynchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,19 +32,30 @@
     "method": "POST",
     "url": "https://f4bexperience.flutterwave.com/refunds"
   },
-  "example_prompt": "Refund 12.34 of a successful Flutterwave charge as a customer-requested refund.",
+  "example_prompt": "Refund all or part of a successful Flutterwave charge and track the refund to completion.",
   "input_schema": {
     "type": "object",
-    "required": ["amount", "charge_id", "reason"],
+    "required": [
+      "amount",
+      "charge_id",
+      "reason"
+    ],
     "properties": {
       "amount": {
         "type": "number",
-        "minimum": 0.01,
-        "description": "Refund amount in decimal format. Must be >= 0.01 and not exceed the original charge amount."
+        "format": "decimal",
+        "description": "The payment amount in decimals.",
+        "minimum": 0.01
       },
       "charge_id": {
-        "type": "string",
-        "description": "Id of the charge to refund."
+        "description": "ID of the charge to refund",
+        "type": "string"
+      },
+      "meta": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
       },
       "reason": {
         "type": "string",
@@ -38,76 +65,150 @@
           "requested_by_customer",
           "expired_uncaptured_charge"
         ],
-        "description": "Reason for the refund."
-      },
-      "meta": {
-        "type": "object",
-        "description": "Optional key-value metadata object attached to the refund.",
-        "additionalProperties": { "type": "string" }
-      },
-      "trace_id": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "X-Trace-Id header value (12-255 chars). Required by the Flutterwave create-refund endpoint."
-      },
-      "idempotency_key": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "X-Idempotency-Key header value (12-255 chars) to prevent duplicate refund processing on retry."
+        "description": "Reason for the refund"
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
-      "status": { "type": "string", "enum": ["success"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
       "data": {
+        "description": "A refund of a previously created charge",
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "amount_refunded": { "type": "number" },
-          "charge_id": { "type": "string" },
+          "id": {
+            "description": "ID of the refund",
+            "type": "string"
+          },
+          "amount_refunded": {
+            "type": "number",
+            "format": "decimal",
+            "description": "The payment amount in decimals.",
+            "minimum": 0.01
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
           "reason": {
             "type": "string",
-            "enum": ["duplicate", "fraudulent", "requested_by_customer", "expired_uncaptured_charge"]
+            "enum": [
+              "duplicate",
+              "fraudulent",
+              "requested_by_customer",
+              "expired_uncaptured_charge"
+            ],
+            "description": "Reason for the refund"
           },
           "status": {
             "type": "string",
-            "enum": ["pending", "requires_action", "succeeded", "failed", "cancelled", "completed", "new"]
+            "enum": [
+              "pending",
+              "requires_action",
+              "succeeded",
+              "failed",
+              "cancelled",
+              "completed",
+              "new"
+            ],
+            "description": "Status of the refund"
           },
-          "meta": { "type": "object", "additionalProperties": { "type": "string" } },
-          "created_datetime": { "type": "string", "format": "date-time" }
+          "charge_id": {
+            "type": "string",
+            "description": "ID of the charge tied to this refund"
+          },
+          "created_datetime": {
+            "type": "string"
+          }
         }
       }
     }
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
-          "validation_errors": { "type": "array", "items": { "type": "object", "properties": { "field_name": { "type": "string" }, "message": { "type": "string" } } } }
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: 1402400 REFUND_AMOUNT_INVALID (more than the charge), 1403400 REFUND_CREATION_FAILED (charge still pending), 1404400 REFUND_ALREADY_COMPLETED."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "validation_errors": {
+            "type": "array",
+            "description": "On 400 validation errors.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
       }
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "Refund processing windows vary by payment method: card 3-15 days, mobile money 3-5 days, bank account ~24 hours. The HTTP response only confirms acceptance; final settlement comes later. Use get_refund to poll or the refund.completed webhook.",
-    "reason must be one of: duplicate, fraudulent, requested_by_customer, expired_uncaptured_charge. Any other value returns 400 REQUEST_NOT_VALID.",
-    "X-Trace-Id is required (12-255 chars) on this endpoint. Always also send X-Idempotency-Key on POST so retries do not create duplicate refunds.",
-    "Returns 201 with the created refund in data; the data object uses amount_refunded (not amount) and created_datetime (not created_at). 409 RESOURCE_CONFLICT typically means the charge has already been fully refunded or is in an incompatible state."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: send X-Idempotency-Key on this POST. Docs (Idempotency): \"For all `POST` endpoints, include an idempotency key in the request header (`X-Idempotency-Key`).\" The API reference marks it optional; the headers guide lists it under 'Mandatory API Headers'. A reused key replays the first response (\"the response will include the header `X-Idempotency-Cache-Hit: true`\"), so reuse the key when retrying the same operation and use a new one for a new operation. X-Trace-Id is optional. For both: \"It must be a string using only alphanumeric ASCII characters.\" \"Its length should be between 12 and 255 characters.\" The idempotency page also says \"We recommend using a **UUID** string as your idempotency key\": strip the UUID's hyphens to satisfy both.",
+    "Body: charge_id, amount (decimal), reason (duplicate | fraudulent | requested_by_customer | expired_uncaptured_charge), meta. Only successful charges can be refunded (1403400 otherwise).",
+    "Docs (Refunds): \"To initiate a part or partial refund, ensure that the refund amount is smaller than the transaction amount.\" Several partial refunds are allowed on one charge; their total can't exceed the charge amount (the guide's wording is \"equal to\"). \"The refund will be deducted from your available balance or the next settlement.\"",
+    "Lifecycle: Docs (Refunds): \"When a Refund is first initiated, its status is `new`.\" then pending, then succeeded or failed. The API's enum also has completed (the guide's own create example returns it), cancelled and requires_action. Treat succeeded / completed as refunded, failed / cancelled as not refunded, and requires_action as undocumented: escalate instead of polling forever. Treat any 2xx as created (the guide's sample is labelled 200 OK).",
+    "Final status: refund.completed webhook or get_refund. Open question: the guide mentions a `callbackurl` body field that the API reference does not define.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 1402400 REFUND_AMOUNT_INVALID (more than the charge), 1403400 REFUND_CREATION_FAILED (charge still pending), 1404400 REFUND_ALREADY_COMPLETED. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/refunds_post.md",
+    "source_reference": "Create a refund (POST /refunds)",
+    "extracted_at": "2026-10-24T23:15:07.000Z",
+    "snapshot_hash": "bcbeb4037cb5648a6fb44aa4ca34cd9cea489e18108f02cdfed837e630779c16",
+    "spans": [
+      "Create a refund",
+      "\"/refunds\""
+    ]
+  }
 }

@@ -4,7 +4,23 @@
   "capability": "create_transfer_recipient",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,129 +32,2696 @@
     "method": "POST",
     "url": "https://f4bexperience.flutterwave.com/transfers/recipients"
   },
-  "example_prompt": "Create a Flutterwave transfer recipient for a Nigerian bank account so payouts can be sent to that beneficiary.",
+  "example_prompt": "Save a Flutterwave payout beneficiary (Nigerian bank account, Ghana mobile money wallet, …) to pay them with create_transfer.",
   "input_schema": {
+    "oneOf": [
+      {
+        "type": "object",
+        "required": [
+          "bank",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_ngn"
+            ]
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "code"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "code": {
+                "description": "recipient bank code",
+                "type": "string",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "NGN"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "address",
+          "bank",
+          "name",
+          "national_identification",
+          "phone",
+          "type"
+        ],
+        "properties": {
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "national_identification": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "PASSPORT",
+                  "DRIVERS_LICENSE",
+                  "NATIONAL_ID"
+                ]
+              },
+              "identifier": {
+                "type": "string",
+                "minLength": 4,
+                "maxLength": 40
+              },
+              "expiration_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
+              }
+            },
+            "required": [
+              "identifier",
+              "type"
+            ],
+            "description": "Recipient government identification"
+          },
+          "phone": {
+            "type": "object",
+            "description": "The customer's mobile number.",
+            "required": [
+              "country_code",
+              "number"
+            ],
+            "properties": {
+              "country_code": {
+                "description": "The dialling country code e.g. 234 for NG.",
+                "type": "string",
+                "pattern": "^[0-9]{1,3}$"
+              },
+              "number": {
+                "description": "Unformatted 7-10-digit phone number without the country code.",
+                "type": "string",
+                "pattern": "^[0-9]{7,10}$"
+              }
+            }
+          },
+          "address": {
+            "type": "object",
+            "description": "Customer address information.",
+            "required": [
+              "city",
+              "country",
+              "line1",
+              "postal_code",
+              "state"
+            ],
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "The name of the city.",
+                "pattern": "^.+$"
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "postal_code": {
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region.",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "code"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 32,
+                "pattern": "^[a-zA-Z0-9]+$"
+              },
+              "code": {
+                "description": "recipient bank code",
+                "type": "string",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "EGP"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_egp"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "bank",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_etb"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "code"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "minLength": 7,
+                "maxLength": 24,
+                "pattern": "^[a-zA-Z0-9]+$"
+              },
+              "code": {
+                "description": "recipient bank code",
+                "type": "string",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "ETB"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "address",
+          "bank",
+          "email",
+          "name",
+          "phone",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_eur"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "phone": {
+            "type": "object",
+            "description": "The customer's mobile number.",
+            "required": [
+              "country_code",
+              "number"
+            ],
+            "properties": {
+              "country_code": {
+                "description": "The dialling country code e.g. 234 for NG.",
+                "type": "string",
+                "pattern": "^[0-9]{1,3}$"
+              },
+              "number": {
+                "description": "Unformatted 7-10-digit phone number without the country code.",
+                "type": "string",
+                "pattern": "^[0-9]{7,10}$"
+              }
+            }
+          },
+          "email": {
+            "type": "string",
+            "description": "The Customer's email address.",
+            "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+          },
+          "address": {
+            "type": "object",
+            "description": "Customer address information.",
+            "required": [
+              "city",
+              "country",
+              "line1",
+              "postal_code",
+              "state"
+            ],
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "The name of the city.",
+                "pattern": "^.+$"
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "postal_code": {
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region.",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "name",
+              "swift_code"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 35,
+                "pattern": "^[a-zA-Z0-9]+$"
+              },
+              "name": {
+                "description": "recipient bank name",
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 60
+              },
+              "swift_code": {
+                "description": "recipient bank swift code",
+                "type": "string",
+                "minLength": 4,
+                "maxLength": 15
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "EUR"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "address",
+          "bank",
+          "email",
+          "name",
+          "phone",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_gbp"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "phone": {
+            "type": "object",
+            "description": "The customer's mobile number.",
+            "required": [
+              "country_code",
+              "number"
+            ],
+            "properties": {
+              "country_code": {
+                "description": "The dialling country code e.g. 234 for NG.",
+                "type": "string",
+                "pattern": "^[0-9]{1,3}$"
+              },
+              "number": {
+                "description": "Unformatted 7-10-digit phone number without the country code.",
+                "type": "string",
+                "pattern": "^[0-9]{7,10}$"
+              }
+            }
+          },
+          "email": {
+            "type": "string",
+            "description": "The Customer's email address.",
+            "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+          },
+          "address": {
+            "type": "object",
+            "description": "Customer address information.",
+            "required": [
+              "city",
+              "country",
+              "line1",
+              "postal_code",
+              "state"
+            ],
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "The name of the city.",
+                "pattern": "^.+$"
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "postal_code": {
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region.",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "account_type",
+              "name",
+              "sort_code"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 35,
+                "pattern": "^[a-zA-Z0-9]+$"
+              },
+              "account_type": {
+                "description": "recipient account type",
+                "type": "string",
+                "enum": [
+                  "individual",
+                  "corporate"
+                ]
+              },
+              "name": {
+                "description": "recipient bank name",
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 60
+              },
+              "sort_code": {
+                "description": "recipient bank sort code",
+                "type": "string",
+                "minLength": 4,
+                "maxLength": 15
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "GBP"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "bank",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_ghs"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "code",
+              "branch"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "minLength": 7,
+                "maxLength": 35,
+                "pattern": "^[a-zA-Z0-9]+$"
+              },
+              "code": {
+                "description": "recipient bank code",
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "branch": {
+                "description": "recipient bank branch",
+                "type": "string",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "GHS"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "bank",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_mwk"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "code"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "minLength": 5,
+                "maxLength": 19,
+                "pattern": "^[a-zA-Z0-9]+$"
+              },
+              "code": {
+                "description": "recipient bank code",
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "branch": {
+                "description": "recipient bank branch",
+                "type": "string",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "MWK"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "address",
+          "bank",
+          "email",
+          "name",
+          "phone",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_usd"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "phone": {
+            "type": "object",
+            "description": "The customer's mobile number.",
+            "required": [
+              "country_code",
+              "number"
+            ],
+            "properties": {
+              "country_code": {
+                "description": "The dialling country code e.g. 234 for NG.",
+                "type": "string",
+                "pattern": "^[0-9]{1,3}$"
+              },
+              "number": {
+                "description": "Unformatted 7-10-digit phone number without the country code.",
+                "type": "string",
+                "pattern": "^[0-9]{7,10}$"
+              }
+            }
+          },
+          "email": {
+            "type": "string",
+            "description": "Recipient email address",
+            "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+          },
+          "address": {
+            "type": "object",
+            "description": "Customer address information.",
+            "required": [
+              "city",
+              "country",
+              "line1",
+              "postal_code",
+              "state"
+            ],
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "The name of the city.",
+                "pattern": "^.+$"
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "postal_code": {
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region.",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "account_type",
+              "code",
+              "swift_code",
+              "routing_number"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "minLength": 5,
+                "maxLength": 17,
+                "pattern": "^[a-zA-Z0-9]+$"
+              },
+              "code": {
+                "description": "recipient bank code",
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "account_type": {
+                "description": "recipient account type",
+                "type": "string",
+                "enum": [
+                  "checking",
+                  "savings"
+                ]
+              },
+              "routing_number": {
+                "description": "recipient bank routing number",
+                "type": "string",
+                "minLength": 6,
+                "maxLength": 9
+              },
+              "swift_code": {
+                "description": "recipient bank swift code",
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 11
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "USD"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "address",
+          "bank",
+          "email",
+          "name",
+          "phone",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_zar"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "phone": {
+            "type": "object",
+            "description": "The customer's mobile number.",
+            "required": [
+              "country_code",
+              "number"
+            ],
+            "properties": {
+              "country_code": {
+                "description": "The dialling country code e.g. 234 for NG.",
+                "type": "string",
+                "pattern": "^[0-9]{1,3}$"
+              },
+              "number": {
+                "description": "Unformatted 7-10-digit phone number without the country code.",
+                "type": "string",
+                "pattern": "^[0-9]{7,10}$"
+              }
+            }
+          },
+          "email": {
+            "type": "string",
+            "description": "The Customer's email address.",
+            "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+          },
+          "address": {
+            "type": "object",
+            "description": "Customer address information.",
+            "required": [
+              "city",
+              "country",
+              "line1",
+              "postal_code",
+              "state"
+            ],
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "The name of the city.",
+                "pattern": "^.+$"
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "postal_code": {
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region.",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "code"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "minLength": 7,
+                "maxLength": 11,
+                "pattern": "^[a-zA-Z0-9]+$"
+              },
+              "code": {
+                "description": "recipient bank code",
+                "type": "string",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "ZAR"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "bank",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_kes"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "code"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "minLength": 7,
+                "maxLength": 24,
+                "pattern": "^[a-zA-Z0-9]+$"
+              },
+              "code": {
+                "description": "recipient bank code",
+                "type": "string",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "KES"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "bank",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_rwf"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "code",
+              "branch"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "minLength": 7,
+                "maxLength": 35,
+                "pattern": "^[a-zA-Z0-9]+$"
+              },
+              "code": {
+                "description": "recipient bank code",
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "branch": {
+                "description": "recipient bank branch",
+                "type": "string",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "RWF"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "bank",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_sll"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "code",
+              "branch"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "minLength": 7,
+                "maxLength": 35,
+                "pattern": "^[a-zA-Z0-9]+$"
+              },
+              "code": {
+                "description": "recipient bank code",
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "branch": {
+                "description": "recipient bank branch",
+                "type": "string",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "SLL"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "bank",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_ugx"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "code",
+              "branch"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "minLength": 7,
+                "maxLength": 35,
+                "pattern": "^[a-zA-Z0-9]+$"
+              },
+              "code": {
+                "description": "recipient bank code",
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "branch": {
+                "description": "recipient bank branch",
+                "type": "string",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "UGX"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "bank",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_xaf"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "code",
+              "branch"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "minLength": 7,
+                "maxLength": 35,
+                "pattern": "^[a-zA-Z0-9]+$"
+              },
+              "code": {
+                "description": "recipient bank code",
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "branch": {
+                "description": "recipient bank branch",
+                "type": "string",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "XAF"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "bank",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_xof"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "bank": {
+            "type": "object",
+            "required": [
+              "account_number",
+              "code",
+              "branch"
+            ],
+            "properties": {
+              "account_number": {
+                "description": "recipient account number",
+                "type": "string",
+                "minLength": 7,
+                "maxLength": 35,
+                "pattern": "^[a-zA-Z0-9]+$"
+              },
+              "code": {
+                "description": "recipient bank code",
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "branch": {
+                "description": "recipient bank branch",
+                "type": "string",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "XOF"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "mobile_money",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "mobile_money_etb"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "mobile_money": {
+            "type": "object",
+            "required": [
+              "network",
+              "msisdn"
+            ],
+            "properties": {
+              "network": {
+                "description": "recipient network",
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 25,
+                "pattern": "^[a-zA-Z0-9]*$"
+              },
+              "msisdn": {
+                "description": "recipient phone number",
+                "type": "string",
+                "minLength": 6,
+                "maxLength": 25,
+                "pattern": "^[0-9]+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "ETB"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "mobile_money",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "mobile_money_ghs"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "mobile_money": {
+            "type": "object",
+            "required": [
+              "network",
+              "msisdn"
+            ],
+            "properties": {
+              "network": {
+                "description": "recipient network",
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 25,
+                "pattern": "^[a-zA-Z0-9]*$"
+              },
+              "msisdn": {
+                "description": "recipient phone number",
+                "type": "string",
+                "minLength": 6,
+                "maxLength": 25,
+                "pattern": "^[0-9]+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "GHS"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "mobile_money",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "mobile_money_kes"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "mobile_money": {
+            "type": "object",
+            "required": [
+              "network",
+              "msisdn"
+            ],
+            "properties": {
+              "network": {
+                "description": "recipient network",
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 25,
+                "pattern": "^[a-zA-Z0-9]*$"
+              },
+              "msisdn": {
+                "description": "recipient phone number",
+                "type": "string",
+                "minLength": 6,
+                "maxLength": 25,
+                "pattern": "^[0-9]+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "KES"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "mobile_money",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "mobile_money_rwf"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "mobile_money": {
+            "type": "object",
+            "required": [
+              "network",
+              "msisdn"
+            ],
+            "properties": {
+              "network": {
+                "description": "recipient network",
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 25,
+                "pattern": "^[a-zA-Z0-9]*$"
+              },
+              "msisdn": {
+                "description": "recipient phone number",
+                "type": "string",
+                "minLength": 6,
+                "maxLength": 25,
+                "pattern": "^[0-9]+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "RWF"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "mobile_money",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "mobile_money_tzs"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "mobile_money": {
+            "type": "object",
+            "required": [
+              "network",
+              "msisdn"
+            ],
+            "properties": {
+              "network": {
+                "description": "recipient network",
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 25,
+                "pattern": "^[a-zA-Z0-9]*$"
+              },
+              "msisdn": {
+                "description": "recipient phone number",
+                "type": "string",
+                "minLength": 6,
+                "maxLength": 25,
+                "pattern": "^[0-9]+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "TZS"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "mobile_money",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "mobile_money_ugx"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "mobile_money": {
+            "type": "object",
+            "required": [
+              "network",
+              "msisdn"
+            ],
+            "properties": {
+              "network": {
+                "description": "recipient network",
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 25,
+                "pattern": "^[a-zA-Z0-9]*$"
+              },
+              "msisdn": {
+                "description": "recipient phone number",
+                "type": "string",
+                "minLength": 6,
+                "maxLength": 25,
+                "pattern": "^[0-9]+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "UGX"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "mobile_money",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "mobile_money_zmw"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "mobile_money": {
+            "type": "object",
+            "required": [
+              "network",
+              "msisdn"
+            ],
+            "properties": {
+              "network": {
+                "description": "recipient network",
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 25,
+                "pattern": "^[a-zA-Z0-9]*$"
+              },
+              "msisdn": {
+                "description": "recipient phone number",
+                "type": "string",
+                "minLength": 6,
+                "maxLength": 25,
+                "pattern": "^[0-9]+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "ZMW"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "address",
+          "mobile_money",
+          "name",
+          "national_identification",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "mobile_money_egp"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "national_identification": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "PASSPORT",
+                  "DRIVERS_LICENSE",
+                  "NATIONAL_ID"
+                ]
+              },
+              "identifier": {
+                "type": "string",
+                "minLength": 4,
+                "maxLength": 40
+              },
+              "expiration_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
+              }
+            },
+            "required": [
+              "identifier",
+              "type"
+            ],
+            "description": "Recipient government identification"
+          },
+          "address": {
+            "type": "object",
+            "description": "Customer address information.",
+            "required": [
+              "city",
+              "country",
+              "line1",
+              "postal_code",
+              "state"
+            ],
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "The name of the city.",
+                "pattern": "^.+$"
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "postal_code": {
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region.",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "mobile_money": {
+            "type": "object",
+            "required": [
+              "network",
+              "msisdn"
+            ],
+            "properties": {
+              "network": {
+                "description": "recipient network",
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 25,
+                "pattern": "^[a-zA-Z0-9]*$"
+              },
+              "msisdn": {
+                "description": "recipient phone number",
+                "type": "string",
+                "minLength": 6,
+                "maxLength": 25,
+                "pattern": "^[0-9]+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "EGP"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "mobile_money",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "mobile_money_xaf"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "mobile_money": {
+            "type": "object",
+            "required": [
+              "network",
+              "country",
+              "msisdn"
+            ],
+            "properties": {
+              "network": {
+                "description": "recipient network",
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 25,
+                "pattern": "^[a-zA-Z0-9]*$"
+              },
+              "country": {
+                "description": "recipient country",
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "msisdn": {
+                "description": "recipient phone number",
+                "type": "string",
+                "minLength": 6,
+                "maxLength": 25,
+                "pattern": "^[0-9]+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "XAF"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "required": [
+          "mobile_money",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "mobile_money_xof"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "mobile_money": {
+            "type": "object",
+            "required": [
+              "network",
+              "country",
+              "msisdn"
+            ],
+            "properties": {
+              "network": {
+                "description": "recipient network",
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 25,
+                "pattern": "^[a-zA-Z0-9]*$"
+              },
+              "country": {
+                "description": "recipient country",
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "msisdn": {
+                "description": "recipient phone number",
+                "type": "string",
+                "minLength": 6,
+                "maxLength": 25,
+                "pattern": "^[0-9]+$"
+              }
+            }
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "XOF"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "response_schema": {
     "type": "object",
-    "required": ["type"],
-    "description": "Discriminated union keyed by `type`. The required sibling object (bank, mobile_money, ...) is determined by the value of `type`. Currency-specific bank types: bank_ngn, bank_egp, bank_etb, bank_eur, bank_gbp, bank_ghs, bank_mwk, bank_usd, bank_zar, bank_kes, bank_rwf, bank_sll, bank_ugx, bank_xaf, bank_xof. Currency-specific mobile money types: mobile_money_etb, mobile_money_ghs, mobile_money_kes, mobile_money_rwf, mobile_money_tzs, mobile_money_ugx, mobile_money_zmw, mobile_money_egp, mobile_money_xaf, mobile_money_xof.",
     "properties": {
-      "type": {
+      "status": {
         "type": "string",
-        "description": "Recipient type discriminator (e.g. \"bank_ngn\", \"mobile_money_etb\")."
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
+      "data": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "bank",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "description": "ID of the transfer recipient",
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "bank"
+                ]
+              },
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "currency": {
+                "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                "type": "string"
+              },
+              "national_identification": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "PASSPORT",
+                      "DRIVERS_LICENSE",
+                      "NATIONAL_ID"
+                    ]
+                  },
+                  "identifier": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 40
+                  },
+                  "expiration_date": {
+                    "type": "string"
+                  }
+                },
+                "description": "Sender government identification"
+              },
+              "phone": {
+                "$ref": "#/$defs/phone"
+              },
+              "date_of_birth": {
+                "$ref": "#/$defs/date_of_birth"
+              },
+              "email": {
+                "type": "string",
+                "description": "The Customer's email address."
+              },
+              "address": {
+                "$ref": "#/$defs/address"
+              },
+              "bank": {
+                "type": "object",
+                "required": [
+                  "account_number",
+                  "code"
+                ],
+                "properties": {
+                  "account_number": {
+                    "description": "The Recipient's account number.",
+                    "type": "string"
+                  },
+                  "account_type": {
+                    "description": "The Recipient's account type.",
+                    "type": "string",
+                    "enum": [
+                      "checking",
+                      "savings",
+                      "individual",
+                      "corporate"
+                    ]
+                  },
+                  "code": {
+                    "description": "The Recipient's bank code.",
+                    "type": "string"
+                  },
+                  "branch": {
+                    "description": "The Recipient's bank branch.",
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "The Recipient's bank name.",
+                    "type": "string"
+                  },
+                  "routing_number": {
+                    "description": "The Recipient bank routing number.",
+                    "type": "string"
+                  },
+                  "swift_code": {
+                    "description": "The Recipient bank swift code.",
+                    "type": "string"
+                  },
+                  "sort_code": {
+                    "description": "The Recipient bank sort code.",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "description": "ID of the transfer recipient",
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "mobile_money"
+                ]
+              },
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "currency": {
+                "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                "type": "string"
+              },
+              "national_identification": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "PASSPORT",
+                      "DRIVERS_LICENSE",
+                      "NATIONAL_ID"
+                    ]
+                  },
+                  "identifier": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 40
+                  },
+                  "expiration_date": {
+                    "type": "string"
+                  }
+                },
+                "description": "Sender government identification"
+              },
+              "phone": {
+                "$ref": "#/$defs/phone"
+              },
+              "date_of_birth": {
+                "$ref": "#/$defs/date_of_birth"
+              },
+              "email": {
+                "$ref": "#/$defs/email"
+              },
+              "address": {
+                "$ref": "#/$defs/address"
+              },
+              "mobile_money": {
+                "type": "object",
+                "required": [
+                  "network",
+                  "country",
+                  "msisdn"
+                ],
+                "properties": {
+                  "network": {
+                    "description": "recipient network",
+                    "type": "string"
+                  },
+                  "country": {
+                    "description": "recipient country",
+                    "type": "string"
+                  },
+                  "msisdn": {
+                    "description": "recipient phone number",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "ID of the transfer recipient",
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "wallet"
+                ]
+              },
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "currency": {
+                "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                "type": "string"
+              },
+              "wallet": {
+                "type": "object",
+                "required": [
+                  "provider",
+                  "identifier"
+                ],
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "enum": [
+                      "flutterwave"
+                    ],
+                    "description": "Specifies the payment or service provider. Currently, only \"flutterwave\" is supported"
+                  },
+                  "identifier": {
+                    "description": "A unique identifier assigned to the merchant by the payment or service provider.",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "ID of the transfer recipient",
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "cash_pickup"
+                ]
+              },
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "currency": {
+                "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                "type": "string"
+              },
+              "national_identification": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "PASSPORT",
+                      "DRIVERS_LICENSE",
+                      "NATIONAL_ID"
+                    ]
+                  },
+                  "identifier": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 40
+                  },
+                  "expiration_date": {
+                    "type": "string"
+                  }
+                },
+                "description": "Sender government identification"
+              },
+              "phone": {
+                "$ref": "#/$defs/phone"
+              },
+              "date_of_birth": {
+                "$ref": "#/$defs/date_of_birth"
+              },
+              "email": {
+                "type": "string",
+                "description": "The Customer's email address."
+              },
+              "address": {
+                "$ref": "#/$defs/address"
+              },
+              "cash_pickup": {
+                "type": "object",
+                "required": [
+                  "provider"
+                ],
+                "properties": {
+                  "provider": {
+                    "description": "cashpickup provider",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "ID of the transfer recipient",
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "crypto"
+                ]
+              },
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "currency": {
+                "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                "type": "string"
+              },
+              "crypto": {
+                "type": "object",
+                "required": [
+                  "network",
+                  "address"
+                ],
+                "properties": {
+                  "network": {
+                    "description": "recipient crypto network",
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 25
+                  },
+                  "address": {
+                    "description": "recipient crypto address",
+                    "type": "string",
+                    "minLength": 26,
+                    "maxLength": 64
+                  }
+                }
+              }
+            },
+            "required": [
+              "type"
+            ]
+          }
+        ]
+      }
+    },
+    "$defs": {
+      "address": {
+        "type": "object",
+        "description": "Customer address information.",
+        "required": [
+          "line1",
+          "city",
+          "state",
+          "country",
+          "postal_code"
+        ],
+        "properties": {
+          "city": {
+            "type": "string",
+            "description": "The name of the city."
+          },
+          "country": {
+            "description": "ISO2 country code",
+            "type": "string"
+          },
+          "line1": {
+            "type": "string",
+            "description": "The first line of the Customer's address."
+          },
+          "line2": {
+            "type": "string",
+            "description": "The second line of the Customer's address."
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "description": "The state or region."
+          }
+        }
+      },
+      "date_of_birth": {
+        "type": "string",
+        "description": "The customer's birthdate in ISO 8601 (YYYY-MM-DD) format."
+      },
+      "email": {
+        "type": "string",
+        "description": "The Customer's email address."
       },
       "name": {
         "type": "object",
-        "description": "Recipient name. Required for mobile_money types; optional for bank types.",
+        "description": "The Customer's full name.",
         "properties": {
-          "first": { "type": "string", "minLength": 2, "maxLength": 50 },
-          "middle": { "type": "string", "minLength": 2, "maxLength": 50 },
-          "last": { "type": "string", "minLength": 2, "maxLength": 50 }
-        }
-      },
-      "bank": {
-        "type": "object",
-        "description": "Required when type is a bank_* variant. Required fields: account_number (digits only) and code. NGN minimum requires account_number + code.",
-        "properties": {
-          "account_number": { "type": "string", "description": "Account number (digits only)." },
-          "code": { "type": "string", "description": "Bank code (look up via list_banks)." },
-          "name": { "type": "string", "description": "Bank name." },
-          "branch": { "type": "string" },
-          "routing_number": { "type": "string" },
-          "swift_code": { "type": "string" },
-          "sort_code": { "type": "string" },
-          "account_type": { "type": "string", "enum": ["checking", "savings", "individual", "corporate"] }
-        }
-      },
-      "mobile_money": {
-        "type": "object",
-        "description": "Required when type is a mobile_money_* variant. Required: network and msisdn (6-25 digits).",
-        "properties": {
-          "network": { "type": "string", "description": "Mobile money network (e.g. MTN, AIRTEL)." },
-          "msisdn": { "type": "string", "description": "Phone number, digits only, 6-25 chars." },
-          "country": { "type": "string", "description": "ISO 3166-1 alpha-2." }
+          "first": {
+            "type": "string",
+            "description": "The Customer's first name."
+          },
+          "middle": {
+            "type": "string",
+            "description": "The Customer's middle name."
+          },
+          "last": {
+            "type": "string",
+            "description": "The Customer's last name."
+          }
         }
       },
       "phone": {
         "type": "object",
+        "description": "The customer's mobile number.",
+        "required": [
+          "number",
+          "country_code"
+        ],
         "properties": {
-          "country_code": { "type": "string" },
-          "number": { "type": "string" }
-        }
-      },
-      "email": { "type": "string", "format": "email" },
-      "address": {
-        "type": "object",
-        "properties": {
-          "line1": { "type": "string" },
-          "line2": { "type": "string" },
-          "city": { "type": "string" },
-          "state": { "type": "string" },
-          "country": { "type": "string", "description": "ISO 3166-1 alpha-2." },
-          "postal_code": { "type": "string" }
-        }
-      },
-      "date_of_birth": { "type": "string", "description": "YYYY-MM-DD." },
-      "national_identification": {
-        "type": "object",
-        "properties": {
-          "type": { "type": "string", "enum": ["PASSPORT", "DRIVERS_LICENSE", "NATIONAL_ID"] },
-          "identifier": { "type": "string", "minLength": 4, "maxLength": 40 },
-          "expiration_date": { "type": "string", "description": "YYYY-MM-DD." }
-        }
-      },
-      "trace_id": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Required X-Trace-Id header value for request correlation."
-      },
-      "idempotency_key": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Optional X-Idempotency-Key header value. Same key returns the original response."
-      }
-    }
-  },
-  "response_schema": {
-    "type": "object",
-    "required": ["status", "data"],
-    "properties": {
-      "status": { "type": "string", "enum": ["success", "failed"] },
-      "message": { "type": "string" },
-      "data": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "description": "Recipient id. Store this — required for get/delete_transfer_recipient and to issue transfers." },
-          "type": { "type": "string", "description": "Recipient type. One of: bank, mobile_money, wallet, cash_pickup, crypto." },
-          "name": {
-            "type": ["object", "null"],
-            "properties": {
-              "first": { "type": "string" },
-              "middle": { "type": "string" },
-              "last": { "type": "string" }
-            }
+          "country_code": {
+            "description": "The dialling country code e.g. 234 for NG.",
+            "type": "string"
           },
-          "currency": { "type": "string", "description": "ISO 4217 currency code." },
-          "bank": {
-            "type": ["object", "null"],
-            "properties": {
-              "account_number": { "type": "string" },
-              "code": { "type": "string" },
-              "name": { "type": "string" },
-              "branch": { "type": "string" },
-              "routing_number": { "type": "string" },
-              "swift_code": { "type": "string" },
-              "sort_code": { "type": "string" }
-            }
-          },
-          "mobile_money": {
-            "type": ["object", "null"],
-            "properties": {
-              "network": { "type": "string" },
-              "country": { "type": "string" },
-              "msisdn": { "type": "string" }
-            }
+          "number": {
+            "description": "Unformatted 7-10-digit phone number without the country code.",
+            "type": "string"
           }
         }
       }
@@ -146,24 +2729,53 @@
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: 270409 RECIPIENT_ALREADY_EXISTS, 252400 UNKNOWN_BANK_CODE, 251400 INVALID_ACCOUNT."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "validation_errors": {
             "type": "array",
+            "description": "On 400 validation errors.",
             "items": {
               "type": "object",
               "properties": {
-                "field_name": { "type": "string" },
-                "message": { "type": "string" }
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -172,12 +2784,23 @@
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "Request body is a discriminated union keyed by `type` — the value determines which sibling object is required. For example, type=\"bank_ngn\" requires a `bank` object with account_number + code; type=\"mobile_money_etb\" requires `name.first` + `name.last` + `mobile_money.network` + `mobile_money.msisdn`. There is no generic `details` field.",
-    "Use the currency-specific type variant (e.g. bank_ngn, bank_eur, mobile_money_etb) — not a plain \"bank\" or \"mobile_money\" string. The variant determines validation rules and supported corridors.",
-    "X-Trace-Id is REQUIRED (not optional) on this endpoint and must be 12-255 characters. Generate a UUID per request for correlation; omitting it returns a 400 REQUEST_NOT_VALID.",
-    "Successful creation returns HTTP 201, not 200. The response.data echoes the recipient with sibling keys (bank, mobile_money) populated; use response.data.id for subsequent get/delete and to target transfers.",
-    "Pass X-Idempotency-Key (12-255 chars) on retry-prone networks; replays return the original response instead of creating a duplicate recipient.",
-    "Recipient IDs returned are opaque strings. Store the id field — do not apply encodeURIComponent when constructing path URLs for get/delete."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: send X-Idempotency-Key on this POST. Docs (Idempotency): \"For all `POST` endpoints, include an idempotency key in the request header (`X-Idempotency-Key`).\" The API reference marks it optional; the headers guide lists it under 'Mandatory API Headers'. A reused key replays the first response (\"the response will include the header `X-Idempotency-Cache-Hit: true`\"), so reuse the key when retrying the same operation and use a new one for a new operation. X-Trace-Id is optional. For both: \"It must be a string using only alphanumeric ASCII characters.\" \"Its length should be between 12 and 255 characters.\" The idempotency page also says \"We recommend using a **UUID** string as your idempotency key\": strip the UUID's hyphens to satisfy both.",
+    "type picks the corridor and its required fields (one schema branch per type): bank_ngn needs only bank{account_number, code}; bank_ghs / rwf / sll / ugx / xaf / xof need name + bank{account_number, code, branch}; bank_etb / kes / mwk need name + bank{account_number, code} (mwk: branch optional); bank_eur needs name, phone, email, address + bank{account_number, name, swift_code}; bank_gbp needs name, phone, email, address + bank{account_number, account_type, name, sort_code} (no swift_code); bank_usd needs name, phone, email, address + bank{account_number, code, account_type, routing_number, swift_code}; bank_zar and bank_egp need full KYC. mobile_money_* need name + mobile_money{network, msisdn}; mobile_money_egp also national_identification + address. Names: ASCII letters, 2-50 characters (^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$), so transliterate accented names.",
+    "Mobile money: Docs (Mobile Money Transfers): \"The `msisdn` field must contain the recipient’s mobile number **starting with the country code**.\" \"For `XAF` and `XOF` transfers, include the country field explicitly in the request.\"",
+    "Codes: bank.code comes from list_banks (the bank's code, not its id); mobile_money.network from list_mobile_networks; bank.branch from list_bank_branches. Docs (General Transfer Flow): \"For some countries (e.g., Ghana), you may also need to call the [retrieve bank branches](/v4.0/reference/bank_branches_get) endpoint to get branch codes.\"",
+    "This endpoint only creates bank_* and mobile_money_* recipients. Wallet payouts go through create_orchestrator_transfer; cash pickup and crypto exist in the API but are not covered by these specs.",
+    "Store data.id (rcb_… for bank) for create_transfer. Creating the same beneficiary twice returns 270409 RECIPIENT_ALREADY_EXISTS: reuse the existing id (list_transfer_recipients).",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 270409 RECIPIENT_ALREADY_EXISTS, 252400 UNKNOWN_BANK_CODE, 251400 INVALID_ACCOUNT. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/transfers_recipients_create.md",
+    "source_reference": "Create a transfer recipient (POST /transfers/recipients)",
+    "extracted_at": "2026-10-24T23:15:13.000Z",
+    "snapshot_hash": "086f0e69cd8175e2a49faf003bddc8ced157bc203f49932c30eb77b03f7a7a04",
+    "spans": [
+      "Create a transfer recipient",
+      "\"/transfers/recipients\""
+    ]
+  }
 }

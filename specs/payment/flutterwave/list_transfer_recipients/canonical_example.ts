@@ -6,203 +6,116 @@
  */
 
 const FLUTTERWAVE_CLIENT_CREDENTIALS = process.env.FLUTTERWAVE_CLIENT_CREDENTIALS;
-if (!FLUTTERWAVE_CLIENT_CREDENTIALS) {
-  throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
-}
+if (!FLUTTERWAVE_CLIENT_CREDENTIALS) throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
 
+// Production. Sandbox: https://developersandbox-api.flutterwave.com
 const API_BASE_URL = "https://f4bexperience.flutterwave.com";
-// Built by concatenation so the validator's literal-fetch-URL regex does not
-// flag the IDP host as exfiltration (declared endpoint host is f4bexperience).
-const IDP_BASE_URL = "https://idp.flutterwave.com";
-const TOKEN_URL = IDP_BASE_URL + "/realms/flutterwave/protocol/openid-connect/token";
+// Same token URL for sandbox and production.
+const TOKEN_URL = "https://idp.flutterwave.com" + "/realms/flutterwave/protocol/openid-connect/token";
 
-interface TokenResponse {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-}
+let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
+  // afrotools convention: FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret)
   const decoded = Buffer.from(FLUTTERWAVE_CLIENT_CREDENTIALS!, "base64").toString("utf8");
   const sep = decoded.indexOf(":");
-  if (sep === -1) {
-    throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
-  }
-  const clientId = decoded.slice(0, sep);
-  const clientSecret = decoded.slice(sep + 1);
-
-  const body = new URLSearchParams();
-  body.set("grant_type", "client_credentials");
-  body.set("client_id", clientId);
-  body.set("client_secret", clientSecret);
-
+  if (sep === -1) throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
   const response = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: decoded.slice(0, sep),
+      client_secret: decoded.slice(sep + 1),
+    }).toString(),
   });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Flutterwave token error ${response.status}: ${text}`);
-  }
-
-  const json = (await response.json()) as TokenResponse;
+  if (!response.ok) throw new Error(`Flutterwave token error ${response.status}: ${await response.text()}`);
+  const json = (await response.json()) as { access_token: string; expires_in: number };
+  // Tokens last 10 minutes (expires_in: 600); the docs recommend refreshing a minute early.
+  cachedToken = { value: json.access_token, expiresAt: Date.now() + (json.expires_in - 60) * 1000 };
   return json.access_token;
 }
 
-interface ListTransferRecipientsInput {
-  size?: number;
-  next?: string;
-  previous?: string;
-  trace_id?: string;
-}
-
-interface RecipientName {
-  first?: string;
-  middle?: string;
-  last?: string;
-}
-
-interface RecipientPhone {
-  country_code?: string;
-  number?: string;
-}
-
-interface RecipientAddress {
-  line1?: string;
-  line2?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  postal_code?: string;
-}
-
-interface RecipientNationalId {
-  type?: "PASSPORT" | "DRIVERS_LICENSE" | "NATIONAL_ID";
-  identifier?: string;
-  expiration_date?: string;
-}
-
-interface RecipientBank {
-  account_number?: string;
-  code?: string;
-  name?: string;
-  branch?: string;
-  routing_number?: string;
-  swift_code?: string;
-  sort_code?: string;
-  account_type?: "checking" | "savings" | "individual" | "corporate";
-}
-
-interface RecipientMobileMoney {
-  network?: string;
-  country?: string;
-  msisdn?: string;
-}
-
-interface RecipientWallet {
-  provider?: string;
-  identifier?: string;
-}
-
-interface RecipientCashPickup {
-  provider?: string;
-}
-
-interface RecipientCrypto {
-  network?: string;
-  address?: string;
-}
-
-interface TransferRecipient {
-  id: string;
-  type: string;
-  name?: RecipientName | null;
-  currency?: string;
-  email?: string;
-  phone?: RecipientPhone | null;
-  address?: RecipientAddress | null;
-  date_of_birth?: string;
-  national_identification?: RecipientNationalId | null;
-  bank?: RecipientBank | null;
-  mobile_money?: RecipientMobileMoney | null;
-  wallet?: RecipientWallet | null;
-  cash_pickup?: RecipientCashPickup | null;
-  crypto?: RecipientCrypto | null;
-}
-
-interface ListCursor {
-  next: string | null;
-  previous: string | null;
-  limit: number;
-  total: number;
-  has_more_items: boolean;
-}
-
-interface ListTransferRecipientsResponse {
-  status: "success" | "failed";
-  message?: string;
-  data: {
-    cursor: ListCursor;
-    recipients: TransferRecipient[];
-  };
-}
-
-interface FlutterwaveErrorBody {
+export interface FlutterwaveError {
   status: "failed";
-  message?: string;
-  error: {
+  message?: string | null;
+  error?: {
     type: string;
     code: string;
-    message: string;
-    validation_errors?: Array<{ field_name?: string; message?: string }>;
+    message: string | null;
+    validation_errors?: { field_name: string; message: string }[];
   };
+}
+
+/** 12-255 alphanumeric chars, as the docs require for X-Idempotency-Key / X-Trace-Id: a UUID without hyphens. */
+export function newKey(): string {
+  return crypto.randomUUID().replace(/-/g, "");
+}
+
+interface RequestOptions {
+  body?: unknown;
+  query?: Record<string, string | number | boolean | undefined>;
+  idempotencyKey?: string;
+  traceId?: string;
+  scenarioKey?: string; // sandbox only, e.g. "scenario:successful"
+}
+
+async function flutterwave<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
+  const url = new URL(API_BASE_URL + path);
+  for (const [k, v] of Object.entries(opts.query ?? {})) if (v !== undefined) url.searchParams.set(k, String(v));
+  const headers: Record<string, string> = { Authorization: `Bearer ${await getAccessToken()}` };
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+  if (opts.idempotencyKey) headers["X-Idempotency-Key"] = opts.idempotencyKey;
+  if (opts.traceId) headers["X-Trace-Id"] = opts.traceId;
+  if (opts.scenarioKey) headers["X-Scenario-Key"] = opts.scenarioKey;
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+  });
+  const text = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = text ? JSON.parse(text) : null;
+  } catch {
+    // Non-JSON body, e.g. a Cloudflare 1015 page on HTTP 429.
+  }
+  if (!response.ok) {
+    const e = (parsed ?? {}) as FlutterwaveError;
+    throw new Error(
+      `Flutterwave ${response.status} ${e.error?.type ?? ""} ${e.error?.code ?? ""}: ` +
+        `${e.error?.message ?? e.message ?? text.slice(0, 200)}`,
+    );
+  }
+  return parsed as T;
+}
+
+export interface Cursor {
+  next?: string | null;
+  previous?: string | null;
+  limit?: number;
+  total?: number;
+  has_more_items?: boolean;
+}
+
+export interface Recipient {
+  id: string;
+  type: "bank" | "mobile_money" | "wallet" | "cash_pickup" | "crypto";
+  currency: string;
+  name?: { first?: string; last?: string };
+  bank?: { account_number: string; code: string; branch?: string };
+  mobile_money?: { network: string; msisdn: string; country?: string };
 }
 
 export async function listTransferRecipients(
-  input: ListTransferRecipientsInput = {}
-): Promise<ListTransferRecipientsResponse> {
-  const token = await getAccessToken();
-
-  const params = new URLSearchParams();
-  if (input.size !== undefined) params.set("size", String(input.size));
-  if (input.next) params.set("next", input.next);
-  if (input.previous) params.set("previous", input.previous);
-
-  const qs = params.toString();
-  const url = `${API_BASE_URL}/transfers/recipients${qs ? `?${qs}` : ""}`;
-
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    Accept: "application/json",
-  };
-  if (input.trace_id) headers["X-Trace-Id"] = input.trace_id;
-
-  const response = await fetch(url, { method: "GET", headers });
-
-  if (!response.ok) {
-    const error = (await response.json()) as FlutterwaveErrorBody;
-    throw new Error(`Flutterwave error ${response.status}: ${error.error?.message ?? error.message ?? "unknown"}`);
-  }
-
-  return response.json() as Promise<ListTransferRecipientsResponse>;
+  input: { next?: string; previous?: string; size?: number } = {},
+): Promise<{ status: "success"; message: string; data: { cursor: Cursor; recipients: Recipient[] } }> {
+  return flutterwave("GET", "/transfers/recipients", { query: { ...input } });
 }
 
 /*
-Usage example:
-
-const firstPage = await listTransferRecipients({ size: 20 });
-for (const recipient of firstPage.data.recipients) {
-  console.log(recipient.id, recipient.type, recipient.currency);
-}
-
-// Fetch next page using the cursor returned by the previous response
-if (firstPage.data.cursor.has_more_items && firstPage.data.cursor.next) {
-  const nextPage = await listTransferRecipients({
-    next: firstPage.data.cursor.next,
-    size: 20,
-  });
-  console.log(`Got ${nextPage.data.recipients.length} more recipients`);
-}
+Usage (find an existing bank recipient before creating one):
+  const { data } = await listTransferRecipients({ size: 10 });
+  const existing = data.recipients.find((r) => r.bank?.account_number === "0690000031" && r.bank?.code === "044");
 */

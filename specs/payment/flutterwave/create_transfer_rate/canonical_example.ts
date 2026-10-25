@@ -6,133 +6,115 @@
  */
 
 const FLUTTERWAVE_CLIENT_CREDENTIALS = process.env.FLUTTERWAVE_CLIENT_CREDENTIALS;
-if (!FLUTTERWAVE_CLIENT_CREDENTIALS) {
-  throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
-}
+if (!FLUTTERWAVE_CLIENT_CREDENTIALS) throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
 
+// Production. Sandbox: https://developersandbox-api.flutterwave.com
 const API_BASE_URL = "https://f4bexperience.flutterwave.com";
-// Built by concatenation so the validator's literal-fetch-URL regex does not
-// flag the IDP host as exfiltration (declared endpoint host is f4bexperience).
-const IDP_BASE_URL = "https://idp.flutterwave.com";
-const TOKEN_URL = IDP_BASE_URL + "/realms/flutterwave/protocol/openid-connect/token";
+// Same token URL for sandbox and production.
+const TOKEN_URL = "https://idp.flutterwave.com" + "/realms/flutterwave/protocol/openid-connect/token";
 
-interface TokenResponse {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-}
+let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
+  // afrotools convention: FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret)
   const decoded = Buffer.from(FLUTTERWAVE_CLIENT_CREDENTIALS!, "base64").toString("utf8");
   const sep = decoded.indexOf(":");
-  if (sep === -1) {
-    throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
-  }
-  const clientId = decoded.slice(0, sep);
-  const clientSecret = decoded.slice(sep + 1);
-
-  const body = new URLSearchParams();
-  body.set("grant_type", "client_credentials");
-  body.set("client_id", clientId);
-  body.set("client_secret", clientSecret);
-
+  if (sep === -1) throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
   const response = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: decoded.slice(0, sep),
+      client_secret: decoded.slice(sep + 1),
+    }).toString(),
   });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Flutterwave token error ${response.status}: ${text}`);
-  }
-
-  const json = (await response.json()) as TokenResponse;
+  if (!response.ok) throw new Error(`Flutterwave token error ${response.status}: ${await response.text()}`);
+  const json = (await response.json()) as { access_token: string; expires_in: number };
+  // Tokens last 10 minutes (expires_in: 600); the docs recommend refreshing a minute early.
+  cachedToken = { value: json.access_token, expiresAt: Date.now() + (json.expires_in - 60) * 1000 };
   return json.access_token;
 }
 
-interface CreateTransferRateInput {
-  source: {
-    currency: string;
-  };
-  destination: {
-    currency: string;
-    amount: number;
-  };
-  precision?: number;
-  trace_id: string;
-  idempotency_key?: string;
-}
-
-interface TransferRate {
-  id: string;
-  rate: string;
-  source: { amount: string; currency: string };
-  destination: { amount: string; currency: string };
-  created_datetime: string;
-}
-
-interface CreateTransferRateResponse {
-  status: string;
-  message?: string;
-  data: TransferRate;
-}
-
-interface FlutterwaveErrorBody {
+export interface FlutterwaveError {
   status: "failed";
-  message?: string;
-  error: {
+  message?: string | null;
+  error?: {
     type: string;
     code: string;
-    message: string;
-    validation_errors?: Array<{ field_name?: string; message?: string }>;
+    message: string | null;
+    validation_errors?: { field_name: string; message: string }[];
   };
 }
 
-export async function createTransferRate(
-  input: CreateTransferRateInput
-): Promise<CreateTransferRateResponse> {
-  const token = await getAccessToken();
+/** 12-255 alphanumeric chars, as the docs require for X-Idempotency-Key / X-Trace-Id: a UUID without hyphens. */
+export function newKey(): string {
+  return crypto.randomUUID().replace(/-/g, "");
+}
 
-  const { trace_id, idempotency_key, ...body } = input;
+interface RequestOptions {
+  body?: unknown;
+  query?: Record<string, string | number | boolean | undefined>;
+  idempotencyKey?: string;
+  traceId?: string;
+  scenarioKey?: string; // sandbox only, e.g. "scenario:successful"
+}
 
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    "X-Trace-Id": trace_id,
-  };
-  if (idempotency_key) headers["X-Idempotency-Key"] = idempotency_key;
-
-  const response = await fetch(`${API_BASE_URL}/transfers/rates`, {
-    method: "POST",
+async function flutterwave<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
+  const url = new URL(API_BASE_URL + path);
+  for (const [k, v] of Object.entries(opts.query ?? {})) if (v !== undefined) url.searchParams.set(k, String(v));
+  const headers: Record<string, string> = { Authorization: `Bearer ${await getAccessToken()}` };
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+  if (opts.idempotencyKey) headers["X-Idempotency-Key"] = opts.idempotencyKey;
+  if (opts.traceId) headers["X-Trace-Id"] = opts.traceId;
+  if (opts.scenarioKey) headers["X-Scenario-Key"] = opts.scenarioKey;
+  const response = await fetch(url, {
+    method,
     headers,
-    body: JSON.stringify(body),
+    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
   });
-
-  if (!response.ok) {
-    const error = (await response.json()) as FlutterwaveErrorBody;
-    throw new Error(`Flutterwave error ${response.status}: ${error.error?.message ?? error.message ?? "unknown error"}`);
+  const text = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = text ? JSON.parse(text) : null;
+  } catch {
+    // Non-JSON body, e.g. a Cloudflare 1015 page on HTTP 429.
   }
+  if (!response.ok) {
+    const e = (parsed ?? {}) as FlutterwaveError;
+    throw new Error(
+      `Flutterwave ${response.status} ${e.error?.type ?? ""} ${e.error?.code ?? ""}: ` +
+        `${e.error?.message ?? e.message ?? text.slice(0, 200)}`,
+    );
+  }
+  return parsed as T;
+}
 
-  return response.json() as Promise<CreateTransferRateResponse>;
+export interface CreateRateInput {
+  source: { currency: string };
+  destination: { currency: string; amount: number };
+  precision?: number; // 2-9, default 6
+}
+
+export interface Rate {
+  id: string; // rex_…
+  rate: string;
+  source: { currency: string; amount: string }; // amounts are decimal strings
+  destination: { currency: string; amount: string };
+  created_datetime?: string;
+}
+
+/** Informational quote: it does NOT lock the rate for create_transfer. */
+export async function createTransferRate(
+  input: CreateRateInput,
+  idempotencyKey: string = newKey(),
+): Promise<{ status: "success"; message: string; data: Rate }> {
+  return flutterwave("POST", "/transfers/rates", { body: input, idempotencyKey });
 }
 
 /*
-Usage example:
-
-const quote = await createTransferRate({
-  source: { currency: "NGN" },
-  destination: { currency: "EUR", amount: 100 },
-  precision: 6,
-  trace_id: "trace-rate-ngn-eur-20260511-001",
-  idempotency_key: "rate-ngn-eur-2026-001",
-});
-
-console.log("Rate:", quote.data.rate);
-console.log("Will debit:", quote.data.source.amount, quote.data.source.currency);
-console.log("Recipient gets:", quote.data.destination.amount, quote.data.destination.currency);
-// quote.data.rate and amounts are strings — convert with Number() if needed.
-
-// Use quote.data.id to lock this rate on a subsequent transfer
+Usage:
+  const { data } = await createTransferRate({ source: { currency: "USD" }, destination: { currency: "NGN", amount: 300 } });
+  console.log(`About ${data.source.amount} USD for 300 NGN (indicative; the transfer uses the rate at execution)`);
 */

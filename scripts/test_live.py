@@ -141,7 +141,7 @@ def _multipart(body):
 def http_call(method, url, auth_headers, body=None, extra_headers=None, content_type="application/json"):
     headers = {
         "Accept": "application/json",
-        "X-Trace-Id": f"afrotools-live-{int(time.time() * 1000)}",
+        "X-Trace-Id": f"afrotoolslive{int(time.time() * 1000)}",  # alphanumeric: Flutterwave rejects anything else
         # urllib's default "Python-urllib/x.y" is banned by some Cloudflare-fronted sandboxes (error 1010).
         "User-Agent": "afrotools-live-test/1.0 (+https://afro.tools)",
     }
@@ -255,6 +255,13 @@ def get_response_props(schema):
         if data_schema.get("type") == "array":
             items = data_schema.get("items", {})
             return items.get("properties", {}), set(items.get("required", []))
+        if "oneOf" in data_schema:
+            # Union data node (e.g. one variant per payment-method or recipient type): any variant's key is
+            # expected; only keys required by every variant are required.
+            variants = data_schema["oneOf"]
+            merged_props = {k: v for variant in variants for k, v in variant.get("properties", {}).items()}
+            common_req = set.intersection(*(set(v.get("required", [])) for v in variants)) if variants else set()
+            return merged_props, common_req
         props = data_schema.get("properties", {})
         if props:
             return props, set(data_schema.get("required", []))

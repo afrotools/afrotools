@@ -4,7 +4,23 @@
   "capability": "list_transfer_recipients",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,147 +32,559 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/transfers/recipients"
   },
-  "example_prompt": "List the next page of Flutterwave transfer recipients using a cursor returned by a previous call, 20 per page.",
+  "example_prompt": "List saved Flutterwave payout recipients to reuse one for a recurring payout.",
   "input_schema": {
     "type": "object",
     "properties": {
+      "next": {
+        "type": "string",
+        "description": "Query parameter."
+      },
+      "previous": {
+        "type": "string",
+        "description": "Query parameter."
+      },
       "size": {
         "type": "integer",
         "minimum": 10,
         "maximum": 50,
         "default": 10,
-        "description": "Number of recipients per page (10-50, default 10)."
-      },
-      "next": {
-        "type": "string",
-        "description": "Cursor token returned by a previous response (data.cursor.next) to fetch the next page."
-      },
-      "previous": {
-        "type": "string",
-        "description": "Cursor token returned by a previous response (data.cursor.previous) to fetch the previous page."
-      },
-      "trace_id": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Optional X-Trace-Id header value for request correlation."
+        "description": "Query parameter. Length of data returned. Defaults to 10."
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
-      "status": { "type": "string", "enum": ["success", "failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
       "data": {
         "type": "object",
-        "required": ["cursor", "recipients"],
         "properties": {
           "cursor": {
             "type": "object",
-            "description": "Cursor-based pagination metadata.",
             "properties": {
-              "next": { "type": ["string", "null"], "description": "Cursor for the next page." },
-              "previous": { "type": ["string", "null"], "description": "Cursor for the previous page." },
-              "limit": { "type": "integer", "description": "Items per page (matches size param)." },
-              "total": { "type": "integer", "description": "Total recipients available." },
-              "has_more_items": { "type": "boolean" }
+              "next": {
+                "type": "string"
+              },
+              "previous": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "total": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "has_more_items": {
+                "type": "boolean"
+              }
             }
           },
           "recipients": {
             "type": "array",
-            "description": "Array of transfer recipient objects discriminated by `type`.",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "bank",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "description": "ID of the transfer recipient",
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "bank"
+                      ]
+                    },
+                    "name": {
+                      "$ref": "#/$defs/name"
+                    },
+                    "currency": {
+                      "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                      "type": "string"
+                    },
+                    "national_identification": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "PASSPORT",
+                            "DRIVERS_LICENSE",
+                            "NATIONAL_ID"
+                          ]
+                        },
+                        "identifier": {
+                          "type": "string",
+                          "minLength": 4,
+                          "maxLength": 40
+                        },
+                        "expiration_date": {
+                          "type": "string"
+                        }
+                      },
+                      "description": "Sender government identification"
+                    },
+                    "phone": {
+                      "$ref": "#/$defs/phone"
+                    },
+                    "date_of_birth": {
+                      "$ref": "#/$defs/date_of_birth"
+                    },
+                    "email": {
+                      "type": "string",
+                      "description": "The Customer's email address."
+                    },
+                    "address": {
+                      "$ref": "#/$defs/address"
+                    },
+                    "bank": {
+                      "type": "object",
+                      "required": [
+                        "account_number",
+                        "code"
+                      ],
+                      "properties": {
+                        "account_number": {
+                          "description": "The Recipient's account number.",
+                          "type": "string"
+                        },
+                        "account_type": {
+                          "description": "The Recipient's account type.",
+                          "type": "string",
+                          "enum": [
+                            "checking",
+                            "savings",
+                            "individual",
+                            "corporate"
+                          ]
+                        },
+                        "code": {
+                          "description": "The Recipient's bank code.",
+                          "type": "string"
+                        },
+                        "branch": {
+                          "description": "The Recipient's bank branch.",
+                          "type": "string"
+                        },
+                        "name": {
+                          "description": "The Recipient's bank name.",
+                          "type": "string"
+                        },
+                        "routing_number": {
+                          "description": "The Recipient bank routing number.",
+                          "type": "string"
+                        },
+                        "swift_code": {
+                          "description": "The Recipient bank swift code.",
+                          "type": "string"
+                        },
+                        "sort_code": {
+                          "description": "The Recipient bank sort code.",
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "description": "ID of the transfer recipient",
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "mobile_money"
+                      ]
+                    },
+                    "name": {
+                      "$ref": "#/$defs/name"
+                    },
+                    "currency": {
+                      "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                      "type": "string"
+                    },
+                    "national_identification": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "PASSPORT",
+                            "DRIVERS_LICENSE",
+                            "NATIONAL_ID"
+                          ]
+                        },
+                        "identifier": {
+                          "type": "string",
+                          "minLength": 4,
+                          "maxLength": 40
+                        },
+                        "expiration_date": {
+                          "type": "string"
+                        }
+                      },
+                      "description": "Sender government identification"
+                    },
+                    "phone": {
+                      "$ref": "#/$defs/phone"
+                    },
+                    "date_of_birth": {
+                      "$ref": "#/$defs/date_of_birth"
+                    },
+                    "email": {
+                      "$ref": "#/$defs/email"
+                    },
+                    "address": {
+                      "$ref": "#/$defs/address"
+                    },
+                    "mobile_money": {
+                      "type": "object",
+                      "required": [
+                        "network",
+                        "country",
+                        "msisdn"
+                      ],
+                      "properties": {
+                        "network": {
+                          "description": "recipient network",
+                          "type": "string"
+                        },
+                        "country": {
+                          "description": "recipient country",
+                          "type": "string"
+                        },
+                        "msisdn": {
+                          "description": "recipient phone number",
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "ID of the transfer recipient",
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "wallet"
+                      ]
+                    },
+                    "name": {
+                      "$ref": "#/$defs/name"
+                    },
+                    "currency": {
+                      "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                      "type": "string"
+                    },
+                    "wallet": {
+                      "type": "object",
+                      "required": [
+                        "provider",
+                        "identifier"
+                      ],
+                      "properties": {
+                        "provider": {
+                          "type": "string",
+                          "enum": [
+                            "flutterwave"
+                          ],
+                          "description": "Specifies the payment or service provider. Currently, only \"flutterwave\" is supported"
+                        },
+                        "identifier": {
+                          "description": "A unique identifier assigned to the merchant by the payment or service provider.",
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "ID of the transfer recipient",
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "cash_pickup"
+                      ]
+                    },
+                    "name": {
+                      "$ref": "#/$defs/name"
+                    },
+                    "currency": {
+                      "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                      "type": "string"
+                    },
+                    "national_identification": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "PASSPORT",
+                            "DRIVERS_LICENSE",
+                            "NATIONAL_ID"
+                          ]
+                        },
+                        "identifier": {
+                          "type": "string",
+                          "minLength": 4,
+                          "maxLength": 40
+                        },
+                        "expiration_date": {
+                          "type": "string"
+                        }
+                      },
+                      "description": "Sender government identification"
+                    },
+                    "phone": {
+                      "$ref": "#/$defs/phone"
+                    },
+                    "date_of_birth": {
+                      "$ref": "#/$defs/date_of_birth"
+                    },
+                    "email": {
+                      "type": "string",
+                      "description": "The Customer's email address."
+                    },
+                    "address": {
+                      "$ref": "#/$defs/address"
+                    },
+                    "cash_pickup": {
+                      "type": "object",
+                      "required": [
+                        "provider"
+                      ],
+                      "properties": {
+                        "provider": {
+                          "description": "cashpickup provider",
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "ID of the transfer recipient",
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "crypto"
+                      ]
+                    },
+                    "name": {
+                      "$ref": "#/$defs/name"
+                    },
+                    "currency": {
+                      "description": "ISO 4217 currency code. The API's currency enum has 163 codes and uses SLL for Sierra Leone, not SLE.",
+                      "type": "string"
+                    },
+                    "crypto": {
+                      "type": "object",
+                      "required": [
+                        "network",
+                        "address"
+                      ],
+                      "properties": {
+                        "network": {
+                          "description": "recipient crypto network",
+                          "type": "string",
+                          "minLength": 3,
+                          "maxLength": 25
+                        },
+                        "address": {
+                          "description": "recipient crypto address",
+                          "type": "string",
+                          "minLength": 26,
+                          "maxLength": 64
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "$defs": {
+      "address": {
+        "type": "object",
+        "description": "Customer address information.",
+        "required": [
+          "line1",
+          "city",
+          "state",
+          "country",
+          "postal_code"
+        ],
+        "properties": {
+          "city": {
+            "type": "string",
+            "description": "The name of the city."
+          },
+          "country": {
+            "description": "ISO2 country code",
+            "type": "string"
+          },
+          "line1": {
+            "type": "string",
+            "description": "The first line of the Customer's address."
+          },
+          "line2": {
+            "type": "string",
+            "description": "The second line of the Customer's address."
+          },
+          "postal_code": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "description": "The state or region."
+          }
+        }
+      },
+      "date_of_birth": {
+        "type": "string",
+        "description": "The customer's birthdate in ISO 8601 (YYYY-MM-DD) format."
+      },
+      "email": {
+        "type": "string",
+        "description": "The Customer's email address."
+      },
+      "name": {
+        "type": "object",
+        "description": "The Customer's full name.",
+        "properties": {
+          "first": {
+            "type": "string",
+            "description": "The Customer's first name."
+          },
+          "middle": {
+            "type": "string",
+            "description": "The Customer's middle name."
+          },
+          "last": {
+            "type": "string",
+            "description": "The Customer's last name."
+          }
+        }
+      },
+      "phone": {
+        "type": "object",
+        "description": "The customer's mobile number.",
+        "required": [
+          "number",
+          "country_code"
+        ],
+        "properties": {
+          "country_code": {
+            "description": "The dialling country code e.g. 234 for NG.",
+            "type": "string"
+          },
+          "number": {
+            "description": "Unformatted 7-10-digit phone number without the country code.",
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "error"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: 210400 INVALID_CURSOR."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "validation_errors": {
+            "type": "array",
+            "description": "On 400 validation errors.",
             "items": {
               "type": "object",
               "properties": {
-                "id": { "type": "string", "description": "Recipient id (use with get/delete_transfer_recipient)." },
-                "type": {
-                  "type": "string",
-                  "description": "Discriminator. One of: bank, mobile_money, wallet, cash_pickup, crypto."
+                "field_name": {
+                  "type": "string"
                 },
-                "name": {
-                  "type": ["object", "null"],
-                  "properties": {
-                    "first": { "type": "string" },
-                    "middle": { "type": "string" },
-                    "last": { "type": "string" }
-                  }
-                },
-                "currency": { "type": "string", "description": "ISO 4217 currency code." },
-                "email": { "type": "string", "format": "email" },
-                "phone": {
-                  "type": ["object", "null"],
-                  "properties": {
-                    "country_code": { "type": "string" },
-                    "number": { "type": "string" }
-                  }
-                },
-                "address": {
-                  "type": ["object", "null"],
-                  "properties": {
-                    "line1": { "type": "string" },
-                    "line2": { "type": "string" },
-                    "city": { "type": "string" },
-                    "state": { "type": "string" },
-                    "country": { "type": "string", "description": "ISO 3166-1 alpha-2." },
-                    "postal_code": { "type": "string" }
-                  }
-                },
-                "date_of_birth": { "type": "string", "description": "YYYY-MM-DD." },
-                "national_identification": {
-                  "type": ["object", "null"],
-                  "properties": {
-                    "type": { "type": "string", "enum": ["PASSPORT", "DRIVERS_LICENSE", "NATIONAL_ID"] },
-                    "identifier": { "type": "string" },
-                    "expiration_date": { "type": "string", "description": "YYYY-MM-DD." }
-                  }
-                },
-                "bank": {
-                  "type": ["object", "null"],
-                  "description": "Present when type is bank.",
-                  "properties": {
-                    "account_number": { "type": "string" },
-                    "account_type": { "type": "string", "enum": ["checking", "savings", "individual", "corporate"] },
-                    "code": { "type": "string" },
-                    "branch": { "type": "string" },
-                    "name": { "type": "string" },
-                    "routing_number": { "type": "string" },
-                    "swift_code": { "type": "string" },
-                    "sort_code": { "type": "string" }
-                  }
-                },
-                "mobile_money": {
-                  "type": ["object", "null"],
-                  "description": "Present when type is mobile_money.",
-                  "properties": {
-                    "network": { "type": "string" },
-                    "country": { "type": "string" },
-                    "msisdn": { "type": "string" }
-                  }
-                },
-                "wallet": {
-                  "type": ["object", "null"],
-                  "description": "Present when type is wallet.",
-                  "properties": {
-                    "provider": { "type": "string", "description": "e.g. flutterwave." },
-                    "identifier": { "type": "string" }
-                  }
-                },
-                "cash_pickup": {
-                  "type": ["object", "null"],
-                  "description": "Present when type is cash_pickup.",
-                  "properties": {
-                    "provider": { "type": "string" }
-                  }
-                },
-                "crypto": {
-                  "type": ["object", "null"],
-                  "description": "Present when type is crypto.",
-                  "properties": {
-                    "network": { "type": "string" },
-                    "address": { "type": "string" }
-                  }
+                "message": {
+                  "type": "string"
                 }
               }
             }
@@ -165,38 +593,21 @@
       }
     }
   },
-  "error_schema": {
-    "type": "object",
-    "required": ["status", "error"],
-    "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
-      "error": {
-        "type": "object",
-        "required": ["type", "code", "message"],
-        "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
-          "validation_errors": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "field_name": { "type": "string" },
-                "message": { "type": "string" }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "Pagination is cursor-based and lives at data.cursor (not meta.page_info). Pass back data.cursor.next as `next=` or data.cursor.previous as `previous=`; use data.cursor.has_more_items to know when to stop. Do not synthesize cursor values client-side.",
-    "size must be between 10 and 50 inclusive. Values outside this range return a 400 REQUEST_NOT_VALID validation error.",
-    "Recipients are discriminated by the `type` field (bank | mobile_money | wallet | cash_pickup | crypto). Type-specific destination details live on sibling keys (bank, mobile_money, wallet, cash_pickup, crypto) — do not assume a single `details` object.",
-    "Recipient IDs returned here are opaque strings. Pass them as-is to get/delete_transfer_recipient — do not apply encodeURIComponent."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: X-Trace-Id is optional on this GET (the headers guide lists it under 'Optional API Headers'; \"It must be a string using only alphanumeric ASCII characters.\", 12-255 characters). The API reference documents no X-Idempotency-Key for this endpoint.",
+    "Pagination is cursor-based: pass data.cursor.next / previous back as the next / previous query parameter; size 10-50 (default 10); data.cursor.has_more_items says when to stop. An invalid cursor returns 210400 INVALID_CURSOR.",
+    "Each recipient is a union on type (bank, mobile_money, wallet, cash_pickup, crypto) with the matching sibling object. No filter by account number is documented: match locally.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 210400 INVALID_CURSOR. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/transfers_recipients_list.md",
+    "source_reference": "List transfer recipients (GET /transfers/recipients)",
+    "extracted_at": "2026-10-24T23:15:14.000Z",
+    "snapshot_hash": "a7a6c93b0e04d4c9456e81591120014785eef72fdd64fc0fe8b5d457231e61c1",
+    "spans": [
+      "List transfer recipients",
+      "\"/transfers/recipients\""
+    ]
+  }
 }

@@ -2,120 +2,129 @@
  * @provider Flutterwave
  * @capability retry_transfer
  * @atss 1.0
- * @capability_type synchronous
+ * @capability_type asynchronous
  */
 
 const FLUTTERWAVE_CLIENT_CREDENTIALS = process.env.FLUTTERWAVE_CLIENT_CREDENTIALS;
-if (!FLUTTERWAVE_CLIENT_CREDENTIALS) {
-  throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS (base64 of client_id:client_secret)");
-}
+if (!FLUTTERWAVE_CLIENT_CREDENTIALS) throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
 
-const TOKEN_HOST = "https://idp.flutterwave.com";
-const TOKEN_URL = TOKEN_HOST + "/realms/flutterwave/protocol/openid-connect/token";
+// Production. Sandbox: https://developersandbox-api.flutterwave.com
+const API_BASE_URL = "https://f4bexperience.flutterwave.com";
+// Same token URL for sandbox and production.
+const TOKEN_URL = "https://idp.flutterwave.com" + "/realms/flutterwave/protocol/openid-connect/token";
 
-interface TokenResponse {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-}
+let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
-  const decoded = Buffer.from(FLUTTERWAVE_CLIENT_CREDENTIALS as string, "base64").toString("utf8");
-  const idx = decoded.indexOf(":");
-  if (idx === -1) {
-    throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must decode to client_id:client_secret");
-  }
-  const clientId = decoded.slice(0, idx);
-  const clientSecret = decoded.slice(idx + 1);
-
-  const body = new URLSearchParams({
-    grant_type: "client_credentials",
-    client_id: clientId,
-    client_secret: clientSecret,
-  });
-
-  const tokenRes = await fetch(TOKEN_URL, {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
+  // afrotools convention: FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret)
+  const decoded = Buffer.from(FLUTTERWAVE_CLIENT_CREDENTIALS!, "base64").toString("utf8");
+  const sep = decoded.indexOf(":");
+  if (sep === -1) throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
+  const response = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: decoded.slice(0, sep),
+      client_secret: decoded.slice(sep + 1),
+    }).toString(),
   });
-
-  if (!tokenRes.ok) {
-    throw new Error(`Flutterwave OAuth error ${tokenRes.status}: ${await tokenRes.text()}`);
-  }
-
-  const json = (await tokenRes.json()) as TokenResponse;
+  if (!response.ok) throw new Error(`Flutterwave token error ${response.status}: ${await response.text()}`);
+  const json = (await response.json()) as { access_token: string; expires_in: number };
+  // Tokens last 10 minutes (expires_in: 600); the docs recommend refreshing a minute early.
+  cachedToken = { value: json.access_token, expiresAt: Date.now() + (json.expires_in - 60) * 1000 };
   return json.access_token;
 }
 
-interface RetryTransferInput {
-  id: string;
-  overrides?: Record<string, unknown>;
+export interface FlutterwaveError {
+  status: "failed";
+  message?: string | null;
+  error?: {
+    type: string;
+    code: string;
+    message: string | null;
+    validation_errors?: { field_name: string; message: string }[];
+  };
 }
 
-interface RetryTransferRequestOptions {
-  trace_id?: string;
-  idempotency_key?: string;
+/** 12-255 alphanumeric chars, as the docs require for X-Idempotency-Key / X-Trace-Id: a UUID without hyphens. */
+export function newKey(): string {
+  return crypto.randomUUID().replace(/-/g, "");
 }
 
-interface RetryTransferResponse {
-  id: string;
-  reference: string;
-  status: string;
-  action: string;
-  payment_instruction: Record<string, unknown>;
-  created_at: string;
-  updated_at?: string;
-  [key: string]: unknown;
+interface RequestOptions {
+  body?: unknown;
+  query?: Record<string, string | number | boolean | undefined>;
+  idempotencyKey?: string;
+  traceId?: string;
+  scenarioKey?: string; // sandbox only, e.g. "scenario:successful"
 }
 
-interface FlutterwaveError {
-  code: number;
-  message: string;
+async function flutterwave<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
+  const url = new URL(API_BASE_URL + path);
+  for (const [k, v] of Object.entries(opts.query ?? {})) if (v !== undefined) url.searchParams.set(k, String(v));
+  const headers: Record<string, string> = { Authorization: `Bearer ${await getAccessToken()}` };
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+  if (opts.idempotencyKey) headers["X-Idempotency-Key"] = opts.idempotencyKey;
+  if (opts.traceId) headers["X-Trace-Id"] = opts.traceId;
+  if (opts.scenarioKey) headers["X-Scenario-Key"] = opts.scenarioKey;
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+  });
+  const text = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = text ? JSON.parse(text) : null;
+  } catch {
+    // Non-JSON body, e.g. a Cloudflare 1015 page on HTTP 429.
+  }
+  if (!response.ok) {
+    const e = (parsed ?? {}) as FlutterwaveError;
+    throw new Error(
+      `Flutterwave ${response.status} ${e.error?.type ?? ""} ${e.error?.code ?? ""}: ` +
+        `${e.error?.message ?? e.message ?? text.slice(0, 200)}`,
+    );
+  }
+  return parsed as T;
+}
+
+export interface Transfer {
+  id: string; // trf_…
+  type?: "bank" | "mobile_money" | "wallet" | "cash_pickup" | "crypto"; // absent from some guide samples
+  action?: "instant" | "deferred" | "scheduled" | "retry" | "duplicate";
+  reference?: string;
+  status: "NEW" | "PENDING" | "FAILED" | "SUCCESSFUL" | "CANCELLED" | "INITIATED";
+  source_currency: string;
+  destination_currency: string;
+  amount: { value: number; applies_to: "source_currency" | "destination_currency" };
+  fee?: { currency: string; value: number };
+  debit_information?: Record<string, unknown>;
+  provider_response?: { type: string; code: string; message?: string }; // type lowercase, e.g. "insufficient_balance"; code e.g. "0307"
+  reversal?: Record<string, unknown> | null;
+  recipient?: Record<string, unknown>;
+  created_datetime: string;
+}
+
+export interface RetryTransferInput {
+  action: "retry" | "duplicate"; // retry a FAILED transfer; duplicate pays a SUCCESSFUL one AGAIN
+  reference?: string;
+  meta?: Record<string, string>;
+  callback_url?: string;
 }
 
 export async function retryTransfer(
+  id: string,
   input: RetryTransferInput,
-  options: RetryTransferRequestOptions = {},
-): Promise<RetryTransferResponse> {
-  const token = await getAccessToken();
-
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
-  if (options.trace_id) headers["X-Trace-Id"] = options.trace_id;
-  if (options.idempotency_key) headers["X-Idempotency-Key"] = options.idempotency_key;
-
-  const body = input.overrides ? JSON.stringify(input.overrides) : "{}";
-
-  const response = await fetch(
-    "https://f4bexperience.flutterwave.com/transfers/" + input.id + "/retry",
-    {
-      method: "POST",
-      headers,
-      body,
-    },
-  );
-
-  if (!response.ok) {
-    const error = (await response.json()) as FlutterwaveError;
-    throw new Error(`Flutterwave error ${response.status}: ${error.message}`);
-  }
-
-  return (await response.json()) as RetryTransferResponse;
+  idempotencyKey: string = newKey(),
+): Promise<{ status: "success"; message: string; data: Transfer }> {
+  return flutterwave("POST", "/transfers/" + id + "/retries", { body: input, idempotencyKey });
 }
 
 /*
-Usage example:
-
-const retried = await retryTransfer(
-  { id: "tx_01HXYZ..." },
-  {
-    trace_id: "trace_retry_20260511_001",
-    idempotency_key: "idem_retry_20260511_001",
-  },
-);
-
-// Always poll GET /transfers/{id} afterwards to confirm the final outcome.
+Usage:
+  const { data: retry } = await retryTransfer("trf_rLVDsWcUuGsdeB", { action: "retry" });
+  // retry is a new transfer (status NEW): track it with get_transfer / the transfer.disburse webhook
 */

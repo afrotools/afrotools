@@ -4,7 +4,23 @@
   "capability": "create_transfer_sender",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["GHS", "KES", "NGN", "RWF", "SLE", "TZS", "UGX", "XAF", "XOF", "ZAR", "ZMW"],
+  "currency": [
+    "EGP",
+    "ETB",
+    "GHS",
+    "KES",
+    "MWK",
+    "NGN",
+    "RWF",
+    "SLL",
+    "TZS",
+    "UGX",
+    "USD",
+    "XAF",
+    "XOF",
+    "ZAR",
+    "ZMW"
+  ],
   "auth": {
     "type": "oauth2",
     "location": "header",
@@ -16,124 +32,751 @@
     "method": "POST",
     "url": "https://f4bexperience.flutterwave.com/transfers/senders"
   },
-  "example_prompt": "Create a Flutterwave transfer sender for a Nigerian bank-funded payout (type bank_egp) so subsequent transfers can be drawn from this sender.",
+  "example_prompt": "Register the KYC details of a payout sender, required by Flutterwave for EGP, INR, EUR and GBP transfers.",
   "input_schema": {
-    "type": "object",
-    "required": ["type", "name"],
-    "description": "Discriminated payload keyed by the top-level `type` field. Each variant declares which fields are required vs optional.",
-    "properties": {
-      "type": {
-        "type": "string",
-        "enum": ["bank_egp", "generic_sender", "bank_gbp", "bank_eur", "mobile_money_egp"],
-        "description": "Sender variant. bank_egp / mobile_money_egp require full KYC (national_identification, date_of_birth, email, address, phone). bank_gbp / bank_eur require email, address and phone. generic_sender only requires name."
-      },
-      "name": {
+    "oneOf": [
+      {
         "type": "object",
-        "required": ["first", "last"],
+        "description": "Sender information for EGP bank transfers.",
+        "required": [
+          "address",
+          "date_of_birth",
+          "email",
+          "name",
+          "national_identification",
+          "phone",
+          "type"
+        ],
         "properties": {
-          "first": { "type": "string", "minLength": 2, "maxLength": 50, "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$", "description": "The Customer's first name." },
-          "middle": { "type": "string", "minLength": 2, "maxLength": 50, "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$" },
-          "last": { "type": "string", "minLength": 2, "maxLength": 50, "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$", "description": "The Customer's last name." }
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "national_identification": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "PASSPORT",
+                  "DRIVERS_LICENSE",
+                  "NATIONAL_ID"
+                ]
+              },
+              "identifier": {
+                "type": "string",
+                "minLength": 4,
+                "maxLength": 40
+              },
+              "expiration_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
+              }
+            },
+            "required": [
+              "expiration_date",
+              "identifier",
+              "type"
+            ],
+            "description": "The Sender's official government ID."
+          },
+          "date_of_birth": {
+            "description": "Sender's date of birth in YYYY-MM-DD.",
+            "type": "string"
+          },
+          "phone": {
+            "type": "object",
+            "description": "The customer's mobile number.",
+            "required": [
+              "country_code",
+              "number"
+            ],
+            "properties": {
+              "country_code": {
+                "description": "The dialling country code e.g. 234 for NG.",
+                "type": "string",
+                "pattern": "^[0-9]{1,3}$"
+              },
+              "number": {
+                "description": "Unformatted 7-10-digit phone number without the country code.",
+                "type": "string",
+                "pattern": "^[0-9]{7,10}$"
+              }
+            }
+          },
+          "email": {
+            "type": "string",
+            "description": "The Customer's email address.",
+            "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+          },
+          "address": {
+            "type": "object",
+            "description": "Customer address information.",
+            "required": [
+              "city",
+              "country",
+              "line1",
+              "postal_code",
+              "state"
+            ],
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "The name of the city.",
+                "pattern": "^.+$"
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "postal_code": {
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region.",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_egp"
+            ]
+          }
         }
       },
-      "phone": {
+      {
         "type": "object",
-        "description": "Required for all variants except generic_sender.",
+        "description": "Sender information for GBP bank transfers.",
+        "required": [
+          "address",
+          "email",
+          "name",
+          "phone",
+          "type"
+        ],
         "properties": {
-          "country_code": { "type": "string", "pattern": "^[0-9]{1,3}$", "description": "1-3 digits, e.g. \"234\"." },
-          "number": { "type": "string", "pattern": "^[0-9]{7,10}$", "description": "7-10 digits, e.g. \"8001122334\"." }
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "email": {
+            "type": "string",
+            "description": "The Customer's email address.",
+            "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+          },
+          "address": {
+            "type": "object",
+            "description": "Customer address information.",
+            "required": [
+              "city",
+              "country",
+              "line1",
+              "postal_code",
+              "state"
+            ],
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "The name of the city.",
+                "pattern": "^.+$"
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "postal_code": {
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region.",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "phone": {
+            "type": "object",
+            "description": "The customer's mobile number.",
+            "required": [
+              "country_code",
+              "number"
+            ],
+            "properties": {
+              "country_code": {
+                "description": "The dialling country code e.g. 234 for NG.",
+                "type": "string",
+                "pattern": "^[0-9]{1,3}$"
+              },
+              "number": {
+                "description": "Unformatted 7-10-digit phone number without the country code.",
+                "type": "string",
+                "pattern": "^[0-9]{7,10}$"
+              }
+            }
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_gbp"
+            ]
+          }
         }
       },
-      "email": {
-        "type": "string",
-        "format": "email",
-        "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$",
-        "description": "Required for all variants except generic_sender."
-      },
-      "address": {
+      {
         "type": "object",
-        "description": "Required for all variants except generic_sender. line2 is always optional.",
+        "description": "Sender information for EUR bank transfers.",
+        "required": [
+          "address",
+          "email",
+          "name",
+          "phone",
+          "type"
+        ],
         "properties": {
-          "line1": { "type": "string", "description": "Non-empty street address." },
-          "line2": { "type": "string", "description": "Secondary address line." },
-          "city": { "type": "string" },
-          "state": { "type": "string" },
-          "postal_code": { "type": "string" },
-          "country": { "type": "string", "description": "ISO 3166-1 alpha-2 country code, e.g. \"NG\" or \"US\"." }
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "email": {
+            "type": "string",
+            "description": "The Customer's email address.",
+            "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+          },
+          "address": {
+            "type": "object",
+            "description": "Customer address information.",
+            "required": [
+              "city",
+              "country",
+              "line1",
+              "postal_code",
+              "state"
+            ],
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "The name of the city.",
+                "pattern": "^.+$"
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "postal_code": {
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region.",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "phone": {
+            "type": "object",
+            "description": "The customer's mobile number.",
+            "required": [
+              "country_code",
+              "number"
+            ],
+            "properties": {
+              "country_code": {
+                "description": "The dialling country code e.g. 234 for NG.",
+                "type": "string",
+                "pattern": "^[0-9]{1,3}$"
+              },
+              "number": {
+                "description": "Unformatted 7-10-digit phone number without the country code.",
+                "type": "string",
+                "pattern": "^[0-9]{7,10}$"
+              }
+            }
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "bank_eur"
+            ]
+          }
         }
       },
-      "national_identification": {
+      {
         "type": "object",
-        "description": "Required for bank_egp and mobile_money_egp variants only.",
+        "description": "Sender information.",
+        "required": [
+          "name",
+          "type"
+        ],
         "properties": {
-          "type": { "type": "string", "enum": ["PASSPORT", "DRIVERS_LICENSE", "NATIONAL_ID"] },
-          "identifier": { "type": "string", "minLength": 4, "maxLength": 40 },
-          "expiration_date": { "type": "string", "description": "Format YYYY-MM-DD." }
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "phone": {
+            "type": "object",
+            "description": "The customer's mobile number.",
+            "required": [
+              "country_code",
+              "number"
+            ],
+            "properties": {
+              "country_code": {
+                "description": "The dialling country code e.g. 234 for NG.",
+                "type": "string",
+                "pattern": "^[0-9]{1,3}$"
+              },
+              "number": {
+                "description": "Unformatted 7-10-digit phone number without the country code.",
+                "type": "string",
+                "pattern": "^[0-9]{7,10}$"
+              }
+            }
+          },
+          "email": {
+            "type": "string",
+            "description": "The Customer's email address.",
+            "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+          },
+          "address": {
+            "type": "object",
+            "description": "Customer address information.",
+            "required": [
+              "city",
+              "country",
+              "line1",
+              "postal_code",
+              "state"
+            ],
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "The name of the city.",
+                "pattern": "^.+$"
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "postal_code": {
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region.",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "generic_sender"
+            ]
+          }
         }
       },
-      "date_of_birth": {
-        "type": "string",
-        "description": "Format YYYY-MM-DD. Required for bank_egp and mobile_money_egp variants."
-      },
-      "trace_id": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Optional X-Trace-Id header value for request correlation."
-      },
-      "idempotency_key": {
-        "type": "string",
-        "minLength": 12,
-        "maxLength": 255,
-        "description": "Optional X-Idempotency-Key header value. Same key returns the original response."
+      {
+        "type": "object",
+        "description": "Sender information for EGP mobile money transfers.",
+        "required": [
+          "address",
+          "date_of_birth",
+          "email",
+          "name",
+          "national_identification",
+          "phone",
+          "type"
+        ],
+        "properties": {
+          "name": {
+            "type": "object",
+            "description": "The Customer's full name.",
+            "properties": {
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name.",
+                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
+              }
+            },
+            "required": [
+              "first",
+              "last"
+            ]
+          },
+          "national_identification": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "PASSPORT",
+                  "DRIVERS_LICENSE",
+                  "NATIONAL_ID"
+                ]
+              },
+              "identifier": {
+                "type": "string",
+                "minLength": 4,
+                "maxLength": 40
+              },
+              "expiration_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
+              }
+            },
+            "required": [
+              "expiration_date",
+              "identifier",
+              "type"
+            ],
+            "description": "The Sender's official government ID."
+          },
+          "phone": {
+            "type": "object",
+            "description": "The customer's mobile number.",
+            "required": [
+              "country_code",
+              "number"
+            ],
+            "properties": {
+              "country_code": {
+                "description": "The dialling country code e.g. 234 for NG.",
+                "type": "string",
+                "pattern": "^[0-9]{1,3}$"
+              },
+              "number": {
+                "description": "Unformatted 7-10-digit phone number without the country code.",
+                "type": "string",
+                "pattern": "^[0-9]{7,10}$"
+              }
+            }
+          },
+          "date_of_birth": {
+            "description": "Sender's date of birth in YYYY-MM-DD.",
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "description": "The Customer's email address.",
+            "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
+          },
+          "address": {
+            "type": "object",
+            "description": "Customer address information.",
+            "required": [
+              "city",
+              "country",
+              "line1",
+              "postal_code",
+              "state"
+            ],
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "The name of the city.",
+                "pattern": "^.+$"
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address.",
+                "pattern": "^.+$"
+              },
+              "postal_code": {
+                "type": "string",
+                "pattern": "^.+$"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region.",
+                "pattern": "^.+$"
+              }
+            }
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "mobile_money_egp"
+            ]
+          }
+        }
       }
-    }
+    ]
   },
   "response_schema": {
     "type": "object",
-    "required": ["status", "data"],
     "properties": {
-      "status": { "type": "string", "enum": ["success"], "description": "\"success\" on 201." },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed"
+        ]
+      },
+      "message": {
+        "type": "string"
+      },
       "data": {
         "type": "object",
-        "required": ["id"],
         "properties": {
-          "id": { "type": "string", "description": "Sender id (e.g. \"sender_12345abc\"). Store this — required for get/delete_transfer_sender and to issue transfers." },
+          "id": {
+            "description": "ID of the transfer sender",
+            "type": "string"
+          },
           "name": {
             "type": "object",
+            "description": "The Sender's full name.",
             "properties": {
-              "first": { "type": "string" },
-              "middle": { "type": "string" },
-              "last": { "type": "string" }
+              "first": {
+                "type": "string",
+                "description": "The Customer's first name."
+              },
+              "middle": {
+                "type": "string",
+                "description": "The Customer's middle name."
+              },
+              "last": {
+                "type": "string",
+                "description": "The Customer's last name."
+              }
             }
           },
           "national_identification": {
             "type": "object",
             "properties": {
-              "type": { "type": "string", "enum": ["PASSPORT", "DRIVERS_LICENSE", "NATIONAL_ID"] },
-              "identifier": { "type": "string" },
-              "expiration_date": { "type": "string" }
-            }
+              "type": {
+                "type": "string",
+                "enum": [
+                  "PASSPORT",
+                  "DRIVERS_LICENSE",
+                  "NATIONAL_ID"
+                ]
+              },
+              "identifier": {
+                "type": "string",
+                "minLength": 4,
+                "maxLength": 40
+              },
+              "expiration_date": {
+                "type": "string"
+              }
+            },
+            "description": "The Sender's government identification."
           },
           "phone": {
             "type": "object",
+            "description": "The Sender's mobile number.",
+            "required": [
+              "number",
+              "country_code"
+            ],
             "properties": {
-              "country_code": { "type": "string" },
-              "number": { "type": "string" }
+              "country_code": {
+                "description": "The dialling country code e.g. 234 for NG.",
+                "type": "string"
+              },
+              "number": {
+                "description": "Unformatted 7-10-digit phone number without the country code.",
+                "type": "string"
+              }
             }
           },
-          "date_of_birth": { "type": "string" },
-          "email": { "type": "string" },
+          "date_of_birth": {
+            "description": "The Sender's date of birth.",
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "description": "The Sender's email address."
+          },
           "address": {
             "type": "object",
+            "description": "The Sender's residential address.",
+            "required": [
+              "line1",
+              "city",
+              "state",
+              "country",
+              "postal_code"
+            ],
             "properties": {
-              "line1": { "type": "string" },
-              "line2": { "type": "string" },
-              "city": { "type": "string" },
-              "state": { "type": "string" },
-              "postal_code": { "type": "string" },
-              "country": { "type": "string" }
+              "city": {
+                "type": "string",
+                "description": "The name of the city."
+              },
+              "country": {
+                "description": "ISO2 country code",
+                "type": "string"
+              },
+              "line1": {
+                "type": "string",
+                "description": "The first line of the Customer's address."
+              },
+              "line2": {
+                "type": "string",
+                "description": "The second line of the Customer's address."
+              },
+              "postal_code": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string",
+                "description": "The state or region."
+              }
             }
           }
         }
@@ -142,27 +785,76 @@
   },
   "error_schema": {
     "type": "object",
-    "required": ["status", "error"],
+    "required": [
+      "status",
+      "error"
+    ],
     "properties": {
-      "status": { "type": "string", "enum": ["failed"] },
-      "message": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": [
+          "failed"
+        ]
+      },
+      "message": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Present on 401/403/409 bodies; the 400 body has none."
+      },
       "error": {
         "type": "object",
-        "required": ["type", "code", "message"],
         "properties": {
-          "type": { "type": "string", "description": "REQUEST_NOT_VALID | UNAUTHORIZED | FORBIDDEN | RESOURCE_CONFLICT | NOT_FOUND" },
-          "code": { "type": "string", "description": "Numeric code as string: 10400, 10401, 10403, 10404, 10409" },
-          "message": { "type": "string" },
-          "validation_errors": { "type": "array", "items": { "type": "object", "properties": { "field_name": { "type": "string" }, "message": { "type": "string" } } } }
+          "type": {
+            "type": "string",
+            "description": "Error category. Generic: REQUEST_NOT_VALID, UNAUTHORIZED, FORBIDDEN, RESOURCE_NOT_FOUND, RESOURCE_CONFLICT, UNPROCESSABLE, INTERNAL_SERVER_ERROR; or a domain type (see code)."
+          },
+          "code": {
+            "type": "string",
+            "description": "String. Generic 10400/10401/10403/10404/10409/10422/10500, or a domain code documented for this endpoint: 280409 SENDER_ALREADY_EXISTS, 281400 UNKNOWN_SENDER_TYPE."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "validation_errors": {
+            "type": "array",
+            "description": "On 400 validation errors.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
       }
     }
   },
   "gotchas": [
-    "Flutterwave v4 uses OAuth2 client credentials. POST client_id and client_secret as form-encoded body to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token to obtain an access_token (valid 10 minutes), then use it as Bearer in the Authorization header. The FLUTTERWAVE_CLIENT_CREDENTIALS env var stores base64(client_id:client_secret).",
-    "The request body is a discriminated union keyed by `type`. bank_egp and mobile_money_egp require the full KYC bundle (national_identification, date_of_birth, email, phone, address). bank_gbp and bank_eur drop national_identification and date_of_birth but keep email + phone + address. generic_sender only mandates name. Sending a partial KYC payload for bank_egp / mobile_money_egp returns 400 REQUEST_NOT_VALID.",
-    "Successful creation returns HTTP 201, not 200. Treat both as success when reading response.ok.",
-    "Pass X-Idempotency-Key (12-255 chars) on retry-prone networks; replays return the original response instead of creating a duplicate sender, or 409 RESOURCE_CONFLICT if it collides with a different request.",
-    "Sender IDs returned are opaque strings (e.g. \"sender_12345abc\"). Store data.id — you will need it to issue transfers and to call get/delete_transfer_sender. Do not apply encodeURIComponent when constructing path URLs."
-  ]
+    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Headers: send X-Idempotency-Key on this POST. Docs (Idempotency): \"For all `POST` endpoints, include an idempotency key in the request header (`X-Idempotency-Key`).\" The API reference marks it optional; the headers guide lists it under 'Mandatory API Headers'. A reused key replays the first response (\"the response will include the header `X-Idempotency-Cache-Hit: true`\"), so reuse the key when retrying the same operation and use a new one for a new operation. X-Trace-Id is optional. For both: \"It must be a string using only alphanumeric ASCII characters.\" \"Its length should be between 12 and 255 characters.\" The idempotency page also says \"We recommend using a **UUID** string as your idempotency key\": strip the UUID's hyphens to satisfy both.",
+    "Docs (General Transfer Flow): \"The transfer sender entity is only required for transfers in `EGP`, `INR`, `EUR`, and `GBP`.\" Pass data.id (sdr_…) as payment_instruction.sender_id.",
+    "type: bank_egp and mobile_money_egp need name, phone, email, address, date_of_birth and national_identification (with expiration_date); bank_gbp and bank_eur need name, phone, email, address; generic_sender needs name. Open question: no sender type is named for INR (generic_sender is the likely one).",
+    "phone.number is 7-10 digits without the country code; country_code 1-3 digits.",
+    "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 280409 SENDER_ALREADY_EXISTS, 281400 UNKNOWN_SENDER_TYPE. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "evidence": {
+    "source_url": "https://developer.flutterwave.com/v4.0.0/reference/transfers_senders_create.md",
+    "source_reference": "Create a transfer sender (POST /transfers/senders)",
+    "extracted_at": "2026-10-24T23:15:15.000Z",
+    "snapshot_hash": "7f4b9ccb4d32e09b839a095b90441f6c90ea653daeefd12d5a0cda32014e4fc7",
+    "spans": [
+      "Create a transfer sender",
+      "\"/transfers/senders\""
+    ]
+  }
 }

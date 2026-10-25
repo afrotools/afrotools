@@ -4,178 +4,88 @@
  * @atss 1.0
  * @capability_type webhook
  */
-
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-const FLUTTERWAVE_WEBHOOK_SECRET = process.env.FLUTTERWAVE_WEBHOOK_SECRET;
-if (!FLUTTERWAVE_WEBHOOK_SECRET) {
-  throw new Error("Missing env: FLUTTERWAVE_WEBHOOK_SECRET");
+const FLUTTERWAVE_WEBHOOK_SECRET = process.env.FLUTTERWAVE_WEBHOOK_SECRET; // the secret hash set in Dashboard → Webhooks
+if (!FLUTTERWAVE_WEBHOOK_SECRET) throw new Error("Missing env: FLUTTERWAVE_WEBHOOK_SECRET");
+
+export type FlutterwaveWebhook =
+  | {
+      type: "charge.completed";
+      webhook_id?: string;
+      id?: string; // the webhooks page sample uses `id` instead of `webhook_id`
+      timestamp: number; // epoch milliseconds
+      data: {
+        id: string; // chg_…
+        amount: number;
+        currency: string;
+        reference: string;
+        status: "succeeded" | "pending" | "failed" | "voided";
+        customer: { id: string; email: string };
+        payment_method: { id: string; type: string };
+        processor_response?: { type: string; code: string };
+        created_datetime: string | number;
+      };
+    }
+  | {
+      type: "refund.completed";
+      webhook_id?: string;
+      id?: string;
+      timestamp: number;
+      data: { id: string; charge_id: string; amount_refunded: number; status: string };
+    }
+  | {
+      type: "transfer.disburse" | "transfer.reversal";
+      webhook_id?: string;
+      id?: string;
+      timestamp: number;
+      data: {
+        id: string; // trf_…
+        reference?: string;
+        status: "SUCCESSFUL" | "FAILED"; // uppercase, unlike charges
+        source_currency: string;
+        destination_currency: string;
+        amount: number;
+        provider_response?: { type: string; code: string; message?: string };
+        reversal?: { reversal_datetime: string; initial_status: string; reconciliation_status: string } | null;
+      };
+    };
+
+/** HMAC-SHA256 of the raw body with the secret hash, base64 — compared in constant time. */
+export function verifySignature(rawBody: string | Buffer, signature: string | undefined): boolean {
+  if (!signature) return false;
+  const expected = Buffer.from(createHmac("sha256", FLUTTERWAVE_WEBHOOK_SECRET!).update(rawBody).digest("base64"));
+  const received = Buffer.from(signature);
+  return expected.length === received.length && timingSafeEqual(expected, received);
 }
 
-// ── Event payload types ───────────────────────────────────────────────────────
+const processed = new Set<string>(); // in-memory for the example: use your database in production
 
-interface ChargeCompletedData {
-  id: string;
-  status: "succeeded" | "pending" | "failed" | "voided";
-  amount: number;
-  currency: string;
-  reference: string;
-  customer_id: string;
-  payment_method_id?: string;
-  payment_method?: Record<string, unknown>;
-  processor_response?: Record<string, unknown>;
-  order_id?: string | null;
-  meta?: Record<string, unknown> | null;
-  created_datetime: string;
-  updated_datetime?: string;
+/** Dedupe key: Flutterwave may deliver the same event more than once. */
+export function eventKey(event: FlutterwaveWebhook): string {
+  return `${event.type}:${event.data.id}:${event.data.status}`;
 }
 
-interface RefundCompletedData {
-  id: string;
-  charge_id: string;
-  amount_refunded?: number;
-  reason?: "duplicate" | "fraudulent" | "requested_by_customer" | "expired_uncaptured_charge";
-  status: "pending" | "requires_action" | "succeeded" | "failed" | "cancelled" | "completed" | "new";
-  meta?: Record<string, string> | null;
-  created_datetime?: string;
+/** Call once the work for an event has succeeded, so a redelivery of a failed attempt is still processed. */
+export function markProcessed(event: FlutterwaveWebhook): void {
+  processed.add(eventKey(event));
 }
 
-interface TransferEventData {
-  id: string;
-  amount?: number;
-  currency?: string;
-  reference?: string;
-  status: string;
-  narration?: string;
-  meta?: Record<string, unknown> | null;
-  created_datetime?: string;
-  [key: string]: unknown;
-}
-
-interface OrderAuthorizationData {
-  id: string;
-  status: string;
-  amount?: number;
-  currency?: string;
-  reference?: string;
-  customer_id?: string;
-  meta?: Record<string, unknown> | null;
-  created_datetime?: string;
-  [key: string]: unknown;
-}
-
-// Flutterwave is inconsistent on the top-level id field:
-// charge.completed → `id`, others → `webhook_id`. Both are included.
-type EventBase = { timestamp: number; id?: string; webhook_id?: string };
-
-export type FlutterwaveEvent =
-  | (EventBase & { type: "charge.completed"; data: ChargeCompletedData })
-  | (EventBase & { type: "refund.completed"; data: RefundCompletedData })
-  | (EventBase & { type: "transfer.disburse"; data: TransferEventData })
-  | (EventBase & { type: "transfer.reversal"; data: TransferEventData })
-  | (EventBase & { type: "order.authorization"; data: OrderAuthorizationData });
-
-// ── Signature verification ────────────────────────────────────────────────────
-
-/**
- * Verify the HMAC-SHA256 signature of an incoming Flutterwave webhook and
- * return the parsed event. Throws if the signature is missing or invalid.
- *
- * IMPORTANT: pass the RAW request body (string or Buffer) — never re-serialised JSON.
- * Flutterwave signs with base64 digest, not hex.
- */
-export function handleWebhook(
-  rawBody: string,
-  signatureHeader: string | null | undefined
-): FlutterwaveEvent {
-  if (!signatureHeader) {
-    throw new Error("Missing flutterwave-signature header");
-  }
-
-  // base64 digest — matches Flutterwave's signing method exactly.
-  const expected = createHmac("sha256", FLUTTERWAVE_WEBHOOK_SECRET!)
-    .update(rawBody)
-    .digest("base64");
-
-  const expectedBuf = Buffer.from(expected, "utf8");
-  const receivedBuf = Buffer.from(signatureHeader, "utf8");
-
-  if (
-    expectedBuf.length !== receivedBuf.length ||
-    !timingSafeEqual(expectedBuf, receivedBuf)
-  ) {
-    throw new Error("Invalid Flutterwave webhook signature");
-  }
-
-  return JSON.parse(rawBody) as FlutterwaveEvent;
+/** Returns the HTTP status to send back and, when there is work to do, the event. Respond within 60 s. */
+export function handleWebhook(rawBody: string, signature: string | undefined): { status: number; event?: FlutterwaveWebhook } {
+  if (!verifySignature(rawBody, signature)) return { status: 401 };
+  const event = JSON.parse(rawBody) as FlutterwaveWebhook;
+  if (processed.has(eventKey(event))) return { status: 200 };
+  // Never fulfil from the payload alone: re-fetch with get_charge / get_transfer / get_refund and compare
+  // status, amount, currency and reference with your records, then markProcessed(event).
+  return { status: 200, event };
 }
 
 /*
-Usage example (Next.js App Router route handler):
-
-// app/api/webhooks/flutterwave/route.ts
-import { handleWebhook } from "./canonical_example";
-
-export async function POST(request: Request): Promise<Response> {
-  const rawBody = await request.text();
-  const signature = request.headers.get("flutterwave-signature");
-
-  let event;
-  try {
-    event = handleWebhook(rawBody, signature);
-  } catch {
-    return new Response("invalid signature", { status: 401 });
-  }
-
-  // Offload processing — respond 200 immediately.
-  switch (event.type) {
-    case "charge.completed":
-      if (event.data.status === "succeeded") {
-        // Always re-verify: await getCharge({ id: event.data.id })
-        // Then fulfil the order, idempotently keyed on event.id
-      }
-      break;
-    case "refund.completed":
-      if (event.data.status === "succeeded" || event.data.status === "completed") {
-        // await getRefund({ id: event.data.id })
-        // Then mark the order as refunded, keyed on event.webhook_id
-      }
-      break;
-    case "transfer.disburse":
-    case "transfer.reversal":
-      // await getTransfer({ id: event.data.id })
-      break;
-    case "order.authorization":
-      // await getOrder({ id: event.data.id })
-      break;
-  }
-
-  return new Response(null, { status: 200 });
-}
-
-
-Usage example (Express):
-
-import express from "express";
-import { handleWebhook } from "./canonical_example";
-
-const app = express();
-
-app.post(
-  "/webhooks/flutterwave",
-  express.raw({ type: "application/json" }),
-  (req, res) => {
-    const rawBody = (req.body as Buffer).toString("utf8");
-    const signature = req.header("flutterwave-signature");
-    let event;
-    try {
-      event = handleWebhook(rawBody, signature);
-    } catch {
-      return res.status(401).send("invalid signature");
-    }
-    // Respond 200 immediately, process asynchronously
-    res.status(200).end();
-    void event; // dispatch to your job queue
-  }
-);
+Usage (Express — keep the raw body for the HMAC; exempt the route from CSRF):
+  app.post("/webhooks/flutterwave", express.raw({ type: "application/json" }), (req, res) => {
+    const result = handleWebhook(req.body.toString("utf8"), req.header("flutterwave-signature"));
+    res.sendStatus(result.status); // exactly 200 to acknowledge
+    if (result.event) queue.push(result.event);
+  });
 */

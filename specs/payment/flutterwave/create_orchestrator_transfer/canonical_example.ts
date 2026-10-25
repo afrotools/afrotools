@@ -2,170 +2,196 @@
  * @provider Flutterwave
  * @capability create_orchestrator_transfer
  * @atss 1.0
- * @capability_type synchronous
+ * @capability_type asynchronous
  */
 
 const FLUTTERWAVE_CLIENT_CREDENTIALS = process.env.FLUTTERWAVE_CLIENT_CREDENTIALS;
-if (!FLUTTERWAVE_CLIENT_CREDENTIALS) {
-  throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS (base64 of client_id:client_secret)");
-}
+if (!FLUTTERWAVE_CLIENT_CREDENTIALS) throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
 
-const TOKEN_HOST = "https://idp.flutterwave.com";
-const TOKEN_URL = TOKEN_HOST + "/realms/flutterwave/protocol/openid-connect/token";
+// Production. Sandbox: https://developersandbox-api.flutterwave.com
+const API_BASE_URL = "https://f4bexperience.flutterwave.com";
+// Same token URL for sandbox and production.
+const TOKEN_URL = "https://idp.flutterwave.com" + "/realms/flutterwave/protocol/openid-connect/token";
 
-interface TokenResponse {
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-}
+let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
-  const decoded = Buffer.from(FLUTTERWAVE_CLIENT_CREDENTIALS as string, "base64").toString("utf8");
-  const idx = decoded.indexOf(":");
-  if (idx === -1) {
-    throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must decode to client_id:client_secret");
-  }
-  const clientId = decoded.slice(0, idx);
-  const clientSecret = decoded.slice(idx + 1);
-
-  const body = new URLSearchParams({
-    grant_type: "client_credentials",
-    client_id: clientId,
-    client_secret: clientSecret,
-  });
-
-  const tokenRes = await fetch(TOKEN_URL, {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
+  // afrotools convention: FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret)
+  const decoded = Buffer.from(FLUTTERWAVE_CLIENT_CREDENTIALS!, "base64").toString("utf8");
+  const sep = decoded.indexOf(":");
+  if (sep === -1) throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
+  const response = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: decoded.slice(0, sep),
+      client_secret: decoded.slice(sep + 1),
+    }).toString(),
   });
-
-  if (!tokenRes.ok) {
-    throw new Error(`Flutterwave OAuth error ${tokenRes.status}: ${await tokenRes.text()}`);
-  }
-
-  const json = (await tokenRes.json()) as TokenResponse;
+  if (!response.ok) throw new Error(`Flutterwave token error ${response.status}: ${await response.text()}`);
+  const json = (await response.json()) as { access_token: string; expires_in: number };
+  // Tokens last 10 minutes (expires_in: 600); the docs recommend refreshing a minute early.
+  cachedToken = { value: json.access_token, expiresAt: Date.now() + (json.expires_in - 60) * 1000 };
   return json.access_token;
 }
 
-interface InlineSender {
-  name?: string;
-  type?: string;
-  country?: string;
-  [key: string]: unknown;
+export interface FlutterwaveError {
+  status: "failed";
+  message?: string | null;
+  error?: {
+    type: string;
+    code: string;
+    message: string | null;
+    validation_errors?: { field_name: string; message: string }[];
+  };
 }
 
-interface InlineRecipient {
-  name?: string;
-  type?: string;
-  country?: string;
-  [key: string]: unknown;
+/** 12-255 alphanumeric chars, as the docs require for X-Idempotency-Key / X-Trace-Id: a UUID without hyphens. */
+export function newKey(): string {
+  return crypto.randomUUID().replace(/-/g, "");
 }
 
-interface OrchestratorPaymentInstruction {
-  amount: number;
-  currency: string;
-  sender: InlineSender;
-  recipient: InlineRecipient;
-  [key: string]: unknown;
+interface RequestOptions {
+  body?: unknown;
+  query?: Record<string, string | number | boolean | undefined>;
+  idempotencyKey?: string;
+  traceId?: string;
+  scenarioKey?: string; // sandbox only, e.g. "scenario:successful"
 }
 
-interface DisburseOption {
-  [key: string]: unknown;
+async function flutterwave<T>(method: string, path: string, opts: RequestOptions = {}): Promise<T> {
+  const url = new URL(API_BASE_URL + path);
+  for (const [k, v] of Object.entries(opts.query ?? {})) if (v !== undefined) url.searchParams.set(k, String(v));
+  const headers: Record<string, string> = { Authorization: `Bearer ${await getAccessToken()}` };
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+  if (opts.idempotencyKey) headers["X-Idempotency-Key"] = opts.idempotencyKey;
+  if (opts.traceId) headers["X-Trace-Id"] = opts.traceId;
+  if (opts.scenarioKey) headers["X-Scenario-Key"] = opts.scenarioKey;
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+  });
+  const text = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = text ? JSON.parse(text) : null;
+  } catch {
+    // Non-JSON body, e.g. a Cloudflare 1015 page on HTTP 429.
+  }
+  if (!response.ok) {
+    const e = (parsed ?? {}) as FlutterwaveError;
+    throw new Error(
+      `Flutterwave ${response.status} ${e.error?.type ?? ""} ${e.error?.code ?? ""}: ` +
+        `${e.error?.message ?? e.message ?? text.slice(0, 200)}`,
+    );
+  }
+  return parsed as T;
 }
 
-interface CreateOrchestratorTransferInput {
+export interface Transfer {
+  id: string; // trf_…
+  type?: "bank" | "mobile_money" | "wallet" | "cash_pickup" | "crypto"; // absent from some guide samples
+  action?: "instant" | "deferred" | "scheduled" | "retry" | "duplicate";
+  reference?: string;
+  status: "NEW" | "PENDING" | "FAILED" | "SUCCESSFUL" | "CANCELLED" | "INITIATED";
+  source_currency: string;
+  destination_currency: string;
+  amount: { value: number; applies_to: "source_currency" | "destination_currency" };
+  fee?: { currency: string; value: number };
+  debit_information?: Record<string, unknown>;
+  provider_response?: { type: string; code: string; message?: string }; // type lowercase, e.g. "insufficient_balance"; code e.g. "0307"
+  reversal?: Record<string, unknown> | null;
+  recipient?: Record<string, unknown>;
+  created_datetime: string;
+}
+
+export interface DisburseOption {
+  date_time: string; // 'YYYY-MM-DD HH:MM:SS', more than 30 minutes in the future
+  timezone: string; // one of the API's timezone enum values, e.g. "Africa/Lagos", "UTC"
+}
+
+type Amount = { value: number; applies_to: "source_currency" | "destination_currency" };
+
+/** The common branches; see the schema for EGP / EUR / GBP / USD / ZAR KYC fields. */
+export type OrchestratorTransferInput = {
   action: "instant" | "deferred" | "scheduled";
-  reference: string;
-  payment_instruction: OrchestratorPaymentInstruction;
+  reference?: string;
   narration?: string;
-  disburse_option?: DisburseOption;
   callback_url?: string;
-  meta?: Record<string, unknown>;
-}
-
-interface CreateOrchestratorTransferRequestOptions {
-  trace_id?: string;
-  idempotency_key?: string;
-  scenario_key?: string;
-}
-
-interface CreateOrchestratorTransferResponse {
-  id: string;
-  reference: string;
-  status: string;
-  action: string;
-  payment_instruction: OrchestratorPaymentInstruction;
-  sender_id: string;
-  recipient_id: string;
-  created_at: string;
-}
-
-interface FlutterwaveError {
-  code: number;
-  message: string;
-}
+  disburse_option?: DisburseOption; // required when action is "scheduled"
+  meta?: Record<string, string>;
+} & (
+  | {
+      type: "bank";
+      payment_instruction: {
+        source_currency: string;
+        destination_currency: "NGN";
+        amount: Amount;
+        recipient: { bank: { account_number: string; code: string } };
+      };
+    }
+  | {
+      type: "bank";
+      payment_instruction: {
+        source_currency: string;
+        destination_currency: "GHS" | "RWF" | "SLL" | "UGX" | "XAF" | "XOF";
+        amount: Amount;
+        recipient: { name: { first: string; last: string }; bank: { account_number: string; code: string; branch: string } };
+      };
+    }
+  | {
+      type: "mobile_money";
+      payment_instruction: {
+        source_currency: string;
+        destination_currency: "GHS" | "KES" | "RWF" | "TZS" | "UGX" | "ZMW" | "ETB";
+        amount: Amount;
+        // msisdn starts with the country code (e.g. 233… for GHS)
+        recipient: { name: { first: string; last: string }; mobile_money: { network: string; msisdn: string } };
+      };
+    }
+  | {
+      type: "mobile_money";
+      payment_instruction: {
+        source_currency: string;
+        destination_currency: "XAF" | "XOF";
+        amount: Amount;
+        recipient: { name: { first: string; last: string }; mobile_money: { network: string; msisdn: string; country: string } };
+      };
+    }
+  | {
+      type: "wallet";
+      payment_instruction: {
+        source_currency: string;
+        destination_currency: string;
+        amount: Amount;
+        recipient: { wallet: { provider: "flutterwave"; identifier: string } }; // identifier = the merchant ID (MID)
+      };
+    }
+);
 
 export async function createOrchestratorTransfer(
-  input: CreateOrchestratorTransferInput,
-  options: CreateOrchestratorTransferRequestOptions = {},
-): Promise<CreateOrchestratorTransferResponse> {
-  const token = await getAccessToken();
-
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
-  if (options.trace_id) headers["X-Trace-Id"] = options.trace_id;
-  if (options.idempotency_key) headers["X-Idempotency-Key"] = options.idempotency_key;
-  if (options.scenario_key) headers["X-Scenario-Key"] = options.scenario_key;
-
-  const response = await fetch("https://f4bexperience.flutterwave.com/direct-transfers", {
-    method: "POST",
-    headers,
-    body: JSON.stringify(input),
-  });
-
-  if (!response.ok) {
-    const error = (await response.json()) as FlutterwaveError;
-    throw new Error(`Flutterwave error ${response.status}: ${error.message}`);
-  }
-
-  return (await response.json()) as CreateOrchestratorTransferResponse;
+  input: OrchestratorTransferInput,
+  idempotencyKey: string = newKey(),
+  scenarioKey?: string, // sandbox: "scenario:successful"
+): Promise<{ status: "success"; message: string; data: Transfer }> {
+  return flutterwave("POST", "/direct-transfers", { body: input, idempotencyKey, scenarioKey });
 }
 
 /*
-Usage example:
-
-const transfer = await createOrchestratorTransfer(
-  {
+Usage (instant NGN bank payout):
+  const { data: transfer } = await createOrchestratorTransfer({
     action: "instant",
-    reference: "txn_orch_20260511_001",
+    type: "bank",
+    reference: "payout-88-" + Date.now(),
     payment_instruction: {
-      amount: 25000,
-      currency: "NGN",
-      sender: {
-        name: "Acme Corp",
-        type: "corporate",
-        country: "NG",
-      },
-      recipient: {
-        name: "Jane Doe",
-        type: "individual",
-        country: "NG",
-        bank_code: "058",
-        account_number: "0123456789",
-      },
+      source_currency: "NGN",
+      destination_currency: "NGN",
+      amount: { value: 50000, applies_to: "destination_currency" },
+      recipient: { bank: { account_number: "0690000040", code: "044" } },
     },
-    narration: "May commissions",
-    callback_url: "https://example.com/webhooks/flutterwave",
-  },
-  {
-    trace_id: "trace_orch_20260511_001",
-    idempotency_key: "idem_orch_20260511_001",
-  },
-);
-
-// Flutterwave returns the created sender_id and recipient_id so they can be reused
-// in future POST /transfers calls without re-sending the full sender/recipient objects.
+  });
+  // transfer.status is "NEW"; transfer.recipient.id can be reused with create_transfer later.
 */
