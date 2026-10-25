@@ -105,7 +105,7 @@
     },
     "env_var": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
     "template": {
-      "description": "Text with {placeholders}: a credential's env var, {signature}, {access_token}, or {raw_body} (webhook only).",
+      "description": "Text with {placeholders}: a credential's env var, {signature}, {access_token}; in webhook.signature.message also {raw_body}, {header:Name} and an env var the example reads.",
       "type": "string",
       "pattern": "\\S"
     },

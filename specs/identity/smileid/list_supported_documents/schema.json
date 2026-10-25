@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-24",
-    "spec_hash": "sha256:8867483eb82d39965f55c79efdd04ba1bd9a3d409783c0deb61b8163934bc092"
+    "spec_hash": "sha256:d2498e3039d8714628bce035be94b97b6fd087bd4b9302381a85d298283966c4"
   },
   "auth": {
     "type": "none"
@@ -124,8 +124,7 @@
     "No authentication required: this endpoint is public.",
     "Errors use a different shape from the rest of the V3 API: { error, code } instead of { status, message }.",
     "Filter with country_code (ISO 3166-1 alpha-2, uppercase) or continent; locale (en-GB, fr-FR, ar-EG) only changes the document names. has_back tells you whether to capture the back of the document.",
-    "Enhanced Document Verification only offers the ID types enabled on your account, not this full public catalog.",
-    "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com)."
+    "Enhanced Document Verification only offers the ID types enabled on your account, not this full public catalog."
   ],
   "evidence": {
     "source_url": "https://docs.usesmileid.com/api-reference/core-resources/services/supported-documents.md",

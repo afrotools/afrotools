@@ -1,6 +1,4 @@
 {
-  "sandbox_base_url": "https://testapi.smileidentity.com",
-  "auth_secondary_env": "SMILEID_PARTNER_ID",
   "steps": [
     {
       "capability": "generate_token",
@@ -14,7 +12,10 @@
     {
       "capability": "list_supported_documents",
       "skip_auth": true,
-      "query_params": { "country_code": "SN", "locale": "fr-FR" }
+      "query_params": {
+        "country_code": "SN",
+        "locale": "fr-FR"
+      }
     },
     {
       "capability": "enhanced_kyc",
@@ -39,7 +40,9 @@
           "notice_language": "FR",
           "notice_privacy_policy_url": "https://afro.tools/privacy"
         },
-        "partner_params": { "internal_reference": "afrotools-live-$ts" }
+        "partner_params": {
+          "internal_reference": "afrotools-live-$ts"
+        }
       },
       "store_as": "ekyc"
     },
@@ -51,7 +54,9 @@
         "SmileID-Partner-ID": "$env:SMILEID_PARTNER_ID",
         "SmileID-Token": "$tok.token"
       },
-      "path_params": { "jobId": "$ekyc.job_id" }
+      "path_params": {
+        "jobId": "$ekyc.job_id"
+      }
     },
     {
       "capability": "aml_check_sync",
@@ -63,7 +68,9 @@
       },
       "content_type": "multipart/form-data",
       "body": {
-        "countries": ["CI"],
+        "countries": [
+          "CI"
+        ],
         "full_name": "Nkechi Okafor Cleanford",
         "user_details": {
           "given_names": "Nkechi Okafor",
@@ -91,7 +98,11 @@
         "is_single_use": true,
         "notice_privacy_policy_url": "https://afro.tools/privacy",
         "id_types": [
-          { "country": "CI", "id_type": "NATIONAL_ID_NO_PHOTO", "verification_method": "enhanced_kyc" }
+          {
+            "country": "CI",
+            "id_type": "NATIONAL_ID_NO_PHOTO",
+            "verification_method": "enhanced_kyc"
+          }
         ]
       },
       "store_as": "link"
@@ -103,7 +114,9 @@
         "SmileID-Partner-ID": "$env:SMILEID_PARTNER_ID",
         "SmileID-Token": "$tok.token"
       },
-      "path_params": { "refId": "$link.ref_id" }
+      "path_params": {
+        "refId": "$link.ref_id"
+      }
     }
   ]
 }

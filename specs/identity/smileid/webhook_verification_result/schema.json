@@ -1,21 +1,30 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v3",
   "capability": "webhook_verification_result",
   "capability_type": "webhook",
   "status": "ready",
   "auth": {
-    "type": "none",
-    "env_var": "SMILEID_API_KEY"
+    "type": "none"
   },
   "endpoint": {
     "method": "POST",
     "url": "{your_webhook_url}"
   },
+  "webhook": {
+    "signature": {
+      "header": "Response-Signature",
+      "format": "{signature}",
+      "algorithm": "HMAC-SHA256",
+      "key": "{SMILEID_API_KEY}",
+      "message": "{header:Response-Timestamp}{SMILEID_PARTNER_ID}sid_request",
+      "encoding": "base64"
+    }
+  },
   "example_prompt": "Receive Smile ID's verification verdict on my callback URL, verify the Response-Signature, and update the user's KYC status from status, reason and id_fields.",
   "input_schema": {
     "type": "object",
-    "description": "JSON body Smile ID POSTs to your callback_url when an Enhanced KYC or Document Verification job completes (fields from both webhook pages; image_links and device_signals come with Document Verification). Other products (e.g. One-Time AML) send a different payload — see their webhook pages.",
+    "description": "JSON body Smile ID POSTs to your callback_url when an Enhanced KYC, Biometric KYC or Document Verification job completes (fields from their webhook pages; image_links and device_signals come with Document Verification and Biometric KYC). Other products (e.g. One-Time AML) send a different payload — see their webhook pages.",
     "properties": {
       "status": {
         "type": "string",
@@ -40,7 +49,7 @@
       },
       "product": {
         "type": "string",
-        "description": "The Smile ID product that produced this result (e.g. `enhanced_kyc`, `document_verification`)."
+        "description": "The Smile ID product that produced this result (e.g. `enhanced_kyc`, `biometric_kyc`, `document_verification`)."
       },
       "created_at": {
         "type": "string",
@@ -59,7 +68,7 @@
         "properties": {
           "job_type": {
             "type": "integer",
-            "description": "The job type for the verification (`5` for Enhanced KYC, `6` for Document Verification). Listed in the field tables but absent from both example payloads."
+            "description": "The job type for the verification (`5` for Enhanced KYC, `6` for Document Verification, `1` for Biometric KYC — \"Always `1` for Biometric KYC\"). Listed in the field tables but absent from the Enhanced KYC and Document Verification example payloads."
           },
           "job_id": {
             "type": "string",

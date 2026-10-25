@@ -1,8 +1,8 @@
 /**
  * @provider Smile ID
  * @capability document_verification
- * @atss 1.0
- * @capability_type sdk
+ * @atss 1.1
+ * @capability_type asynchronous
  */
 
 const SMILEID_PARTNER_ID = process.env.SMILEID_PARTNER_ID;
@@ -30,8 +30,8 @@ async function getToken(): Promise<string> {
     },
   });
   if (!response.ok) {
-    const error = (await response.json()) as SmileIdError;
-    throw new Error(`Smile ID token error ${response.status}: ${error.message}`);
+    const error = (await response.json().catch(() => ({}))) as Partial<SmileIdError>;
+    throw new Error(`Smile ID token error ${response.status}: ${error.message ?? response.statusText}`);
   }
   return ((await response.json()) as { token: string }).token;
 }
@@ -45,78 +45,112 @@ async function authHeaders(): Promise<Record<string, string>> {
   };
 }
 
-interface PartnerDetails {
-  partner_id: string;
-  name: string;
-  logo_url: string;
-  policy_url: string;
-  theme_color: string;
+// V3 bodies are multipart/form-data: images are file parts, objects travel as JSON strings.
+// Don't set Content-Type yourself — fetch adds it with the multipart boundary.
+// The API "expects images as JPEG files, not base64 strings": give each part an image type.
+const asJpeg = (b: Blob): Blob => (b.type === "image/jpeg" ? b : new Blob([b], { type: "image/jpeg" }));
+
+/** <smart-camera-web> publishes base64 frames: turn one into a JPEG file part. */
+export function jpegFromBase64(base64: string): Blob {
+  const bytes = Uint8Array.from(atob(base64.replace(/^data:image\/\w+;base64,/, "")), (c) => c.charCodeAt(0));
+  return new Blob([bytes], { type: "image/jpeg" });
 }
 
-interface DocumentVerificationConfig {
-  token: string;
-  product: "doc_verification"; // per the Web SDK reference; the FAQ says "document_verification" — see gotchas
-  callback_url: string;
-  environment: "sandbox" | "production";
-  partner_details: PartnerDetails; // all five fields required
-  consent_information?: { granted: true; granted_at: string; notice_language?: string; notice_privacy_policy_url?: string };
-  user_details?: { given_names: string; last_name: string; email?: string; phone_number?: string };
-  consent_region?: "eu" | "non-eu";
-  id_selection?: Record<string, string[]>; // e.g. { SN: ["IDENTITY_CARD", "PASSPORT"] }
+function appendFields(form: FormData, fields: Record<string, unknown>): void {
+  for (const [key, value] of Object.entries(fields)) {
+    if (value === undefined) continue;
+    form.append(key, typeof value === "string" ? value : JSON.stringify(value));
+  }
+}
+
+interface Consent {
+  granted: true;
+  granted_at: string; // ISO 8601
+  notice_language: string; // uppercase ISO 639-1, e.g. "FR"
+  notice_privacy_policy_url: string; // https
+}
+
+interface UserDetails {
+  given_names: string;
+  last_name: string;
+  email?: string | null; // at least one of email / phone_number
+  phone_number?: string | null; // E.164, e.g. "+2250700000000"
+}
+
+interface DocumentVerificationInput {
+  selfie_image: Blob; // JPEG (a File or Blob): clear, well-lit, front-facing
+  liveness_images: Blob[]; // 6–8 JPEG frames
+  document: Blob; // front of the ID (JPEG or PNG)
+  document_back?: Blob; // when the back carries data (barcode, MRZ)
+  country: string; // ISO 3166-1 alpha-2, e.g. "SN", "GN", "CI"
+  id_type?: string; // optional: auto-classified when omitted (list_supported_documents)
+  user_details: UserDetails;
+  consent: Consent;
+  user_id?: string;
+  callback_url?: string; // https, on your allowed callback domains
   partner_params?: Record<string, string>;
-  hide_attribution?: boolean;
-  document_capture_modes?: ("camera" | "upload")[];
 }
 
-interface DocumentVerificationOptions {
-  callback_url: string;
-  environment: "sandbox" | "production";
-  partner_details: Omit<PartnerDetails, "partner_id">;
-  id_selection?: Record<string, string[]>;
-  partner_params?: Record<string, string>;
-  document_capture_modes?: ("camera" | "upload")[];
+interface VerificationAccepted {
+  status: string; // "accepted" — compare case-insensitively
+  message: string;
+  job_id: string;
+  user_id: string;
+  created_at: string;
 }
 
-// Server-side: mint a token per session and return the config to the page.
-// The API key never reaches the browser — only the 15-minute token does.
-export async function buildDocumentVerificationConfig(
-  options: DocumentVerificationOptions
-): Promise<DocumentVerificationConfig> {
-  const headers = await authHeaders();
-  return {
-    ...options,
-    token: headers["SmileID-Token"],
-    product: "doc_verification",
-    partner_details: { partner_id: SMILEID_PARTNER_ID!, ...options.partner_details },
-  };
+export async function submitDocumentVerification(input: DocumentVerificationInput): Promise<VerificationAccepted> {
+  if (input.liveness_images.length < 6 || input.liveness_images.length > 8) {
+    throw new Error("liveness_images needs 6 to 8 frames");
+  }
+  const form = new FormData();
+  form.append("selfie_image", asJpeg(input.selfie_image), "selfie.jpg");
+  // Every frame under the exact same name — indexed names (liveness_images[0]) deliver only one frame.
+  input.liveness_images.forEach((frame, i) => form.append("liveness_images", asJpeg(frame), `liveness-${i}.jpg`));
+  // JPEG or PNG for the document; untyped blobs are sent as JPEG.
+  const docPart = (b: Blob): [Blob, string] => (b.type === "image/png" ? [b, "png"] : [asJpeg(b), "jpg"]);
+  const [front, frontExt] = docPart(input.document);
+  form.append("document", front, `document.${frontExt}`);
+  if (input.document_back) {
+    const [back, backExt] = docPart(input.document_back);
+    form.append("document_back", back, `document_back.${backExt}`);
+  }
+  appendFields(form, {
+    country: input.country,
+    id_type: input.id_type,
+    user_details: input.user_details,
+    consent: input.consent,
+    user_id: input.user_id,
+    callback_url: input.callback_url,
+    partner_params: input.partner_params,
+  });
+
+  const response = await fetch(`${SMILEID_BASE_URL}/v3/document_verification`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: form,
+  });
+  if (!response.ok) {
+    // 413 / 500 may not be JSON: keep the status either way.
+    const error = (await response.json().catch(() => ({}))) as Partial<SmileIdError>;
+    throw new Error(`Smile ID document_verification error ${response.status}: ${error.message ?? response.statusText}`);
+  }
+  return (await response.json()) as VerificationAccepted; // 202 — not the verdict
 }
 
 /*
-Usage example:
+Usage example — Senegal. Capture with a Smile ID SDK (<smart-camera-web capture-id> in the browser:
+image_type_id 2 = selfie, 6 = liveness, 3 = document front, 7 = document back).
+Each published frame is base64: convert it with jpegFromBase64(frame.image) before calling.
 
-// 1. Backend route (e.g. GET /sessions/new):
-const config = await buildDocumentVerificationConfig({
+const job = await submitDocumentVerification({
+  selfie_image: selfieFile,
+  liveness_images: livenessFrames, // 6–8 JPEGs
+  document: idFrontFile,
+  country: "SN",
+  user_details: { given_names: "Amina Fatou", last_name: "Clearwater", email: "amina.clearwater@example.com" }, // sandbox: clear
+  consent: { granted: true, granted_at: new Date().toISOString(), notice_language: "FR", notice_privacy_policy_url: "https://example.com/privacy" },
   callback_url: "https://example.com/smile-webhook",
-  environment: "production",
-  partner_details: {
-    name: "Acme",
-    logo_url: "https://example.com/logo.png",
-    policy_url: "https://example.com/privacy",
-    theme_color: "#001096",
-  },
-  id_selection: { GN: ["IDENTITY_CARD", "PASSPORT"] },
-  partner_params: { internal_reference: "signup-42" },
 });
-
-// 2. Page served over HTTPS (or localhost), with allow="camera" on any wrapping iframe:
-// <script src="https://cdn.usesmileid.com/inline/v12/js/script.min.js"></script>
-// window.SmileIdentity({
-//   ...config,
-//   onResult: (result) => {
-//     // 'success' = job accepted (202), result.value = { job_id, user_id, status, message, created_at }
-//     // 'failure' = result.error.error_code (CONSENT_DENIED, NOT_PERMITTED, ...)
-//     // 'cancelled' = user closed the flow
-//     // The verdict only arrives on the webhook (webhook_verification_result).
-//   },
-// });
+// Store job.job_id; the verdict arrives on the webhook (webhook_verification_result).
 */

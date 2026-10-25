@@ -1,0 +1,325 @@
+{
+  "spec_version": "1.1",
+  "provider_api_version": "v3",
+  "capability": "biometric_kyc",
+  "capability_type": "asynchronous",
+  "status": "ready",
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "SmileID-Token",
+    "format": "{token}",
+    "env_var": "SMILEID_API_KEY",
+    "credentials": [
+      {
+        "env_var": "SMILEID_API_KEY",
+        "description": "API key of the environment (sandbox and production keys differ, from the Dashboard)"
+      },
+      {
+        "env_var": "SMILEID_PARTNER_ID",
+        "description": "partner ID — numeric, no leading zeros (Dashboard)"
+      }
+    ],
+    "token_exchange": {
+      "method": "POST",
+      "path": "/v3/token",
+      "headers": [
+        {
+          "in": "header",
+          "name": "SmileID-Partner-ID",
+          "value": "{SMILEID_PARTNER_ID}"
+        },
+        {
+          "in": "header",
+          "name": "SmileID-API-Key",
+          "value": "{SMILEID_API_KEY}"
+        }
+      ],
+      "token_field": "token",
+      "expires_in_s": 900
+    },
+    "apply": [
+      {
+        "in": "header",
+        "name": "SmileID-Partner-ID",
+        "value": "{SMILEID_PARTNER_ID}"
+      },
+      {
+        "in": "header",
+        "name": "SmileID-Token",
+        "value": "{access_token}"
+      }
+    ]
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.smileidentity.com/v3/biometric_kyc"
+  },
+  "example_prompt": "Verify a user with Biometric KYC: their ID number checked against the ID authority and their selfie matched to the photo on file (Kenya, Nigeria, South Africa).",
+  "input_schema": {
+    "type": "object",
+    "description": "multipart/form-data. Docs: \"Combines biometric selfie verification with KYC identity checks against the relevant ID authority.\"",
+    "required": [
+      "selfie_image",
+      "liveness_images",
+      "consent",
+      "country",
+      "id_type",
+      "id_number",
+      "user_details"
+    ],
+    "properties": {
+      "selfie_image": {
+        "type": "string",
+        "format": "binary",
+        "description": "JPEG selfie image used for biometric verification. Must be a clear, well-lit, front-facing photo."
+      },
+      "liveness_images": {
+        "type": "array",
+        "minItems": 6,
+        "maxItems": 8,
+        "items": {
+          "type": "string",
+          "format": "binary"
+        },
+        "description": "Array of 6–8 JPEG liveness sequence images captured during the liveness check, or exactly the count set by sdk_config.livenessImageCount when the session token carries one. These images are used for passive and active liveness verification. Repeated file parts under the same name."
+      },
+      "country": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 2,
+        "description": "ISO 3166-1 alpha-2 country code (uppercase). Can be provided via the token payload (bound at /v3/token) instead of the request body."
+      },
+      "id_type": {
+        "type": "string",
+        "description": "ID type for the country. Biometric KYC ID types in ID Coverage: Kenya NATIONAL_ID, ALIEN_CARD, PASSPORT; Nigeria BVN, NIN_V2, NIN_SLIP, V_NIN, VOTER_ID; South Africa NATIONAL_ID. (The OpenAPI's example \"NIN, BVN, DRIVERS_LICENSE\" is generic: NIN and DRIVERS_LICENSE are not Biometric KYC ID types in ID Coverage.) Can be provided via the token payload (bound at /v3/token) instead of the request body."
+      },
+      "id_number": {
+        "type": "string",
+        "description": "ID document number. Must match the regex format for the country/id_type. Can be provided via the token payload (bound at /v3/token) instead of the request body."
+      },
+      "user_details": {
+        "type": "object",
+        "required": [
+          "given_names",
+          "last_name"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "email"
+            ]
+          },
+          {
+            "required": [
+              "phone_number"
+            ]
+          }
+        ],
+        "description": "Consumer-stated PII fields for the user. Either email or phone_number must be provided.",
+        "properties": {
+          "given_names": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Given names of the individual. Can be provided via the token payload (bound at /v3/token) instead of the request body."
+          },
+          "last_name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Last name / surname of the individual. Can be provided via the token payload (bound at /v3/token) instead of the request body."
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email",
+            "description": "Email address. At least one of email or phone_number is required. Can be provided via the token payload (bound at /v3/token) instead of the request body."
+          },
+          "phone_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\+[1-9]\\d{6,14}$",
+            "description": "Phone number in E.164 format (must start with +). At least one of email or phone_number is required."
+          }
+        }
+      },
+      "consent": {
+        "type": "object",
+        "required": [
+          "granted",
+          "granted_at",
+          "notice_language",
+          "notice_privacy_policy_url"
+        ],
+        "properties": {
+          "granted": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "description": "Must be true; user has granted consent."
+          },
+          "granted_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp of when consent was granted."
+          },
+          "notice_language": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "pattern": "^[A-Z]{2}$",
+            "description": "ISO 639-1 language code of the privacy notice shown, uppercase."
+          },
+          "notice_privacy_policy_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://",
+            "description": "HTTPS URL of the privacy policy notice shown to the user."
+          }
+        }
+      },
+      "user_id": {
+        "type": "string",
+        "description": "Optional partner-provided user identifier. Must match the token user identifier when both are supplied. If no user identifier is supplied, a TypeID is generated automatically."
+      },
+      "callback_url": {
+        "type": "string",
+        "format": "uri",
+        "pattern": "^https://",
+        "description": "URL to receive the async result callback. Falls back to partner default if omitted. Must be on the partner's allowed callback domains list. Can be provided via the token payload (bound at /v3/token) instead of the request body."
+      },
+      "partner_params": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Arbitrary key-value metadata for partner reference."
+      },
+      "sandbox_result": {
+        "type": "number",
+        "description": "Force a specific result code in sandbox/test environments. Only effective when the partner account is in sandbox mode."
+      },
+      "metadata": {
+        "type": "array",
+        "description": "Additional metadata entries (e.g., SDK telemetry, device info).",
+        "items": {
+          "type": "object",
+          "required": [
+            "name",
+            "value"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "value": {
+              "type": "string",
+              "maxLength": 1000
+            }
+          }
+        }
+      },
+      "encrypted_package": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]+$",
+        "description": "Encrypted package produced by a Smile ID SDK. Forward it unchanged. When present, `package_nonce` and `package_tag` and the SmileID-Source-SDK and SmileID-Source-SDK-Version headers are required."
+      },
+      "package_nonce": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{24}$",
+        "description": "Nonce for `encrypted_package`, produced by a Smile ID SDK. Forward it unchanged. Required when `encrypted_package` is supplied."
+      },
+      "package_tag": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{32}$",
+        "description": "Tag for `encrypted_package`, produced by a Smile ID SDK. Forward it unchanged. Required when `encrypted_package` is supplied."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "message",
+      "job_id",
+      "user_id",
+      "created_at"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "Acceptance status for queued verification requests. 'accepted' in the OpenAPI; 'Accepted' in the migration guide and the Web SDK page."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable acceptance message."
+      },
+      "job_id": {
+        "type": "string",
+        "description": "TypeID format verification identifier for tracking."
+      },
+      "user_id": {
+        "type": "string",
+        "description": "TypeID format user identifier, or partner-provided user identifier."
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO 8601 timestamp of when the verification was created."
+      }
+    }
+  },
+  "error_schema": {
+    "type": "object",
+    "required": [
+      "status",
+      "message"
+    ],
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "HTTP status text."
+      },
+      "message": {
+        "type": "string",
+        "description": "Human-readable error message."
+      }
+    }
+  },
+  "gotchas": [
+    "Auth: mint a token with POST /v3/token, then send SmileID-Partner-ID and SmileID-Token on this request (auth.token_exchange / auth.apply). Docs (Authentication): \"Access tokens expire **15 minutes** after issuance. We recommend generating a new token for every verification request rather than reusing tokens across multiple requests.\" Mint tokens on your backend only: the API key never goes to the browser. The endpoint's OpenAPI declares only SmileID-Token; the Authentication page requires both headers — send both.",
+    "Countries: Biometric KYC needs an ID authority with a photo on file. ID Coverage lists it only for Kenya (NATIONAL_ID, ALIEN_CARD, PASSPORT), Nigeria (BVN, NIN_V2, NIN_SLIP, V_NIN, VOTER_ID) and South Africa (NATIONAL_ID). Côte d'Ivoire's ID types are \"Basic KYC, Enhanced KYC\" only; Senegal and Guinea have no ID-number product — use document_verification there.",
+    "Returning users: the token request's use_enrolled_image \"Grants the session a Biometric KYC job that verifies against the user's enrolled selfie instead of a fresh capture, so selfie_image and liveness_images may be omitted on that job\" — only /v3/token can grant it. Without an enrolled selfie the result is \"no enrolled selfie found for this user\".",
+    "The body must be multipart/form-data (415 otherwise). Images are file parts; user_details, consent, partner_params and metadata are JSON-serialised strings in their part. Do not set Content-Type yourself: fetch adds the multipart boundary.",
+    "liveness_images: 6 to 8 JPEG frames, \"or exactly the count set by sdk_config.livenessImageCount when the session token carries one\". Append every frame under the exact name liveness_images — the docs' Common issues: \"Only one liveness frame arrives\" when frames are \"appended under indexed names (liveness_images[0])\".",
+    "Capture the selfie and liveness frames with a Smile ID SDK: in the browser, the <smart-camera-web> component publishes frames by image_type_id (2 = selfie_image, 6 = liveness_images, 3 = document, 7 = document_back). An encrypted_package from an SDK is forwarded unchanged with package_nonce, package_tag and the SmileID-Source-SDK and SmileID-Source-SDK-Version headers (422 otherwise).",
+    "Asynchronous: the response is 202 with status 'accepted' and a job_id, not the verdict. The result (status clear | attention | block | error, reason, message) arrives on your callback_url — see webhook_verification_result; get_verification_status returns \"processing\" until it is final.",
+    "consent is mandatory: granted true, granted_at ISO 8601, notice_language uppercase ISO 639-1 (e.g. 'FR'), notice_privacy_policy_url https. user_details needs given_names, last_name and at least one of email or phone_number (E.164).",
+    "402 Payment Required: insufficient wallet balance. 403: partner not authorized for this product, ID type or IP. 413: an uploaded file exceeds the size limit. 429: rate limit exceeded.",
+    "Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production. Sandbox only accepts the documented test identities (matched on last_name + given_names + email); production rejects them with 400 'Test identities are not allowed in production'.",
+    "When the ID authority validates the number but has no photo, the result is error image_unavailable_or_invalid \"ID authority photo not available\" — sandbox identity Facelessby: \"In production, retrying with the same ID number will not succeed.\"",
+    "Sandbox: test identities are matched on last_name + given_names + email; Clearwater / Amina Fatou / amina.clearwater@example.com returns clear. sandbox_result is \"Only effective when the partner account is in sandbox mode.\""
+  ],
+  "open_questions": [
+    "The maximum size of an uploaded image is not documented: 413 says only that \"an uploaded file exceeds the size limit\".",
+    "Headers: the Authentication page requires SmileID-Partner-ID and SmileID-Token on all V3 requests; the custom-capture page lists only smileid-token (\"It also carries your partner ID\"). This spec sends both.",
+    "Ghana: listed in ID Coverage, but its page says only \"Access to Ghana is available upon request\" — its ID types and whether Biometric KYC is offered are not documented.",
+    "callback_url: the OpenAPI says it \"Falls back to partner default if omitted\"; the custom-capture page's field table marks it Required \"Yes\". Send it, or set the default callback URL in the Dashboard."
+  ],
+  "evidence": {
+    "source_url": "https://docs.usesmileid.com/api-reference/products/biometric-kyc/perform-a-biometric-kyc-verification.md",
+    "source_reference": "Perform a Biometric KYC Verification (OpenAPI BiometricKycRequest). Gotchas also quote ID Coverage, Testing in Sandbox, the Access (token) page and the web-components custom capture page.",
+    "extracted_at": "2026-10-25T19:00:00.000Z",
+    "snapshot_hash": "79ae4f29bd9f00d1c06ee6003679b190544c7046090c127674272d53c9129228",
+    "spans": [
+      "\"/v3/biometric_kyc\":{\"post\"",
+      "\"required\":[\"selfie_image\",\"liveness_images\",\"consent\",\"country\",\"id_type\",\"id_number\",\"user_details\"]",
+      "\"liveness_images\":{\"type\":\"array\",\"minItems\":6,\"maxItems\":8"
+    ]
+  }
+}

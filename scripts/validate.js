@@ -415,18 +415,19 @@ function declaredEnvVars(schema) {
     for (const c of auth.credentials ?? []) vars.add(c.env_var);
   }
   if (Array.isArray(auth)) auth.forEach((/** @type {any} */ a) => a.env_var && vars.add(a.env_var));
-  for (const m of String(schema.webhook?.signature?.key ?? "").matchAll(/\{([A-Z][A-Z0-9_]*)\}/g)) vars.add(m[1]);
+  const sig = schema.webhook?.signature;
+  for (const m of `${sig?.key ?? ""}${sig?.message ?? ""}`.matchAll(/\{([A-Z][A-Z0-9_]*)\}/g)) vars.add(m[1]);
   return vars;
 }
 
 /**
  * Every {placeholder} of the auth and webhook templates must resolve: a declared credential,
  * {signature} (auth.signing / webhook.signature), {access_token} (auth.token_exchange),
- * {raw_body} (webhook.signature.message only).
+ * {raw_body}, {header:Name} and {ENV_VAR} (webhook.signature.message only: what the provider signs).
  * @param {any} schema
  * @returns {string[]} unresolved placeholders, as "where: {name}"
  */
-function unresolvedPlaceholders(schema) {
+function unresolvedPlaceholders(schema, exampleSource = "") {
   const auth = schema.auth ?? {};
   const credentials = new Set((auth.credentials ?? []).map((/** @type {any} */ c) => c.env_var));
   /** @type {[string, any, Set<string>][]} */
@@ -446,7 +447,16 @@ function unresolvedPlaceholders(schema) {
     const secrets = new Set([...String(sig.key).matchAll(/\{([A-Z][A-Z0-9_]*)\}/g)].map((m) => m[1]));
     templates.push(
       ["webhook.signature.key", sig.key, secrets],
-      ["webhook.signature.message", sig.message, new Set(["raw_body"])],
+      // An env var signed in the message (e.g. a partner ID) must be a credential, the key's secret,
+      // or read by canonical_example.ts — so a typo cannot declare itself.
+      ["webhook.signature.message", sig.message, new Set([
+        "raw_body",
+        ...secrets,
+        ...credentials,
+        ...[...String(sig.message).matchAll(/\{(header:[A-Za-z0-9_-]+)\}/g)].map((m) => m[1]),
+        ...[...String(sig.message).matchAll(/\{([A-Z][A-Z0-9_]*)\}/g)].map((m) => m[1])
+          .filter((v) => new RegExp(`process\\.env(\\.${v}\\b|\\[\\s*['"\`]${v}['"\`])`).test(exampleSource)),
+      ])],
       ["webhook.signature.format", sig.format, new Set(["signature"])]
     );
   }
@@ -504,7 +514,7 @@ function validateAtss11(specPath, schema) {
   if ("webhook" in schema && schema.capability_type !== "webhook") {
     return fail(specPath, `"webhook" is only allowed on a capability_type "webhook", got "${schema.capability_type}"`);
   }
-  const unresolved = unresolvedPlaceholders(schema);
+  const unresolved = unresolvedPlaceholders(schema, fs.readFileSync(path.join(specPath, "canonical_example.ts"), "utf8"));
   if (unresolved.length > 0) {
     return fail(specPath, `placeholder(s) that resolve to nothing — declare the env var in auth.credentials, or add the block that produces it: ${unresolved.join("; ")}`);
   }

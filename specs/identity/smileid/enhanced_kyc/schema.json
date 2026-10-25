@@ -8,14 +8,54 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-24",
-    "spec_hash": "sha256:2346bc6d8155cced25576020f5312334b02d29bcecd0859d67c9072fe52105e1"
+    "spec_hash": "sha256:6473aee4a3f625b6421a3549189d8c0c574b380458bd8174f3d2a48c6dbfee6b"
   },
   "auth": {
     "type": "api_key",
     "location": "header",
     "field": "SmileID-Token",
     "format": "{token}",
-    "env_var": "SMILEID_API_KEY"
+    "env_var": "SMILEID_API_KEY",
+    "credentials": [
+      {
+        "env_var": "SMILEID_API_KEY",
+        "description": "API key of the environment (sandbox and production keys differ, from the Dashboard)"
+      },
+      {
+        "env_var": "SMILEID_PARTNER_ID",
+        "description": "partner ID — numeric, no leading zeros (Dashboard)"
+      }
+    ],
+    "token_exchange": {
+      "method": "POST",
+      "path": "/v3/token",
+      "headers": [
+        {
+          "in": "header",
+          "name": "SmileID-Partner-ID",
+          "value": "{SMILEID_PARTNER_ID}"
+        },
+        {
+          "in": "header",
+          "name": "SmileID-API-Key",
+          "value": "{SMILEID_API_KEY}"
+        }
+      ],
+      "token_field": "token",
+      "expires_in_s": 900
+    },
+    "apply": [
+      {
+        "in": "header",
+        "name": "SmileID-Partner-ID",
+        "value": "{SMILEID_PARTNER_ID}"
+      },
+      {
+        "in": "header",
+        "name": "SmileID-Token",
+        "value": "{access_token}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
@@ -238,8 +278,7 @@
     }
   },
   "gotchas": [
-    "Two-step auth: first call POST /v3/token with headers SmileID-Partner-ID and SmileID-API-Key (SMILEID_PARTNER_ID / SMILEID_API_KEY) to get a JWT, then send SmileID-Partner-ID and SmileID-Token: {token} on this request. The token expires 15 minutes after issuance — Smile ID recommends minting a new one for every verification request rather than reusing it. Never mint tokens in the browser: the API key must stay on your backend.",
-    "The Authentication page requires both SmileID-Partner-ID and SmileID-Token on all V3 requests; the endpoint's own OpenAPI only declares SmileID-Token. Send both.",
+    "Auth: mint a token with POST /v3/token, then send SmileID-Partner-ID and SmileID-Token on this request (auth.token_exchange / auth.apply). Docs (Authentication): \"Access tokens expire **15 minutes** after issuance. We recommend generating a new token for every verification request rather than reusing tokens across multiple requests.\" Mint tokens on your backend only: the API key never goes to the browser. The endpoint's OpenAPI declares only SmileID-Token; the Authentication page requires both headers — send both.",
     "The 202 body's status is 'accepted' in the OpenAPI but 'Accepted' in the migration guide and the Web SDK page — compare case-insensitively.",
     "V3 Enhanced KYC is always asynchronous: the response is 202 with status 'accepted' and a job_id — not the identity data. The verdict and id_fields arrive on your callback_url (see webhook_verification_result); get_verification_status only returns the status.",
     "The body must be multipart/form-data, not JSON (415 otherwise). user_details, consent and partner_params are sent as JSON-serialised strings in their form part — e.g. form.append('consent', JSON.stringify({...})).",
@@ -250,7 +289,7 @@
     "Any job_id you put in partner_params is overwritten by the Smile ID job_id — use another key name for your own reference.",
     "402 Insufficient wallet balance — top up the Smile ID wallet from the Dashboard before retrying.",
     "429 means the rate limit for this ID number was exceeded — back off before retrying.",
-    "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com). Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production. Sandbox only accepts the documented test identities (matched on last_name + given_names + email); production rejects them with 400 'Test identities are not allowed in production'."
+    "Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production. Sandbox only accepts the documented test identities (matched on last_name + given_names + email); production rejects them with 400 'Test identities are not allowed in production'."
   ],
   "evidence": {
     "source_url": "https://docs.usesmileid.com/api-reference/products/enhanced-kyc/perform-an-enhanced-kyc-verification.md",
