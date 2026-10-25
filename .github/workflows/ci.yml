@@ -35,6 +35,8 @@ jobs:
       - run: npm ci
       - name: Validator tests
         run: node --test scripts/validate.test.js
+      - name: test_live.py tests (offline)
+        run: python3 -m unittest discover -s scripts -p "test_live_test.py"
       - name: Validate changed specs (PR)
         if: github.event_name == 'pull_request'
         run: npm run validate:changed

@@ -399,12 +399,22 @@ def run(provider_slug, only_capability=None, raw_capability=None):
         print(f"\n{BOLD}[{i}/{total}] {cap_name}{RESET}")
 
         if not schema:
-            print(f"  {YELLOW}SKIPPED — schema.json not found{RESET}")
+            print(f"  {RED}SKIPPED — schema.json not found{RESET}")
+            results.append((cap_name, 0, 0, 0, "schema.json not found"))
             continue
 
         # wait_seconds: give an async job time to become visible before this step reads it.
         if step.get("wait_seconds"):
             time.sleep(step["wait_seconds"])
+
+        # A path param from an earlier step that returned nothing would silently build
+        # `/checkout-sessions//status/` — that is a failed chain, not a test of this step.
+        unresolved = [k for k, v in (step.get("path_params") or {}).items()
+                      if resolve(v, stored, ts) in (None, "")]
+        if unresolved:
+            print(f"  {RED}SKIPPED — path param(s) {', '.join(unresolved)} resolved to nothing{RESET}")
+            results.append((cap_name, 0, 0, 0, f"path param(s) {', '.join(unresolved)} unresolved"))
+            continue
 
         endpoint = schema.get("endpoint", {})
         method   = step.get("method", endpoint.get("method", "GET"))
@@ -427,7 +437,8 @@ def run(provider_slug, only_capability=None, raw_capability=None):
         extra_headers = resolve(step.get("headers", {}), stored, ts)
         missing = [k for k, v in extra_headers.items() if v is None]
         if missing:
-            print(f"  {YELLOW}SKIPPED — header(s) {', '.join(missing)} come from an earlier step that returned nothing{RESET}")
+            print(f"  {RED}SKIPPED — header(s) {', '.join(missing)} come from an earlier step that returned nothing{RESET}")
+            results.append((cap_name, 0, 0, 0, f"header(s) {', '.join(missing)} unresolved"))
             continue
         content_type = step.get("content_type", "application/json")
 
@@ -438,6 +449,8 @@ def run(provider_slug, only_capability=None, raw_capability=None):
             return
 
         status_code, resp = http_call(method, url, step_auth, body, extra_headers, content_type)
+        if not isinstance(resp, dict):  # a top-level JSON array or scalar
+            resp = {"data": resp}
 
         store_as = step.get("store_as")
         if store_as:
@@ -458,35 +471,51 @@ def run(provider_slug, only_capability=None, raw_capability=None):
         actual = get_data_node(resp, schema)
 
         acceptable_error_codes = step.get("acceptable_error_codes", [])
-        details = resp.get("details", "") if isinstance(resp, dict) else ""
+        details = resp.get("details", "")
+        details = details if isinstance(details, str) else json.dumps(details)
         is_acceptable_error = any(details.startswith(code) for code in acceptable_error_codes)
 
-        if resp.get("status") == "success" or status_code in (200, 201, 202):
+        # The call itself must succeed: comparing keys alone passed a step that got a 401
+        # whenever the response schema had no `required` field (most specs).
+        expected_status = step.get("expected_status")
+        status_ok = status_code in expected_status if expected_status else 200 <= status_code < 300
+
+        error = None
+        if status_ok:
             rm, om, e = compare(actual, props, req_keys, exclude_keys)
         elif is_acceptable_error:
             print(f"  {YELLOW}Expected sandbox error → {details}{RESET}")
             rm, om, e = 0, 0, 0
         else:
-            print(f"  {RED}API error → {json.dumps(resp)}{RESET}")
+            print(f"  {RED}API error (HTTP {status_code}) → {json.dumps(resp)}{RESET}")
             rm, om, e = len(req_keys - exclude_keys), 0, 0
+            error = f"HTTP {status_code}"
 
-        results.append((cap_name, rm, om, e))
+        results.append((cap_name, rm, om, e, error))
 
     if raw_capability:
         print(f"{YELLOW}Capability '{raw_capability}' not found in steps{RESET}")
         return
 
     # Summary
-    total_req_m = sum(r for _, r, _, _ in results)
-    total_extra  = sum(e for _, _, _, e in results)
+    total_req_m = sum(r for _, r, _, _, _ in results)
+    total_extra  = sum(e for _, _, _, e, _ in results)
+    failed       = [(cap, err) for cap, _, _, _, err in results if err]
 
     print(f"\n{BOLD}{'━' * 60}{RESET}")
     print(f"{BOLD}SUMMARY — {len(results)} step(s) tested{RESET}")
     print(f"{'━' * 60}")
-    for cap, rm, om, e in results:
+    for cap, rm, om, e, err in results:
+        if err:
+            print(f"  {RED}FAIL{RESET}  {cap:<45}  {err}")
+            continue
         tag = f"{GREEN}OK  {RESET}" if (rm == 0 and e == 0) else f"{RED}DIFF{RESET}"
         print(f"  {tag}  {cap:<45}  req_missing={rm}  optional_absent={om}  extra={e}")
     print()
+    if failed:
+        print(f"  {RED}{BOLD}FAIL — {len(failed)} step(s) without a successful response: "
+              f"{', '.join(cap for cap, _ in failed)}.{RESET}")
+        sys.exit(1)
     print(f"  Required keys absent from response (spec error or sandbox gap): {total_req_m}")
     print(f"  Extra keys in response not in spec (spec under-specified):       {total_extra}")
     if total_req_m == 0:

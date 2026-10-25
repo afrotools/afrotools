@@ -189,6 +189,14 @@ Key fixture fields:
   token-exchange call that carries its own credentials in `headers`, or an unauthenticated endpoint
 - `wait_seconds` (per step) — pause before the step, e.g. so an async job created by an earlier
   step is visible before its status is read
+- `expected_status` (per step) — HTTP status codes that count as success (default: any 2xx). A step
+  fails when the call doesn't succeed, unless its error is listed in `acceptable_error_codes`
+- `acceptable_error_codes` (per step) — prefixes of the response's `details` that are an expected
+  sandbox error, not a failure
+
+A run fails (exit 1) when any step gets an unexpected HTTP status, is skipped (missing schema, or a
+path param or header from an earlier step that returned nothing), or misses a field the response
+schema marks `required`.
 
 **Run it:**
 
