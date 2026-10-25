@@ -1,0 +1,67 @@
+name: Integration report
+description: You integrated a provider from its spec — tell us whether the spec matched the real API
+title: "[integration] "
+labels: ["integration-report", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every report helps: a spec that worked can become `verified` (credited to you), a spec that
+        did not gets fixed. **Remove API keys, tokens, phone numbers and personal data before submitting.**
+
+  - type: input
+    id: provider
+    attributes:
+      label: Provider
+      placeholder: e.g. flutterwave
+    validations:
+      required: true
+
+  - type: textarea
+    id: capabilities
+    attributes:
+      label: Capabilities used
+      description: One line per capability of the flow, with its result. Each capability is verified on its own.
+      placeholder: |
+        create_payment — worked
+        payment_status — worked
+        webhook — wrong: <what the API sent vs. what the spec says>
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - sandbox
+        - production
+    validations:
+      required: true
+
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Did the specs match the API?
+      options:
+        - "Yes — every capability worked as its spec describes"
+        - "No — at least one spec is wrong (field, status code, auth, URL…)"
+        - "No — it failed for another reason"
+    validations:
+      required: true
+
+  - type: input
+    id: tested_on
+    attributes:
+      label: Date of the test
+      placeholder: YYYY-MM-DD
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: What happened
+      description: What you called, what came back, and what differed from the spec. Paste the response with secrets removed.
+    validations:
+      required: true

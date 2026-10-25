@@ -1,9 +1,16 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v1.0",
   "capability": "confirm_otp",
   "capability_type": "synchronous",
   "status": "verified",
+  "verification": {
+    "method": "app",
+    "environment": "production",
+    "at": "2026-04-10",
+    "ref": "https://github.com/afrotools/examples/tree/main/shop",
+    "spec_hash": "sha256:baf526c13b72dd668c1e7932ee25db55d05aabc18d318a7367e421771b1142a4"
+  },
   "currency": [
     "GNF"
   ],

@@ -1,9 +1,15 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2026-10-12",
   "capability": "create_payment",
   "capability_type": "synchronous",
   "status": "verified",
+  "verification": {
+    "method": "test_live",
+    "environment": "sandbox",
+    "at": "2026-10-17",
+    "spec_hash": "sha256:9658ae569b33016243f8f7b9f1d96cc40d83a37493fed97893228a6b2925d2ce"
+  },
   "currency": [
     "XOF",
     "CDF",

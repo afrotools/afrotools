@@ -1,9 +1,15 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v3",
   "capability": "enhanced_kyc",
   "capability_type": "asynchronous",
   "status": "verified",
+  "verification": {
+    "method": "test_live",
+    "environment": "sandbox",
+    "at": "2026-10-24",
+    "spec_hash": "sha256:2346bc6d8155cced25576020f5312334b02d29bcecd0859d67c9072fe52105e1"
+  },
   "auth": {
     "type": "api_key",
     "location": "header",

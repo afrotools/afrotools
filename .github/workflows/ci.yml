@@ -108,7 +108,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Skills only reference existing MCP tools
         run: |
-          MCP_TOOLS="list_providers search_specs get_spec request_spec"
+          MCP_TOOLS="list_providers search_specs get_spec request_spec report_integration"
           USED=$(grep -rhoE 'afrotools\.[a-z_]+\(' plugin/skills | sed -E 's/afrotools\.([a-z_]+)\(/\1/' | sort -u)
           UNKNOWN=$(comm -23 <(echo "$USED") <(tr ' ' '\n' <<< "$MCP_TOOLS" | sort -u))
           if [ -n "$UNKNOWN" ]; then

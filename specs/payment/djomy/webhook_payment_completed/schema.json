@@ -1,9 +1,16 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v1.0",
   "capability": "webhook_payment_completed",
   "capability_type": "webhook",
   "status": "verified",
+  "verification": {
+    "method": "app",
+    "environment": "production",
+    "at": "2026-04-10",
+    "ref": "https://github.com/afrotools/examples/tree/main/shop",
+    "spec_hash": "sha256:37333b8bd8491ae5c6adfa4842b63500545b70d06dd738a8db350813d8776dba"
+  },
   "currency": [
     "GNF"
   ],

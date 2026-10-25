@@ -1,9 +1,15 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v3",
   "capability": "list_supported_documents",
   "capability_type": "synchronous",
   "status": "verified",
+  "verification": {
+    "method": "test_live",
+    "environment": "sandbox",
+    "at": "2026-10-24",
+    "spec_hash": "sha256:8867483eb82d39965f55c79efdd04ba1bd9a3d409783c0deb61b8163934bc092"
+  },
   "auth": {
     "type": "none"
   },

@@ -9,6 +9,25 @@ Thank you for helping expand AI-ready coverage for African APIs.
 - **New spec** — a `provider.json` + `schema.json` + `canonical_example.ts` for a provider/capability not yet in the registry
 - **Fix** — correcting a field, improving gotchas, or fixing a compilation error
 - **Docs** — improving ATSS.md, README, or this file
+- **Integration report** — you integrated a provider from its spec: tell us whether it matched the API (below)
+
+---
+
+## Report an integration
+
+The maintainers cannot test every provider in production. If you integrated one from its spec —
+in sandbox or in production — [open an integration report](https://github.com/afrotools/afrotools/issues/new?template=integration-report.yml), whether it worked or not.
+One report covers a whole flow of one provider (e.g. payment init, status check, webhook): list
+each capability you used with its own result.
+With the Afro.tools MCP, ask your agent: it calls `report_integration` and gives you a pre-filled
+link; you choose the environment and the outcome, check that no secret is in it, and submit.
+The agent never submits anything itself.
+
+- **It worked** — a maintainer checks the report and records it as the proof of each capability
+  that worked: `status: "verified"` with `verification.method: "community_report"` and a link to
+  your issue (ATSS.md § verified). You are credited as a contributor.
+- **A spec is wrong** — the report becomes a fix: the field, status code or gotcha is corrected
+  from your response and the provider's docs.
 
 ---
 
@@ -245,7 +264,14 @@ with the spec. Never set `"verified"` — that is reserved for maintainers.
   `afrotools/examples`. If you can't build one yourself, say so in the PR; it stays `ready`
   (visible in the MCP, with an explicit "not yet verified" warning to agents) until someone does.
 
-If your PR adds a spec and neither path applies yet, that's fine — `ready` is a real, useful
+- **Someone integrated it** — an accepted [integration report](#report-an-integration) is
+  enough, in sandbox or in production.
+
+The maintainer records the proof in the spec's `verification` block (method, environment, date,
+link, `spec_hash` — see ATSS.md § Blocks added in ATSS 1.1). `npm run validate` rejects a
+`verified` spec without it, and a verified spec edited afterwards until it is verified again.
+
+If your PR adds a spec and none of these paths applies yet, that's fine — `ready` is a real, useful
 state. Don't block a spec's merge on getting it to `verified`.
 
 ### 9. Open a PR

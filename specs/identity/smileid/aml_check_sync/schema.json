@@ -1,9 +1,15 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v3",
   "capability": "aml_check_sync",
   "capability_type": "synchronous",
   "status": "verified",
+  "verification": {
+    "method": "test_live",
+    "environment": "sandbox",
+    "at": "2026-10-24",
+    "spec_hash": "sha256:3cd4e57749ac9b13ab4c179b61a1d6c3bac92135da275af282baa37ac9fee21e"
+  },
   "auth": {
     "type": "api_key",
     "location": "header",

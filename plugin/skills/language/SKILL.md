@@ -53,6 +53,10 @@ for the target provider and capability before writing any implementation code.
    - `response_schema` — what a success response looks like
    - `error_schema` — how errors are returned
    - `gotchas` — **always surface these to the user**
+   - `status` / `verification` — `ready` means written from the provider's docs, not yet
+     tested against the API; a `verified` spec says where it was tested
+     (`verification.environment`: `sandbox` or `production`). Tell the user which.
+   - `open_questions` — if present, what the docs do not answer: tell the user before relying on it
 
 4. Implement using the `canonical_example.ts` pattern:
    - Native fetch only — no axios, no node-fetch
@@ -61,6 +65,20 @@ for the target provider and capability before writing any implementation code.
      spec lists — an accent outside its language is rejected
    - For a multipart upload, use `FormData` and let fetch set the boundary — don't set
      `Content-Type` by hand
+
+## After the integration
+
+When the user confirms the integration works against the real API (sandbox or production), or
+you find that the spec is wrong, offer to report it — it is how specs get verified and fixed:
+
+```
+afrotools.report_integration({ provider: "<slug>", capabilities: [{ capability: "<capability>", result: "worked" }, …], summary: "<one line>", details: "<what was called, what came back, what differed>" })
+```
+
+List every capability the flow used (e.g. payment init, status, webhook), each with its own
+result — one report per provider. Give the user the returned link: they choose the environment and
+the outcome, check the text, and submit it themselves. Never put API keys, tokens, phone numbers
+or personal data in `details`.
 
 ## Important
 
