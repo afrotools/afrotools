@@ -1,23 +1,41 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "send_bulk_sms",
   "capability_type": "synchronous",
-  "status": "draft",
+  "status": "ready",
   "auth": {
     "type": "api_key",
     "location": "header",
     "field": "apiKey",
     "format": "{token}",
-    "env_var": "AFRICASTALKING_API_KEY"
+    "env_var": "AFRICASTALKING_API_KEY",
+    "credentials": [
+      {
+        "env_var": "AFRICASTALKING_API_KEY",
+        "description": "API key generated from the Africa's Talking dashboard (a new key invalidates the old one)"
+      },
+      {
+        "env_var": "AFRICASTALKING_USERNAME",
+        "description": "application username — always \"sandbox\" in the sandbox; sent as the username field of the body, not as a header"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "apiKey",
+        "value": "{AFRICASTALKING_API_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
     "url": "https://api.africastalking.com/version1/messaging/bulk"
   },
-  "example_prompt": "Send bulk SMS using Africa's Talking new bulk endpoint (JSON-friendly, requires senderId).",
+  "example_prompt": "Send an SMS to a list of phone numbers with Africa's Talking's current bulk endpoint (JSON).",
   "input_schema": {
     "type": "object",
+    "description": "JSON body. Docs: \"In addition to the standard request headers, this endpoint also accepts json requests.\" A second documented shape sends to a Safaricom hashed number (see gotchas).",
     "required": [
       "username",
       "phoneNumbers",
@@ -27,19 +45,22 @@
     "properties": {
       "username": {
         "type": "string",
-        "description": "Your Africa's Talking app username."
+        "description": "Your Africa's Talking application username."
       },
       "phoneNumbers": {
-        "type": "string",
-        "description": "Comma-separated E.164 phone numbers. NOTE: this field is phoneNumbers, not to — using to silently fails."
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "A list of recipients' phone numbers. The docs' table says String, their JSON sample sends an array: [\"+254711XXXYYY\", \"+254711YYYZZZ\"]. Must be [] with maskedNumber."
       },
       "message": {
         "type": "string",
-        "description": "SMS content to send."
+        "description": "The message to be sent. Avoid the % character (Help Center, see send_sms)."
       },
       "senderId": {
         "type": "string",
-        "description": "Your registered sender ID (shortcode or alphanumeric). Required for this endpoint — unlike the legacy send_sms endpoint where from was optional."
+        "description": "Your registered short code or alphanumeric. Required, except with maskedNumber where it is optional."
       },
       "enqueue": {
         "type": "integer",
@@ -48,15 +69,15 @@
           1
         ],
         "default": 1,
-        "description": "Set to 1 to queue the message without waiting for telco acknowledgement (default)."
+        "description": "1 to queue the messages and send them asynchronously after responding to the request (default 1), 0 to disable."
       },
       "maskedNumber": {
         "type": "string",
-        "description": "Hashed phone number for Safaricom Kenya. Use instead of phoneNumbers when sending to a masked subscriber. When set, phoneNumbers must be an empty array []."
+        "description": "Hashed-number variant (Safaricom, Kenya): the string of the hashed number to be sent to. Required in that variant."
       },
       "telco": {
         "type": "string",
-        "description": "Service provider name when using maskedNumber. Example: 'Safaricom'. Required when maskedNumber is set."
+        "description": "Hashed-number variant: the service provider (the docs' sample: \"Safaricom\"). Required in that variant."
       }
     }
   },
@@ -91,23 +112,23 @@
               "properties": {
                 "statusCode": {
                   "type": "integer",
-                  "description": "Per-recipient delivery status code. 101=Sent, 102=Queued, 100=Processed, 401=RiskHold, 402=InvalidSenderId, 403=InvalidPhoneNumber, 404=UnsupportedNumberType, 405=InsufficientBalance, 406=UserInBlacklist, 407=CouldNotRoute, 409=DoNotDisturbRejection, 500=InternalServerError, 501=GatewayError, 502=RejectedByGateway."
+                  "description": "Status of the request for this recipient: 100 Processed, 101 Sent, 102 Queued, 401 RiskHold, 402 InvalidSenderId, 403 InvalidPhoneNumber, 404 UnsupportedNumberType, 405 InsufficientBalance, 406 UserInBlacklist, 407 CouldNotRoute, 409 DoNotDisturbRejection, 500 InternalServerError, 501 GatewayError, 502 RejectedByGateway."
                 },
                 "number": {
                   "type": "string",
-                  "description": "Recipient phone number in E.164 format."
+                  "description": "The recipient's phone number."
                 },
                 "status": {
                   "type": "string",
-                  "description": "Human-readable status (e.g. \"Success\", \"DeliveryFailure\")."
+                  "description": "Whether the sms was sent to this recipient or not. Docs: \"This does not indicate the delivery status of the sms to this recipient.\""
                 },
                 "cost": {
                   "type": "string",
-                  "description": "Cost for this recipient (e.g. \"KES 0.8000\")."
+                  "description": "(3-digit Currency Code)(space)(Decimal Value), e.g. \"KES 1.00\"."
                 },
                 "messageId": {
                   "type": "string",
-                  "description": "Unique message ID assigned by Africa's Talking."
+                  "description": "The messageId received when the sms was sent — the id of its delivery report."
                 }
               }
             }
@@ -117,14 +138,18 @@
     }
   },
   "error_schema": {
-    "type": "string",
-    "description": "HTTP 4xx responses return a plain error message string."
+    "type": "object",
+    "description": "Not documented on this page. The SMS Notifications page documents DoNotDisturbRejection (Nigeria) as an HTTP 409 with the usual SMSMessageData body."
   },
   "gotchas": [
-    "The recipient field is phoneNumbers (not to). Using to silently fails — this differs from the legacy send_sms endpoint.",
-    "senderId is required for this endpoint, not optional. Omitting it returns an error. In the legacy endpoint (send_sms), the from field was optional.",
-    "The sandbox URL is coming soon — this endpoint has no sandbox support yet. Use send_sms (legacy) for sandbox testing in the meantime.",
-    "This endpoint accepts both application/x-www-form-urlencoded and application/json. Set Content-Type: application/json when sending a JSON body.",
-    "To send to a Safaricom hashed number, set maskedNumber to the hashed string, telco to 'Safaricom', and phoneNumbers to an empty array []. The senderId field becomes optional in this mode."
+    "No sandbox yet: \"Sandbox: https://api.sandbox.africastalking.com/version1/messaging/bulk (coming soon)\". Test with send_sms (legacy endpoint, which has a sandbox) and switch to this one in production.",
+    "Recipients go in phoneNumbers, a list — the docs' JSON sample: \"phoneNumbers\": [\"+254711XXXYYY\", \"+254711YYYZZZ\"]. The legacy send_sms uses a comma separated string named to instead.",
+    "senderId is required here (\"Your registered short code or alphanumeric\"); the legacy endpoint's from is optional with a default.",
+    "Hashed numbers (Safaricom, Kenya): send maskedNumber and telco with phoneNumbers [] — \"This value must be a blank list, i.e, []\" — and senderId becomes optional.",
+    "Check SMSMessageData.Recipients[].statusCode for each recipient: 100 Processed, 101 Sent, 102 Queued; the docs list 401–502 as error codes. status \"does not indicate the delivery status\": the delivery comes later in webhook_delivery_report.",
+    "Help Center (Why did my messages Fail?): \"Another reason that messages may fail to be sent is if they have the (%) percentage character in the text.\""
+  ],
+  "open_questions": [
+    "Whether a form-encoded body (the standard Content-Type of the Request Headers page) works on this endpoint like JSON does, and how phoneNumbers is then encoded: the page only shows JSON requests."
   ]
 }

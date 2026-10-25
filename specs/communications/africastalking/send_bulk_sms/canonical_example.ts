@@ -1,7 +1,7 @@
 /**
  * @provider Africa's Talking
  * @capability send_bulk_sms
- * @atss 1.0
+ * @atss 1.1
  * @capability_type synchronous
  */
 
@@ -10,15 +10,15 @@ const AFRICASTALKING_USERNAME = process.env.AFRICASTALKING_USERNAME;
 if (!AFRICASTALKING_API_KEY) throw new Error("Missing env: AFRICASTALKING_API_KEY");
 if (!AFRICASTALKING_USERNAME) throw new Error("Missing env: AFRICASTALKING_USERNAME");
 
-// NOTE: The sandbox URL for /messaging/bulk is not yet available.
-// Use send_sms (legacy endpoint) for sandbox testing.
+// Production only: the docs list this endpoint's sandbox as "coming soon".
+// Test with send_sms (legacy endpoint, sandbox available).
 const BULK_URL = "https://api.africastalking.com/version1/messaging/bulk";
 
 interface SendBulkSmsInput {
-  phoneNumbers: string | string[];
+  phoneNumbers: string[]; // international format, e.g. "+254711XXXYYY"
   message: string;
-  senderId: string;
-  enqueue?: number;
+  senderId: string; // your registered short code or alphanumeric
+  enqueue?: 0 | 1;
 }
 
 interface SmsRecipient {
@@ -36,17 +36,13 @@ interface SendSmsResponse {
   };
 }
 
-export async function sendBulkSms(input: SendBulkSmsInput): Promise<SendSmsResponse> {
-  const phoneNumbers = Array.isArray(input.phoneNumbers)
-    ? input.phoneNumbers.join(",")
-    : input.phoneNumbers;
+const ACCEPTED = new Set([100, 101, 102]); // Processed, Sent, Queued
 
-  const body: Record<string, string | number> = {
+export async function sendBulkSms(input: SendBulkSmsInput): Promise<SendSmsResponse> {
+  const body: Record<string, unknown> = {
     username: AFRICASTALKING_USERNAME!,
-    // IMPORTANT: field is "phoneNumbers" NOT "to" — using "to" silently fails
-    phoneNumbers,
+    phoneNumbers: input.phoneNumbers, // a JSON list, as in the docs' sample
     message: input.message,
-    // senderId is required for this endpoint (unlike the legacy from field which was optional)
     senderId: input.senderId,
   };
   if (input.enqueue !== undefined) body.enqueue = input.enqueue;
@@ -61,50 +57,26 @@ export async function sendBulkSms(input: SendBulkSmsInput): Promise<SendSmsRespo
     body: JSON.stringify(body),
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Africa's Talking bulk SMS error ${response.status}: ${errorText}`);
+  // 409 = DoNotDisturbRejection (Nigeria): the body still carries SMSMessageData.
+  if (!response.ok && response.status !== 409) {
+    throw new Error(`Africa's Talking bulk SMS error ${response.status}: ${await response.text()}`);
   }
 
   const result = (await response.json()) as SendSmsResponse;
-
-  // HTTP 200 does not guarantee delivery — check per-recipient statusCode
-  for (const recipient of result.SMSMessageData.Recipients) {
-    if (recipient.statusCode !== 101 && recipient.statusCode !== 102 && recipient.statusCode !== 100) {
-      console.warn(
-        `Recipient ${recipient.number} failed: statusCode=${recipient.statusCode} status=${recipient.status}`
-      );
-    }
+  // status says whether the SMS was sent, not delivered: wait for webhook_delivery_report.
+  for (const r of result.SMSMessageData.Recipients) {
+    if (!ACCEPTED.has(r.statusCode)) console.warn(`Not sent to ${r.number}: ${r.statusCode} ${r.status}`);
   }
-
   return result;
 }
 
 /*
 Usage example:
 
-// Set env vars:
-//   AFRICASTALKING_API_KEY=your_production_key
-//   AFRICASTALKING_USERNAME=your_username
-//
-// NOTE: No sandbox support for this endpoint yet.
-// Use send_sms (legacy) for sandbox testing.
-
 const result = await sendBulkSms({
   phoneNumbers: ["+254711XXXYYY", "+254733YYYZZZ"],
   message: "Your order has shipped!",
-  senderId: "MyBrand",   // required — omitting returns an error
-  enqueue: 1,
+  senderId: "MyBrand",
 });
-
-console.log(result.SMSMessageData.Message);
-// "Sent to 2/2 Total Cost: KES 1.6000"
-
-for (const r of result.SMSMessageData.Recipients) {
-  console.log(`${r.number}: statusCode=${r.statusCode} cost=${r.cost}`);
-  // statusCode 101 = Sent (success)
-}
-
-// Pitfall: do NOT use field name "to" — this endpoint requires "phoneNumbers"
-// Pitfall: senderId is required here; legacy send_sms allows omitting "from"
+console.log(result.SMSMessageData.Message); // "Sent to 2/2 Total Cost: KES 1.6000"
 */

@@ -1,48 +1,51 @@
 /**
  * @provider Africa's Talking
  * @capability webhook_bulk_opt_out
- * @atss 1.0
+ * @atss 1.1
  * @capability_type webhook
  */
 
-// Webhook payload types received from Africa's Talking
-// AT POSTs as application/x-www-form-urlencoded
+// Africa's Talking POSTs opt-outs as application/x-www-form-urlencoded.
+// Set the URL in the dashboard: SMS -> SMS Callback URLs -> Bulk SMS Opt Out.
 
-interface BulkOptOutPayload {
-  senderId: string;
+export interface BulkOptOut {
+  senderId: string; // the shortcode/alphanumeric sender id the user opted out from
   phoneNumber: string;
 }
 
-// Handler function — wire this to your web framework's POST route
-export function handleBulkOptOut(payload: BulkOptOutPayload): void {
-  const { senderId, phoneNumber } = payload;
+export function parseBulkOptOut(rawBody: string): BulkOptOut {
+  const form = new URLSearchParams(rawBody);
+  const senderId = form.get("senderId");
+  const phoneNumber = form.get("phoneNumber");
+  if (!senderId || !phoneNumber) throw new Error("Not an Africa's Talking bulk SMS opt-out");
+  return { senderId, phoneNumber };
+}
 
-  // IMPORTANT: You must honor this opt-out.
-  // Store the opted-out phone number and exclude it from future sends
-  // to avoid being flagged as a spammer.
-  console.log(`Opt-out received: ${phoneNumber} opted out from sender ${senderId}`);
-
-  // Add to your opt-out list (example: database update)
-  // await db.optOuts.upsert({ phoneNumber, senderId, optedOutAt: new Date() });
+/** The opt-out is per sender ID: skip those numbers when sending with that senderId. */
+export function excludeOptedOut(phoneNumbers: string[], senderId: string, optOuts: Set<string>): string[] {
+  return phoneNumbers.filter((n) => !optOuts.has(`${senderId}|${n}`));
 }
 
 /*
-Usage (Express example):
+Usage (Node, no framework). The docs describe no signature: treat the request as untrusted.
 
-import express from "express";
-const app = express();
+import { createServer } from "node:http";
 
-app.post("/sms/opt-out", express.urlencoded({ extended: true }), (req, res) => {
-  // Always respond 200 immediately
-  res.sendStatus(200);
-  handleBulkOptOut(req.body as BulkOptOutPayload);
-});
+const optOuts = new Set<string>(); // persist it in your database
 
-Configure callback URL: AT Dashboard → SMS → SMS Callback URLs → Bulk SMS Opt Out
+createServer((req, res) => {
+  let raw = "";
+  req.on("data", (chunk) => (raw += chunk));
+  req.on("end", () => {
+    res.writeHead(200).end(); // the docs document no expected response; answer fast
+    try {
+      const { senderId, phoneNumber } = parseBulkOptOut(raw);
+      optOuts.add(`${senderId}|${phoneNumber}`);
+    } catch {
+      // not an opt-out notification — ignore it
+    }
+  });
+}).listen(3000);
 
-Notes:
-- AT sends payloads as application/x-www-form-urlencoded (not JSON)
-- AT automatically appends opt-out instructions to the FIRST message sent to each subscriber
-- Subsequent messages to the same subscriber are sent without the opt-out instructions
-- You must honor opt-outs — failure to do so risks being flagged as a spammer
+// Before each bulk send: phoneNumbers = excludeOptedOut(phoneNumbers, "MyBrand", optOuts)
 */

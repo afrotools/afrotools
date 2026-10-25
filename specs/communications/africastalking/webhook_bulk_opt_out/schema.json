@@ -1,9 +1,9 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "webhook_bulk_opt_out",
   "capability_type": "webhook",
-  "status": "draft",
+  "status": "ready",
   "auth": {
     "type": "none"
   },
@@ -11,10 +11,10 @@
     "method": "POST",
     "url": "{your_webhook_url}"
   },
-  "example_prompt": "Handle bulk SMS opt-out notifications from Africa's Talking subscribers.",
-  "input_schema": {},
-  "response_schema": {
+  "example_prompt": "Receive Africa's Talking's bulk SMS opt-out notifications to stop messaging users who opted out.",
+  "input_schema": {
     "type": "object",
+    "description": "Form fields (application/x-www-form-urlencoded) Africa's Talking POSTs \"whenever a user opts out of receiving messages from your alphanumeric sender ID\".",
     "required": [
       "senderId",
       "phoneNumber"
@@ -22,17 +22,26 @@
     "properties": {
       "senderId": {
         "type": "string",
-        "description": "The shortcode or alphanumeric sender ID that the subscriber opted out from."
+        "description": "The shortcode/alphanumeric sender id the user opted out from."
       },
       "phoneNumber": {
         "type": "string",
-        "description": "Phone number of the subscriber who opted out."
+        "description": "The phone number of the subscriber who opted out."
       }
     }
   },
+  "response_schema": {
+    "type": "object",
+    "description": "Not documented: the docs do not say what your endpoint must return (see open_questions). Returning HTTP 200 quickly is the safe default."
+  },
   "error_schema": {},
   "gotchas": [
-    "Africa's Talking automatically appends opt-out instructions to the first message you send to each subscriber. Subsequent messages are sent as-is without the instructions.",
-    "You must honor opt-outs. Store opted-out phone numbers and exclude them from future sends to avoid being flagged as a spammer."
+    "Set the URL in the dashboard: SMS -> SMS Callback URLs -> Bulk SMS Opt Out.",
+    "Docs: \"The instructions on how to opt out are automatically appended to the first message you send to the mobile subscriber. From then onwards, any other message will be sent 'as is' to the subscriber.\"",
+    "Store the opt-out per (senderId, phoneNumber) and exclude that number from later sends with that sender ID.",
+    "The body is a form (application/x-www-form-urlencoded), not JSON. Treat it as untrusted: the docs describe no signature."
+  ],
+  "open_questions": [
+    "The docs describe no way to authenticate these notifications (no signature, secret or source IP list), nor the response your endpoint must return or any retry: anyone who knows the URL can POST to it."
   ]
 }
