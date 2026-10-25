@@ -306,3 +306,110 @@ test("ATSS 1.1 field with spec_version 1.0 fails validation", () => {
   assert.equal(code, 1);
   assert.match(stderr, /need spec_version "1\.1"/);
 });
+
+const HMAC_AUTH = {
+  type: "bearer", location: "header", field: "Authorization", format: "Bearer {access_token}", env_var: "FIXTURE_ID",
+  credentials: [
+    { env_var: "FIXTURE_ID", description: "Client id." },
+    { env_var: "FIXTURE_SECRET", description: "Client secret." },
+  ],
+  signing: { algorithm: "HMAC-SHA256", key: "{FIXTURE_SECRET}", message: "{FIXTURE_ID}", encoding: "hex" },
+  token_exchange: { method: "POST", path: "/auth", headers: [{ in: "header", name: "X-API-KEY", value: "{FIXTURE_ID}:{signature}" }], token_field: "data.accessToken", expires_in_s: 3600 },
+  apply: [{ in: "header", name: "Authorization", value: "Bearer {access_token}" }],
+};
+
+test("ATSS 1.1 auth with credentials, signing, token exchange and apply passes", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { spec_version: "1.1", auth: HMAC_AUTH } });
+  assert.equal(runValidate(dir).code, 0);
+});
+
+test("auth placeholder that no credential or block produces fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  const { token_exchange: _t, ...auth } = HMAC_AUTH;
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { spec_version: "1.1", auth } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /auth\.apply\[0\]: \{access_token\}/);
+});
+
+test("env var missing from auth.credentials fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { spec_version: "1.1", auth: HMAC_AUTH } });
+  fs.writeFileSync(
+    path.join(dir, ...CAP_DIR, "canonical_example.ts"),
+    `const SITE = process.env.FIXTURE_SITE_ID;\nexport async function createPayment(): Promise<string | undefined> { return SITE; }\n`
+  );
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /FIXTURE_SITE_ID utilisé mais absent de auth\.credentials/);
+});
+
+test("webhook signature block passes, and {raw_body} outside it fails", () => {
+  const signature = { header: "X-Webhook-Signature", format: "v1:{signature}", algorithm: "HMAC-SHA256", key: "{FIXTURE_SECRET}", message: "{raw_body}", encoding: "hex" };
+  const ok = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(ok, { status: "ready", extraSchema: { spec_version: "1.1", capability_type: "webhook", webhook: { signature } } });
+  assert.equal(runValidate(ok).code, 0);
+  const bad = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(bad, { status: "ready", extraSchema: { spec_version: "1.1", capability_type: "webhook", webhook: { signature: { ...signature, format: "v1:{signature}.{raw_body}" } } } });
+  const { code, stderr } = runValidate(bad);
+  assert.equal(code, 1);
+  assert.match(stderr, /webhook\.signature\.format: \{raw_body\}/);
+});
+
+test("provider.json environments with a path in base_url fails validation", () => {
+  const ok = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(ok, { status: "ready", extraSchema: { endpoint: { method: "POST", url: "https://sandbox.fixture.example/pay" } }, extraProvider: { environments: { sandbox: { base_url: "https://sandbox.fixture.example" } } } });
+  assert.equal(runValidate(ok).code, 0);
+  const bad = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(bad, { status: "ready", extraProvider: { environments: { staging: { base_url: "https://fixture.example/v1" } } } });
+  const { code, stderr } = runValidate(bad);
+  assert.equal(code, 1);
+  assert.match(stderr, /provider\.json environments invalid/);
+});
+
+test("webhook.signature.key must be a single env-var placeholder", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  const signature = { header: "X-Webhook-Signature", format: "v1:{signature}", algorithm: "HMAC-SHA256", key: "sk_live_hardcoded", message: "{raw_body}", encoding: "hex" };
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { spec_version: "1.1", capability_type: "webhook", webhook: { signature } } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /webhook\/signature\/key must match pattern/);
+});
+
+test("webhook block on a non-webhook capability fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  const signature = { header: "X-Webhook-Signature", format: "v1:{signature}", algorithm: "HMAC-SHA256", key: "{FIXTURE_SECRET}", message: "{raw_body}", encoding: "hex" };
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { spec_version: "1.1", webhook: { signature } } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /only allowed on a capability_type "webhook"/);
+});
+
+test("auth.env_var missing from auth.credentials fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { spec_version: "1.1", auth: { ...HMAC_AUTH, env_var: "FIXTURE_KEY" } } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /auth\.env_var "FIXTURE_KEY" is missing from auth\.credentials/);
+});
+
+test("bracket access to an undeclared env var fails once credentials are declared", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { spec_version: "1.1", auth: HMAC_AUTH } });
+  fs.writeFileSync(
+    path.join(dir, ...CAP_DIR, "canonical_example.ts"),
+    `const SITE = process.env["FIXTURE_SITE_ID"];\nexport async function createPayment(): Promise<string | undefined> { return SITE; }\n`
+  );
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /FIXTURE_SITE_ID utilisé mais absent/);
+});
+
+test("endpoint.url outside every declared environment fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraProvider: { environments: { sandbox: { base_url: "https://sandbox.fixture.example" } } } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /is on none of the provider\.json environments/);
+});

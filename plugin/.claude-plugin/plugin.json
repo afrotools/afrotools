@@ -1,7 +1,7 @@
 {
   "name": "afrotools",
   "description": "Integrate African APIs with zero guesswork. Automatically fetches specs, surfaces gotchas, and scaffolds correct implementations for Paycard, LengoPay, NimbaSMS, and more.",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "author": {
     "name": "Afro.tools",
     "url": "https://afro.tools"

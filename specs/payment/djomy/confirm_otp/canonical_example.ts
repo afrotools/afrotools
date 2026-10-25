@@ -19,19 +19,20 @@ interface PaymentStatusData {
     | "PENDING"
     | "FAILED"
     | "SUCCESS"
-    | "CANCELLED"
-    | "TIMEOUT";
+    | "REDIRECTED"
+    | "CANCELLED";
   paidAmount: number;
   receivedAmount: number;
   fees: number;
   paymentMethod: string;
   payerIdentifier: string;
-  currency: string;
+  currency: "GNF" | "FCFA" | "Dollar" | "Leones";
   merchantPaymentReference: string;
   createdAt: string;
   providerReference: string;
   allowedPaymentMethods: string[];
   metadata: Record<string, unknown>;
+  paymentLinkReference?: string;
 }
 
 interface DjomyResponse<T> {
@@ -58,37 +59,19 @@ async function computeHmacHex(message: string, secret: string): Promise<string> 
     .join("");
 }
 
-async function getAccessToken(): Promise<string> {
-  const signature = await computeHmacHex(DJOMY_CLIENT_ID!, DJOMY_CLIENT_SECRET!);
-  const response = await fetch(`${DJOMY_BASE_URL}/v1/auth`, {
-    method: "POST",
-    headers: {
-      "X-API-KEY": `${DJOMY_CLIENT_ID}:${signature}`,
-      "Content-Type": "application/json",
-    },
-  });
-  if (!response.ok) {
-    throw new Error(`Djomy auth failed: ${response.status}`);
-  }
-  const result = (await response.json()) as DjomyResponse<{ accessToken: string }>;
-  if (!result.success) {
-    throw new Error(`Djomy auth error: ${result.message}`);
-  }
-  return result.data.accessToken;
-}
-
 export async function confirmOtp(
   transactionReference: string,
   oneTimePin: string
 ): Promise<PaymentStatusData> {
-  const accessToken = await getAccessToken();
+  // Only X-API-KEY is documented for confirmOTP: no Bearer token.
+  const signature = await computeHmacHex(DJOMY_CLIENT_ID!, DJOMY_CLIENT_SECRET!);
 
   const response = await fetch(
     `${DJOMY_BASE_URL}/v1/payments/${transactionReference}/confirmOTP`,
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        "X-API-KEY": `${DJOMY_CLIENT_ID}:${signature}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ oneTimePin }),
@@ -123,7 +106,7 @@ if (result.status === "SUCCESS") {
   // OTP accepted — but still verify server-side before fulfilling
   // Call verifyPayment(result.transactionId) to confirm
 } else if (result.status === "FAILED") {
-  // Wrong OTP or expired — ask payer to retry or restart
+  // Payment failed — ask the payer to retry or restart
 }
 
 // Note: confirm_otp is only for the direct flow (create_payment).

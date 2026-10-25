@@ -6,10 +6,10 @@
   "status": "verified",
   "verification": {
     "method": "app",
-    "environment": "production",
+    "environment": "sandbox",
     "at": "2026-04-10",
     "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:c11730b3450f433defdb682951e52adf8ea629d9fd02fca04c9230ffcf70c906"
+    "spec_hash": "sha256:e3d323a20b906140ad920bea5205de0b6df747f697eef346c98526beaa5d8626"
   },
   "currency": [
     "GNF"
@@ -19,7 +19,48 @@
     "location": "header",
     "field": "Authorization",
     "format": "Bearer {access_token}",
-    "env_var": "DJOMY_CLIENT_ID"
+    "env_var": "DJOMY_CLIENT_ID",
+    "credentials": [
+      {
+        "env_var": "DJOMY_CLIENT_ID",
+        "description": "clientId (API key), provided in the Djomy merchant space"
+      },
+      {
+        "env_var": "DJOMY_CLIENT_SECRET",
+        "description": "clientSecret (secret key), provided in the Djomy merchant space"
+      }
+    ],
+    "signing": {
+      "algorithm": "HMAC-SHA256",
+      "key": "{DJOMY_CLIENT_SECRET}",
+      "message": "{DJOMY_CLIENT_ID}",
+      "encoding": "hex"
+    },
+    "token_exchange": {
+      "method": "POST",
+      "path": "/v1/auth",
+      "headers": [
+        {
+          "in": "header",
+          "name": "X-API-KEY",
+          "value": "{DJOMY_CLIENT_ID}:{signature}"
+        }
+      ],
+      "token_field": "data.accessToken",
+      "expires_in_s": 3600
+    },
+    "apply": [
+      {
+        "in": "header",
+        "name": "X-API-KEY",
+        "value": "{DJOMY_CLIENT_ID}:{signature}"
+      },
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {access_token}"
+      }
+    ]
   },
   "endpoint": {
     "method": "GET",
@@ -186,10 +227,12 @@
     }
   },
   "gotchas": [
-    "This endpoint requires both the Bearer token (Authorization header) and the X-API-KEY header (clientId:HMAC signature). Omitting either will return 401.",
     "Never fulfill an order until data.status === 'SUCCESS'. PENDING means payment is still in progress. CAPTURED means the amount has been collected but may differ from SUCCESS depending on the flow.",
     "receivedAmount is what you actually receive after Djomy deducts fees. Use this for your accounting, not paidAmount.",
     "The currency field returns non-ISO strings: 'GNF', 'FCFA', 'Dollar', 'Leones'. Map these to ISO 4217 codes (GNF, XOF, USD, SLE) in your system.",
-    "Auth requires two steps: (1) compute HMAC-SHA256(clientId, clientSecret) as hex, (2) call POST /v1/auth with header X-API-KEY: clientId:hexSignature to get a Bearer token."
+    "A missing or invalid X-API-KEY returns HTTP 401 (documented as \"Clé API manquante ou invalide\")."
+  ],
+  "open_questions": [
+    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it."
   ]
 }

@@ -9,6 +9,11 @@
   "docs_url": "https://developers.djomy.africa/",
   "docs_public": true,
   "sandbox": true,
+  "environments": {
+    "sandbox": {
+      "base_url": "https://sandbox-api.djomy.africa"
+    }
+  },
   "description": "Djomy is a Guinean payment solution offering payment links, QR code payments, and mobile money integrations via a unified API.",
   "example_prompt": "Add Djomy mobile money payments to my app."
 }

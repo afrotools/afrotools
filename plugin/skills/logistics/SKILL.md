@@ -45,8 +45,14 @@ for the target provider and capability before writing any implementation code.
    every step the user's flow needs, not only the first one, before writing code.
 
 3. Read the spec carefully before writing code:
-   - `auth` — how to authenticate (header name, env var)
-   - `endpoint` — method and URL
+   - `auth` — how to authenticate. When present, `auth.credentials` lists every secret to ask
+     the user for (as env vars), `auth.signing` how to compute `{signature}`,
+     `auth.token_exchange` how to get `{access_token}`, and `auth.apply` what each request
+     sends — follow them exactly; older specs describe these steps in `gotchas`
+   - `endpoint` — method and URL. `environments` (when present) gives each environment's base
+     URL; one that is missing is not documented — ask the user for it, never guess
+   - `webhook.signature` (webhook capabilities) — how to verify the provider's signature
+     before trusting the payload
    - `input_schema` — required and optional fields (coordinate order, phone format, ids)
    - `response_schema` — what a success response looks like (status, price, version)
    - `error_schema` — how errors are returned

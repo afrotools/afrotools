@@ -6,10 +6,10 @@
   "status": "verified",
   "verification": {
     "method": "app",
-    "environment": "production",
+    "environment": "sandbox",
     "at": "2026-04-10",
     "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:37333b8bd8491ae5c6adfa4842b63500545b70d06dd738a8db350813d8776dba"
+    "spec_hash": "sha256:eb92e2305e6bfff3e2cc59582ea2d14df79801762365bc60f3a16d99d95e90fa"
   },
   "currency": [
     "GNF"
@@ -21,6 +21,16 @@
     "method": "POST",
     "url": "{your_webhook_url}"
   },
+  "webhook": {
+    "signature": {
+      "header": "X-Webhook-Signature",
+      "format": "v1:{signature}",
+      "algorithm": "HMAC-SHA256",
+      "key": "{DJOMY_CLIENT_SECRET}",
+      "message": "{raw_body}",
+      "encoding": "hex"
+    }
+  },
   "example_prompt": "Add a Djomy webhook handler to automatically confirm orders when payment completes.",
   "input_schema": {
     "type": "object",
@@ -31,12 +41,16 @@
         "enum": [
           "payment.created",
           "payment.redirected",
-          "payment.cancelled",
           "payment.pending",
+          "payment.cancelled",
+          "payment.timeout",
           "payment.success",
-          "payment.failed"
+          "payment.failed",
+          "payment.refunded",
+          "payout.success",
+          "payout.failed"
         ],
-        "description": "Type of payment event. Use payment.success as the trigger to call verify_payment."
+        "description": "Type of event. Use payment.success as the trigger to call verify_payment. payout.* events are sent only with a V2 webhook configuration."
       },
       "eventId": {
         "type": "string",
@@ -49,7 +63,75 @@
       },
       "data": {
         "type": "object",
-        "description": "Payment details. Contains the same fields as verify_payment response data."
+        "description": "Shape depends on the payload version of the webhook configuration (Djomy developer space). V2 — default for new configurations: the payment under data.payment (payment.* events) or the payout under data.payout (payout.* events), never both. V1 — merchants integrated before V2: the payment fields directly in data (same fields as data.payment), payment.* events only.",
+        "properties": {
+          "payment": {
+            "type": "object",
+            "description": "V2, payment.* events.",
+            "properties": {
+              "transactionId": {
+                "type": "string",
+                "description": "Unique payment identifier — pass it to verify_payment."
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "CREATED",
+                  "AUTHORIZED",
+                  "PENDING",
+                  "SUCCESS",
+                  "CAPTURED",
+                  "FAILED"
+                ]
+              },
+              "paidAmount": {
+                "type": "number",
+                "description": "Amount paid by the customer."
+              },
+              "receivedAmount": {
+                "type": "number",
+                "description": "Amount received after fees."
+              },
+              "fees": {
+                "type": "number",
+                "description": "Fees taken from the paid amount."
+              },
+              "paymentMethod": {
+                "type": "string",
+                "description": "e.g. OM (Orange Money), MOMO (MTN Mobile Money), KULU."
+              },
+              "payerIdentifier": {
+                "type": "string",
+                "description": "Payer's account number."
+              },
+              "merchantPaymentReference": {
+                "type": "string",
+                "description": "Reference provided by the merchant."
+              },
+              "currency": {
+                "type": "string",
+                "enum": [
+                  "GNF",
+                  "FCFA",
+                  "Dollar",
+                  "Leones"
+                ]
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "providerReference": {
+                "type": "string",
+                "description": "Reference of the payment provider (Orange Money, Kulu…)."
+              }
+            }
+          },
+          "payout": {
+            "type": "object",
+            "description": "V2, payout.* events. Payouts have no spec in this registry."
+          }
+        }
       },
       "paymentLinkReference": {
         "type": "string",
@@ -74,9 +156,13 @@
   "gotchas": [
     "[MUST TELL USER] Le webhook Djomy ne se déclenche pas automatiquement. Le développeur doit d'abord configurer l'URL de son endpoint dans le dashboard Djomy (espace développeur). Sans cette étape, aucun événement ne sera envoyé, même si le paiement est traité avec succès.",
     "[MUST TELL USER] Djomy n'appelle l'URL webhook qu'en HTTPS — les URLs http:// sont silencieusement ignorées. En développement local, le webhook ne se déclenchera jamais sans tunnel HTTPS. Indiquer explicitement à l'utilisateur : lancer `ngrok http 3000`, puis configurer l'URL ngrok dans l'espace développeur Djomy avant de tester.",
-    "Always verify the webhook signature before processing the event. Djomy sends X-Webhook-Signature in the format `v1:<hex>` (e.g. `v1:a1b2c3...`). Extract the hex part after the colon, compute HMAC-SHA256(rawBody, clientSecret) as hex, and compare. Reject if they don't match or if the version prefix is not `v1`.",
+    "Verify X-Webhook-Signature as described in webhook.signature before processing the event; ignore the webhook if it does not match or if the version prefix is not v1.",
+    "Read the payment from data.payment with a V2 webhook configuration (the default for new configurations), or from data with V1 (merchants integrated before V2). The version is shown in the Djomy developer space — ask the user which one their configuration uses, or handle both.",
     "Never fulfill an order based on the webhook payload alone. Always call verify_payment with the transactionId to confirm status === 'SUCCESS' server-side.",
     "Return HTTP 200 immediately, even if your processing is asynchronous. Djomy considers a non-200 response a delivery failure.",
-    "You receive events for all lifecycle changes (payment.created, payment.redirected, payment.cancelled, payment.pending, payment.success, payment.failed). Only act on payment.success for order fulfillment."
+    "You receive every event listed in eventType (payout.* only with a V2 configuration). Only act on payment.success for order fulfillment."
+  ],
+  "open_questions": [
+    "The V2 payload (data.payment, data.payout) comes from Djomy's docs and has not been tested yet; this spec's verification covered a V1 configuration."
   ]
 }
