@@ -7,6 +7,11 @@
   "docs_url": "https://pay.kadev.ci/developer-documentation",
   "docs_public": true,
   "sandbox": true,
+  "environments": {
+    "production": {
+      "base_url": "https://pay.kadev.ci"
+    }
+  },
   "description": "KadevPay is an Ivorian payment gateway supporting mobile money (Orange Money, MTN MoMo) and card payments via a client-side JavaScript SDK.",
   "example_prompt": "Add KadevPay checkout to my app to accept mobile money and card payments in Côte d'Ivoire."
 }
