@@ -1,7 +1,7 @@
 /**
  * @provider Intron
  * @capability submit_audio_transcription
- * @atss 1.0
+ * @atss 1.1
  * @capability_type asynchronous
  */
 

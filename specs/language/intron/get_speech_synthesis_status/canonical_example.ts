@@ -1,7 +1,7 @@
 /**
  * @provider Intron
  * @capability get_speech_synthesis_status
- * @atss 1.0
+ * @atss 1.1
  * @capability_type synchronous
  */
 
