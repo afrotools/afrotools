@@ -1,9 +1,15 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v3",
   "capability": "generate_token",
   "capability_type": "synchronous",
   "status": "verified",
+  "verification": {
+    "method": "test_live",
+    "environment": "sandbox",
+    "at": "2026-10-24",
+    "spec_hash": "sha256:a72e204e09cf7bd7aa073642abfb3c667ae4ccf49fa81fc1d74d7b03a0b37f89"
+  },
   "auth": {
     "type": "api_key",
     "location": "header",

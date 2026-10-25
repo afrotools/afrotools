@@ -1,9 +1,15 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2026-10-12",
   "capability": "retry_payment",
   "capability_type": "synchronous",
   "status": "verified",
+  "verification": {
+    "method": "test_live",
+    "environment": "sandbox",
+    "at": "2026-10-17",
+    "spec_hash": "sha256:88c768b582013bdc4b6fd35a9c96e178a9489630a2ae2c26f99d100d24e16ee0"
+  },
   "currency": [
     "XOF",
     "CDF",

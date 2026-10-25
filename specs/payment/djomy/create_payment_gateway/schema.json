@@ -1,9 +1,16 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v1.0",
   "capability": "create_payment_gateway",
   "capability_type": "synchronous",
   "status": "verified",
+  "verification": {
+    "method": "app",
+    "environment": "production",
+    "at": "2026-04-10",
+    "ref": "https://github.com/afrotools/examples/tree/main/shop",
+    "spec_hash": "sha256:00b6a2fc58ccda32af34e76438e3d0f2acc7cc5fb409c57bb1b08d2bed3ac469"
+  },
   "currency": [
     "GNF"
   ],

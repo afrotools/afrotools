@@ -1,9 +1,15 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2026-06-05",
   "capability": "create_charge",
   "capability_type": "synchronous",
   "status": "verified",
+  "verification": {
+    "method": "app",
+    "environment": "production",
+    "at": "2026-10-24",
+    "spec_hash": "sha256:618c3c11c397260fe846e6a7d48883dd096e0907de20f0f34374db477743cf2e"
+  },
   "currency": ["XOF"],
   "auth": {
     "type": "api_key",

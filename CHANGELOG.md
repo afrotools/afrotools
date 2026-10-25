@@ -55,6 +55,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **ATSS 1.1** — `verification` block on every `verified` spec: method (`test_live`, `app`, `community_report`), environment (`sandbox` or `production`), date, link and `spec_hash`. `npm run validate` rejects a `verified` spec without it, a `verification` on a spec that is not `verified`, and a verified spec edited since (schema.json or canonical_example.ts) until it is verified again. The 25 verified specs carry their proof (Paycard, LengoPay, Djomy, Bictorys: an app in production; SasPay, Smile ID: `test:live` in sandbox). Optional `open_questions` for what the docs do not answer. New blocks are described in `atss.schema.json`, checked with ajv.
+- **Integration reports** — issue form `integration-report.yml`: anyone who integrated a provider can report whether the spec matched the API, in sandbox or in production. An accepted report can make a spec `verified` (`community_report`). Plugin 1.6.0: skills surface where a spec was verified and its open questions, and offer `report_integration` (a pre-filled link the user submits) after an integration or when a spec is wrong.
+
 - **Smile ID** (`specs/identity/smileid`, V3 API, CI/SN/GN): `generate_token`, `enhanced_kyc`,
   `create_smile_link`, `get_smile_link`, `get_verification_status`, `replay_verification_webhook`,
   `aml_check_sync`, `list_supported_documents`, `webhook_verification_result`,

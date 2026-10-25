@@ -229,3 +229,80 @@ test("a provider slug reused in another category fails validation", () => {
   assert.equal(code, 1);
   assert.match(stderr, /Duplicate provider slug "fixtureprovider"/);
 });
+
+const crypto = require("crypto");
+const CAP_DIR = ["specs", "payment", "fixtureprovider", "create_payment"];
+
+/** Same hash as validate.js specHash: schema.json without "verification", then the example. */
+function fixtureHash(dir) {
+  const capDir = path.join(dir, ...CAP_DIR);
+  const { verification: _v, ...rest } = JSON.parse(fs.readFileSync(path.join(capDir, "schema.json"), "utf8"));
+  return "sha256:" + crypto.createHash("sha256").update(JSON.stringify(rest)).update("\0")
+    .update(fs.readFileSync(path.join(capDir, "canonical_example.ts"))).digest("hex");
+}
+
+/** A verified fixture whose verification block carries the current hash. */
+function writeVerifiedFixture(dir, verification = {}) {
+  const proof = { method: "test_live", environment: "sandbox", at: "2026-10-25", spec_hash: "", ...verification };
+  writeFixtureSpec(dir, { status: "verified", extraSchema: { spec_version: "1.1", verification: proof } });
+  const schemaPath = path.join(dir, ...CAP_DIR, "schema.json");
+  const schema = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
+  if (!verification.spec_hash) schema.verification.spec_hash = fixtureHash(dir);
+  fs.writeFileSync(schemaPath, JSON.stringify(schema, null, 2));
+}
+
+test("verified spec without a verification block fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "verified" });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /needs a "verification" block/);
+});
+
+test("verified spec with its proof passes", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeVerifiedFixture(dir);
+  assert.equal(runValidate(dir).code, 0);
+});
+
+test("verified spec edited after its verification fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeVerifiedFixture(dir);
+  fs.appendFileSync(path.join(dir, ...CAP_DIR, "canonical_example.ts"), "// edited\n");
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /spec changed since its verification on 2026-10-25/);
+});
+
+test("verification on a spec that is not verified fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, {
+    status: "ready",
+    extraSchema: { spec_version: "1.1", verification: { method: "app", environment: "production", at: "2026-10-25", spec_hash: `sha256:${"0".repeat(64)}` } },
+  });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /only allowed on a "verified" spec/);
+});
+
+test("community report without its issue link fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeVerifiedFixture(dir, { method: "community_report", environment: "production" });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /atss\.schema\.json/);
+});
+
+test("community report linked to its issue passes", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeVerifiedFixture(dir, { method: "community_report", environment: "production", ref: "https://github.com/afrotools/afrotools/issues/120" });
+  assert.equal(runValidate(dir).code, 0);
+});
+
+test("ATSS 1.1 field with spec_version 1.0 fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { open_questions: ["Is the payment URL key public?"] } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /need spec_version "1\.1"/);
+});

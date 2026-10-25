@@ -1,9 +1,16 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "verify_payment",
   "capability_type": "synchronous",
   "status": "verified",
+  "verification": {
+    "method": "app",
+    "environment": "production",
+    "at": "2026-04-06",
+    "ref": "https://github.com/afrotools/examples/tree/main/shop",
+    "spec_hash": "sha256:c317bef6ba0ae589da7207bd82a4a202e1186393be8a71802f3f521feb4955f8"
+  },
   "currency": [
     "GNF"
   ],

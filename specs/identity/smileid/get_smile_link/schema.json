@@ -1,9 +1,15 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v3",
   "capability": "get_smile_link",
   "capability_type": "synchronous",
   "status": "verified",
+  "verification": {
+    "method": "test_live",
+    "environment": "sandbox",
+    "at": "2026-10-24",
+    "spec_hash": "sha256:af99a68b33fc5be6cf00d997b3c162c2cac10f3362046615f4143f011af04a45"
+  },
   "auth": {
     "type": "api_key",
     "location": "header",

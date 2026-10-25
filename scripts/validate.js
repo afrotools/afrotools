@@ -11,7 +11,8 @@
  *
  * Checks per spec folder:
  *   1. Structure  — exactly schema.json + canonical_example.ts, nothing else
- *   2. schema.json — all required ATSS fields present and valid
+ *   2. schema.json — all required ATSS fields present and valid; ATSS 1.1 blocks against
+ *      atss.schema.json; a "verified" spec carries its proof, unchanged since (spec_hash)
  *   3. canonical_example.ts — compiles with tsc --noEmit, zero errors
  *   4. Security    — endpoint safety, prompt injection in text fields, fetch/env coherence
  *
@@ -22,7 +23,10 @@
 
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 const { execSync } = require("child_process");
+const Ajv2020 = require("ajv/dist/2020").default;
+const addFormats = require("ajv-formats").default;
 
 const SPECS_ROOT = (() => {
   const cwdSpecs = path.resolve(process.cwd(), "specs");
@@ -283,8 +287,8 @@ function validateSchema(specPath) {
   }
 
   // spec_version
-  if (schema.spec_version !== "1.0") {
-    return fail(specPath, `spec_version must be "1.0", got "${schema.spec_version}"`);
+  if (!SPEC_VERSIONS.includes(schema.spec_version)) {
+    return fail(specPath, `spec_version must be one of ${SPEC_VERSIONS.join("|")}, got "${schema.spec_version}"`);
   }
 
   // capability_type enum
@@ -377,6 +381,63 @@ function validateEvidence(specPath, schema) {
     return fail(specPath, `evidence contains unexpected field(s): ${extraFields.join(", ")} — allowed fields are ${REQUIRED_EVIDENCE_FIELDS.join(", ")}`);
   }
 
+  return true;
+}
+
+const SPEC_VERSIONS = ["1.0", "1.1"];
+const ATSS_1_1_FIELDS = ["verification", "open_questions"];
+const ajv = new Ajv2020({ allErrors: true });
+addFormats(ajv);
+const validateAtss11Blocks = ajv.compile(
+  JSON.parse(fs.readFileSync(path.resolve(__dirname, "../atss.schema.json"), "utf8"))
+);
+
+/**
+ * Hash of what a verification vouches for: schema.json without its own `verification` block,
+ * plus canonical_example.ts. Key order and the example's bytes count; schema.json whitespace does not.
+ * @param {string} specPath
+ * @param {any} schema
+ * @returns {string}
+ */
+function specHash(specPath, schema) {
+  const { verification: _verification, ...rest } = schema;
+  return "sha256:" + crypto.createHash("sha256")
+    .update(JSON.stringify(rest))
+    .update("\0")
+    .update(fs.readFileSync(path.join(specPath, "canonical_example.ts")))
+    .digest("hex");
+}
+
+/**
+ * Check 2c: ATSS 1.1 blocks (atss.schema.json) and the proof behind "verified".
+ * @param {string} specPath
+ * @param {any} schema
+ * @returns {boolean}
+ */
+function validateAtss11(specPath, schema) {
+  if (!validateAtss11Blocks(schema)) {
+    const errors = (validateAtss11Blocks.errors ?? []).map((e) => `${e.instancePath || "/"} ${e.message}`);
+    return fail(specPath, `ATSS 1.1 block(s) invalid (atss.schema.json): ${errors.join("; ")}`);
+  }
+  const used = ATSS_1_1_FIELDS.filter((f) => f in schema);
+  if (used.length > 0 && schema.spec_version !== "1.1") {
+    return fail(specPath, `${used.join(", ")} need spec_version "1.1", got "${schema.spec_version}"`);
+  }
+  const v = schema.verification;
+  if (schema.status === "verified" && !v) {
+    return fail(specPath, `status "verified" needs a "verification" block (method, environment, at, spec_hash) — see ATSS.md § verified`);
+  }
+  if (v && schema.status !== "verified") {
+    return fail(specPath, `"verification" is only allowed on a "verified" spec, got status "${schema.status}"`);
+  }
+  if (v) {
+    const current = specHash(specPath, schema);
+    if (v.spec_hash !== current) {
+      return fail(specPath, `spec changed since its verification on ${v.at} (${v.method}, ${v.environment}): ` +
+        `verify it again, or set status back to "ready" and remove "verification". ` +
+        `A maintainer who checked the change keeps the proof by setting spec_hash to "${current}".`);
+    }
+  }
   return true;
 }
 
@@ -840,6 +901,7 @@ for (const specPath of specs) {
     if (!validateStructure(specPath))  { failures++; continue; }
     if (!validateSchema(specPath))     { failures++; continue; }
     if (!validateEvidence(specPath, JSON.parse(fs.readFileSync(path.join(specPath, "schema.json"), "utf8")))) { failures++; continue; }
+    if (!validateAtss11(specPath, JSON.parse(fs.readFileSync(path.join(specPath, "schema.json"), "utf8")))) { failures++; continue; }
     if (!validateTypeScript(specPath)) { failures++; continue; }
 
     try {

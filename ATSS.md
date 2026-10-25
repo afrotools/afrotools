@@ -1,4 +1,4 @@
-# specs/ — CLAUDE.md (ATSS Specification v1.0)
+# specs/ — CLAUDE.md (ATSS Specification v1.1)
 
 ## What is ATSS
 
@@ -100,7 +100,7 @@ One `provider.json` per provider directory. Carries provider-level metadata migr
 
 | Field | Type | Rule |
 |---|---|---|
-| spec_version | string | Always "1.0" |
+| spec_version | string | `"1.0"`, or `"1.1"` when the spec uses a block added in 1.1 (`verification`, `open_questions`) |
 | provider_api_version | string | YYYY-MM-DD if provider has no version string |
 | capability | string | snake_case — matches the directory name |
 | capability_type | enum | `synchronous`, `asynchronous`, `webhook`, or `sdk` |
@@ -132,6 +132,32 @@ One `provider.json` per provider directory. Carries provider-level metadata migr
 ```
 
 Every entry in `spans[]` must appear literally (whitespace/case-normalized) in the source document at `source_url`. This is what lets a reviewer verify an `unverified` spec wasn't hallucinated without re-reading the provider's docs from scratch.
+
+### Blocks added in ATSS 1.1
+
+Optional, checked against [`atss.schema.json`](./atss.schema.json) by `npm run validate`. A spec that
+uses one sets `spec_version: "1.1"`; a 1.0 spec stays valid as is.
+
+```jsonc
+"verification": {                        // required when status is "verified", forbidden otherwise
+  "method": "test_live",                 // test_live | app | community_report
+  "environment": "sandbox",              // sandbox | production
+  "at": "2026-10-24",                    // date of the test
+  "ref": "https://…",                    // the run, the app, or the report issue — required for community_report
+  "spec_hash": "sha256:…"                // what was tested: schema.json without this block + canonical_example.ts
+},
+"open_questions": [                      // what the provider's docs do not answer — never filled with a guess
+  "Does the payment URL embed the public or the secret key?"
+]
+```
+
+| Field | Rule |
+|---|---|
+| `verification.method` | `test_live` — `npm run test:live` passed; `app` — a working integration (`afrotools/examples` or an app in use); `community_report` — an integration report a maintainer accepted |
+| `verification.environment` | Where it was tested. `sandbox` proves the request and response shapes, not production behaviour (prerequisites, limits, real money) |
+| `verification.ref` | URL of the run, the app's code or the report. For `community_report`, the `afrotools/afrotools` issue |
+| `verification.spec_hash` | `validate` recomputes it: a verified spec edited afterwards fails until it is verified again, or a maintainer who checked the change updates the hash (the error message prints the new value) |
+| `open_questions` | Non-empty strings. An agent must tell the user about them before relying on the spec |
 
 ### capability_type definitions
 
@@ -256,11 +282,16 @@ A `ready` spec is visible in the MCP server.
 
 - [ ] All `ready` criteria met
 - [ ] **One of:**
-  - Working example exists in `afrotools/examples`, **or**
-  - The provider has a sandbox (`provider.json.sandbox: true`) and `npm run test:live -- --provider <slug>` passes (exit 0) against it — link the GitHub Actions run in the PR/commit as evidence
+  - `npm run test:live -- --provider <slug>` passes (exit 0) — `method: "test_live"`
+  - A working integration: `afrotools/examples`, or an app in use — `method: "app"`
+  - An integration report a maintainer accepted (see `CONTRIBUTING.md` § Report an integration) — `method: "community_report"`
+- [ ] `verification` block records the method, the environment, the date and `spec_hash`
 - [ ] Maintainer has set status to `verified`
 
-`test:live` only ever targets a sandbox — it refuses to run against a provider with no sandbox (real production traffic, no automated safety net). Providers without a sandbox are verified through `afrotools/examples` only; see `CONTRIBUTING.md` § Live verification.
+`verified` says the spec matched the API once, in `verification.environment`. A spec verified in
+`sandbox` has not been tried with production credentials. `test:live` only ever targets a sandbox —
+it refuses to run against a provider with no sandbox (real production traffic, no automated safety
+net); see `CONTRIBUTING.md` § Live verification.
 
 ### AI Ready
 

@@ -75,7 +75,7 @@ See [ATSS.md](./ATSS.md) for the full specification.
 | Yango Delivery | logistics | 🇨🇮 🇬🇭 🇸🇳 +1 | 8 | 📋 Ready |
 <!-- fin du tableau -->
 
-**Legend:** ✅ All verified = all capabilities `verified` · X verified · Y ready = awaiting production validation · 📋 Ready = spec validated · 🗓 Planned = specs coming soon
+**Legend:** ✅ All verified = all capabilities `verified` · X verified · Y ready = Y specs not yet tested against the API · 📋 Ready = written from the docs, not yet tested · 🗓 Planned = specs coming soon
 
 ---
 
@@ -128,9 +128,13 @@ claude mcp add --transport http afrotools https://mcp.afro.tools/mcp
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) to add a spec or improve an existing one.
 
+**Integrated a provider?** [Report it](https://github.com/afrotools/afrotools/issues/new?template=integration-report.yml) — worked or not, sandbox or
+production. A report that worked can make the spec `verified`, credited to you; one that did not
+gets the spec fixed.
+
 Spec lifecycle: `draft → ready → verified`
 
-Every provider in the registry is **AI Ready**: its specs give an agent a structured, machine-readable description to integrate it. AI Ready is not a guarantee that a spec is error-free — `verified` marks the specs a maintainer has tested against the provider's API.
+Every provider in the registry is **AI Ready**: its specs give an agent a structured, machine-readable description to integrate it. AI Ready is not a guarantee that a spec is error-free — `verified` marks the specs tested against the provider's API — by a maintainer or through an accepted integration report — and says where: sandbox or production.
 
 ---
 

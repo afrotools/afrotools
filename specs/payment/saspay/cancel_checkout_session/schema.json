@@ -1,9 +1,15 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2026-10-12",
   "capability": "cancel_checkout_session",
   "capability_type": "synchronous",
   "status": "verified",
+  "verification": {
+    "method": "test_live",
+    "environment": "sandbox",
+    "at": "2026-10-17",
+    "spec_hash": "sha256:d4ea54babf324a79362b28af9bd5d46c600f913adb79a2c0ba879dbc7a740bcb"
+  },
   "currency": [
     "XOF",
     "CDF",
