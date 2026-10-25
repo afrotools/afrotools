@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2026-10-12",
   "capability": "webhook_payment_completed",
   "capability_type": "webhook",
@@ -19,12 +19,21 @@
     "ZMW"
   ],
   "auth": {
-    "type": "none",
-    "env_var": "SASPAY_WEBHOOK_SECRET"
+    "type": "none"
   },
   "endpoint": {
     "method": "POST",
     "url": "{your_webhook_url}"
+  },
+  "webhook": {
+    "signature": {
+      "header": "X-Webhook-Signature",
+      "format": "{signature}",
+      "algorithm": "HMAC-SHA256",
+      "key": "{SASPAY_WEBHOOK_SECRET}",
+      "message": "{header:X-Webhook-Timestamp}.{raw_body}",
+      "encoding": "hex"
+    }
   },
   "example_prompt": "Handle SasPay webhooks to confirm an order once its transaction.success event arrives, after checking the signature.",
   "input_schema": {

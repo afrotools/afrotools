@@ -1,7 +1,7 @@
 /**
  * @provider SasPay
  * @capability webhook_payment_completed
- * @atss 1.0
+ * @atss 1.1
  * @capability_type webhook
  */
 // Written from SasPay's webhook documentation (signature, tolerance, envelope). Not executed against the live API.
