@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v4",
   "capability": "create_orchestrator_transfer",
   "capability_type": "asynchronous",
@@ -26,7 +26,45 @@
     "location": "header",
     "field": "Authorization",
     "format": "Bearer {access_token}",
-    "env_var": "FLUTTERWAVE_CLIENT_CREDENTIALS"
+    "env_var": "FLUTTERWAVE_CLIENT_ID",
+    "credentials": [
+      {
+        "env_var": "FLUTTERWAVE_CLIENT_ID",
+        "description": "client_id of the environment (sandbox: developer account dashboard; production: Settings → API Keys, v4)"
+      },
+      {
+        "env_var": "FLUTTERWAVE_CLIENT_SECRET",
+        "description": "client_secret of the same environment"
+      }
+    ],
+    "token_exchange": {
+      "method": "POST",
+      "url": "https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": [
+        {
+          "name": "client_id",
+          "value": "{FLUTTERWAVE_CLIENT_ID}"
+        },
+        {
+          "name": "client_secret",
+          "value": "{FLUTTERWAVE_CLIENT_SECRET}"
+        },
+        {
+          "name": "grant_type",
+          "value": "client_credentials"
+        }
+      ],
+      "token_field": "access_token",
+      "expires_in_s": 600
+    },
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {access_token}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
@@ -174,118 +212,16 @@
                     ],
                     "properties": {
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "national_identification": {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "PASSPORT",
-                              "DRIVERS_LICENSE",
-                              "NATIONAL_ID"
-                            ]
-                          },
-                          "identifier": {
-                            "type": "string",
-                            "minLength": 4,
-                            "maxLength": 40
-                          },
-                          "expiration_date": {
-                            "type": "string",
-                            "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
-                          }
-                        },
-                        "required": [
-                          "identifier",
-                          "type"
-                        ],
-                        "description": "Recipient government identification"
+                        "$ref": "#/$defs/recipient_national_identification"
                       },
                       "phone": {
-                        "type": "object",
-                        "description": "The customer's mobile number.",
-                        "required": [
-                          "country_code",
-                          "number"
-                        ],
-                        "properties": {
-                          "country_code": {
-                            "description": "The dialling country code e.g. 234 for NG.",
-                            "type": "string",
-                            "pattern": "^[0-9]{1,3}$"
-                          },
-                          "number": {
-                            "description": "Unformatted 7-10-digit phone number without the country code.",
-                            "type": "string",
-                            "pattern": "^[0-9]{7,10}$"
-                          }
-                        }
+                        "$ref": "#/$defs/phone"
                       },
                       "address": {
-                        "type": "object",
-                        "description": "Customer address information.",
-                        "required": [
-                          "city",
-                          "country",
-                          "line1",
-                          "postal_code",
-                          "state"
-                        ],
-                        "properties": {
-                          "city": {
-                            "type": "string",
-                            "description": "The name of the city.",
-                            "pattern": "^.+$"
-                          },
-                          "country": {
-                            "description": "ISO2 country code",
-                            "type": "string",
-                            "pattern": "^[A-Z]{2}$"
-                          },
-                          "line1": {
-                            "type": "string",
-                            "description": "The first line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "line2": {
-                            "type": "string",
-                            "description": "The second line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "postal_code": {
-                            "type": "string",
-                            "pattern": "^.+$"
-                          },
-                          "state": {
-                            "type": "string",
-                            "description": "The state or region.",
-                            "pattern": "^.+$"
-                          }
-                        }
+                        "$ref": "#/$defs/address"
                       },
                       "bank": {
                         "type": "object",
@@ -323,81 +259,17 @@
                     ],
                     "properties": {
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "national_identification": {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "PASSPORT",
-                              "DRIVERS_LICENSE",
-                              "NATIONAL_ID"
-                            ]
-                          },
-                          "identifier": {
-                            "type": "string",
-                            "minLength": 4,
-                            "maxLength": 40
-                          },
-                          "expiration_date": {
-                            "type": "string",
-                            "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
-                          }
-                        },
-                        "required": [
-                          "expiration_date",
-                          "identifier",
-                          "type"
-                        ],
-                        "description": "The Sender's official government ID."
+                        "$ref": "#/$defs/sender_national_identification"
                       },
                       "date_of_birth": {
                         "description": "Sender's date of birth in YYYY-MM-DD.",
                         "type": "string"
                       },
                       "phone": {
-                        "type": "object",
-                        "description": "The customer's mobile number.",
-                        "required": [
-                          "country_code",
-                          "number"
-                        ],
-                        "properties": {
-                          "country_code": {
-                            "description": "The dialling country code e.g. 234 for NG.",
-                            "type": "string",
-                            "pattern": "^[0-9]{1,3}$"
-                          },
-                          "number": {
-                            "description": "Unformatted 7-10-digit phone number without the country code.",
-                            "type": "string",
-                            "pattern": "^[0-9]{7,10}$"
-                          }
-                        }
+                        "$ref": "#/$defs/phone"
                       },
                       "email": {
                         "type": "string",
@@ -405,46 +277,7 @@
                         "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
                       },
                       "address": {
-                        "type": "object",
-                        "description": "Customer address information.",
-                        "required": [
-                          "city",
-                          "country",
-                          "line1",
-                          "postal_code",
-                          "state"
-                        ],
-                        "properties": {
-                          "city": {
-                            "type": "string",
-                            "description": "The name of the city.",
-                            "pattern": "^.+$"
-                          },
-                          "country": {
-                            "description": "ISO2 country code",
-                            "type": "string",
-                            "pattern": "^[A-Z]{2}$"
-                          },
-                          "line1": {
-                            "type": "string",
-                            "description": "The first line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "line2": {
-                            "type": "string",
-                            "description": "The second line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "postal_code": {
-                            "type": "string",
-                            "pattern": "^.+$"
-                          },
-                          "state": {
-                            "type": "string",
-                            "description": "The state or region.",
-                            "pattern": "^.+$"
-                          }
-                        }
+                        "$ref": "#/$defs/address"
                       }
                     }
                   },
@@ -506,29 +339,7 @@
                         ]
                       },
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "bank": {
                         "type": "object",
@@ -598,49 +409,10 @@
                         ]
                       },
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "phone": {
-                        "type": "object",
-                        "description": "The customer's mobile number.",
-                        "required": [
-                          "country_code",
-                          "number"
-                        ],
-                        "properties": {
-                          "country_code": {
-                            "description": "The dialling country code e.g. 234 for NG.",
-                            "type": "string",
-                            "pattern": "^[0-9]{1,3}$"
-                          },
-                          "number": {
-                            "description": "Unformatted 7-10-digit phone number without the country code.",
-                            "type": "string",
-                            "pattern": "^[0-9]{7,10}$"
-                          }
-                        }
+                        "$ref": "#/$defs/phone"
                       },
                       "email": {
                         "type": "string",
@@ -648,46 +420,7 @@
                         "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
                       },
                       "address": {
-                        "type": "object",
-                        "description": "Customer address information.",
-                        "required": [
-                          "city",
-                          "country",
-                          "line1",
-                          "postal_code",
-                          "state"
-                        ],
-                        "properties": {
-                          "city": {
-                            "type": "string",
-                            "description": "The name of the city.",
-                            "pattern": "^.+$"
-                          },
-                          "country": {
-                            "description": "ISO2 country code",
-                            "type": "string",
-                            "pattern": "^[A-Z]{2}$"
-                          },
-                          "line1": {
-                            "type": "string",
-                            "description": "The first line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "line2": {
-                            "type": "string",
-                            "description": "The second line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "postal_code": {
-                            "type": "string",
-                            "pattern": "^.+$"
-                          },
-                          "state": {
-                            "type": "string",
-                            "description": "The state or region.",
-                            "pattern": "^.+$"
-                          }
-                        }
+                        "$ref": "#/$defs/address"
                       },
                       "bank": {
                         "type": "object",
@@ -731,29 +464,7 @@
                     ],
                     "properties": {
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "email": {
                         "type": "string",
@@ -761,66 +472,10 @@
                         "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
                       },
                       "address": {
-                        "type": "object",
-                        "description": "Customer address information.",
-                        "required": [
-                          "city",
-                          "country",
-                          "line1",
-                          "postal_code",
-                          "state"
-                        ],
-                        "properties": {
-                          "city": {
-                            "type": "string",
-                            "description": "The name of the city.",
-                            "pattern": "^.+$"
-                          },
-                          "country": {
-                            "description": "ISO2 country code",
-                            "type": "string",
-                            "pattern": "^[A-Z]{2}$"
-                          },
-                          "line1": {
-                            "type": "string",
-                            "description": "The first line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "line2": {
-                            "type": "string",
-                            "description": "The second line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "postal_code": {
-                            "type": "string",
-                            "pattern": "^.+$"
-                          },
-                          "state": {
-                            "type": "string",
-                            "description": "The state or region.",
-                            "pattern": "^.+$"
-                          }
-                        }
+                        "$ref": "#/$defs/address"
                       },
                       "phone": {
-                        "type": "object",
-                        "description": "The customer's mobile number.",
-                        "required": [
-                          "country_code",
-                          "number"
-                        ],
-                        "properties": {
-                          "country_code": {
-                            "description": "The dialling country code e.g. 234 for NG.",
-                            "type": "string",
-                            "pattern": "^[0-9]{1,3}$"
-                          },
-                          "number": {
-                            "description": "Unformatted 7-10-digit phone number without the country code.",
-                            "type": "string",
-                            "pattern": "^[0-9]{7,10}$"
-                          }
-                        }
+                        "$ref": "#/$defs/phone"
                       }
                     }
                   }
@@ -866,49 +521,10 @@
                         ]
                       },
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "phone": {
-                        "type": "object",
-                        "description": "The customer's mobile number.",
-                        "required": [
-                          "country_code",
-                          "number"
-                        ],
-                        "properties": {
-                          "country_code": {
-                            "description": "The dialling country code e.g. 234 for NG.",
-                            "type": "string",
-                            "pattern": "^[0-9]{1,3}$"
-                          },
-                          "number": {
-                            "description": "Unformatted 7-10-digit phone number without the country code.",
-                            "type": "string",
-                            "pattern": "^[0-9]{7,10}$"
-                          }
-                        }
+                        "$ref": "#/$defs/phone"
                       },
                       "email": {
                         "type": "string",
@@ -916,46 +532,7 @@
                         "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
                       },
                       "address": {
-                        "type": "object",
-                        "description": "Customer address information.",
-                        "required": [
-                          "city",
-                          "country",
-                          "line1",
-                          "postal_code",
-                          "state"
-                        ],
-                        "properties": {
-                          "city": {
-                            "type": "string",
-                            "description": "The name of the city.",
-                            "pattern": "^.+$"
-                          },
-                          "country": {
-                            "description": "ISO2 country code",
-                            "type": "string",
-                            "pattern": "^[A-Z]{2}$"
-                          },
-                          "line1": {
-                            "type": "string",
-                            "description": "The first line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "line2": {
-                            "type": "string",
-                            "description": "The second line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "postal_code": {
-                            "type": "string",
-                            "pattern": "^.+$"
-                          },
-                          "state": {
-                            "type": "string",
-                            "description": "The state or region.",
-                            "pattern": "^.+$"
-                          }
-                        }
+                        "$ref": "#/$defs/address"
                       },
                       "bank": {
                         "type": "object",
@@ -1008,29 +585,7 @@
                     ],
                     "properties": {
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "email": {
                         "type": "string",
@@ -1038,66 +593,10 @@
                         "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
                       },
                       "address": {
-                        "type": "object",
-                        "description": "Customer address information.",
-                        "required": [
-                          "city",
-                          "country",
-                          "line1",
-                          "postal_code",
-                          "state"
-                        ],
-                        "properties": {
-                          "city": {
-                            "type": "string",
-                            "description": "The name of the city.",
-                            "pattern": "^.+$"
-                          },
-                          "country": {
-                            "description": "ISO2 country code",
-                            "type": "string",
-                            "pattern": "^[A-Z]{2}$"
-                          },
-                          "line1": {
-                            "type": "string",
-                            "description": "The first line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "line2": {
-                            "type": "string",
-                            "description": "The second line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "postal_code": {
-                            "type": "string",
-                            "pattern": "^.+$"
-                          },
-                          "state": {
-                            "type": "string",
-                            "description": "The state or region.",
-                            "pattern": "^.+$"
-                          }
-                        }
+                        "$ref": "#/$defs/address"
                       },
                       "phone": {
-                        "type": "object",
-                        "description": "The customer's mobile number.",
-                        "required": [
-                          "country_code",
-                          "number"
-                        ],
-                        "properties": {
-                          "country_code": {
-                            "description": "The dialling country code e.g. 234 for NG.",
-                            "type": "string",
-                            "pattern": "^[0-9]{1,3}$"
-                          },
-                          "number": {
-                            "description": "Unformatted 7-10-digit phone number without the country code.",
-                            "type": "string",
-                            "pattern": "^[0-9]{7,10}$"
-                          }
-                        }
+                        "$ref": "#/$defs/phone"
                       }
                     }
                   }
@@ -1144,29 +643,7 @@
                         ]
                       },
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "bank": {
                         "type": "object",
@@ -1238,29 +715,7 @@
                         ]
                       },
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "bank": {
                         "type": "object",
@@ -1334,49 +789,10 @@
                         ]
                       },
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "phone": {
-                        "type": "object",
-                        "description": "The customer's mobile number.",
-                        "required": [
-                          "country_code",
-                          "number"
-                        ],
-                        "properties": {
-                          "country_code": {
-                            "description": "The dialling country code e.g. 234 for NG.",
-                            "type": "string",
-                            "pattern": "^[0-9]{1,3}$"
-                          },
-                          "number": {
-                            "description": "Unformatted 7-10-digit phone number without the country code.",
-                            "type": "string",
-                            "pattern": "^[0-9]{7,10}$"
-                          }
-                        }
+                        "$ref": "#/$defs/phone"
                       },
                       "email": {
                         "type": "string",
@@ -1384,46 +800,7 @@
                         "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
                       },
                       "address": {
-                        "type": "object",
-                        "description": "Customer address information.",
-                        "required": [
-                          "city",
-                          "country",
-                          "line1",
-                          "postal_code",
-                          "state"
-                        ],
-                        "properties": {
-                          "city": {
-                            "type": "string",
-                            "description": "The name of the city.",
-                            "pattern": "^.+$"
-                          },
-                          "country": {
-                            "description": "ISO2 country code",
-                            "type": "string",
-                            "pattern": "^[A-Z]{2}$"
-                          },
-                          "line1": {
-                            "type": "string",
-                            "description": "The first line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "line2": {
-                            "type": "string",
-                            "description": "The second line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "postal_code": {
-                            "type": "string",
-                            "pattern": "^.+$"
-                          },
-                          "state": {
-                            "type": "string",
-                            "description": "The state or region.",
-                            "pattern": "^.+$"
-                          }
-                        }
+                        "$ref": "#/$defs/address"
                       },
                       "bank": {
                         "type": "object",
@@ -1515,49 +892,10 @@
                         ]
                       },
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "phone": {
-                        "type": "object",
-                        "description": "The customer's mobile number.",
-                        "required": [
-                          "country_code",
-                          "number"
-                        ],
-                        "properties": {
-                          "country_code": {
-                            "description": "The dialling country code e.g. 234 for NG.",
-                            "type": "string",
-                            "pattern": "^[0-9]{1,3}$"
-                          },
-                          "number": {
-                            "description": "Unformatted 7-10-digit phone number without the country code.",
-                            "type": "string",
-                            "pattern": "^[0-9]{7,10}$"
-                          }
-                        }
+                        "$ref": "#/$defs/phone"
                       },
                       "email": {
                         "type": "string",
@@ -1565,46 +903,7 @@
                         "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
                       },
                       "address": {
-                        "type": "object",
-                        "description": "Customer address information.",
-                        "required": [
-                          "city",
-                          "country",
-                          "line1",
-                          "postal_code",
-                          "state"
-                        ],
-                        "properties": {
-                          "city": {
-                            "type": "string",
-                            "description": "The name of the city.",
-                            "pattern": "^.+$"
-                          },
-                          "country": {
-                            "description": "ISO2 country code",
-                            "type": "string",
-                            "pattern": "^[A-Z]{2}$"
-                          },
-                          "line1": {
-                            "type": "string",
-                            "description": "The first line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "line2": {
-                            "type": "string",
-                            "description": "The second line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "postal_code": {
-                            "type": "string",
-                            "pattern": "^.+$"
-                          },
-                          "state": {
-                            "type": "string",
-                            "description": "The state or region.",
-                            "pattern": "^.+$"
-                          }
-                        }
+                        "$ref": "#/$defs/address"
                       },
                       "bank": {
                         "type": "object",
@@ -1725,52 +1024,10 @@
                         ]
                       },
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "mobile_money": {
-                        "type": "object",
-                        "required": [
-                          "network",
-                          "msisdn"
-                        ],
-                        "properties": {
-                          "network": {
-                            "description": "recipient network",
-                            "type": "string",
-                            "minLength": 2,
-                            "maxLength": 25,
-                            "pattern": "^[a-zA-Z0-9]*$"
-                          },
-                          "msisdn": {
-                            "description": "recipient phone number",
-                            "type": "string",
-                            "minLength": 6,
-                            "maxLength": 25,
-                            "pattern": "^[0-9]+$"
-                          }
-                        }
+                        "$ref": "#/$defs/mobile_money_account"
                       }
                     }
                   },
@@ -1818,121 +1075,16 @@
                         ]
                       },
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "national_identification": {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "PASSPORT",
-                              "DRIVERS_LICENSE",
-                              "NATIONAL_ID"
-                            ]
-                          },
-                          "identifier": {
-                            "type": "string",
-                            "minLength": 4,
-                            "maxLength": 40
-                          },
-                          "expiration_date": {
-                            "type": "string",
-                            "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
-                          }
-                        },
-                        "required": [
-                          "identifier",
-                          "type"
-                        ],
-                        "description": "Recipient government identification"
+                        "$ref": "#/$defs/recipient_national_identification"
                       },
                       "address": {
-                        "type": "object",
-                        "description": "Customer address information.",
-                        "required": [
-                          "city",
-                          "country",
-                          "line1",
-                          "postal_code",
-                          "state"
-                        ],
-                        "properties": {
-                          "city": {
-                            "type": "string",
-                            "description": "The name of the city.",
-                            "pattern": "^.+$"
-                          },
-                          "country": {
-                            "description": "ISO2 country code",
-                            "type": "string",
-                            "pattern": "^[A-Z]{2}$"
-                          },
-                          "line1": {
-                            "type": "string",
-                            "description": "The first line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "line2": {
-                            "type": "string",
-                            "description": "The second line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "postal_code": {
-                            "type": "string",
-                            "pattern": "^.+$"
-                          },
-                          "state": {
-                            "type": "string",
-                            "description": "The state or region.",
-                            "pattern": "^.+$"
-                          }
-                        }
+                        "$ref": "#/$defs/address"
                       },
                       "mobile_money": {
-                        "type": "object",
-                        "required": [
-                          "network",
-                          "msisdn"
-                        ],
-                        "properties": {
-                          "network": {
-                            "description": "recipient network",
-                            "type": "string",
-                            "minLength": 2,
-                            "maxLength": 25,
-                            "pattern": "^[a-zA-Z0-9]*$"
-                          },
-                          "msisdn": {
-                            "description": "recipient phone number",
-                            "type": "string",
-                            "minLength": 6,
-                            "maxLength": 25,
-                            "pattern": "^[0-9]+$"
-                          }
-                        }
+                        "$ref": "#/$defs/mobile_money_account"
                       }
                     }
                   },
@@ -1949,77 +1101,13 @@
                     ],
                     "properties": {
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "national_identification": {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "PASSPORT",
-                              "DRIVERS_LICENSE",
-                              "NATIONAL_ID"
-                            ]
-                          },
-                          "identifier": {
-                            "type": "string",
-                            "minLength": 4,
-                            "maxLength": 40
-                          },
-                          "expiration_date": {
-                            "type": "string",
-                            "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
-                          }
-                        },
-                        "required": [
-                          "expiration_date",
-                          "identifier",
-                          "type"
-                        ],
-                        "description": "The Sender's official government ID."
+                        "$ref": "#/$defs/sender_national_identification"
                       },
                       "phone": {
-                        "type": "object",
-                        "description": "The customer's mobile number.",
-                        "required": [
-                          "country_code",
-                          "number"
-                        ],
-                        "properties": {
-                          "country_code": {
-                            "description": "The dialling country code e.g. 234 for NG.",
-                            "type": "string",
-                            "pattern": "^[0-9]{1,3}$"
-                          },
-                          "number": {
-                            "description": "Unformatted 7-10-digit phone number without the country code.",
-                            "type": "string",
-                            "pattern": "^[0-9]{7,10}$"
-                          }
-                        }
+                        "$ref": "#/$defs/phone"
                       },
                       "date_of_birth": {
                         "description": "Sender's date of birth in YYYY-MM-DD.",
@@ -2031,46 +1119,7 @@
                         "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
                       },
                       "address": {
-                        "type": "object",
-                        "description": "Customer address information.",
-                        "required": [
-                          "city",
-                          "country",
-                          "line1",
-                          "postal_code",
-                          "state"
-                        ],
-                        "properties": {
-                          "city": {
-                            "type": "string",
-                            "description": "The name of the city.",
-                            "pattern": "^.+$"
-                          },
-                          "country": {
-                            "description": "ISO2 country code",
-                            "type": "string",
-                            "pattern": "^[A-Z]{2}$"
-                          },
-                          "line1": {
-                            "type": "string",
-                            "description": "The first line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "line2": {
-                            "type": "string",
-                            "description": "The second line of the Customer's address.",
-                            "pattern": "^.+$"
-                          },
-                          "postal_code": {
-                            "type": "string",
-                            "pattern": "^.+$"
-                          },
-                          "state": {
-                            "type": "string",
-                            "description": "The state or region.",
-                            "pattern": "^.+$"
-                          }
-                        }
+                        "$ref": "#/$defs/address"
                       }
                     }
                   },
@@ -2132,29 +1181,7 @@
                         ]
                       },
                       "name": {
-                        "type": "object",
-                        "description": "The Customer's full name.",
-                        "properties": {
-                          "first": {
-                            "type": "string",
-                            "description": "The Customer's first name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "middle": {
-                            "type": "string",
-                            "description": "The Customer's middle name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          },
-                          "last": {
-                            "type": "string",
-                            "description": "The Customer's last name.",
-                            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-                          }
-                        },
-                        "required": [
-                          "first",
-                          "last"
-                        ]
+                        "$ref": "#/$defs/full_name"
                       },
                       "mobile_money": {
                         "type": "object",
@@ -2359,49 +1386,10 @@
         ],
         "properties": {
           "name": {
-            "type": "object",
-            "description": "The Customer's full name.",
-            "properties": {
-              "first": {
-                "type": "string",
-                "description": "The Customer's first name.",
-                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-              },
-              "middle": {
-                "type": "string",
-                "description": "The Customer's middle name.",
-                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-              },
-              "last": {
-                "type": "string",
-                "description": "The Customer's last name.",
-                "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$"
-              }
-            },
-            "required": [
-              "first",
-              "last"
-            ]
+            "$ref": "#/$defs/full_name"
           },
           "phone": {
-            "type": "object",
-            "description": "The customer's mobile number.",
-            "required": [
-              "country_code",
-              "number"
-            ],
-            "properties": {
-              "country_code": {
-                "description": "The dialling country code e.g. 234 for NG.",
-                "type": "string",
-                "pattern": "^[0-9]{1,3}$"
-              },
-              "number": {
-                "description": "Unformatted 7-10-digit phone number without the country code.",
-                "type": "string",
-                "pattern": "^[0-9]{7,10}$"
-              }
-            }
+            "$ref": "#/$defs/phone"
           },
           "email": {
             "type": "string",
@@ -2409,46 +1397,7 @@
             "pattern": "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
           },
           "address": {
-            "type": "object",
-            "description": "Customer address information.",
-            "required": [
-              "city",
-              "country",
-              "line1",
-              "postal_code",
-              "state"
-            ],
-            "properties": {
-              "city": {
-                "type": "string",
-                "description": "The name of the city.",
-                "pattern": "^.+$"
-              },
-              "country": {
-                "description": "ISO2 country code",
-                "type": "string",
-                "pattern": "^[A-Z]{2}$"
-              },
-              "line1": {
-                "type": "string",
-                "description": "The first line of the Customer's address.",
-                "pattern": "^.+$"
-              },
-              "line2": {
-                "type": "string",
-                "description": "The second line of the Customer's address.",
-                "pattern": "^.+$"
-              },
-              "postal_code": {
-                "type": "string",
-                "pattern": "^.+$"
-              },
-              "state": {
-                "type": "string",
-                "description": "The state or region.",
-                "pattern": "^.+$"
-              }
-            }
+            "$ref": "#/$defs/address"
           }
         }
       },
@@ -2508,6 +1457,171 @@
             "description": "Specifies whether the transfer amount is in destination_currency (no conversion) or source_currency (this will be converted to destination currency)"
           }
         }
+      },
+      "full_name": {
+        "description": "The Customer's full name.",
+        "properties": {
+          "first": {
+            "description": "The Customer's first name.",
+            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$",
+            "type": "string"
+          },
+          "last": {
+            "description": "The Customer's last name.",
+            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$",
+            "type": "string"
+          },
+          "middle": {
+            "description": "The Customer's middle name.",
+            "pattern": "^(?![ ,.'-]*$)[A-Za-z ,.'-]{2,50}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "first",
+          "last"
+        ],
+        "type": "object"
+      },
+      "address": {
+        "description": "Customer address information.",
+        "properties": {
+          "city": {
+            "description": "The name of the city.",
+            "pattern": "^.+$",
+            "type": "string"
+          },
+          "country": {
+            "description": "ISO2 country code",
+            "pattern": "^[A-Z]{2}$",
+            "type": "string"
+          },
+          "line1": {
+            "description": "The first line of the Customer's address.",
+            "pattern": "^.+$",
+            "type": "string"
+          },
+          "line2": {
+            "description": "The second line of the Customer's address.",
+            "pattern": "^.+$",
+            "type": "string"
+          },
+          "postal_code": {
+            "pattern": "^.+$",
+            "type": "string"
+          },
+          "state": {
+            "description": "The state or region.",
+            "pattern": "^.+$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "city",
+          "country",
+          "line1",
+          "postal_code",
+          "state"
+        ],
+        "type": "object"
+      },
+      "phone": {
+        "description": "The customer's mobile number.",
+        "properties": {
+          "country_code": {
+            "description": "The dialling country code e.g. 234 for NG.",
+            "pattern": "^[0-9]{1,3}$",
+            "type": "string"
+          },
+          "number": {
+            "description": "Unformatted 7-10-digit phone number without the country code.",
+            "pattern": "^[0-9]{7,10}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "country_code",
+          "number"
+        ],
+        "type": "object"
+      },
+      "sender_national_identification": {
+        "description": "The Sender's official government ID.",
+        "properties": {
+          "expiration_date": {
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$",
+            "type": "string"
+          },
+          "identifier": {
+            "maxLength": 40,
+            "minLength": 4,
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "PASSPORT",
+              "DRIVERS_LICENSE",
+              "NATIONAL_ID"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "expiration_date",
+          "identifier",
+          "type"
+        ],
+        "type": "object"
+      },
+      "recipient_national_identification": {
+        "description": "Recipient government identification",
+        "properties": {
+          "expiration_date": {
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$",
+            "type": "string"
+          },
+          "identifier": {
+            "maxLength": 40,
+            "minLength": 4,
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "PASSPORT",
+              "DRIVERS_LICENSE",
+              "NATIONAL_ID"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "identifier",
+          "type"
+        ],
+        "type": "object"
+      },
+      "mobile_money_account": {
+        "properties": {
+          "msisdn": {
+            "description": "recipient phone number",
+            "maxLength": 25,
+            "minLength": 6,
+            "pattern": "^[0-9]+$",
+            "type": "string"
+          },
+          "network": {
+            "description": "recipient network",
+            "maxLength": 25,
+            "minLength": 2,
+            "pattern": "^[a-zA-Z0-9]*$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "network",
+          "msisdn"
+        ],
+        "type": "object"
       }
     }
   },
@@ -3397,7 +2511,7 @@
     }
   },
   "gotchas": [
-    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Auth: one token server for both environments — the docs' Multi-Environment Integrations example sends either environment's credentials to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token, and Authentication says \"This process applies to both the sandbox and production environments. Make sure to use the correct credentials for each environment to obtain a valid token.\" \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. Sandbox: \"We archive your test data after 30 days.\"",
     "Headers: send X-Idempotency-Key on this POST. Docs (Idempotency): \"For all `POST` endpoints, include an idempotency key in the request header (`X-Idempotency-Key`).\" The API reference marks it optional; the headers guide lists it under 'Mandatory API Headers'. A reused key replays the first response (\"the response will include the header `X-Idempotency-Cache-Hit: true`\"), so reuse the key when retrying the same operation and use a new one for a new operation. X-Trace-Id is optional. For both: \"It must be a string using only alphanumeric ASCII characters.\" \"Its length should be between 12 and 255 characters.\" The idempotency page also says \"We recommend using a **UUID** string as your idempotency key\": strip the UUID's hyphens to satisfy both.",
     "Required: action (instant | deferred | scheduled), type and payment_instruction. type picks the branch: bank, mobile_money or wallet (wallet = another Flutterwave merchant, identified by its merchant ID). The API also has cash_pickup (EGP) and crypto (USDC/USDT/RLUSD) branches, left out of this spec. The guide's \"Available methods are `bank`, `mobile_moeny`, and `wallet`.\" has a typo: the schema enum is mobile_money.",
     "payment_instruction is chosen by destination_currency (required): it sets the recipient (and sender) shape, e.g. bank NGN → recipient.bank{account_number, code}; bank GHS/RWF/SLL/UGX/XAF/XOF → name + bank{…, branch}; mobile money → recipient.mobile_money{network, msisdn, country for XAF/XOF}; EGP also needs payment_instruction.transfer_purpose. source_currency + amount{value, applies_to} are always required. Bank EGP / EUR / GBP and mobile money EGP also require payment_instruction.sender (KYC: EGP needs name, national_identification, date_of_birth, phone, email, address); some guide examples omit sender or transfer_purpose — follow the reference.",
@@ -3408,6 +2522,9 @@
     "Prerequisites (transfer guides): whitelist your server IPs and fund the source balance — otherwise 220400 IP_WHITELISTING_REQUIRED / 221400 NON_WHITELISTED_IP, or provider_response {type 'insufficient_balance', code '0307'} (the sandbox's insufficient_balance scenario answers with a 400 instead). \"Whitelist your IP addresses\"",
     "Sandbox: Docs (Testing): \"If you do not pass the `X-Scenario-Key` header, the transfer remains in a `pending` state and no webhook is sent for the test.\" Send X-Scenario-Key: scenario:successful (or reversed, failed, insufficient_balance, duplicate_reference…). Open question: the transfer guides say the opposite (\"To test the successful transfers, send a request without adding any extra headers.\"); the testing page is the more specific one.",
     "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 201409 REFERENCE_ALREADY_EXISTS, 228400 TRANSFER_AMOUNT_LIMIT, 203400 UNSUPPORTED_BANK_INSTRUCTION, 209400 UNSUPPORTED_MOMO_INSTRUCTION, 202400 UNSUPPORTED_WALLET_INSTRUCTION, 230400 UNSUPPORTED_MOBILE_MONEY_COUNTRY, 230401 INVALID_MOBILE_NUMBER, 211400 INVALID_TRANSFER_TYPE, 220400 IP_WHITELISTING_REQUIRED, 221400 NON_WHITELISTED_IP. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "open_questions": [
+    "Token URL: the PHP sample of Authentication uses https://keycloak.dev-flutterwave.com/realms/flutterwave/protocol/openid-connect/token; its curl and JavaScript samples and the Multi-Environment example use https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token, which this spec follows."
   ],
   "evidence": {
     "source_url": "https://developer.flutterwave.com/v4.0.0/reference/direct_transfers_post.md",

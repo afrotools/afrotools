@@ -1,6 +1,4 @@
 {
-  "oauth2_token_url": "https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token",
-  "sandbox_base_url": "https://developersandbox-api.flutterwave.com",
   "steps": [
     {
       "capability": "get_wallet_balance",

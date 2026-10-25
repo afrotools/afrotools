@@ -19,6 +19,7 @@ Usage:
 
 Prints one env var name per line to stdout:
     line 1 — primary (always present if the provider is testable)
+    With ATSS 1.1 auth.credentials, one line per credential (at most two).
     line 2 — secondary (only when the fixture declares auth_secondary_env —
              the second half of `basic` auth, or a second credential such as a
              partner ID sent in a step's headers via $env:)
@@ -67,6 +68,16 @@ def main():
     schema = json.loads(schema_path.read_text())
 
     auth = schema.get("auth", {})
+    if "apply" in auth:
+        # ATSS 1.1, same switch as test_live.build_auth: the secrets its auth steps use.
+        # The workflow carries two (primary, secondary).
+        credentials = [c["env_var"] for c in test_live.auth_env_vars(auth)]
+        if len(credentials) > 2:
+            print(f"{schema_path} needs {len(credentials)} credentials; live-test.yml carries 2", file=sys.stderr)
+            sys.exit(1)
+        print("\n".join(credentials))
+        return
+
     env_var = auth.get("env_var")
     if not env_var:
         print(f"No auth.env_var in {schema_path}", file=sys.stderr)

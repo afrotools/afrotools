@@ -15,8 +15,11 @@ Usage:
 
 import argparse
 import base64
+import hashlib
+import hmac
 import json
 import os
+import re
 import ssl
 import sys
 import time
@@ -47,32 +50,84 @@ RESET  = "\033[0m"
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
-def _fetch_oauth2_token(token_url, credentials_b64, env_var_name):
-    try:
-        decoded = base64.b64decode(credentials_b64).decode()
-        client_id, client_secret = decoded.split(":", 1)
-    except Exception:
-        print(f"{RED}Error: {env_var_name} must be base64(client_id:client_secret){RESET}")
-        sys.exit(1)
-    data = urllib.parse.urlencode({
-        "grant_type": "client_credentials",
-        "client_id": client_id,
-        "client_secret": client_secret,
-    }).encode()
-    req = urllib.request.Request(
-        token_url, data=data,
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-    )
-    with urllib.request.urlopen(req, context=_SSL_CTX) as r:
-        return json.loads(r.read())["access_token"]
+PLACEHOLDER = re.compile(r"\{([^{}]+)\}")
+
+def _fill(template, values, where):
+    """Replace every {name} of an ATSS 1.1 template in one pass; an unknown name stops the run."""
+    for name in PLACEHOLDER.findall(template):
+        if name not in values:
+            print(f"{RED}Error: {where} uses {{{name}}}, which nothing provides{RESET}")
+            sys.exit(1)
+    return PLACEHOLDER.sub(lambda m: values[m[1]], template)
 
 
-def build_auth(schema, fixture):
+def auth_env_vars(auth):
+    """Credentials the auth steps use. Others (e.g. a card encryption key) are the capability's business."""
+    te = auth.get("token_exchange", {})
+    templates = [auth.get("signing", {}).get("key", ""), auth.get("signing", {}).get("message", "")]
+    templates += [x["value"] for x in te.get("headers", []) + te.get("body", []) + auth.get("apply", [])]
+    used = {name for t in templates for name in PLACEHOLDER.findall(t)}
+    return [c for c in auth.get("credentials", []) if c["env_var"] in used]
+
+
+def _sign(spec, values, where):
+    key = _fill(spec["key"], values, f"{where}.key").encode()
+    digest = hmac.new(key, _fill(spec["message"], values, f"{where}.message").encode(), hashlib.sha256).digest()
+    return digest.hex() if spec["encoding"] == "hex" else base64.b64encode(digest).decode()
+
+
+def build_auth_steps(auth, base_url):
+    """ATSS 1.1 auth: credentials from env, then signing, token_exchange and apply, in that order."""
+    values = {}
+    for cred in auth_env_vars(auth):
+        val = os.environ.get(cred["env_var"], "")
+        if not val:
+            print(f"{RED}Error: env var {cred['env_var']} is not set ({cred['description']}){RESET}")
+            sys.exit(1)
+        values[cred["env_var"]] = val
+    if "signing" in auth:
+        values["signature"] = _sign(auth["signing"], values, "auth.signing")
+    te = auth.get("token_exchange")
+    if te:
+        url = te.get("url") or base_url + te["path"]
+        headers = {h["name"]: _fill(h["value"], values, "auth.token_exchange.headers") for h in te.get("headers", [])}
+        data = None
+        if "body" in te:
+            headers["Content-Type"] = te["content_type"]
+            data = urllib.parse.urlencode(
+                {f["name"]: _fill(f["value"], values, "auth.token_exchange.body") for f in te["body"]}).encode()
+        print(f"{BOLD}Fetching access token ({te['method']} {url})...{RESET}")
+        req = urllib.request.Request(url, data=data, headers=headers, method=te["method"])
+        with urllib.request.urlopen(req, context=_SSL_CTX) as r:
+            node = json.loads(r.read())
+        for key in te["token_field"].split("."):
+            node = node.get(key) if isinstance(node, dict) else None
+        if not isinstance(node, str):
+            print(f"{RED}Error: no string at {te['token_field']} in the token response{RESET}")
+            sys.exit(1)
+        values["access_token"] = node
+        print(f"  {GREEN}OK{RESET}")
+    headers, body_pair = {}, None
+    for a in auth.get("apply", []):
+        val = _fill(a["value"], values, "auth.apply")
+        if a["in"] == "header":
+            headers[a["name"]] = val
+        elif a["in"] == "body":
+            body_pair = (a["name"], val)
+        else:
+            print(f"{RED}Error: auth.apply in \"{a['in']}\" is not supported by test_live yet{RESET}")
+            sys.exit(1)
+    return headers, body_pair
+
+
+def build_auth(schema, fixture, base_url=""):
     """
     Return (auth_headers, body_auth_pair) from schema.auth + env vars.
     body_auth_pair is (field_name, value) when auth.location == "body", else None.
     """
     auth = schema.get("auth", {})
+    if "apply" in auth:
+        return build_auth_steps(auth, base_url)
     auth_type = auth.get("type", "none")
     env_var   = auth.get("env_var", "")
     location  = auth.get("location", "header")
@@ -81,22 +136,14 @@ def build_auth(schema, fixture):
 
     if auth_type == "none":
         return {}, None
+    if auth_type == "oauth2":
+        print(f"{RED}Error: oauth2 needs auth.token_exchange and auth.apply (ATSS 1.1) to fetch a token{RESET}")
+        sys.exit(1)
 
     env_val = os.environ.get(env_var, "")
     if not env_val:
         print(f"{RED}Error: env var {env_var} is not set{RESET}")
         sys.exit(1)
-
-    if auth_type == "oauth2":
-        token_url = fixture.get("oauth2_token_url")
-        if not token_url:
-            print(f"{RED}Error: oauth2_token_url missing from live_test_fixtures.json{RESET}")
-            sys.exit(1)
-        print(f"{BOLD}Fetching OAuth2 token...{RESET}")
-        token = _fetch_oauth2_token(token_url, env_val, env_var)
-        print(f"  {GREEN}OK{RESET} — {token[:40]}...")
-        header_val = fmt.replace("{access_token}", token).replace("{token}", token)
-        return {field: header_val}, None
 
     if auth_type in ("api_key", "bearer"):
         if location == "header":
@@ -374,7 +421,8 @@ def run(provider_slug, only_capability=None, raw_capability=None):
     with open(fixture_path) as f:
         fixture = json.load(f)
 
-    sandbox_base_url = fixture.get("sandbox_base_url", "")
+    sandbox_base_url = (provider_json.get("environments", {}).get("sandbox", {}).get("base_url")
+                        or fixture.get("sandbox_base_url", ""))
     steps = fixture.get("steps", [])
     if not steps:
         print(f"{YELLOW}No steps in live_test_fixtures.json{RESET}")
@@ -394,7 +442,7 @@ def run(provider_slug, only_capability=None, raw_capability=None):
     if not first_schema:
         print(f"{RED}Capability '{steps[0]['capability']}' has no schema.json{RESET}")
         sys.exit(1)
-    auth_headers, body_auth = build_auth(first_schema, fixture)
+    auth_headers, body_auth = build_auth(first_schema, fixture, sandbox_base_url)
 
     stored  = {"ts": ts}
     results = []

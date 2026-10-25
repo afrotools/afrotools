@@ -5,8 +5,10 @@
  * @capability_type asynchronous
  */
 
-const FLUTTERWAVE_CLIENT_CREDENTIALS = process.env.FLUTTERWAVE_CLIENT_CREDENTIALS;
-if (!FLUTTERWAVE_CLIENT_CREDENTIALS) throw new Error("Missing env: FLUTTERWAVE_CLIENT_CREDENTIALS");
+const FLUTTERWAVE_CLIENT_ID = process.env.FLUTTERWAVE_CLIENT_ID;
+const FLUTTERWAVE_CLIENT_SECRET = process.env.FLUTTERWAVE_CLIENT_SECRET;
+if (!FLUTTERWAVE_CLIENT_ID) throw new Error("Missing env: FLUTTERWAVE_CLIENT_ID");
+if (!FLUTTERWAVE_CLIENT_SECRET) throw new Error("Missing env: FLUTTERWAVE_CLIENT_SECRET");
 
 // Production. Sandbox: https://developersandbox-api.flutterwave.com
 const API_BASE_URL = "https://f4bexperience.flutterwave.com";
@@ -17,17 +19,13 @@ let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function getAccessToken(): Promise<string> {
   if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
-  // afrotools convention: FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret)
-  const decoded = Buffer.from(FLUTTERWAVE_CLIENT_CREDENTIALS!, "base64").toString("utf8");
-  const sep = decoded.indexOf(":");
-  if (sep === -1) throw new Error("FLUTTERWAVE_CLIENT_CREDENTIALS must be base64(client_id:client_secret)");
   const response = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       grant_type: "client_credentials",
-      client_id: decoded.slice(0, sep),
-      client_secret: decoded.slice(sep + 1),
+      client_id: FLUTTERWAVE_CLIENT_ID!,
+      client_secret: FLUTTERWAVE_CLIENT_SECRET!,
     }).toString(),
   });
   if (!response.ok) throw new Error(`Flutterwave token error ${response.status}: ${await response.text()}`);

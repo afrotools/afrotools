@@ -7,6 +7,10 @@
   "docs_url": "https://developer.flutterwave.com/v4.0/docs/getting-started",
   "docs_public": true,
   "sandbox": true,
+  "environments": {
+    "sandbox": { "base_url": "https://developersandbox-api.flutterwave.com" },
+    "production": { "base_url": "https://f4bexperience.flutterwave.com" }
+  },
   "description": "Flutterwave (API v4) collects payments by card, mobile money, USSD, OPay, Pay with Bank and bank transfer to virtual accounts, and pays out to bank accounts, mobile money wallets and Flutterwave wallets; the countries are those its bank and mobile-network endpoints list in Africa.",
   "example_prompt": "Integrate Flutterwave v4: create a customer and payment method, charge it and handle next_action, verify the charge via webhook, then pay sellers out to their bank or mobile money accounts."
 }
