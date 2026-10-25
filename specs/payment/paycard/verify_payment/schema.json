@@ -19,7 +19,20 @@
     "location": "path",
     "field": "c",
     "format": "{token}",
-    "env_var": "PAYCARD_API_KEY"
+    "env_var": "PAYCARD_API_KEY",
+    "credentials": [
+      {
+        "env_var": "PAYCARD_API_KEY",
+        "description": "merchant API key, sent as the field c"
+      }
+    ],
+    "apply": [
+      {
+        "in": "path",
+        "name": "c",
+        "value": "{PAYCARD_API_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "GET",

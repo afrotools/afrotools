@@ -1,7 +1,7 @@
 /**
  * @provider Paycard
  * @capability verify_payment
- * @atss 1.0
+ * @atss 1.1
  * @capability_type synchronous
  */
 

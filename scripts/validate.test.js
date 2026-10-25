@@ -446,3 +446,15 @@ test("webhook signature message can sign a request header and an env var", () =>
   assert.match(stderr, /webhook\.signature\.message: \{timestamp\}/);
   assert.match(stderr, /webhook\.signature\.message: \{FIXTURE_PARTNR\}/); // a typo does not declare itself
 });
+
+test("auth.apply in path must fill a placeholder of endpoint.url", () => {
+  const auth = { ...HMAC_AUTH, apply: [{ in: "path", name: "c", value: "{FIXTURE_ID}" }] };
+  const ok = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(ok, { status: "ready", extraSchema: { spec_version: "1.1", auth, endpoint: { method: "GET", url: "https://fixture.example/pay/{c}/status" } } });
+  assert.equal(runValidate(ok).code, 0);
+  const bad = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(bad, { status: "ready", extraSchema: { spec_version: "1.1", auth } });
+  const { code, stderr } = runValidate(bad);
+  assert.equal(code, 1);
+  assert.match(stderr, /auth\.apply in path "c" is not a \{placeholder\} of endpoint\.url/);
+});
