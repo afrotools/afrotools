@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v1",
   "capability": "create_payment",
   "capability_type": "synchronous",
@@ -12,7 +12,43 @@
     "location": "header",
     "field": "Authorization",
     "format": "Bearer {access_token}",
-    "env_var": "ORANGE_MONEY_BASIC_TOKEN"
+    "env_var": "ORANGE_MONEY_BASIC_TOKEN",
+    "credentials": [
+      {
+        "env_var": "ORANGE_MONEY_BASIC_TOKEN",
+        "description": "base64 of clientId:clientSecret from the Orange Developer portal, used only to get the OAuth access token"
+      },
+      {
+        "env_var": "ORANGE_MONEY_MERCHANT_KEY",
+        "description": "merchant key, sent in the payment request body (merchant_key) — not interchangeable with the basic token"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {access_token}"
+      }
+    ],
+    "token_exchange": {
+      "method": "POST",
+      "path": "/oauth/v3/token",
+      "headers": [
+        {
+          "in": "header",
+          "name": "Authorization",
+          "value": "Basic {ORANGE_MONEY_BASIC_TOKEN}"
+        }
+      ],
+      "content_type": "application/x-www-form-urlencoded",
+      "body": [
+        {
+          "name": "grant_type",
+          "value": "client_credentials"
+        }
+      ],
+      "token_field": "access_token"
+    }
   },
   "endpoint": {
     "method": "POST",
