@@ -7,9 +7,11 @@ machine-readable format that AI agents can consume directly — without
 parsing documentation pages or guessing at request shapes.
 
 Afro.tools fills that gap: a static, open-source registry of structured
-specs for African APIs. Each spec is verified against the live API and
-exposes exactly what an AI agent needs to generate correct integration
-code on the first try.
+specs for African APIs, written from each provider's official documentation.
+Every provider is **AI Ready**: an agent gets a structured description of
+exactly what it needs to generate integration code. A spec can still contain
+errors — its `status` says how far it has been checked (`verified` = tested
+against the provider's API by a maintainer).
 
 ---
 
@@ -53,7 +55,7 @@ See [ATSS.md](./ATSS.md) for the full specification.
 <!-- tableau généré automatiquement par le pipeline — ne pas éditer manuellement -->
 | Provider | Category | Country | Capabilities | Status |
 |----------|----------|---------|--------------|--------|
-| Paycard | payment | 🇬🇳 | 3 | ✅ AI Ready |
+| Paycard | payment | 🇬🇳 | 3 | ✅ All verified |
 | SasPay | payment | 🇧🇫 🇧🇯 🇨🇩 +15 | 13 | 7 verified · 6 ready |
 | Smile ID | identity | 🇨🇮 🇸🇳 🇬🇳 | 9 | 7 verified · 2 ready |
 | Djomy | payment | 🇬🇳 | 7 | 4 verified · 3 ready |
@@ -73,7 +75,7 @@ See [ATSS.md](./ATSS.md) for the full specification.
 | Yango Delivery | logistics | 🇨🇮 🇬🇭 🇸🇳 +1 | 8 | 📋 Ready |
 <!-- fin du tableau -->
 
-**Legend:** ✅ AI Ready = all capabilities `verified` · X verified · Y ready = awaiting production validation · 📋 Ready = spec validated · 🗓 Planned = specs coming soon
+**Legend:** ✅ All verified = all capabilities `verified` · X verified · Y ready = awaiting production validation · 📋 Ready = spec validated · 🗓 Planned = specs coming soon
 
 ---
 
@@ -128,7 +130,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) to add a spec or improve an existing on
 
 Spec lifecycle: `draft → ready → verified`
 
-A provider earns the **AI Ready** badge when all its capabilities reach `verified`.
+Every provider in the registry is **AI Ready**: its specs give an agent a structured, machine-readable description to integrate it. AI Ready is not a guarantee that a spec is error-free — `verified` marks the specs a maintainer has tested against the provider's API.
 
 ---
 

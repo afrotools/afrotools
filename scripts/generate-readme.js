@@ -157,7 +157,7 @@ function computeStatus(capabilities) {
   const verifiedCount = capabilities.filter((c) => c.status === "verified").length
   const readyCount = capabilities.length - verifiedCount
 
-  if (verifiedCount === capabilities.length) return "✅ AI Ready"
+  if (verifiedCount === capabilities.length) return "✅ All verified"
   if (verifiedCount > 0) return `${verifiedCount} verified · ${readyCount} ready`
   return "📋 Ready"
 }
