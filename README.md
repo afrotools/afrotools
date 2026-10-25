@@ -62,7 +62,7 @@ See [ATSS.md](./ATSS.md) for the full specification.
 | Bictorys | payment | 🇸🇳 🇨🇮 🇲🇱 +3 | 4 | 2 verified · 2 ready |
 | LengoPay | payment | 🇬🇳 | 8 | 2 verified · 6 ready |
 | Africa's Talking | communications | 🇧🇫 🇧🇯 🇨🇮 +17 | 2 | 📋 Ready |
-| Flutterwave | payment | 🇳🇬 🇬🇭 🇰🇪 +10 | 57 | 📋 Ready |
+| Flutterwave | payment | 🇳🇬 🇬🇭 🇰🇪 +15 | 33 | 📋 Ready |
 | Infobip | communications | 🇦🇴 🇧🇫 🇧🇮 +51 | 11 | 📋 Ready |
 | Intron | language | 🇦🇴 🇧🇫 🇧🇮 +51 | 7 | 📋 Ready |
 | KadevPay | payment | 🇨🇮 | 3 | 📋 Ready |
