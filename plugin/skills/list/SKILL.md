@@ -21,11 +21,20 @@ Lists all specs available in the Afro.tools registry.
 
 ## What it returns
 
-A table of available specs with their provider, category, capability, country,
-currency, and current status (`draft`, `ready`, or `verified`).
+A table of the providers in the registry with their category, countries, capabilities and
+verification status. The registry serves specs with status `verified` (tested by the
+maintainers) and `ready` (structured from the provider's docs, not tested yet).
 
-## MCP call
+## MCP calls
+
+Without an argument, or with a category, list the providers and their capabilities:
 
 ```
-afrotools.list_specs({ category?: "<category>", provider?: "<provider>" })
+afrotools.list_providers()
+```
+
+Filter the result on `category` yourself. With a provider slug, list that provider's specs:
+
+```
+afrotools.search_specs({ provider: "<provider>" })
 ```
