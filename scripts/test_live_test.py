@@ -81,5 +81,53 @@ class TestLive(unittest.TestCase):
         self.assertEqual(self.run_with([(200, {"id": "pay_1"}), (200, {"id": "pay_1"})]), 1)
 
 
+class TestAuthSteps(unittest.TestCase):
+    AUTH = {
+        "credentials": [{"env_var": "FX_ID", "description": "id"}, {"env_var": "FX_SECRET", "description": "secret"}],
+        "signing": {"algorithm": "HMAC-SHA256", "key": "{FX_SECRET}", "message": "{FX_ID}", "encoding": "hex"},
+        "token_exchange": {
+            "method": "POST", "url": "https://idp.fixture.example/token",
+            "content_type": "application/x-www-form-urlencoded",
+            "body": [{"name": "client_id", "value": "{FX_ID}"}, {"name": "grant_type", "value": "client_credentials"}],
+            "headers": [{"in": "header", "name": "X-API-KEY", "value": "{FX_ID}:{signature}"}],
+            "token_field": "data.accessToken",
+        },
+        "apply": [{"in": "header", "name": "Authorization", "value": "Bearer {access_token}"},
+                  {"in": "header", "name": "X-API-KEY", "value": "{FX_ID}:{signature}"}],
+    }
+
+    def test_signs_exchanges_and_applies(self):
+        seen = {}
+
+        def fake_urlopen(req, context=None):
+            seen["url"], seen["data"], seen["headers"] = req.full_url, req.data, dict(req.header_items())
+            return contextlib.nullcontext(io.BytesIO(json.dumps({"data": {"accessToken": "tok"}}).encode()))
+
+        signature = test_live.hmac.new(b"s3cret", b"id1", test_live.hashlib.sha256).hexdigest()
+        with mock.patch.dict(os.environ, {"FX_ID": "id1", "FX_SECRET": "s3cret"}), \
+                mock.patch.object(test_live.urllib.request, "urlopen", fake_urlopen), \
+                contextlib.redirect_stdout(io.StringIO()):
+            headers, body = test_live.build_auth({"auth": self.AUTH}, {})
+        self.assertEqual(seen["url"], "https://idp.fixture.example/token")
+        self.assertEqual(seen["data"], b"client_id=id1&grant_type=client_credentials")
+        self.assertEqual(seen["headers"]["X-api-key"], f"id1:{signature}")
+        self.assertEqual(headers, {"Authorization": "Bearer tok", "X-API-KEY": f"id1:{signature}"})
+        self.assertIsNone(body)
+
+    def test_credential_no_auth_step_uses_is_not_required(self):
+        auth = dict(self.AUTH, credentials=self.AUTH["credentials"] + [{"env_var": "FX_CARD_KEY", "description": "card key"}])
+        self.assertEqual([c["env_var"] for c in test_live.auth_env_vars(auth)], ["FX_ID", "FX_SECRET"])
+
+    def test_oauth2_without_auth_steps_stops_instead_of_sending_no_auth(self):
+        with mock.patch.dict(os.environ, {"FX_KEY": "k"}), contextlib.redirect_stdout(io.StringIO()), \
+                self.assertRaises(SystemExit):
+            test_live.build_auth({"auth": {"type": "oauth2", "env_var": "FX_KEY"}}, {})
+
+    def test_missing_credential_stops_the_run(self):
+        with mock.patch.dict(os.environ, {"FX_ID": "id1"}, clear=True), \
+                contextlib.redirect_stdout(io.StringIO()), self.assertRaises(SystemExit):
+            test_live.build_auth({"auth": self.AUTH}, {})
+
+
 if __name__ == "__main__":
     unittest.main()

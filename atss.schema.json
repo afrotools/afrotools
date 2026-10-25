@@ -31,10 +31,29 @@
         "token_exchange": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["method", "path", "token_field"],
+          "required": ["method", "token_field"],
+          "oneOf": [{ "required": ["path"] }, { "required": ["url"] }],
+          "dependentRequired": { "body": ["content_type"], "content_type": ["body"] },
+          "if": { "properties": { "method": { "const": "GET" } } },
+          "then": { "not": { "required": ["body"] } },
           "properties": {
             "method": { "enum": ["GET", "POST"] },
             "path": { "type": "string", "pattern": "^/" },
+            "url": { "type": "string", "pattern": "^https://[A-Za-z0-9.-]+(:[0-9]+)?/" },
+            "content_type": { "enum": ["application/x-www-form-urlencoded"] },
+            "body": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "value"],
+                "properties": {
+                  "name": { "type": "string", "pattern": "\\S" },
+                  "value": { "$ref": "#/$defs/template" }
+                }
+              }
+            },
             "headers": {
               "type": "array",
               "minItems": 1,
@@ -97,7 +116,7 @@
         "algorithm": { "enum": ["HMAC-SHA256"] },
         "key": { "$ref": "#/$defs/template" },
         "message": { "$ref": "#/$defs/template" },
-        "encoding": { "enum": ["hex"] }
+        "encoding": { "enum": ["hex", "base64"] }
       }
     },
     "apply": {

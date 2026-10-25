@@ -206,9 +206,9 @@ uses one sets `spec_version: "1.1"`; a 1.0 spec stays valid as is.
 |---|---|
 | Placeholders | `{ENV_VAR}` is a declared credential; `{signature}` needs `auth.signing` (or is the `webhook.signature` result); `{access_token}` needs `auth.token_exchange`; `{raw_body}` is the request body exactly as received, in `webhook.signature.message` only. `validate` rejects a placeholder that resolves to nothing |
 | `auth.credentials` | Each env var once; not on `auth.type: "none"`; includes the 1.0 `auth.env_var`. Once present, every `process.env` read of `canonical_example.ts` must be declared there (or be the `webhook.signature.key` secret): an undeclared one fails, instead of the 1.0 warning |
-| `auth.token_exchange.headers` | Headers only (`in: "header"`) |
+| `auth.token_exchange` | `path` (on the environment's base URL) or `url` (a token server on another host, e.g. `https://idp.flutterwave.com/…/token`) — exactly one. `body` (name/value pairs) with its `content_type` (`application/x-www-form-urlencoded`) for a form-encoded token request; `headers` are headers only (`in: "header"`) |
 | `webhook.signature.key` | Exactly one `{ENV_VAR}` — the secret, never a literal. It declares that env var for the spec |
-| `algorithm`, `encoding` | `HMAC-SHA256`, `hex` — the only values a spec uses so far; others are added with the first spec that needs them |
+| `algorithm`, `encoding` | `HMAC-SHA256`; `hex` or `base64` — the only values specs use so far; others are added with the first spec that needs them |
 | `environments` | `sandbox` and/or `production`, each with an `https://host[:port]` `base_url` (no path, query or fragment). The `endpoint.url` of every non-webhook spec of the provider must start with one of them. An environment the provider does not document is left out — never guessed — and its absence goes in the specs' `open_questions` (a convention, not checked) |
 
 ### capability_type definitions

@@ -435,8 +435,11 @@ function unresolvedPlaceholders(schema) {
   if (auth.signing) {
     templates.push(["auth.signing.key", auth.signing.key, credentials], ["auth.signing.message", auth.signing.message, credentials]);
   }
+  const beforeToken = new Set([...credentials, ...(auth.signing ? ["signature"] : [])]);
   (auth.token_exchange?.headers ?? []).forEach((/** @type {any} */ h, /** @type {number} */ i) =>
-    templates.push([`auth.token_exchange.headers[${i}]`, h.value, new Set([...credentials, ...(auth.signing ? ["signature"] : [])])]));
+    templates.push([`auth.token_exchange.headers[${i}]`, h.value, beforeToken]));
+  (auth.token_exchange?.body ?? []).forEach((/** @type {any} */ f, /** @type {number} */ i) =>
+    templates.push([`auth.token_exchange.body[${i}]`, f.value, beforeToken]));
   (auth.apply ?? []).forEach((/** @type {any} */ a, /** @type {number} */ i) => templates.push([`auth.apply[${i}]`, a.value, authTokens]));
   const sig = schema.webhook?.signature;
   if (sig) {

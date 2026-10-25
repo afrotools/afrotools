@@ -170,8 +170,6 @@ Fixture format:
 
 ```json
 {
-  "oauth2_token_url": "https://idp.example.com/token",
-  "sandbox_base_url": "https://sandbox-api.example.com",
   "steps": [
     {
       "capability": "list_customers",
@@ -195,8 +193,9 @@ Fixture format:
 ```
 
 Key fixture fields:
-- `oauth2_token_url` — required when `auth.type == "oauth2"`
-- `sandbox_base_url` — replaces the production host with the sandbox host for all requests
+- `sandbox_base_url` — replaces the production host with the sandbox host for all requests. Not
+  needed when `provider.json` declares `environments.sandbox` (ATSS 1.1), which `test:live` reads
+  first — as it reads the token request from the spec's `auth.token_exchange`
 - `store_as` — stores the full response under a name so later steps can reference it
 - `$store_as_value.field.nested` — references a value from a previous step's stored response
 - `auth_secondary_env` — a second env var the run needs: the password half of `basic` auth, or a
@@ -220,7 +219,8 @@ schema marks `required`.
 **Run it:**
 
 ```bash
-export PROVIDER_CREDENTIALS="..."   # the env var declared in auth.env_var
+export PROVIDER_CREDENTIALS="..."   # the env var declared in auth.env_var —
+                                    # or each one of auth.credentials (ATSS 1.1)
 npm run test:live -- --provider {slug}
 ```
 

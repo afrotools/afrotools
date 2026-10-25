@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v4",
   "capability": "update_charge",
   "capability_type": "synchronous",
@@ -26,7 +26,49 @@
     "location": "header",
     "field": "Authorization",
     "format": "Bearer {access_token}",
-    "env_var": "FLUTTERWAVE_CLIENT_CREDENTIALS"
+    "env_var": "FLUTTERWAVE_CLIENT_ID",
+    "credentials": [
+      {
+        "env_var": "FLUTTERWAVE_CLIENT_ID",
+        "description": "client_id of the environment (sandbox: developer account dashboard; production: Settings → API Keys, v4)"
+      },
+      {
+        "env_var": "FLUTTERWAVE_CLIENT_SECRET",
+        "description": "client_secret of the same environment"
+      },
+      {
+        "env_var": "FLUTTERWAVE_ENCRYPTION_KEY",
+        "description": "encryption key (base64) from the API settings section of the Flutterwave dashboard, used to encrypt card data"
+      }
+    ],
+    "token_exchange": {
+      "method": "POST",
+      "url": "https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": [
+        {
+          "name": "client_id",
+          "value": "{FLUTTERWAVE_CLIENT_ID}"
+        },
+        {
+          "name": "client_secret",
+          "value": "{FLUTTERWAVE_CLIENT_SECRET}"
+        },
+        {
+          "name": "grant_type",
+          "value": "client_credentials"
+        }
+      ],
+      "token_field": "access_token",
+      "expires_in_s": 600
+    },
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {access_token}"
+      }
+    ]
   },
   "endpoint": {
     "method": "PUT",
@@ -1302,7 +1344,7 @@
     }
   },
   "gotchas": [
-    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Auth: one token server for both environments — the docs' Multi-Environment Integrations example sends either environment's credentials to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token, and Authentication says \"This process applies to both the sandbox and production environments. Make sure to use the correct credentials for each environment to obtain a valid token.\" \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. Sandbox: \"We archive your test data after 30 days.\"",
     "Headers: X-Trace-Id is optional on this PUT (the headers guide lists it under 'Optional API Headers'; \"It must be a string using only alphanumeric ASCII characters.\", 12-255 characters). The API reference documents no X-Idempotency-Key for this endpoint.",
     "authorization is an object discriminated on type: {type:'pin', pin:{nonce, encrypted_pin}}, {type:'otp', otp:{code}}, {type:'avs', avs:{address:{…}}}, or {type:'external_3ds', external_3ds:{…all eight fields required}}.",
     "PIN then OTP: \"You’ll first need to update the charge with the encrypted card PIN.\" \"Followed by updating the charge request with the OTP.\" Read data.next_action after every update.",
@@ -1311,6 +1353,9 @@
     "The API reference lists 200/400/401/403 for this PUT (no 409): a finalised charge fails with 1111400 CHARGE_FINALIZED.",
     "The card guide's PIN, OTP and AVS update requests all send X-Idempotency-Key although the API reference doesn't list it here: sending one is harmless; use a new key per update (PIN and OTP are two operations).",
     "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 1110404 CHARGE_NOT_FOUND, 1111400 CHARGE_FINALIZED (already succeeded or failed), 1112400 CHARGE_UPDATE_NOT_ALLOWED, 1134422 CARD_EXPIRED, 1113500 CHARGE_UPDATE_FAILED, 1121400 INVALID_AUTHORIZATION (wrong PIN or OTP), 1137400 CLIENT_ENCRYPTION_ERROR. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "open_questions": [
+    "Token URL: the PHP sample of Authentication uses https://keycloak.dev-flutterwave.com/realms/flutterwave/protocol/openid-connect/token; its curl and JavaScript samples and the Multi-Environment example use https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token, which this spec follows."
   ],
   "evidence": {
     "source_url": "https://developer.flutterwave.com/v4.0.0/reference/charges_put.md",

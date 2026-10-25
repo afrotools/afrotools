@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v4",
   "capability": "create_payment_method",
   "capability_type": "synchronous",
@@ -26,7 +26,49 @@
     "location": "header",
     "field": "Authorization",
     "format": "Bearer {access_token}",
-    "env_var": "FLUTTERWAVE_CLIENT_CREDENTIALS"
+    "env_var": "FLUTTERWAVE_CLIENT_ID",
+    "credentials": [
+      {
+        "env_var": "FLUTTERWAVE_CLIENT_ID",
+        "description": "client_id of the environment (sandbox: developer account dashboard; production: Settings → API Keys, v4)"
+      },
+      {
+        "env_var": "FLUTTERWAVE_CLIENT_SECRET",
+        "description": "client_secret of the same environment"
+      },
+      {
+        "env_var": "FLUTTERWAVE_ENCRYPTION_KEY",
+        "description": "encryption key (base64) from the API settings section of the Flutterwave dashboard, used to encrypt card data"
+      }
+    ],
+    "token_exchange": {
+      "method": "POST",
+      "url": "https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": [
+        {
+          "name": "client_id",
+          "value": "{FLUTTERWAVE_CLIENT_ID}"
+        },
+        {
+          "name": "client_secret",
+          "value": "{FLUTTERWAVE_CLIENT_SECRET}"
+        },
+        {
+          "name": "grant_type",
+          "value": "client_credentials"
+        }
+      ],
+      "token_field": "access_token",
+      "expires_in_s": 600
+    },
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {access_token}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
@@ -1038,7 +1080,7 @@
     }
   },
   "gotchas": [
-    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Auth: one token server for both environments — the docs' Multi-Environment Integrations example sends either environment's credentials to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token, and Authentication says \"This process applies to both the sandbox and production environments. Make sure to use the correct credentials for each environment to obtain a valid token.\" \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. Sandbox: \"We archive your test data after 30 days.\"",
     "Headers: send X-Idempotency-Key on this POST. Docs (Idempotency): \"For all `POST` endpoints, include an idempotency key in the request header (`X-Idempotency-Key`).\" The API reference marks it optional; the headers guide lists it under 'Mandatory API Headers'. A reused key replays the first response (\"the response will include the header `X-Idempotency-Cache-Hit: true`\"), so reuse the key when retrying the same operation and use a new one for a new operation. X-Trace-Id is optional. For both: \"It must be a string using only alphanumeric ASCII characters.\" \"Its length should be between 12 and 255 characters.\" The idempotency page also says \"We recommend using a **UUID** string as your idempotency key\": strip the UUID's hyphens to satisfy both.",
     "The body is a union on type: card | mobile_money | ussd | opay | bank_account | applepay | googlepay. Send the matching sibling object (card {…}, mobile_money {country_code, network, phone_number}, ussd {account_bank}). opay and bank_account carry no fields.",
     "card requires only nonce + encrypted_card_number + encrypted_expiry_month + encrypted_expiry_year (encrypted_cvv optional). billing_address and cof are optional; Docs (Card Payments): \"This feature is available only by request.\" (cof, Credential-on-File).",
@@ -1047,6 +1089,9 @@
     "Method/currency limits: \"USSD payments are only available for NGN (Nigerian Naira) collections.\" OPay: \"This payment method is only available for **NGN** (Nigerian Naira) transactions.\" Pay with Bank (bank_account): \"This payment method is only available for NGN (Nigerian Naira) collections.\" Mobile money: \"The charge `currency` must match the `currency_code` used when creating the payment method.\" The error table gives 1125400 CURRENCY_NOT_SUPPORTED for a mismatch; the mobile money guide's sample returns 10400 REQUEST_NOT_VALID (\"Currency not supported for GH Mobile Money.\").",
     "Store data.id (pmd_…) for create_charge. For recurring card charges, \"set the `recurring` flag to `true` in your charge request\" with the stored payment_method_id. \"Some methods, like USSD and bank transfers, can be reused across customers.\"",
     "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 1104400 CARD_NOT_TOKENIZED, 1106400 PAYMENT_METHOD_TYPE_MISSING, 1108400 CARD_RETOKENIZATION_REQUIRED, 1118400 INVALID_CARD_NUMBER, 1135422 CARD_EXPIRY_YEAR_OUT_OF_RANGE, 1136422 CARD_EXPIRY_MONTH_OUT_OF_RANGE, 1142400 USSD_BANK_CODE_INVALID, 1126400 MOBILE_MONEY_COUNTRY_CODE_NOT_SUPPORTED, 1127400 MOBILE_MONEY_NETWORK_NOT_SUPPORTED, 1128500 PAYMENT_CARD_TOKENIZATION_FAILED, 1134422 CARD_EXPIRED, 1137400 CLIENT_ENCRYPTION_ERROR. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "open_questions": [
+    "Token URL: the PHP sample of Authentication uses https://keycloak.dev-flutterwave.com/realms/flutterwave/protocol/openid-connect/token; its curl and JavaScript samples and the Multi-Environment example use https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token, which this spec follows."
   ],
   "evidence": {
     "source_url": "https://developer.flutterwave.com/v4.0.0/reference/payment_methods_post.md",

@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v4",
   "capability": "webhook_event",
   "capability_type": "webhook",
@@ -22,15 +22,21 @@
     "ZMW"
   ],
   "auth": {
-    "type": "api_key",
-    "location": "header",
-    "field": "flutterwave-signature",
-    "format": "{token}",
-    "env_var": "FLUTTERWAVE_WEBHOOK_SECRET"
+    "type": "none"
   },
   "endpoint": {
     "method": "POST",
     "url": "{your_webhook_url}"
+  },
+  "webhook": {
+    "signature": {
+      "header": "flutterwave-signature",
+      "format": "{signature}",
+      "algorithm": "HMAC-SHA256",
+      "key": "{FLUTTERWAVE_WEBHOOK_SECRET}",
+      "message": "{raw_body}",
+      "encoding": "base64"
+    }
   },
   "example_prompt": "Receive Flutterwave webhooks (charge.completed, transfer.disburse, transfer.reversal, refund.completed), verify the flutterwave-signature HMAC and update the payment or payout.",
   "input_schema": {
@@ -1370,12 +1376,15 @@
   },
   "error_schema": {},
   "gotchas": [
-    "Signature: Docs (Webhooks): \"Flutterwave uses the secret hash you specify on your dashboard to hash the webhook response using `HMAC-SHA256`.\" The value arrives in the flutterwave-signature header; the documented sample computes createHmac('sha256', secretHash).update(rawBody).digest('base64'). Use the raw body and a constant-time compare. Open question: the same page's framework examples (Node, PHP, Python) instead compare the header directly with the secret hash; follow the signing section and confirm with resend_webhook in sandbox. The secret hash is the one you set in Dashboard → Settings → Webhooks (env FLUTTERWAVE_WEBHOOK_SECRET); it is not an API key.",
+    "Signature: Docs (Webhooks): \"Flutterwave uses the secret hash you specify on your dashboard to hash the webhook response using `HMAC-SHA256`.\" The value arrives in the flutterwave-signature header; the documented sample computes createHmac('sha256', secretHash).update(rawBody).digest('base64'). Use the raw body and a constant-time compare. The secret hash is the one you set in Dashboard → Settings → Webhooks (env FLUTTERWAVE_WEBHOOK_SECRET); it is not an API key.",
     "Respond fast: \"your endpoint **must** return a `200` HTTP status code\"; \"Webhook requests time out after **60 seconds**.\" Retries: \"Be sure to enable webhook retries on your dashboard.\" — \"we'll retry the webhook call **3 times**, with a **30-minute** interval between each attempt.\"",
     "\"Occasionally, we might send the same webhook event more than once.\" Deduplicate on webhook_id (the API reference requires it on every event; the webhooks page sample shows `id` instead, so read webhook_id ?? id), and record an event as processed only after the work succeeded.",
     "Status casing differs by event: charge.completed / refund.completed use lowercase (succeeded, failed…), transfer.disburse / transfer.reversal use uppercase SUCCESSFUL / FAILED. The customer id is data.customer.id (no data.customer_id). timestamp is Unix epoch milliseconds in every sample. data.created_datetime is an ISO string in the API reference but an epoch float in the webhooks page sample: accept both.",
     "Never fulfil on the webhook alone: Docs (Webhooks): \"always re-query our API to verify the transaction details.\" (get_charge, get_transfer, get_refund).",
     "order.authorization (card pre-authorisation orders) also exists but is out of scope here. Missed a delivery? resend_webhook (POST /resend-webhook {id, type}). \"Web frameworks like Rails or Django check POST requests for `CSRF` tokens\": exempt this route."
+  ],
+  "open_questions": [
+    "Webhook signature: the signing section of Webhooks says HMAC-SHA256 of the raw body with the secret hash, base64 (.digest('base64')) — what webhook.signature describes; the same page's framework examples (Node, PHP, Python) instead compare flutterwave-signature directly with the secret hash. Which one v4 sends is unconfirmed: check with resend_webhook in sandbox."
   ],
   "evidence": {
     "source_url": "https://developer.flutterwave.com/v4.0.0/docs/webhooks.md",

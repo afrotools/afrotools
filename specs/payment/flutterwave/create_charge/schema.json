@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v4",
   "capability": "create_charge",
   "capability_type": "asynchronous",
@@ -26,7 +26,45 @@
     "location": "header",
     "field": "Authorization",
     "format": "Bearer {access_token}",
-    "env_var": "FLUTTERWAVE_CLIENT_CREDENTIALS"
+    "env_var": "FLUTTERWAVE_CLIENT_ID",
+    "credentials": [
+      {
+        "env_var": "FLUTTERWAVE_CLIENT_ID",
+        "description": "client_id of the environment (sandbox: developer account dashboard; production: Settings → API Keys, v4)"
+      },
+      {
+        "env_var": "FLUTTERWAVE_CLIENT_SECRET",
+        "description": "client_secret of the same environment"
+      }
+    ],
+    "token_exchange": {
+      "method": "POST",
+      "url": "https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": [
+        {
+          "name": "client_id",
+          "value": "{FLUTTERWAVE_CLIENT_ID}"
+        },
+        {
+          "name": "client_secret",
+          "value": "{FLUTTERWAVE_CLIENT_SECRET}"
+        },
+        {
+          "name": "grant_type",
+          "value": "client_credentials"
+        }
+      ],
+      "token_field": "access_token",
+      "expires_in_s": 600
+    },
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {access_token}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
@@ -1349,7 +1387,7 @@
     }
   },
   "gotchas": [
-    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Auth: one token server for both environments — the docs' Multi-Environment Integrations example sends either environment's credentials to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token, and Authentication says \"This process applies to both the sandbox and production environments. Make sure to use the correct credentials for each environment to obtain a valid token.\" \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. Sandbox: \"We archive your test data after 30 days.\"",
     "Headers: send X-Idempotency-Key on this POST. Docs (Idempotency): \"For all `POST` endpoints, include an idempotency key in the request header (`X-Idempotency-Key`).\" The API reference marks it optional; the headers guide lists it under 'Mandatory API Headers'. A reused key replays the first response (\"the response will include the header `X-Idempotency-Cache-Hit: true`\"), so reuse the key when retrying the same operation and use a new one for a new operation. X-Trace-Id is optional. For both: \"It must be a string using only alphanumeric ASCII characters.\" \"Its length should be between 12 and 255 characters.\" The idempotency page also says \"We recommend using a **UUID** string as your idempotency key\": strip the UUID's hyphens to satisfy both.",
     "Body: amount (decimal, ≥ 0.01, major units), currency, reference (6-42 chars, ^[a-zA-Z0-9-]+$, unique), customer_id, payment_method_id; optional redirect_url (needed for redirect flows), recurring, authorization, meta, order_id. A 201 only means the charge was created: decide on data.status and data.next_action, never on the top-level status (the API reference says success / failed; the card guide's sample shows \"status\": \"pending\").",
     "data.next_action drives the payment. Docs (General Flow): \"For these types of authorization, [update the transaction](/v4.0/reference/charges_put) with the authorization object to complete them.\" (requires_pin, requires_otp, requires_additional_fields → update_charge). redirect_url → send the customer to next_action.redirect_url.url (an object, not a string; \"response.data.next_action.redirect_url.url\"). payment_instruction → show next_action.payment_instruction.note (mobile money push, USSD). requires_bank_transfer → show account_number / account_bank_name / account_expiration_datetime. qr_code (mobile_money payment method created with use_qr: true) → next_action.qr_code.image; the API reference's example value is a data:image/png;base64 URI. requires_capture belongs to card pre-authorisation orders, which afrotools does not cover. Treat an unknown type as pending and call get_charge. After each update_charge, read next_action again: \"You’ll first need to update the charge with the encrypted card PIN.\" \"Followed by updating the charge request with the OTP.\"",
@@ -1358,6 +1396,9 @@
     "Fulfil only after verification: Docs (General Flow): \"verify the transaction's `reference`, `amount` and `status` before giving value to the customer.\" The success value of data.status is 'succeeded' (enum: succeeded, pending, failed, voided); also check currency. Pay-with-bank-transfer charges carry a reference generated by Flutterwave, not the virtual account's reference (the guide creates the account with one reference and the incoming charge shows another): match those on the virtual account (list_charges?virtual_account_id=…) or customer_id, plus amount and currency.",
     "Sandbox card scenarios go in X-Scenario-Key as \"`scenario:<value>&issuer:<value>`\" (auth_pin, auth_pin_3ds, auth_3ds, auth_avs; issuer e.g. approved, insufficient_funds). \"If you omit the `X-Scenario-Key` header, all mock card transactions defaults to a `noauth` flow.\" Mobile money redirect flow: \"To simulate the redirect flow, pass `scenario:auth_redirect` in the header.\"",
     "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 1100409 CHARGE_ALREADY_EXISTS (reused reference), 1101422 CUSTOMER_NOT_FOUND_FOR_CHARGE, 1102422 PAYMENT_METHOD_NOT_FOUND_FOR_CHARGE (the payment method must belong to this customer), 1125400 CURRENCY_NOT_SUPPORTED, 1130400 AMOUNT_BELOW_MINIMUM, 1137400 CLIENT_ENCRYPTION_ERROR, 1140400 CHARGE_NOT_SUCCESSFUL, 1141400 REDIRECT_URL_INVALID, 1142400 USSD_BANK_CODE_INVALID, 1150400 INVALID_CHARGE (bank transfer: use /virtual-accounts), 1105500 CHARGE_FAILED, 1119500 FAILED_TO_INITIATE_CHARGE, 1107500 CHARGE_CREATION_FAILED (the table says to retry: reuse the same X-Idempotency-Key). Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "open_questions": [
+    "Token URL: the PHP sample of Authentication uses https://keycloak.dev-flutterwave.com/realms/flutterwave/protocol/openid-connect/token; its curl and JavaScript samples and the Multi-Environment example use https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token, which this spec follows."
   ],
   "evidence": {
     "source_url": "https://developer.flutterwave.com/v4.0.0/reference/charges_post.md",

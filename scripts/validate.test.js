@@ -413,3 +413,19 @@ test("endpoint.url outside every declared environment fails validation", () => {
   assert.equal(code, 1);
   assert.match(stderr, /is on none of the provider\.json environments/);
 });
+
+test("token exchange on another host with a form body passes; path and url together fail", () => {
+  const form = {
+    method: "POST", url: "https://idp.fixture.example/realms/x/token", content_type: "application/x-www-form-urlencoded",
+    body: [{ name: "client_id", value: "{FIXTURE_ID}" }, { name: "client_secret", value: "{FIXTURE_SECRET}" }, { name: "grant_type", value: "client_credentials" }],
+    token_field: "access_token", expires_in_s: 600,
+  };
+  const ok = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(ok, { status: "ready", extraSchema: { spec_version: "1.1", auth: { ...HMAC_AUTH, token_exchange: form } } });
+  assert.equal(runValidate(ok).code, 0);
+  const bad = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(bad, { status: "ready", extraSchema: { spec_version: "1.1", auth: { ...HMAC_AUTH, token_exchange: { ...form, path: "/token" } } } });
+  const { code, stderr } = runValidate(bad);
+  assert.equal(code, 1);
+  assert.match(stderr, /token_exchange must match exactly one schema in oneOf/);
+});

@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v4",
   "capability": "create_transfer",
   "capability_type": "asynchronous",
@@ -26,7 +26,45 @@
     "location": "header",
     "field": "Authorization",
     "format": "Bearer {access_token}",
-    "env_var": "FLUTTERWAVE_CLIENT_CREDENTIALS"
+    "env_var": "FLUTTERWAVE_CLIENT_ID",
+    "credentials": [
+      {
+        "env_var": "FLUTTERWAVE_CLIENT_ID",
+        "description": "client_id of the environment (sandbox: developer account dashboard; production: Settings → API Keys, v4)"
+      },
+      {
+        "env_var": "FLUTTERWAVE_CLIENT_SECRET",
+        "description": "client_secret of the same environment"
+      }
+    ],
+    "token_exchange": {
+      "method": "POST",
+      "url": "https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": [
+        {
+          "name": "client_id",
+          "value": "{FLUTTERWAVE_CLIENT_ID}"
+        },
+        {
+          "name": "client_secret",
+          "value": "{FLUTTERWAVE_CLIENT_SECRET}"
+        },
+        {
+          "name": "grant_type",
+          "value": "client_credentials"
+        }
+      ],
+      "token_field": "access_token",
+      "expires_in_s": 600
+    },
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {access_token}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
@@ -1049,7 +1087,7 @@
     }
   },
   "gotchas": [
-    "Auth (OAuth2 client credentials): POST grant_type=client_credentials, client_id and client_secret as application/x-www-form-urlencoded to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token (same token URL for sandbox and production), then send `Authorization: Bearer <access_token>`. Docs (Authentication): \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. FLUTTERWAVE_CLIENT_CREDENTIALS = base64(client_id:client_secret) is an afrotools convention, decoded locally; Flutterwave never receives it. Sandbox base URL: https://developersandbox-api.flutterwave.com (\"We archive your test data after 30 days.\")",
+    "Auth: one token server for both environments — the docs' Multi-Environment Integrations example sends either environment's credentials to https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token, and Authentication says \"This process applies to both the sandbox and production environments. Make sure to use the correct credentials for each environment to obtain a valid token.\" \"Each token is valid for **10 minutes**\"; \"We recommend refreshing the token at least one minute before it expires.\" Cache the token. Sandbox: \"We archive your test data after 30 days.\"",
     "Headers: send X-Idempotency-Key on this POST. Docs (Idempotency): \"For all `POST` endpoints, include an idempotency key in the request header (`X-Idempotency-Key`).\" The API reference marks it optional; the headers guide lists it under 'Mandatory API Headers'. A reused key replays the first response (\"the response will include the header `X-Idempotency-Cache-Hit: true`\"), so reuse the key when retrying the same operation and use a new one for a new operation. X-Trace-Id is optional. For both: \"It must be a string using only alphanumeric ASCII characters.\" \"Its length should be between 12 and 255 characters.\" The idempotency page also says \"We recommend using a **UUID** string as your idempotency key\": strip the UUID's hyphens to satisfy both.",
     "Body: action (instant | deferred | scheduled), payment_instruction {source_currency, amount {value, applies_to}, recipient_id, sender_id?}, optional reference (unique), narration (≤ 180 chars), callback_url, meta, disburse_option. There is no destination_currency here: it comes from the recipient's type.",
     "A 2xx is not a completed payout. Docs (General Transfer Flow): \"The `data.status` field in the response will always return `NEW` upon initiating a transfer.\" Final status (SUCCESSFUL / FAILED) comes from the transfer.disburse webhook, the per-transfer callback_url, or get_transfer. On FAILED read data.provider_response: type is a lowercase enum (e.g. 'insufficient_balance') and code a 4-digit string (e.g. '0307'); the payout error table spells the same reasons in uppercase (0307 INSUFFICIENT_BALANCE).",
@@ -1060,6 +1098,9 @@
     "Reusing a reference returns error.type REFERENCE_ALREADY_EXISTS / code 201409; the docs' example shows it with HTTP 400, not 409.",
     "Sandbox: Docs (Testing): \"If you do not pass the `X-Scenario-Key` header, the transfer remains in a `pending` state and no webhook is sent for the test.\" Send X-Scenario-Key: scenario:successful (or reversed, failed, insufficient_balance, duplicate_reference…). Open question: the transfer guides say the opposite (\"To test the successful transfers, send a request without adding any extra headers.\"); the testing page is the more specific one.",
     "Errors: {\"status\":\"failed\",\"error\":{\"type\",\"code\",\"message\",\"validation_errors\"}}; error.code is a string and 400s carry validation_errors[{field_name,message}]. Besides the generic codes (10400 REQUEST_NOT_VALID, 10401, 10403 FORBIDDEN, 10404 RESOURCE_NOT_FOUND, 10409 RESOURCE_CONFLICT, 10422 UNPROCESSABLE, 10500) the error table documents these for this endpoint: 201409 REFERENCE_ALREADY_EXISTS, 228400 TRANSFER_AMOUNT_LIMIT, 212400 MERCHANT_WALLET_NOT_FOUND, 213400 UNSUPPORTED_CURRENCY_PAIRS, 220400 IP_WHITELISTING_REQUIRED, 221400 NON_WHITELISTED_IP, 270400 RECIPIENT_NOT_FOUND, 280400 SENDER_NOT_FOUND, 204400-207400 / 231400 scheduling errors. Branch on error.type / error.code, not on the HTTP status alone. Docs (Errors): \"The current limit is 500 API requests per minute.\" A 429 can come back as a non-JSON page (\"HTML error pages such as `Cloudflare 1015 responses`\"): parse error bodies defensively and back off exponentially with jitter."
+  ],
+  "open_questions": [
+    "Token URL: the PHP sample of Authentication uses https://keycloak.dev-flutterwave.com/realms/flutterwave/protocol/openid-connect/token; its curl and JavaScript samples and the Multi-Environment example use https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token, which this spec follows."
   ],
   "evidence": {
     "source_url": "https://developer.flutterwave.com/v4.0.0/reference/transfers_post.md",
