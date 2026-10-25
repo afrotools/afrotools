@@ -173,6 +173,9 @@
     "The transfer is COMPLETED immediately only if WALLET_TRANSFER_AUTO_APPROVE is enabled; otherwise it stays PENDING until an admin approves it, and the target wallet is not credited before then.",
     "Send an Idempotency-Key: without it a network retry reserves the amount a second time. Reusing a key with a different body, or while the first call is still running, returns 409."
   ],
+  "open_questions": [
+    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
+  ],
   "evidence": {
     "spans": [
       "https://api.saspay.me/api/v1/wallet-transfers/",

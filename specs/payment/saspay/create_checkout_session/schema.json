@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:bcb4efb1ee6e894dee33683ad92a07f569cdbce5ff83c25862e44dff3a1e2999"
+    "spec_hash": "sha256:4c906fcf7fa125455f8ed1704a65685f9468b1888c2f7ef7827003b7450001a7"
   },
   "currency": [
     "XOF",
@@ -220,6 +220,9 @@
     "The API key needs the PAYIN or BOTH scope, otherwise the call returns 403.",
     "return_url only brings the customer back after a successful payment: after a failed or cancelled one it is not used, the customer sees a Retry button and must close the tab, so don't depend on a redirect to your site for failures.",
     "Amounts are decimal strings (\"5000.00\"), never floats."
+  ],
+  "open_questions": [
+    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
   ],
   "evidence": {
     "spans": [

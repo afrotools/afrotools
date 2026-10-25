@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:0666e9360d634dd213ae1f45fcf6f336927e20d62dcabb44cfb172f4d25baa4a"
+    "spec_hash": "sha256:3d0f8913bbf20f3fd5bd6dcc317d5943b8a79a144f92aa4dec4d836963b0a870"
   },
   "currency": [
     "XOF",
@@ -205,6 +205,9 @@
     "To know beforehand whether a network needs the pre-payment OTP (and show the right USSD instructions), read otp_required / otp_instructions from GET /pricing/my-rates/.",
     "Valid network codes per country and the expected customer.phone format are listed on the docs' formats page (/api-reference/reference/formats).",
     "A 400 validation error has another shape than business errors: error is a map of field names to messages ({\"field\": [\"message\"]}), not {message, code}."
+  ],
+  "open_questions": [
+    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
   ],
   "evidence": {
     "spans": [

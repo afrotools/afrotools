@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:1f5c4f22d0ad47079260f52c8af5169f745a2dc89baa0aae8caaefed1b1a52ef"
+    "spec_hash": "sha256:ff5852e297cbfc87f9d1147c57ae2007b8af6659be9c3867b9282093510216c6"
   },
   "currency": [
     "XOF",
@@ -153,6 +153,9 @@
   },
   "gotchas": [
     "Only a PENDING session can be cancelled: a session already paid, expired or cancelled returns 409 not_pending."
+  ],
+  "open_questions": [
+    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
   ],
   "evidence": {
     "spans": [

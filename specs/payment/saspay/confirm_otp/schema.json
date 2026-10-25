@@ -107,6 +107,9 @@
     "A failed confirmation returns a deliberately generic 422 message: never expect the gateway's reason in it.",
     "409 means the transaction cannot be confirmed in its current state (not_pending, no_gateway, no_attempt): check it with verify_payment instead of retrying the OTP."
   ],
+  "open_questions": [
+    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
+  ],
   "evidence": {
     "spans": [
       "https://api.saspay.me/api/v1/payments/{payment_id}/confirm-otp/",

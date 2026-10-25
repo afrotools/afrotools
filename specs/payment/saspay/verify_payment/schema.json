@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:2fd926732f7dd6a92dc9c5ae2a98e6fbe5b5fbf838429c9d46076d07b3132552"
+    "spec_hash": "sha256:cd51a9381be00ccb1f022f48d065cb6232cbf7902d7c23db57ac5cba5f61423a"
   },
   "currency": [
     "XOF",
@@ -223,6 +223,9 @@
     "Every response is wrapped in the same envelope: read the payload from data, and on failure read error.message and error.code.",
     "Only PENDING, SUCCESS and FAILED occur in practice: CANCELLED exists in the data model but no flow reaches it today, so treat it as a non-successful terminal state without expecting it.",
     "For accounting, never use the requested amount alone: what left the payer and what you receive depend on fee_charge_mode. Read debited_amount and net_amount, or the amounts object (requested, fee, charged, net)."
+  ],
+  "open_questions": [
+    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
   ],
   "evidence": {
     "spans": [

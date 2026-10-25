@@ -115,6 +115,9 @@
   "gotchas": [
     "Balances are per country wallet: two countries with the same currency (e.g. Benin and Senegal, both XOF) still have separate balances."
   ],
+  "open_questions": [
+    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
+  ],
   "evidence": {
     "spans": [
       "https://api.saspay.me/api/v1/merchant-balances/{id}/",

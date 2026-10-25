@@ -188,6 +188,9 @@
     "Payouts must be enabled for the merchant by SasPay: until then every call returns 403 payout_not_enabled, even with a whitelisted IP (observed on the sandbox).",
     "The minimum payout is 200 XOF: below it, 400 with error.amount [\"Le montant minimum est de 200 XOF.\"] (observed on the sandbox)."
   ],
+  "open_questions": [
+    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
+  ],
   "evidence": {
     "spans": [
       "https://api.saspay.me/api/v1/payouts/initialize/",

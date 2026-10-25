@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:25e5c32abe25b61fb5b56d71b4ad83a97770b51ba58102bd7e6bf8c82235e8b3"
+    "spec_hash": "sha256:d75fe66e21b639eea5a7b95d53ac9d2d089c02b181232bfdef74405f975ec35c"
   },
   "currency": [
     "XOF",
@@ -138,6 +138,9 @@
     "Only incoming payments can be retried: a payout returns 400. A FAILED payment is retryable (that is what this endpoint is for); 409 is for the other terminal states.",
     "Send an Idempotency-Key: without it a network retry relaunches the payment a second time. Reusing a key with a different body, or while the first call is still running, returns 409.",
     "The retry can switch the customer to a hosted page: on the sandbox, a failed mtn_ci push retried with no body came back with a checkout_url (status still FAILED until the customer pays), so check checkout_url on every retry."
+  ],
+  "open_questions": [
+    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
   ],
   "evidence": {
     "spans": [
