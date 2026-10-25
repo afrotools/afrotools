@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - `scripts/validate.js` rejects a provider slug reused in another category, in every mode (`--changed` included): the registry, the MCP and the website index providers by slug alone, so the second provider silently shadowed the first. CI now runs `scripts/validate.test.js`.
+- `scripts/test_live.py` no longer reports success when calls fail: a step fails on an unexpected HTTP status (default: non-2xx, overridable per step with `expected_status`), and a skipped step (missing schema, or a path param or header from an earlier step that returned nothing) fails the run. Before, a run where every call got a 401 printed "live responses match the spec ✓" and exited 0 whenever the response schema had no `required` field. Offline tests in `scripts/test_live_test.py`, run in CI.
 - `scripts/test_live.py` sends an explicit `User-Agent` (Cloudflare-fronted sandboxes such as
   Smile ID's ban urllib's default with error 1010) and skips a step whose headers depend on an
   earlier step that returned nothing, instead of crashing.
