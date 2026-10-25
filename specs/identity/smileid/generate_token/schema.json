@@ -8,14 +8,36 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-24",
-    "spec_hash": "sha256:a72e204e09cf7bd7aa073642abfb3c667ae4ccf49fa81fc1d74d7b03a0b37f89"
+    "spec_hash": "sha256:d00a06498d136e2cc70acf46e19a33755d25045698c9c86b0c8c984bdfeff90c"
   },
   "auth": {
     "type": "api_key",
     "location": "header",
     "field": "SmileID-API-Key",
     "format": "{token}",
-    "env_var": "SMILEID_API_KEY"
+    "env_var": "SMILEID_API_KEY",
+    "credentials": [
+      {
+        "env_var": "SMILEID_API_KEY",
+        "description": "API key of the environment (sandbox and production keys differ, from the Dashboard)"
+      },
+      {
+        "env_var": "SMILEID_PARTNER_ID",
+        "description": "partner ID — numeric, no leading zeros (Dashboard)"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "SmileID-Partner-ID",
+        "value": "{SMILEID_PARTNER_ID}"
+      },
+      {
+        "in": "header",
+        "name": "SmileID-API-Key",
+        "value": "{SMILEID_API_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
@@ -169,7 +191,7 @@
     "Fields bound in payload (country, id_type, id_number, names, email, phone_number, callback_url, consent) are injected server-side into downstream V3 calls and override the request body there; PII is replaced by opaque pii_-prefixed references in the JWT. If you send consent, all four of its fields are required (400 otherwise).",
     "product scopes the token to one product: the token then only works for that product, and the Smile Links routes reject a product-scoped token (401).",
     "The docs don't say how the object fields (partner_params, payload) are encoded in this multipart body; the canonical example sends them as JSON strings, as documented for the other V3 endpoints — verify in sandbox.",
-    "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com). Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production."
+    "Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production."
   ],
   "evidence": {
     "source_url": "https://docs.usesmileid.com/api-reference/set-up/access.md",

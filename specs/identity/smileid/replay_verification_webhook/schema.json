@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v3",
   "capability": "replay_verification_webhook",
   "capability_type": "asynchronous",
@@ -9,7 +9,47 @@
     "location": "header",
     "field": "SmileID-Token",
     "format": "{token}",
-    "env_var": "SMILEID_API_KEY"
+    "env_var": "SMILEID_API_KEY",
+    "credentials": [
+      {
+        "env_var": "SMILEID_API_KEY",
+        "description": "API key of the environment (sandbox and production keys differ, from the Dashboard)"
+      },
+      {
+        "env_var": "SMILEID_PARTNER_ID",
+        "description": "partner ID — numeric, no leading zeros (Dashboard)"
+      }
+    ],
+    "token_exchange": {
+      "method": "POST",
+      "path": "/v3/token",
+      "headers": [
+        {
+          "in": "header",
+          "name": "SmileID-Partner-ID",
+          "value": "{SMILEID_PARTNER_ID}"
+        },
+        {
+          "in": "header",
+          "name": "SmileID-API-Key",
+          "value": "{SMILEID_API_KEY}"
+        }
+      ],
+      "token_field": "token",
+      "expires_in_s": 900
+    },
+    "apply": [
+      {
+        "in": "header",
+        "name": "SmileID-Partner-ID",
+        "value": "{SMILEID_PARTNER_ID}"
+      },
+      {
+        "in": "header",
+        "name": "SmileID-Token",
+        "value": "{access_token}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
@@ -81,13 +121,12 @@
     }
   },
   "gotchas": [
-    "Two-step auth: first call POST /v3/token with headers SmileID-Partner-ID and SmileID-API-Key (SMILEID_PARTNER_ID / SMILEID_API_KEY) to get a JWT, then send SmileID-Partner-ID and SmileID-Token: {token} on this request. The token expires 15 minutes after issuance — Smile ID recommends minting a new one for every verification request rather than reusing it. Never mint tokens in the browser: the API key must stay on your backend.",
-    "The Authentication page requires both SmileID-Partner-ID and SmileID-Token on all V3 requests; the endpoint's own OpenAPI only declares SmileID-Token. Send both.",
+    "Auth: mint a token with POST /v3/token, then send SmileID-Partner-ID and SmileID-Token on this request (auth.token_exchange / auth.apply). Docs (Authentication): \"Access tokens expire **15 minutes** after issuance. We recommend generating a new token for every verification request rather than reusing tokens across multiple requests.\" Mint tokens on your backend only: the API key never goes to the browser. The endpoint's OpenAPI declares only SmileID-Token; the Authentication page requires both headers — send both.",
     "This is the way to get the full verification result again: Smile ID retries a failed webhook 3 times (4 attempts in total), then stops. The replay is queued (202) and the payload arrives on the callback URL, not in this response.",
     "The job must be in a terminal state (clear, block, attention, error) — otherwise 409. Poll get_verification_status first.",
     "An optional callback_url overrides the stored one but must be on the partner's callback domain allowlist (403 otherwise). If a body is sent it must be multipart/form-data (415).",
     "The 202 body's status is 'accepted' in the OpenAPI; other pages spell the acceptance status 'Accepted' — compare case-insensitively.",
-    "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com). Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production."
+    "Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production."
   ],
   "evidence": {
     "source_url": "https://docs.usesmileid.com/api-reference/core-resources/replay-webhook/replay-a-verification-webhook.md",

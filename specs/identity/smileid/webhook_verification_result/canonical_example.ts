@@ -1,7 +1,7 @@
 /**
  * @provider Smile ID
  * @capability webhook_verification_result
- * @atss 1.0
+ * @atss 1.1
  * @capability_type webhook
  */
 
@@ -18,10 +18,10 @@ interface VerificationResultPayload {
   status?: "clear" | "attention" | "block" | "error";
   message?: string;
   reason?: Nullable<string>;
-  product?: string; // e.g. "enhanced_kyc", "document_verification"
+  product?: string; // e.g. "enhanced_kyc", "biometric_kyc", "document_verification"
   created_at?: string;
   completed_at?: string;
-  partner_params?: Nullable<Record<string, unknown>>; // job_type: 5 = Enhanced KYC, 6 = Document Verification
+  partner_params?: Nullable<Record<string, unknown>>; // job_type: 5 = Enhanced KYC, 6 = Document Verification, 1 = Biometric KYC
   kyc_receipt?: Nullable<string>; // signed URL, expires after 15 minutes
   image_links?: Nullable<{ selfie_image?: Nullable<string>; id_card_image?: Nullable<string>; id_card_back_image?: Nullable<string> }>;
   // null when status is block or error; fields depend on product, country and ID type

@@ -8,14 +8,54 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-24",
-    "spec_hash": "sha256:a8e8bad91ad2127abf07cbbad1502e99bf1d848f07c20f5e300042032157fb37"
+    "spec_hash": "sha256:d0602f5e5aa77a3344a90472765b59b32f0abc105047fd4e792d40be3673ff91"
   },
   "auth": {
     "type": "api_key",
     "location": "header",
     "field": "SmileID-Token",
     "format": "{token}",
-    "env_var": "SMILEID_API_KEY"
+    "env_var": "SMILEID_API_KEY",
+    "credentials": [
+      {
+        "env_var": "SMILEID_API_KEY",
+        "description": "API key of the environment (sandbox and production keys differ, from the Dashboard)"
+      },
+      {
+        "env_var": "SMILEID_PARTNER_ID",
+        "description": "partner ID — numeric, no leading zeros (Dashboard)"
+      }
+    ],
+    "token_exchange": {
+      "method": "POST",
+      "path": "/v3/token",
+      "headers": [
+        {
+          "in": "header",
+          "name": "SmileID-Partner-ID",
+          "value": "{SMILEID_PARTNER_ID}"
+        },
+        {
+          "in": "header",
+          "name": "SmileID-API-Key",
+          "value": "{SMILEID_API_KEY}"
+        }
+      ],
+      "token_field": "token",
+      "expires_in_s": 900
+    },
+    "apply": [
+      {
+        "in": "header",
+        "name": "SmileID-Partner-ID",
+        "value": "{SMILEID_PARTNER_ID}"
+      },
+      {
+        "in": "header",
+        "name": "SmileID-Token",
+        "value": "{access_token}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
@@ -152,8 +192,7 @@
     }
   },
   "gotchas": [
-    "Two-step auth: first call POST /v3/token with headers SmileID-Partner-ID and SmileID-API-Key (SMILEID_PARTNER_ID / SMILEID_API_KEY) to get a JWT, then send SmileID-Partner-ID and SmileID-Token: {token} on this request. The token expires 15 minutes after issuance — Smile ID recommends minting a new one for every verification request rather than reusing it. Never mint tokens in the browser: the API key must stay on your backend.",
-    "The Authentication page requires both SmileID-Partner-ID and SmileID-Token on all V3 requests; the endpoint's own OpenAPI only declares SmileID-Token. Send both.",
+    "Auth: mint a token with POST /v3/token, then send SmileID-Partner-ID and SmileID-Token on this request (auth.token_exchange / auth.apply). Docs (Authentication): \"Access tokens expire **15 minutes** after issuance. We recommend generating a new token for every verification request rather than reusing tokens across multiple requests.\" Mint tokens on your backend only: the API key never goes to the browser. The endpoint's OpenAPI declares only SmileID-Token; the Authentication page requires both headers — send both.",
     "A product-scoped token is rejected here with 401 ('missing, invalid, or product-scoped token') — mint the token without `product` for this route.",
     "The body must be multipart/form-data, not JSON (415 otherwise). id_types and partner_params are sent as JSON-serialised strings in their form part — e.g. form.append('consent', JSON.stringify({...})).",
     "Each id_types entry pairs one country + id_type with exactly one verification_method. The docs do not enumerate verification_method values; the products listed for Smile Links are Enhanced KYC, Biometric KYC, Document Verification and Enhanced Document Verification. An unsupported combination returns 400 (e.g. 'NG PASSPORT is not supported for the enhanced_document_verification product').",
@@ -162,7 +201,7 @@
     "notice_privacy_policy_url, callback_url, logo_url and redirect_url must be public https URLs; private, loopback, link-local and internal addresses are rejected.",
     "The redirect and its query parameters can be forged by the end user — decide the outcome from the webhook on callback_url, never from the redirect.",
     "Single-use links expire 90 days after creation by default (expires_at). 409 means the user_id is already used by another link.",
-    "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com). Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production."
+    "Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production."
   ],
   "evidence": {
     "source_url": "https://docs.usesmileid.com/api-reference/core-resources/smile-links/create-a-smile-link.md",

@@ -429,3 +429,20 @@ test("token exchange on another host with a form body passes; path and url toget
   assert.equal(code, 1);
   assert.match(stderr, /token_exchange must match exactly one schema in oneOf/);
 });
+
+test("webhook signature message can sign a request header and an env var", () => {
+  const signature = { header: "Response-Signature", format: "{signature}", algorithm: "HMAC-SHA256", key: "{FIXTURE_SECRET}", message: "{header:Response-Timestamp}{FIXTURE_PARTNER}sid_request", encoding: "base64" };
+  const ok = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(ok, { status: "ready", extraSchema: { spec_version: "1.1", capability_type: "webhook", webhook: { signature } } });
+  fs.writeFileSync(
+    path.join(ok, ...CAP_DIR, "canonical_example.ts"),
+    `const P = process.env.FIXTURE_PARTNER;\nexport async function createPayment(): Promise<string | undefined> { return P; }\n`
+  );
+  assert.equal(runValidate(ok).code, 0);
+  const bad = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(bad, { status: "ready", extraSchema: { spec_version: "1.1", capability_type: "webhook", webhook: { signature: { ...signature, message: "{timestamp}{FIXTURE_PARTNR}" } } } });
+  const { code, stderr } = runValidate(bad);
+  assert.equal(code, 1);
+  assert.match(stderr, /webhook\.signature\.message: \{timestamp\}/);
+  assert.match(stderr, /webhook\.signature\.message: \{FIXTURE_PARTNR\}/); // a typo does not declare itself
+});

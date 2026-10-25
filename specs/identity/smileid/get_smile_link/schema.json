@@ -8,14 +8,54 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-24",
-    "spec_hash": "sha256:af99a68b33fc5be6cf00d997b3c162c2cac10f3362046615f4143f011af04a45"
+    "spec_hash": "sha256:974636aa17be2b64bbbbe847a77cc585d0a65a7d45c7d3b331d45878830cb7ec"
   },
   "auth": {
     "type": "api_key",
     "location": "header",
     "field": "SmileID-Token",
     "format": "{token}",
-    "env_var": "SMILEID_API_KEY"
+    "env_var": "SMILEID_API_KEY",
+    "credentials": [
+      {
+        "env_var": "SMILEID_API_KEY",
+        "description": "API key of the environment (sandbox and production keys differ, from the Dashboard)"
+      },
+      {
+        "env_var": "SMILEID_PARTNER_ID",
+        "description": "partner ID — numeric, no leading zeros (Dashboard)"
+      }
+    ],
+    "token_exchange": {
+      "method": "POST",
+      "path": "/v3/token",
+      "headers": [
+        {
+          "in": "header",
+          "name": "SmileID-Partner-ID",
+          "value": "{SMILEID_PARTNER_ID}"
+        },
+        {
+          "in": "header",
+          "name": "SmileID-API-Key",
+          "value": "{SMILEID_API_KEY}"
+        }
+      ],
+      "token_field": "token",
+      "expires_in_s": 900
+    },
+    "apply": [
+      {
+        "in": "header",
+        "name": "SmileID-Partner-ID",
+        "value": "{SMILEID_PARTNER_ID}"
+      },
+      {
+        "in": "header",
+        "name": "SmileID-Token",
+        "value": "{access_token}"
+      }
+    ]
   },
   "endpoint": {
     "method": "GET",
@@ -221,12 +261,11 @@
     }
   },
   "gotchas": [
-    "Two-step auth: first call POST /v3/token with headers SmileID-Partner-ID and SmileID-API-Key (SMILEID_PARTNER_ID / SMILEID_API_KEY) to get a JWT, then send SmileID-Partner-ID and SmileID-Token: {token} on this request. The token expires 15 minutes after issuance — Smile ID recommends minting a new one for every verification request rather than reusing it. Never mint tokens in the browser: the API key must stay on your backend.",
-    "The Authentication page requires both SmileID-Partner-ID and SmileID-Token on all V3 requests; the endpoint's own OpenAPI only declares SmileID-Token. Send both.",
+    "Auth: mint a token with POST /v3/token, then send SmileID-Partner-ID and SmileID-Token on this request (auth.token_exchange / auth.apply). Docs (Authentication): \"Access tokens expire **15 minutes** after issuance. We recommend generating a new token for every verification request rather than reusing tokens across multiple requests.\" Mint tokens on your backend only: the API key never goes to the browser. The endpoint's OpenAPI declares only SmileID-Token; the Authentication page requires both headers — send both.",
     "refId is the ref_id (a uuid) returned by create_smile_link; a non-uuid value returns 400, an unknown one 404.",
     "disabled_at is set while the link is disabled and null when active. token_provided_values never contains PII — only country, id_type and consent are returned in the clear.",
     "A product-scoped token is rejected here with 401 ('missing, invalid, or product-scoped token') — mint the token without `product` for this route.",
-    "Sandbox base URL is https://testapi.smileidentity.com (this spec uses production, https://api.smileidentity.com). Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production."
+    "Keys, tokens and callback URLs are environment-specific: a sandbox token returns 401 in production."
   ],
   "evidence": {
     "source_url": "https://docs.usesmileid.com/api-reference/core-resources/smile-links/fetch-a-smile-link.md",
