@@ -37,6 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- Plugin 1.6.1: skills no longer wait for the user to confirm an integration before mentioning reports — the user usually tests later. At the end of an integration on a spec that is not `verified`, the agent says once that the spec was never tested and offers to prepare a report after the user's test; on a `verified` spec, only if something failed.
 - **AI Ready** is defined once, in `ATSS.md`: a promise of the whole registry (every provider has structured specs an agent can integrate from, which can still contain errors), not a badge earned when all capabilities are `verified`. The README no longer claims every spec is verified against the live API; the providers table labels a fully verified provider "✅ All verified".
 - **Bictorys** `create_charge` and `webhook_payment_completed` are `verified`: working hosted-checkout +
   signed-webhook integration in `afrotools/examples` (`shop-senegal`, `lib/bictorys.ts`).
