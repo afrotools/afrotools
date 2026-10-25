@@ -20,7 +20,7 @@
       },
       {
         "env_var": "LENGOPAY_WEBSITE_ID",
-        "description": "website ID of your LengoPay account, a request field (websiteid) separate from the license key"
+        "description": "website ID of your LengoPay account, sent with the request (body field websiteid, or path segment for get_balance), separate from the license key"
       }
     ],
     "apply": [
