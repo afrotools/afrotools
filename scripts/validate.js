@@ -773,6 +773,35 @@ function runCrossSpecChecks(loadedSchemas) {
   return { failures };
 }
 
+/**
+ * A provider slug must be unique across categories: the registry build, the MCP and the website
+ * all index providers by slug alone, so a second category's provider would silently shadow the
+ * first (the per-provider majority vote only caught it as a misleading country/currency mismatch,
+ * and never in --changed mode). Reads folder names only, so it runs in every mode.
+ * @returns {number} number of duplicate slugs found
+ */
+function checkUniqueSlugs() {
+  /** @type {Map<string, string>} */
+  const seen = new Map();
+  let duplicates = 0;
+  if (!fs.existsSync(SPECS_ROOT)) return 0;
+  for (const category of fs.readdirSync(SPECS_ROOT)) {
+    const categoryPath = path.join(SPECS_ROOT, category);
+    if (!fs.statSync(categoryPath).isDirectory()) continue;
+    for (const slug of fs.readdirSync(categoryPath)) {
+      if (!fs.statSync(path.join(categoryPath, slug)).isDirectory()) continue;
+      if (seen.has(slug)) {
+        fail(`${category}/${slug}`, `Duplicate provider slug "${slug}": already used in ${seen.get(slug)}/${slug}. ` +
+          `A slug must be unique across categories — give each product its own slug.`);
+        duplicates++;
+      } else {
+        seen.set(slug, category);
+      }
+    }
+  }
+  return duplicates;
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -780,16 +809,17 @@ function runCrossSpecChecks(loadedSchemas) {
 const isChangedMode = process.argv.includes("--changed");
 const isSecurityOnly = process.argv.includes("--security-only");
 const specs = isChangedMode ? discoverChangedSpecs() : discoverAllSpecs();
+const slugFailures = checkUniqueSlugs();
 
 if (specs.length === 0) {
   console.log(isChangedMode ? "No changed specs to validate." : "No specs found.");
-  process.exit(0);
+  process.exit(slugFailures > 0 ? 1 : 0);
 }
 
 const modeLabel = [isChangedMode ? "changed" : "all", isSecurityOnly ? "security-only" : "full"].join(", ");
 console.log(`\nValidating ${specs.length} spec(s) [${modeLabel}]...\n`);
 
-let failures = 0;
+let failures = slugFailures;
 
 /** @type {Map<string, Array<{specPath: string, schema: any}>>} */
 const loadedSchemas = new Map();

@@ -33,6 +33,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Validator tests
+        run: node --test scripts/validate.test.js
       - name: Validate changed specs (PR)
         if: github.event_name == 'pull_request'
         run: npm run validate:changed
