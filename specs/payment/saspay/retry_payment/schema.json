@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:88c768b582013bdc4b6fd35a9c96e178a9489630a2ae2c26f99d100d24e16ee0"
+    "spec_hash": "sha256:25e5c32abe25b61fb5b56d71b4ad83a97770b51ba58102bd7e6bf8c82235e8b3"
   },
   "currency": [
     "XOF",
