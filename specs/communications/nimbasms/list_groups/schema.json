@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "list_groups",
   "capability_type": "synchronous",
@@ -12,7 +12,17 @@
     "location": "header",
     "field": "Authorization",
     "format": "Basic {base64(NIMBASMS_SERVICE_ID:NIMBASMS_SECRET_TOKEN)}",
-    "env_var": "NIMBASMS_SERVICE_ID"
+    "env_var": "NIMBASMS_SERVICE_ID",
+    "credentials": [
+      {
+        "env_var": "NIMBASMS_SERVICE_ID",
+        "description": "service ID — the user part of HTTP Basic auth, base64(SERVICE_ID:SECRET_TOKEN)"
+      },
+      {
+        "env_var": "NIMBASMS_SECRET_TOKEN",
+        "description": "secret token — the password part of HTTP Basic auth"
+      }
+    ]
   },
   "endpoint": {
     "method": "GET",
