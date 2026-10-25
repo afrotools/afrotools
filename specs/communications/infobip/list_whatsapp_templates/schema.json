@@ -246,7 +246,7 @@
                   "type": "object",
                   "allOf": [
                     {
-                      "$ref": "#/$defs/the_list_of_the_results_for_this_page"
+                      "$ref": "#/$defs/template"
                     }
                   ],
                   "required": [
@@ -272,7 +272,7 @@
                   "type": "object",
                   "allOf": [
                     {
-                      "$ref": "#/$defs/the_list_of_the_results_for_this_page"
+                      "$ref": "#/$defs/template"
                     },
                     {
                       "type": "object",
@@ -310,7 +310,7 @@
                   "type": "object",
                   "allOf": [
                     {
-                      "$ref": "#/$defs/the_list_of_the_results_for_this_page"
+                      "$ref": "#/$defs/template"
                     }
                   ],
                   "required": [
@@ -376,7 +376,7 @@
       "results"
     ],
     "$defs": {
-      "the_list_of_the_results_for_this_page": {
+      "template": {
         "description": "The list of the results for this page.",
         "properties": {
           "businessAccountId": {
@@ -586,7 +586,7 @@
               "buttons": {
                 "description": "Template buttons. Can contain 1 to 10 buttons which include up to 2 URL buttons, one phone number button, one `copy code` button and one `flow` button. `quick reply` and non `quick reply` buttons have to be grouped together.",
                 "items": {
-                  "$ref": "#/$defs/template_buttons"
+                  "$ref": "#/$defs/template_button"
                 },
                 "type": "array"
               },
@@ -608,7 +608,7 @@
                         "buttons": {
                           "description": "Card buttons. Can contain 1 to 2 buttons.",
                           "items": {
-                            "$ref": "#/$defs/template_buttons"
+                            "$ref": "#/$defs/template_button"
                           },
                           "maxItems": 2,
                           "minItems": 1,
@@ -732,7 +732,7 @@
         ],
         "type": "object"
       },
-      "template_buttons": {
+      "template_button": {
         "description": "Template buttons. Can contain 1 to 10 buttons which include up to 2 URL buttons, one phone number button, one `copy code` button and one `flow` button. `quick reply` and non `quick reply` buttons have to be grouped together.",
         "oneOf": [
           {
@@ -740,7 +740,7 @@
               {
                 "allOf": [
                   {
-                    "$ref": "#/$defs/template_buttons_2"
+                    "$ref": "#/$defs/template_button_base"
                   },
                   {
                     "properties": {
@@ -783,7 +783,7 @@
               {
                 "allOf": [
                   {
-                    "$ref": "#/$defs/template_buttons_2"
+                    "$ref": "#/$defs/template_button_base"
                   },
                   {
                     "properties": {
@@ -830,7 +830,7 @@
               {
                 "allOf": [
                   {
-                    "$ref": "#/$defs/template_buttons_2"
+                    "$ref": "#/$defs/template_button_base"
                   },
                   {
                     "properties": {
@@ -867,7 +867,7 @@
               {
                 "allOf": [
                   {
-                    "$ref": "#/$defs/template_buttons_2"
+                    "$ref": "#/$defs/template_button_base"
                   },
                   {
                     "properties": {
@@ -901,7 +901,7 @@
               {
                 "allOf": [
                   {
-                    "$ref": "#/$defs/template_buttons_2"
+                    "$ref": "#/$defs/template_button_base"
                   },
                   {
                     "properties": {
@@ -957,7 +957,7 @@
               {
                 "allOf": [
                   {
-                    "$ref": "#/$defs/template_buttons_2"
+                    "$ref": "#/$defs/template_button_base"
                   },
                   {
                     "properties": {
@@ -991,7 +991,7 @@
               {
                 "allOf": [
                   {
-                    "$ref": "#/$defs/template_buttons_2"
+                    "$ref": "#/$defs/template_button_base"
                   },
                   {
                     "properties": {
@@ -1025,7 +1025,7 @@
               {
                 "allOf": [
                   {
-                    "$ref": "#/$defs/template_buttons_2"
+                    "$ref": "#/$defs/template_button_base"
                   },
                   {
                     "properties": {
@@ -1065,7 +1065,7 @@
               {
                 "allOf": [
                   {
-                    "$ref": "#/$defs/template_buttons_2"
+                    "$ref": "#/$defs/template_button_base"
                   },
                   {
                     "properties": {
@@ -1109,7 +1109,7 @@
               {
                 "allOf": [
                   {
-                    "$ref": "#/$defs/template_buttons_2"
+                    "$ref": "#/$defs/template_button_base"
                   },
                   {
                     "properties": {
@@ -1138,7 +1138,7 @@
           }
         ]
       },
-      "template_buttons_2": {
+      "template_button_base": {
         "description": "Template buttons. Can contain 1 to 10 buttons which include up to 2 URL buttons, one phone number button, one `copy code` button and one `flow` button. `quick reply` and non `quick reply` buttons have to be grouped together.",
         "properties": {
           "type": {

@@ -193,7 +193,7 @@
   ],
   "evidence": {
     "source_url": "https://api.infobip.com/platform/1/openapi",
-    "source_reference": "Infobip OpenAPI 3.255.0, webhooks.receive-outbound-sms-message-reports-v3.post and paths./subscriptions/1/security.post",
+    "source_reference": "Infobip OpenAPI 3.255.0, webhooks.receive-outbound-sms-message-reports-v3.post and paths./subscriptions/1/security.post; retry cycle: description of the webhooks.delivery.url request field (components.schemas.*.MessageDeliveryReporting.url)",
     "extracted_at": "2026-10-23T21:44:46.862Z",
     "snapshot_hash": "18bf45accc90ae8699a42800dfd63d4f7ecb83296f094360bcec257f48c8cf5f",
     "spans": [

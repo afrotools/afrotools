@@ -41,10 +41,10 @@ export type WhatsappTemplate = {
   status?: TemplateStatus;
   category?: TemplateCategory;
   structure: {
-    header?: { format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION"; text?: string } & Record<string, unknown>;
+    header?: { format: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION"; text?: string } & Record<string, unknown>;
     body: { text: string };
     footer?: { text: string };
-    buttons?: Array<{ type?: string; text?: string } & Record<string, unknown>>; // PHONE_NUMBER, URL, QUICK_REPLY, COPY_CODE…
+    buttons?: Array<{ type: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO"; text?: string } & Record<string, unknown>>;
     type?: "TEXT" | "MEDIA" | "UNSUPPORTED";
   } & Record<string, unknown>;
   quality?: "HIGH" | "MEDIUM" | "LOW" | "UNKNOWN";

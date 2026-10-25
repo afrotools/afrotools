@@ -181,7 +181,7 @@
                                     "description": "Card buttons. Define buttons only for `quick reply` or `dynamic URL` buttons (in the required order). For static URL button, omit the buttons section."
                                   },
                                   {
-                                    "$ref": "#/$defs/parameter"
+                                    "$ref": "#/$defs/url_button_parameter"
                                   }
                                 ],
                                 "required": [
@@ -207,7 +207,7 @@
                                 "type": "object",
                                 "allOf": [
                                   {
-                                    "$ref": "#/$defs/template_buttons"
+                                    "$ref": "#/$defs/template_button_base"
                                   },
                                   {
                                     "type": "object",
@@ -245,7 +245,7 @@
                                 "type": "object",
                                 "allOf": [
                                   {
-                                    "$ref": "#/$defs/template_buttons"
+                                    "$ref": "#/$defs/template_button_base"
                                   },
                                   {
                                     "type": "object",
@@ -286,7 +286,7 @@
                                 "type": "object",
                                 "allOf": [
                                   {
-                                    "$ref": "#/$defs/template_buttons"
+                                    "$ref": "#/$defs/template_button_base"
                                   },
                                   {
                                     "type": "object",
@@ -320,7 +320,7 @@
                                 "type": "object",
                                 "allOf": [
                                   {
-                                    "$ref": "#/$defs/template_buttons"
+                                    "$ref": "#/$defs/template_button_base"
                                   },
                                   {
                                     "type": "object",
@@ -390,7 +390,7 @@
                                 "type": "object",
                                 "allOf": [
                                   {
-                                    "$ref": "#/$defs/template_buttons"
+                                    "$ref": "#/$defs/template_button_base"
                                   },
                                   {
                                     "type": "object",
@@ -419,7 +419,7 @@
                                                         ]
                                                       },
                                                       {
-                                                        "$ref": "#/$defs/code_flowtype_id"
+                                                        "$ref": "#/$defs/brazil_pix_dc_fields"
                                                       },
                                                       {
                                                         "oneOf": [
@@ -612,7 +612,7 @@
                                                         ]
                                                       },
                                                       {
-                                                        "$ref": "#/$defs/id_paymentlink"
+                                                        "$ref": "#/$defs/brazil_link_fields"
                                                       },
                                                       {
                                                         "oneOf": [
@@ -1030,7 +1030,7 @@
                                                                           ]
                                                                         },
                                                                         {
-                                                                          "$ref": "#/$defs/code_flowtype_id"
+                                                                          "$ref": "#/$defs/brazil_pix_dc_fields"
                                                                         },
                                                                         {
                                                                           "oneOf": [
@@ -1288,7 +1288,7 @@
                                                                           ]
                                                                         },
                                                                         {
-                                                                          "$ref": "#/$defs/id_paymentlink"
+                                                                          "$ref": "#/$defs/brazil_link_fields"
                                                                         },
                                                                         {
                                                                           "oneOf": [
@@ -1501,7 +1501,7 @@
                                                         ]
                                                       },
                                                       {
-                                                        "$ref": "#/$defs/beneficiary_callbackdata_id"
+                                                        "$ref": "#/$defs/pg_payu_fields"
                                                       },
                                                       {
                                                         "oneOf": [
@@ -1605,7 +1605,7 @@
                                                         ]
                                                       },
                                                       {
-                                                        "$ref": "#/$defs/key_value_pairs"
+                                                        "$ref": "#/$defs/pg_razorpay_fields"
                                                       },
                                                       {
                                                         "oneOf": [
@@ -1709,7 +1709,7 @@
                                                         ]
                                                       },
                                                       {
-                                                        "$ref": "#/$defs/beneficiary_format_id"
+                                                        "$ref": "#/$defs/upi_intent_fields"
                                                       },
                                                       {
                                                         "oneOf": [
@@ -1814,7 +1814,7 @@
                                                         ]
                                                       },
                                                       {
-                                                        "$ref": "#/$defs/beneficiary_id_paymentlink"
+                                                        "$ref": "#/$defs/upi_link_fields"
                                                       },
                                                       {
                                                         "oneOf": [
@@ -2064,17 +2064,17 @@
                                                 ]
                                               },
                                               "tax": {
-                                                "$ref": "#/$defs/value_description"
+                                                "$ref": "#/$defs/amount"
                                               },
                                               "shipping": {
-                                                "$ref": "#/$defs/value_description"
+                                                "$ref": "#/$defs/amount"
                                               },
                                               "discount": {
                                                 "type": "object",
                                                 "description": "Discount of the order.",
                                                 "properties": {
                                                   "amount": {
-                                                    "$ref": "#/$defs/value_description"
+                                                    "$ref": "#/$defs/amount"
                                                   },
                                                   "programName": {
                                                     "type": "string",
@@ -2158,7 +2158,7 @@
                                 "type": "object",
                                 "allOf": [
                                   {
-                                    "$ref": "#/$defs/template_buttons"
+                                    "$ref": "#/$defs/template_button_base"
                                   },
                                   {
                                     "type": "object",
@@ -2724,7 +2724,7 @@
                 "type": "object"
               },
               {
-                "$ref": "#/$defs/code_flowtype_id"
+                "$ref": "#/$defs/brazil_pix_dc_fields"
               },
               {
                 "description": "Payment of the order.",
@@ -2864,7 +2864,7 @@
                 "type": "object"
               },
               {
-                "$ref": "#/$defs/id_paymentlink"
+                "$ref": "#/$defs/brazil_link_fields"
               },
               {
                 "description": "Payment of the order.",
@@ -2915,7 +2915,7 @@
                 "type": "object"
               },
               {
-                "$ref": "#/$defs/beneficiary_format_id"
+                "$ref": "#/$defs/upi_intent_fields"
               },
               {
                 "description": "Payment of the order.",
@@ -3030,7 +3030,7 @@
                 "type": "object"
               },
               {
-                "$ref": "#/$defs/beneficiary_callbackdata_id"
+                "$ref": "#/$defs/pg_payu_fields"
               },
               {
                 "description": "Payment of the order.",
@@ -3080,7 +3080,7 @@
                 "type": "object"
               },
               {
-                "$ref": "#/$defs/key_value_pairs"
+                "$ref": "#/$defs/pg_razorpay_fields"
               },
               {
                 "description": "Payment of the order.",
@@ -3130,7 +3130,7 @@
                 "type": "object"
               },
               {
-                "$ref": "#/$defs/beneficiary_id_paymentlink"
+                "$ref": "#/$defs/upi_link_fields"
               },
               {
                 "description": "Payment of the order.",
@@ -3736,7 +3736,7 @@
           }
         ]
       },
-      "template_buttons": {
+      "template_button_base": {
         "description": "Template buttons. Should be defined in the correct order, only if `quick reply` or `dynamic URL` buttons have been registered. It can have up to ten buttons including a maximum of two `dynamic URL` buttons.",
         "properties": {
           "type": {
@@ -3748,7 +3748,7 @@
         ],
         "type": "object"
       },
-      "code_flowtype_id": {
+      "brazil_pix_dc_fields": {
         "properties": {
           "code": {
             "description": "Dynamic Pix code which will be copied by the buyer.",
@@ -3810,7 +3810,7 @@
                 "type": "object"
               },
               {
-                "$ref": "#/$defs/parameter"
+                "$ref": "#/$defs/url_button_parameter"
               }
             ],
             "required": [
@@ -3831,7 +3831,7 @@
           }
         ]
       },
-      "beneficiary_format_id": {
+      "upi_intent_fields": {
         "properties": {
           "beneficiary": {
             "$ref": "#/$defs/beneficiary_of_the_payment"
@@ -3895,7 +3895,7 @@
         },
         "type": "object"
       },
-      "id_paymentlink": {
+      "brazil_link_fields": {
         "properties": {
           "id": {
             "description": "Unique identifier of the payment.",
@@ -3912,7 +3912,7 @@
         },
         "type": "object"
       },
-      "value_description": {
+      "amount": {
         "properties": {
           "description": {
             "description": "Description of the value.",
@@ -3978,7 +3978,7 @@
           }
         ]
       },
-      "beneficiary_callbackdata_id": {
+      "pg_payu_fields": {
         "properties": {
           "beneficiary": {
             "$ref": "#/$defs/beneficiary_of_the_payment"
@@ -4004,7 +4004,7 @@
         },
         "type": "object"
       },
-      "key_value_pairs": {
+      "pg_razorpay_fields": {
         "properties": {
           "beneficiary": {
             "$ref": "#/$defs/beneficiary_of_the_payment"
@@ -4025,7 +4025,7 @@
         },
         "type": "object"
       },
-      "parameter": {
+      "url_button_parameter": {
         "properties": {
           "parameter": {
             "description": "URL extension of a `dynamic URL` defined in the registered template. Learn more about [URL buttons](https://www.infobip.com/docs/whatsapp/whatsapp-over-api#dynamic-template-button-urls-with-shortening-and-tracking).",
@@ -4035,7 +4035,7 @@
         },
         "type": "object"
       },
-      "beneficiary_id_paymentlink": {
+      "upi_link_fields": {
         "properties": {
           "beneficiary": {
             "$ref": "#/$defs/beneficiary_of_the_payment"
