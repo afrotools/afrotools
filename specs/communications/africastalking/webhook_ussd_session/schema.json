@@ -1,0 +1,69 @@
+{
+  "spec_version": "1.1",
+  "provider_api_version": "2024-01-01",
+  "capability": "webhook_ussd_session",
+  "capability_type": "webhook",
+  "status": "ready",
+  "auth": {
+    "type": "none"
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "{your_webhook_url}"
+  },
+  "example_prompt": "Build a USSD menu (*123#) with Africa's Talking: answer each step of the session with CON or END.",
+  "input_schema": {
+    "type": "object",
+    "description": "Form fields (application/x-www-form-urlencoded) Africa's Talking POSTs to your callback URL \"when the user dials a USSD code and every time they respond to a menu\".",
+    "required": [
+      "sessionId",
+      "phoneNumber",
+      "networkCode",
+      "serviceCode",
+      "text"
+    ],
+    "properties": {
+      "sessionId": {
+        "type": "string",
+        "description": "A unique value generated when the session starts and sent every time a mobile subscriber response has been received."
+      },
+      "phoneNumber": {
+        "type": "string",
+        "description": "The number of the mobile subscriber interacting with your ussd application."
+      },
+      "networkCode": {
+        "type": "string",
+        "description": "The telco of the phoneNumber interacting with your ussd application (the end-of-session notification page lists the codes; 99999 = Athena, the sandbox)."
+      },
+      "serviceCode": {
+        "type": "string",
+        "description": "The USSD code assigned to your application."
+      },
+      "text": {
+        "type": "string",
+        "description": "The user input: an empty string in the first request of a session, then all the user input of the session concatenated with * (e.g. \"1*1\" after choosing 1 twice)."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "string",
+    "contentMediaType": "text/plain",
+    "description": "Plain text (Content-Type: text/plain) shown to the user. Begin it with CON if the session goes on (the user can answer), with END if it is the last response of the session — in the docs' samples a space follows the word (e.g. CON What would you want to check, then 1. My Account on the next line). Optional response header at-ussd-hop-metadata: text naming the step (e.g. WelcomeMenuPage), at most 99 characters, no pipe |; it comes back in the next request under the same header name and is shown in the dashboard's session details."
+  },
+  "error_schema": {
+    "description": "\"If we get a HTTP error response (Code 40X) from your script, or a malformed response (does not begin with CON or END), we will terminate the USSD session gracefully.\""
+  },
+  "gotchas": [
+    "Prerequisites: \"Register a service code with us\" and \"Register a callback URL that we will call whenever we get a request from a user coming into our system.\"",
+    "Answer within 10 seconds: \"the expected response time from your application is at most 10 seconds.\"",
+    "Route on text, not on a counter: it is \"\" on the first request, then every answer of the session joined with * (\"1\", then \"1*2\"…). Split on * to get the path through your menu; sessionId identifies the session across requests.",
+    "Every response must begin with CON or END. Anything else, or an HTTP 40X, terminates the session.",
+    "\"Your USSD Menu should not contain special characters as the telcos are unable to render such content\".",
+    "at-ussd-hop-metadata is shown in the dashboard: \"take note not to share sensitive details in this header\". At most 99 characters, no |.",
+    "To learn how a session ended (user hung up, error, success), add the end-of-session callback: webhook_ussd_end_of_session."
+  ],
+  "open_questions": [
+    "The docs describe no way to authenticate these requests (no signature, secret or source IP list): anyone who knows the callback URL can POST to it.",
+    "What happens after 10 seconds, on an HTTP 5xx or on a timeout: the docs only name \"a HTTP error response (Code 40X)\" and a malformed response as terminating the session."
+  ]
+}

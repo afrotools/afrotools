@@ -1,75 +1,102 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "send_sms",
   "capability_type": "synchronous",
   "status": "ready",
-  "currency": ["EGP", "GHS", "KES", "LSL", "MWK", "NAD", "NGN", "RWF", "SZL", "TZS", "UGX", "XOF", "ZAR", "ZMW"],
   "auth": {
     "type": "api_key",
     "location": "header",
     "field": "apiKey",
     "format": "{token}",
-    "env_var": "AFRICASTALKING_API_KEY"
+    "env_var": "AFRICASTALKING_API_KEY",
+    "credentials": [
+      {
+        "env_var": "AFRICASTALKING_API_KEY",
+        "description": "API key generated from the Africa's Talking dashboard (a new key invalidates the old one)"
+      },
+      {
+        "env_var": "AFRICASTALKING_USERNAME",
+        "description": "application username — always \"sandbox\" in the sandbox; sent as the username form field, not as a header"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "apiKey",
+        "value": "{AFRICASTALKING_API_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
     "url": "https://api.africastalking.com/version1/messaging"
   },
-  "example_prompt": "Send a bulk SMS to one or more phone numbers using Africa's Talking legacy endpoint (supports sandbox).",
+  "example_prompt": "Send an SMS to one or more phone numbers with Africa's Talking (sandbox supported).",
   "input_schema": {
     "type": "object",
-    "required": ["username", "to", "message"],
+    "required": [
+      "username",
+      "to",
+      "message"
+    ],
     "properties": {
       "username": {
         "type": "string",
-        "description": "Your Africa's Talking app username. Must be the literal string \"sandbox\" when using the sandbox environment."
+        "description": "Your Africa's Talking application username. Docs (Authentication): \"When working with the sandbox(our dev environment), the username is always sandbox.\""
       },
       "to": {
         "type": "string",
-        "description": "Comma-separated E.164 phone numbers (e.g. \"+254711XXXYYY,+254733YYYZZZ\"). Each number must include the + prefix."
+        "description": "A comma separated string of recipients' phone numbers. The docs' samples use the international format with + (e.g. \"+254711XXXYYY,+254733YYYZZZ\")."
       },
       "message": {
         "type": "string",
-        "description": "SMS content to send. Must not contain % characters — they fail silently at the carrier level."
+        "description": "The message to be sent. Avoid the % character (see gotchas)."
       },
       "from": {
         "type": "string",
-        "description": "Registered shortcode or alphanumeric sender ID. Defaults to AFRICASTKNG if omitted."
+        "description": "Your registered short code or alphanumeric, defaults to AFRICASTKNG."
       },
       "bulkSMSMode": {
         "type": "integer",
-        "enum": [0, 1],
         "default": 1,
-        "description": "Set to 1 for bulk SMS (default). Must be 1 when sending to multiple recipients."
+        "description": "Who gets billed for a message sent with a Mobile-Terminated ShortCode; default 1 (the Africa's Talking account). Ignored for alphanumerics and Mobile-Originated shortcodes. Docs: \"The value must be set to 1 for bulk messages.\""
       },
       "enqueue": {
         "type": "integer",
-        "enum": [0, 1],
+        "enum": [
+          0,
+          1
+        ],
         "default": 1,
-        "description": "Set to 1 to queue the message without waiting for telco acknowledgement (default)."
+        "description": "1 to queue the messages and send them asynchronously after responding (default 1), 0 to disable."
       },
       "keyword": {
         "type": "string",
-        "description": "Keyword for premium SMS service."
+        "description": "The keyword to be used for a premium service."
       },
       "linkId": {
         "type": "string",
-        "description": "Link ID for premium on-demand SMS."
+        "description": "Used for premium services to send OnDemand messages: the linkId forwarded to your application when the user sends a message to your service."
       },
       "retryDurationInHours": {
         "type": "integer",
-        "description": "Number of hours to retry delivery for premium SMS."
+        "description": "Number of hours your subscription message should be retried in case it's not delivered to the subscriber."
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "required": ["SMSMessageData"],
+    "required": [
+      "SMSMessageData"
+    ],
     "properties": {
       "SMSMessageData": {
         "type": "object",
-        "required": ["Message", "Recipients"],
+        "required": [
+          "Message",
+          "Recipients"
+        ],
         "properties": {
           "Message": {
             "type": "string",
@@ -79,27 +106,33 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["statusCode", "number", "status", "cost", "messageId"],
+              "required": [
+                "statusCode",
+                "number",
+                "status",
+                "cost",
+                "messageId"
+              ],
               "properties": {
                 "statusCode": {
                   "type": "integer",
-                  "description": "Per-recipient delivery status code. 101=Sent, 102=Queued, 100=Processed, 401=RiskHold, 402=InvalidSenderId, 403=InvalidPhoneNumber, 404=UnsupportedNumberType, 405=InsufficientBalance, 406=UserInBlacklist, 407=CouldNotRoute, 409=DoNotDisturbRejection, 500=InternalServerError, 501=GatewayError, 502=RejectedByGateway."
+                  "description": "Status of the request for this recipient: 100 Processed, 101 Sent, 102 Queued, 401 RiskHold, 402 InvalidSenderId, 403 InvalidPhoneNumber, 404 UnsupportedNumberType, 405 InsufficientBalance, 406 UserInBlacklist, 407 CouldNotRoute, 409 DoNotDisturbRejection, 500 InternalServerError, 501 GatewayError, 502 RejectedByGateway."
                 },
                 "number": {
                   "type": "string",
-                  "description": "Recipient phone number in E.164 format."
+                  "description": "The recipient's phone number."
                 },
                 "status": {
                   "type": "string",
-                  "description": "Human-readable status (e.g. \"Success\", \"DeliveryFailure\")."
+                  "description": "Whether the sms was sent to this recipient or not. Docs: \"This does not indicate the delivery status of the sms to this recipient.\""
                 },
                 "cost": {
                   "type": "string",
-                  "description": "Cost for this recipient (e.g. \"KES 0.8000\")."
+                  "description": "(3-digit Currency Code)(space)(Decimal Value), e.g. \"KES 1.00\"."
                 },
                 "messageId": {
                   "type": "string",
-                  "description": "Unique message ID assigned by Africa's Talking."
+                  "description": "The messageId received when the sms was sent — the id of its delivery report."
                 }
               }
             }
@@ -109,16 +142,22 @@
     }
   },
   "error_schema": {
-    "type": "string",
-    "description": "HTTP 4xx responses return a plain error message string."
+    "type": "object",
+    "description": "Not documented for this endpoint, except DoNotDisturbRejection (Nigeria): HTTP 409 with the usual SMSMessageData body and a recipient statusCode 409."
   },
   "gotchas": [
-    "In sandbox, DeliveryFailure means the AT Simulator is not active or not logged in. Open https://simulator.africastalking.com and log in before testing — the API returns 200 but nothing is delivered without the simulator running.",
-    "The username field must be the literal string \"sandbox\" when using the sandbox environment — not your real username. Sandbox API keys are separate from production keys; both are in the AT dashboard.",
-    "Messages containing % fail silently at the carrier level. Strip or replace % characters before passing to message.",
-    "Request body must be application/x-www-form-urlencoded. Use URLSearchParams to encode the body — sending JSON.stringify() causes a 400 or silent failure.",
-    "The API always returns HTTP 200 even when messages fail per recipient. Check SMSMessageData.Recipients[].statusCode — 101 means Sent; anything else is a failure for that recipient.",
-    "Phone numbers must be full E.164 format with + prefix (e.g. +254712345678). Local formats without + return statusCode 403 (InvalidPhoneNumber).",
-    "The default Africa's Talking sender ID only works in Kenya on Airtel numbers. For any other country or network, register a dedicated sender ID from the AT dashboard — otherwise messages will be rejected or undelivered."
+    "The docs now label this endpoint \"Bulk (legacy)\". The current one is POST /version1/messaging/bulk (send_bulk_sms, still a draft here; its page says it \"also accepts json requests\"), whose sandbox is \"coming soon\"; this endpoint has a sandbox.",
+    "username is \"sandbox\" in the sandbox and your application username in production. Docs (Authentication): \"For POST requests in which fields are sent as a url encoded form e.g. in sending SMS, the username should be included as one of the fields within the form.\"",
+    "Send the body as a form. Docs (Request Headers): Content-Type \"The requests content type, application/x-www-form-urlencoded\"; Accept (optional) \"Can be application/json or application/xml\" — send Accept: application/json to get the JSON response described here.",
+    "Check SMSMessageData.Recipients[].statusCode for each recipient: 100 Processed, 101 Sent, 102 Queued; the docs list 401–502 as error codes (RiskHold, InvalidSenderId…). status \"does not indicate the delivery status\": the delivery comes later in webhook_delivery_report.",
+    "Nigeria (SMS Notifications page, DoNotDisturbRejection): \"When attempting to send an SMS message with a promotional sender ID outside the allowed time window(8pm-8am), the API will return an HTTP 409 status code\". Its example body still carries SMSMessageData, with messageId \"None\" and cost \"0\" for the rejected recipient: parse it, and do not store \"None\" as a message id.",
+    "Help Center (Why did my messages Fail?): \"Another reason that messages may fail to be sent is if they have the (%) percentage character in the text.\" Strip or replace % in message.",
+    "Sandbox: a delivery report with failureReason DeliveryFailure \"means that you may not be logged into the simulator, or the simulator is unreachable for some reason\" (Help Center).",
+    "Hashed numbers (Safaricom, Kenya) use the same endpoint with maskedNumber and telco and an empty phoneNumbers list: that variant is documented but not modelled in this spec."
+  ],
+  "open_questions": [
+    "Which countries and networks deliver the default sender AFRICASTKNG: the docs only say \"defaults to AFRICASTKNG\".",
+    "Which hours DoNotDisturbRejection applies to: the docs say \"outside the allowed time window(8pm-8am)\" without saying whether 8pm-8am is the allowed or the forbidden window.",
+    "bulkSMSMode: the docs give only the default, 1; they do not list other values or what 0 means."
   ]
 }

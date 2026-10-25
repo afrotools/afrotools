@@ -1,7 +1,7 @@
 /**
  * @provider Africa's Talking
  * @capability send_sms
- * @atss 1.0
+ * @atss 1.1
  * @capability_type synchronous
  */
 
@@ -10,7 +10,8 @@ const AFRICASTALKING_USERNAME = process.env.AFRICASTALKING_USERNAME;
 if (!AFRICASTALKING_API_KEY) throw new Error("Missing env: AFRICASTALKING_API_KEY");
 if (!AFRICASTALKING_USERNAME) throw new Error("Missing env: AFRICASTALKING_USERNAME");
 
-const IS_SANDBOX = process.env.AFRICASTALKING_SANDBOX === "true";
+// In the sandbox the username is always "sandbox": it also picks the host.
+const IS_SANDBOX = AFRICASTALKING_USERNAME === "sandbox";
 const BASE_URL = IS_SANDBOX
   ? "https://api.sandbox.africastalking.com/version1/messaging"
   : "https://api.africastalking.com/version1/messaging";
@@ -42,8 +43,7 @@ export async function sendSms(input: SendSmsInput): Promise<SendSmsResponse> {
   const to = Array.isArray(input.to) ? input.to.join(",") : input.to;
 
   const params = new URLSearchParams();
-  // In sandbox mode, username must be the literal string "sandbox"
-  params.set("username", IS_SANDBOX ? "sandbox" : AFRICASTALKING_USERNAME!);
+  params.set("username", AFRICASTALKING_USERNAME!);
   params.set("to", to);
   params.set("message", input.message);
   if (input.from !== undefined) params.set("from", input.from);
@@ -60,14 +60,18 @@ export async function sendSms(input: SendSmsInput): Promise<SendSmsResponse> {
     body: params.toString(),
   });
 
-  if (!response.ok) {
+  // 409 = DoNotDisturbRejection (Nigeria): "a promotional sender ID outside the allowed time
+  // window(8pm-8am)". The body still carries SMSMessageData (messageId "None" for that recipient),
+  // so it is parsed like a success.
+  if (!response.ok && response.status !== 409) {
     const errorText = await response.text();
     throw new Error(`Africa's Talking error ${response.status}: ${errorText}`);
   }
 
   const result = (await response.json()) as SendSmsResponse;
 
-  // HTTP 200 does not guarantee delivery — check per-recipient statusCode
+  // status says whether the SMS was sent, not delivered — check per-recipient statusCode,
+  // then wait for the delivery report (webhook_delivery_report).
   for (const recipient of result.SMSMessageData.Recipients) {
     if (recipient.statusCode !== 101 && recipient.statusCode !== 102 && recipient.statusCode !== 100) {
       console.warn(
@@ -84,8 +88,7 @@ Usage example:
 
 // Set env vars:
 //   AFRICASTALKING_API_KEY=your_key
-//   AFRICASTALKING_USERNAME=your_username
-//   AFRICASTALKING_SANDBOX=true   (omit or set to "false" for production)
+//   AFRICASTALKING_USERNAME=your_username   ("sandbox" for the sandbox)
 
 const result = await sendSms({
   to: ["+254711XXXYYY", "+254733YYYZZZ"],
@@ -101,11 +104,9 @@ console.log(result.SMSMessageData.Message);
 for (const r of result.SMSMessageData.Recipients) {
   console.log(`${r.number}: statusCode=${r.statusCode} cost=${r.cost}`);
   // statusCode 101 = Sent (success)
-  // statusCode 403 = InvalidPhoneNumber — ensure E.164 with + prefix
+  // statusCode 403 = InvalidPhoneNumber
 }
 
-// NOTE: The API always returns HTTP 200 even on per-recipient failures.
 // Always check SMSMessageData.Recipients[].statusCode for each number.
-// In sandbox, DeliveryFailure means the AT Simulator at
-// https://simulator.africastalking.com is not logged in.
+// In sandbox, a DeliveryFailure delivery report means you may not be logged into the simulator.
 */

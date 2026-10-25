@@ -1,14 +1,5 @@
 {
-  "sandbox_base_url": "https://api.sandbox.africastalking.com",
   "steps": [
-    {
-      "capability": "fetch_messages",
-      "method": "GET",
-      "query_params": {
-        "username": "sandbox",
-        "lastReceivedId": "0"
-      }
-    },
     {
       "capability": "send_sms",
       "content_type": "application/x-www-form-urlencoded",
