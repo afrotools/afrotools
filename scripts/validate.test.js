@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { execFileSync } = require("child_process");
+const { execFileSync, spawnSync } = require("child_process");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -457,4 +457,116 @@ test("auth.apply in path must fill a placeholder of endpoint.url", () => {
   const { code, stderr } = runValidate(bad);
   assert.equal(code, 1);
   assert.match(stderr, /auth\.apply in path "c" is not a \{placeholder\} of endpoint\.url/);
+});
+
+const ID_URL = { method: "GET", url: "https://fixture.example/payments/{id}" };
+const ID_PARAM = { name: "id", in: "path", required: true, schema: { type: "string" } };
+const withSchema = (extraSchema) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { spec_version: "1.1", ...extraSchema } });
+  return runValidate(dir);
+};
+
+test("parameters: path, query and header parameters outside the body pass", () => {
+  const parameters = [ID_PARAM, { name: "expand", in: "query", schema: { type: "string" } }, { name: "Idempotency-Key", in: "header", required: true, schema: { type: "string" } }];
+  assert.equal(withSchema({ endpoint: ID_URL, parameters }).code, 0);
+});
+
+test("parameters: every path parameter fills a placeholder, every placeholder has one", () => {
+  const notInUrl = withSchema({ parameters: [ID_PARAM] });
+  assert.equal(notInUrl.code, 1);
+  assert.match(notInUrl.stderr, /parameter in path "id" is not a \{placeholder\} of endpoint\.url/);
+  const unfilled = withSchema({ endpoint: { method: "GET", url: "https://fixture.example/payments/{id}/items/{item}" }, parameters: [ID_PARAM] });
+  assert.equal(unfilled.code, 1);
+  assert.match(unfilled.stderr, /placeholder\(s\) without a path parameter: \{item\}/);
+  const optional = withSchema({ endpoint: ID_URL, parameters: [{ ...ID_PARAM, required: false }] });
+  assert.equal(optional.code, 1);
+  assert.match(optional.stderr, /parameter in path "id" must be required: true/);
+});
+
+test("parameters: no duplicate, nothing auth.apply already sends, not on a webhook", () => {
+  const dup = withSchema({ parameters: [{ name: "X-Trace", in: "header", schema: {} }, { name: "x-trace", in: "header", schema: {} }] });
+  assert.equal(dup.code, 1);
+  assert.match(dup.stderr, /parameters lists header:x-trace more than once/);
+  const auth = { ...HMAC_AUTH, apply: [{ in: "header", name: "X-API-KEY", value: "{FIXTURE_ID}" }] };
+  const twice = withSchema({ auth, parameters: [{ name: "x-api-key", in: "header", schema: {} }] });
+  assert.equal(twice.code, 1);
+  assert.match(twice.stderr, /parameter header "x-api-key" is already sent by auth/);
+  const webhook = withSchema({ capability_type: "webhook", auth: { type: "none" }, parameters: [{ name: "q", in: "query", schema: {} }] });
+  assert.equal(webhook.code, 1);
+  assert.match(webhook.stderr, /describe a call to the provider, not a webhook/);
+});
+
+test("parameters need spec_version 1.1", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { parameters: [{ name: "q", in: "query", schema: {} }] } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /parameters need spec_version "1\.1"/);
+});
+
+test("success_condition names a field of response_schema, with equals or in", () => {
+  const response_schema = { type: "object", properties: { data: { allOf: [{ $ref: "#/$defs/result" }] } }, $defs: { result: { type: "object", properties: { code: { type: "integer" } } } } };
+  assert.equal(withSchema({ response_schema, success_condition: { field: "data.code", equals: 0 } }).code, 0);
+  assert.equal(withSchema({ response_schema, success_condition: { field: "data.code", in: [0, 1] } }).code, 0);
+  const unknown = withSchema({ response_schema, success_condition: { field: "data.status", equals: "ok" } });
+  assert.equal(unknown.code, 1);
+  assert.match(unknown.stderr, /success_condition\.field "data\.status" is not a property of response_schema/);
+  assert.equal(withSchema({ response_schema, success_condition: { field: "data.code", equals: 0, in: [0] } }).code, 1);
+  // An undocumented response says nothing either way.
+  assert.equal(withSchema({ success_condition: { field: "code", equals: 0 } }).code, 0);
+});
+
+test("a money-moving POST that says nothing about idempotency warns, without failing", () => {
+  const run = (extraSchema) => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+    writeFixtureSpec(dir, { status: "ready", extraSchema });
+    return spawnSync("node", [path.resolve(__dirname, "validate.js")], { cwd: dir, encoding: "utf8" });
+  };
+  const silent = run({});
+  assert.equal(silent.status, 0);
+  assert.match(silent.stderr, /payment\/fixtureprovider\/create_payment: a POST that moves money says nothing about idempotency/);
+  for (const said of [
+    { gotchas: ["Retries with the same Idempotency-Key are not charged twice."] },
+    { spec_version: "1.1", open_questions: ["The docs do not say whether a retried payment is idempotent."] },
+    { spec_version: "1.1", parameters: [{ name: "Idempotency-Key", in: "header", schema: { type: "string" } }] },
+  ]) assert.doesNotMatch(run(said).stderr, /idempotency/);
+});
+
+test("parameters: never also a body field; a GET with parameters has no body; the 1.0 auth header counts", () => {
+  const both = withSchema({ endpoint: { method: "POST", url: "https://fixture.example/payments/{id}" }, parameters: [ID_PARAM], input_schema: { type: "object", properties: { id: { type: "string" } } } });
+  assert.equal(both.code, 1);
+  assert.match(both.stderr, /id both in parameters and in input_schema/);
+  const getBody = withSchema({ endpoint: ID_URL, parameters: [ID_PARAM], input_schema: { type: "object", properties: { limit: { type: "integer" } } } });
+  assert.equal(getBody.code, 1);
+  assert.match(getBody.stderr, /a GET with parameters has no body: move limit/);
+  // fixture auth: location header, header "Authorization" — the 1.0 shape uses `field`
+  const legacy = withSchema({ auth: { type: "api_key", location: "header", field: "Authorization", format: "{token}", env_var: "FIXTURE_KEY" }, parameters: [{ name: "authorization", in: "header", schema: {} }] });
+  assert.equal(legacy.code, 1);
+  assert.match(legacy.stderr, /parameter header "authorization" is already sent by auth/);
+});
+
+test("success_condition: values of the field's type, paths through array items", () => {
+  const response_schema = { type: "object", properties: { code: { type: "integer" }, items: { type: "array", items: { type: "object", properties: { status: { type: "string" } } } } } };
+  const wrongType = withSchema({ response_schema, success_condition: { field: "code", equals: "0" } });
+  assert.equal(wrongType.code, 1);
+  assert.match(wrongType.stderr, /value\(s\) \["0"\] do not match the integer type of "code"/);
+  assert.equal(withSchema({ response_schema, success_condition: { field: "items.status", in: ["SUCCESS"] } }).code, 0);
+  assert.equal(withSchema({ response_schema: { type: "object", properties: { "3ds": { type: "object" } } }, success_condition: { field: "3ds.result", equals: null } }).code, 0);
+});
+
+test("warnings: placeholders without parameters on a 1.1 spec; idempotency on checkouts and OTP confirmations, not recipients", () => {
+  const run = (extraSchema) => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+    writeFixtureSpec(dir, { status: "ready", extraSchema });
+    return spawnSync("node", [path.resolve(__dirname, "validate.js")], { cwd: dir, encoding: "utf8" });
+  };
+  const tracker = run({ spec_version: "1.1", endpoint: ID_URL });
+  assert.equal(tracker.status, 0);
+  assert.match(tracker.stderr, /endpoint\.url \{id\} without "parameters"/);
+  assert.doesNotMatch(run({ spec_version: "1.1", endpoint: ID_URL, parameters: [ID_PARAM] }).stderr, /without "parameters"/);
+  for (const capability of ["create_checkout_session", "confirm_otp"]) assert.match(run({ capability }).stderr, /idempotency/);
+  assert.doesNotMatch(run({ capability: "create_transfer_recipient" }).stderr, /idempotency/);
+  const described = run({ input_schema: { type: "object", properties: { reference: { type: "string", description: "Unique per payment: the idempotency key." } } } });
+  assert.doesNotMatch(described.stderr, /idempotency —/);
 });

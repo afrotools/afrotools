@@ -259,7 +259,12 @@ Field rules:
 - `endpoint.url` — full HTTPS URL; for webhooks use `"{your_webhook_url}"` as placeholder
 - `example_prompt` (capability-level) — one sentence describing what *this capability* does
   for an agent (e.g. "Initiate a Wave checkout session and get the URL to redirect the user.")
-- `input_schema`, `response_schema`, `error_schema` — full JSON Schema objects; `{}` only if genuinely undocumented
+- `input_schema`, `response_schema`, `error_schema` — full JSON Schema objects; `{}` only if genuinely undocumented.
+  `input_schema` is the request **body** only: path, query and header parameters go in `parameters`
+  (`spec_version: "1.1"`), and a 2xx response that can still mean failure gets a `success_condition` —
+  see ATSS.md § Blocks added in ATSS 1.1, which also covers `auth.credentials`, `environments` and
+  `open_questions`. A payment POST that moves money states its idempotency (header, gotcha, or an
+  open question when the docs say nothing)
 - `gotchas` — minimum 1 entry; write specific, actionable observations based on the docs
 
 Fields that must NOT appear in `schema.json` (they belong in `provider.json`):

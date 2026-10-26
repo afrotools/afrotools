@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- ATSS 1.1 `parameters` (path, query and header parameters; `input_schema` stays the body) and `success_condition` (the response field that says a 2xx call succeeded). `validate` checks every path parameter fills an `endpoint.url` placeholder and every placeholder has one, that a parameter is not also a body field (and a GET/DELETE with parameters has no body), and that `success_condition` names a field of `response_schema` with values of its type. It warns on a payment POST that moves money without a word on idempotency (14 specs today), and on a 1.1 spec whose URL has placeholders but no `parameters` yet (the migration list). No spec uses the new blocks yet; plugin 1.7.1 points the spec skill at them.
+
 ### Fixed
 
 - `scripts/validate.js` rejects a provider slug reused in another category, in every mode (`--changed` included): the registry, the MCP and the website index providers by slug alone, so the second provider silently shadowed the first. CI now runs `scripts/validate.test.js`.
