@@ -126,7 +126,8 @@ export type CreateDeliveryClaimInput = {
 // Typed here: what you need right after creating it.
 export type CreateDeliveryClaimResponse = {
   id: string; // claim_id for accept / info / cancel
-  status: string; // "new" → "estimating" → "ready_for_approval" (then accept_delivery_claim); see response_schema
+  // "new" → "estimating" → "ready_for_approval" (then accept_delivery_claim)
+  status: "new" | "estimating" | "estimating_failed" | "ready_for_approval" | "accepted" | "performer_lookup" | "performer_draft" | "performer_found" | "performer_not_found" | "pickup_arrived" | "ready_for_pickup_confirmation" | "pickuped" | "delivery_arrived" | "ready_for_delivery_confirmation" | "delivered" | "delivered_finish" | "returning" | "return_arrived" | "ready_for_return_confirmation" | "returned" | "returned_finish" | "failed" | "cancelled" | "cancelled_with_payment" | "cancelled_by_taxi" | "cancelled_with_items_on_hands";
   version: number; // pass it to accept_delivery_claim
   revision: number;
   user_request_revision: string;

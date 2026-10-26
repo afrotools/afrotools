@@ -867,7 +867,7 @@
       "user_request_revision",
       "version"
     ],
-    "description": "The created claim: the same claim object get_delivery_claim returns (both responses are this object in Yango's API reference). Fields needed right after creation are described here; for the others (items, route_points, callback_properties, client_requirements…) fetch the get_delivery_claim spec."
+    "description": "The created claim: the same claim object get_delivery_claim returns (the claims/create and claims/info reference pages document the same object). Fields needed right after creation are described here; for the others (items, route_points, callback_properties, client_requirements…) fetch the get_delivery_claim spec."
   },
   "error_schema": {
     "type": "object",
