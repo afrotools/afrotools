@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "get_message",
   "capability_type": "synchronous",
@@ -12,7 +12,17 @@
     "location": "header",
     "field": "Authorization",
     "format": "Basic {base64(NIMBASMS_SERVICE_ID:NIMBASMS_SECRET_TOKEN)}",
-    "env_var": "NIMBASMS_SERVICE_ID"
+    "env_var": "NIMBASMS_SERVICE_ID",
+    "credentials": [
+      {
+        "env_var": "NIMBASMS_SERVICE_ID",
+        "description": "service ID — the user part of HTTP Basic auth, base64(SERVICE_ID:SECRET_TOKEN)"
+      },
+      {
+        "env_var": "NIMBASMS_SECRET_TOKEN",
+        "description": "secret token — the password part of HTTP Basic auth"
+      }
+    ]
   },
   "endpoint": {
     "method": "GET",
@@ -109,5 +119,8 @@
     "sent_at est un Unix timestamp en secondes (integer), pas une date ISO 8601. Convertir avec new Date(sent_at * 1000) en JavaScript.",
     "Le statut global ('status') peut être 'sent' alors que certains destinataires dans 'numbers' ont statut 'failure' ou 'not_available'. Inspecter 'numbers' pour le statut par destinataire.",
     "Le statut 'received' dans 'numbers' signifie livré (delivery receipt reçu de l'opérateur). 'sent' signifie envoyé à l'opérateur mais non encore confirmé livré."
+  ],
+  "open_questions": [
+    "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."
   ]
 }

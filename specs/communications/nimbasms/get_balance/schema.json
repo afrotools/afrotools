@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "get_balance",
   "capability_type": "synchronous",
@@ -12,7 +12,17 @@
     "location": "header",
     "field": "Authorization",
     "format": "Basic {base64(NIMBASMS_SERVICE_ID:NIMBASMS_SECRET_TOKEN)}",
-    "env_var": "NIMBASMS_SERVICE_ID"
+    "env_var": "NIMBASMS_SERVICE_ID",
+    "credentials": [
+      {
+        "env_var": "NIMBASMS_SERVICE_ID",
+        "description": "service ID — the user part of HTTP Basic auth, base64(SERVICE_ID:SECRET_TOKEN)"
+      },
+      {
+        "env_var": "NIMBASMS_SECRET_TOKEN",
+        "description": "secret token — the password part of HTTP Basic auth"
+      }
+    ]
   },
   "endpoint": {
     "method": "GET",
@@ -62,5 +72,8 @@
     "Le champ 'balance' est DEPRECATED — utiliser 'sms_balance' pour le solde SMS. Les deux sont retournés mais 'balance' sera supprimé dans une future version.",
     "sms_balance est en nombre de SMS (unités), pas en GNF. Un solde de 100 signifie 100 SMS disponibles.",
     "Vérifier le solde avant tout envoi groupé — un solde insuffisant retourne une erreur 400 avec le champ 'solde' dans la réponse d'erreur de send_message."
+  ],
+  "open_questions": [
+    "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."
   ]
 }

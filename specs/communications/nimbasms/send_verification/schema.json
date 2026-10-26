@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "send_verification",
   "capability_type": "synchronous",
@@ -12,7 +12,17 @@
     "location": "header",
     "field": "Authorization",
     "format": "Basic {base64(NIMBASMS_SERVICE_ID:NIMBASMS_SECRET_TOKEN)}",
-    "env_var": "NIMBASMS_SERVICE_ID"
+    "env_var": "NIMBASMS_SERVICE_ID",
+    "credentials": [
+      {
+        "env_var": "NIMBASMS_SERVICE_ID",
+        "description": "service ID — the user part of HTTP Basic auth, base64(SERVICE_ID:SECRET_TOKEN)"
+      },
+      {
+        "env_var": "NIMBASMS_SECRET_TOKEN",
+        "description": "secret token — the password part of HTTP Basic auth"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
@@ -152,5 +162,8 @@
     "expiry_time et attempts sont envoyés à null quand non fournis — l'API applique ses propres défauts internes.",
     "Le code généré est retourné dans la réponse API (champ 'code') — ne jamais l'exposer côté client, l'utiliser uniquement pour les tests.",
     "Pour WhatsApp (channel: 'whatsapp'), le contenu du message est remplacé selon un template NimbaSMS — le champ 'message' est ignoré."
+  ],
+  "open_questions": [
+    "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."
   ]
 }
