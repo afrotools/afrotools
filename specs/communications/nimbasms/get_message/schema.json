@@ -119,5 +119,8 @@
     "sent_at est un Unix timestamp en secondes (integer), pas une date ISO 8601. Convertir avec new Date(sent_at * 1000) en JavaScript.",
     "Le statut global ('status') peut être 'sent' alors que certains destinataires dans 'numbers' ont statut 'failure' ou 'not_available'. Inspecter 'numbers' pour le statut par destinataire.",
     "Le statut 'received' dans 'numbers' signifie livré (delivery receipt reçu de l'opérateur). 'sent' signifie envoyé à l'opérateur mais non encore confirmé livré."
+  ],
+  "open_questions": [
+    "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."
   ]
 }

@@ -99,5 +99,8 @@
     "Sans 'groups', le contact est ajouté à la liste de contacts par défaut du compte. Spécifier un groupe inexistant retourne une erreur 400 — utiliser list_groups pour récupérer les noms valides.",
     "Le champ 'numero' doit inclure l'indicatif pays sans le '+' (ex: 224XXXXXXXXX), contrairement à send_verification qui attend le format E.164 avec '+'. Un format incorrect retourne une erreur 400.",
     "Créer un contact avec un numéro déjà existant peut retourner une erreur de doublon — vérifier avec list_contacts avant d'insérer en masse."
+  ],
+  "open_questions": [
+    "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."
   ]
 }

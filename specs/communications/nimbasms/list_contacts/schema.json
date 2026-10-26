@@ -102,5 +102,8 @@
   "gotchas": [
     "La réponse est paginée. Utiliser 'limit' et 'offset' pour naviguer entre les pages — le champ 'next' contient l'URL complète de la page suivante.",
     "Le SDK NimbaSMS strip les champs 'count', 'next', 'previous' de la réponse et ne retourne que 'results'. En appelant l'API directement, la réponse brute contient tous ces champs."
+  ],
+  "open_questions": [
+    "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."
   ]
 }

@@ -162,5 +162,8 @@
     "expiry_time et attempts sont envoyés à null quand non fournis — l'API applique ses propres défauts internes.",
     "Le code généré est retourné dans la réponse API (champ 'code') — ne jamais l'exposer côté client, l'utiliser uniquement pour les tests.",
     "Pour WhatsApp (channel: 'whatsapp'), le contenu du message est remplacé selon un template NimbaSMS — le champ 'message' est ignoré."
+  ],
+  "open_questions": [
+    "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."
   ]
 }

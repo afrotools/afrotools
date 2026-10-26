@@ -120,5 +120,8 @@
     "Le message est limité à 665 caractères (5 SMS). Au-delà de 160 caractères, message_cost augmente proportionnellement. Utiliser le simulateur pour estimer avant l'envoi.",
     "La réponse HTTP est 201 Created (pas 200). La réponse ne contient que messageid, message_cost et url — les détails complets (statut par destinataire) sont dans GET /v1/messages/{messageid}.",
     "Les erreurs 400 retournent des champs avec des valeurs string (pas tableau) : sender_name, solde, to, detail. Vérifier le solde avec get_balance avant un envoi groupé."
+  ],
+  "open_questions": [
+    "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."
   ]
 }

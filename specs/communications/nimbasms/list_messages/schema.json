@@ -131,5 +131,8 @@
     "La réponse est paginée — le champ 'count' indique le total mais 'results' ne contient que la page courante. Utiliser 'next' pour itérer sur toutes les pages.",
     "Les filtres sent_at__lte et sent_at__gte peuvent être combinés pour définir une plage de dates. Les dates doivent être en format ISO 8601.",
     "Chaque item retourné dans 'results' inclut un champ message_cost indiquant le nombre de SMS consommés pour ce message (longueur × destinataires). Utiliser ce champ pour les rapports de consommation."
+  ],
+  "open_questions": [
+    "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."
   ]
 }
