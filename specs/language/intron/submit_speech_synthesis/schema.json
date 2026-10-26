@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v1",
   "capability": "submit_speech_synthesis",
   "capability_type": "asynchronous",
@@ -9,7 +9,20 @@
     "location": "header",
     "field": "Authorization",
     "format": "Bearer {token}",
-    "env_var": "INTRON_API_KEY"
+    "env_var": "INTRON_API_KEY",
+    "credentials": [
+      {
+        "env_var": "INTRON_API_KEY",
+        "description": "Intron API key (Authorization: Bearer); every call hits production"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {INTRON_API_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
