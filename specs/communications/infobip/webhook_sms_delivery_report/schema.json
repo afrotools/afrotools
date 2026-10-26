@@ -1,9 +1,9 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "3.255.0",
   "capability": "webhook_sms_delivery_report",
   "capability_type": "webhook",
-  "status": "draft",
+  "status": "ready",
   "auth": {
     "type": "none"
   },
@@ -188,9 +188,12 @@
     "Return 200 to accept the callback. If your URL becomes unavailable, Infobip retries on the cycle 1min + (1min * retryNumber * retryNumber).",
     "Infobip can authenticate the calls it makes to your webhook (security settings of type BASIC, HMAC, OAUTH or CUSTOM, created with POST /subscriptions/1/security), but the OpenAPI doesn't describe the header or signature it then sends — this spec has no verification step, and the docs don't say whether those settings apply to a per-message URL. Treat the payload as untrusted until confirmed (for SMS, the message status is in get_sms_logs)."
   ],
+  "open_questions": [
+    "Webhook authentication: Infobip can secure the calls to your webhook (security settings of type BASIC, HMAC, OAUTH or CUSTOM, POST /subscriptions/1/security), but the OpenAPI does not describe the header or signature it then sends, nor whether those settings apply to a per-message URL. Until that is documented, treat the payload as untrusted."
+  ],
   "evidence": {
     "source_url": "https://api.infobip.com/platform/1/openapi",
-    "source_reference": "Infobip OpenAPI 3.255.0, webhooks.receive-outbound-sms-message-reports-v3.post and paths./subscriptions/1/security.post",
+    "source_reference": "Infobip OpenAPI 3.255.0, webhooks.receive-outbound-sms-message-reports-v3.post and paths./subscriptions/1/security.post; retry cycle: description of the webhooks.delivery.url request field (components.schemas.*.MessageDeliveryReporting.url)",
     "extracted_at": "2026-10-23T21:44:46.862Z",
     "snapshot_hash": "18bf45accc90ae8699a42800dfd63d4f7ecb83296f094360bcec257f48c8cf5f",
     "spans": [

@@ -1,7 +1,7 @@
 /**
  * @provider Infobip
  * @capability create_2fa_message_template
- * @atss 1.0
+ * @atss 1.1
  * @capability_type synchronous
  */
 

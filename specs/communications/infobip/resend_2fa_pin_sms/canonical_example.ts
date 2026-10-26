@@ -1,7 +1,7 @@
 /**
  * @provider Infobip
  * @capability resend_2fa_pin_sms
- * @atss 1.0
+ * @atss 1.1
  * @capability_type synchronous
  */
 

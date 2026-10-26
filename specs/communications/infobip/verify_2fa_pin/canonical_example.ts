@@ -1,7 +1,7 @@
 /**
  * @provider Infobip
  * @capability verify_2fa_pin
- * @atss 1.0
+ * @atss 1.1
  * @capability_type synchronous
  */
 

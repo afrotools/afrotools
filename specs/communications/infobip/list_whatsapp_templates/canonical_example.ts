@@ -1,7 +1,7 @@
 /**
  * @provider Infobip
  * @capability list_whatsapp_templates
- * @atss 1.0
+ * @atss 1.1
  * @capability_type synchronous
  */
 
@@ -13,12 +13,17 @@ if (!INFOBIP_BASE_URL || !/^https:\/\/[\w-]+\.api\.infobip\.com$/.test(INFOBIP_B
   throw new Error("INFOBIP_BASE_URL must be your Infobip base URL, https://xxxxx.api.infobip.com");
 }
 
+type TemplateStatus =
+  | "APPROVED" | "IN_APPEAL" | "PENDING" | "REJECTED" | "PENDING_DELETION" | "DELETED" | "REINSTATED"
+  | "FLAGGED" | "FIRST_PAUSED" | "SECOND_PAUSED" | "DISABLED" | "ARCHIVED" | "UNKNOWN";
+type TemplateCategory = "MARKETING" | "AUTHENTICATION" | "UTILITY";
+
 export type ListWhatsappTemplatesInput = {
   sender?: string[];
-  status?: Array<"APPROVED" | "IN_APPEAL" | "PENDING" | "REJECTED" | "PENDING_DELETION" | "DELETED" | "REINSTATED" | "FLAGGED" | "FIRST_PAUSED" | "SECOND_PAUSED" | "DISABLED" | "ARCHIVED" | "UNKNOWN">;
+  status?: TemplateStatus[];
   name?: string;
-  language?: Array<"af" | "sq" | "ar" | "ar_EG" | "ar_AE" | "ar_LB" | "ar_MA" | "ar_QA" | "az" | "bn" | "bn_IN" | "bg" | "ca" | "zh_CN" | "zh_HK" | "zh_TW" | "hr" | "cs" | "da" | "nl" | "nl_BE" | "en" | "en_GB" | "en_US" | "en_AE" | "en_AU" | "en_CA" | "en_GH" | "en_IE" | "en_IN" | "en_JM" | "en_MY" | "en_NZ" | "en_QA" | "en_SG" | "en_UG" | "en_ZA" | "et" | "fil" | "fi" | "fr" | "fr_BE" | "fr_CA" | "fr_CH" | "fr_CI" | "fr_MA" | "ka" | "de" | "de_AT" | "de_CH" | "el" | "gu" | "ha" | "he" | "hi" | "hu" | "id" | "ga" | "it" | "ja" | "kn" | "kk" | "rw_RW" | "ko" | "ky_KG" | "lo" | "lv" | "lt" | "mk" | "ms" | "ml" | "mr" | "nb" | "fa" | "pl" | "pt_BR" | "pt_PT" | "pa" | "ro" | "ru" | "sr" | "si_LK" | "sk" | "sl" | "es" | "es_AR" | "es_CL" | "es_CO" | "es_CR" | "es_DO" | "es_EC" | "es_HN" | "es_MX" | "es_PA" | "es_PE" | "es_ES" | "es_UY" | "sw" | "sv" | "ta" | "te" | "th" | "tr" | "uk" | "ur" | "uz" | "vi" | "zu" | "unknown">;
-  category?: Array<"MARKETING" | "AUTHENTICATION" | "UTILITY">;
+  language?: string[]; // e.g. "fr", "en_US", "fr_CI" — the full list is input_schema's language enum
+  category?: TemplateCategory[];
   applicationId?: string;
   entityId?: string;
   page?: number;
@@ -26,418 +31,29 @@ export type ListWhatsappTemplatesInput = {
   orderBy?: string;
 };
 
+// The fields a sender needs to pick and fill a template. The full shape (every header format,
+// button type, carousel, limited-time offer…) is the spec's response_schema.
+export type WhatsappTemplate = {
+  id?: string;
+  businessAccountId?: number;
+  name?: string;
+  language?: string;
+  status?: TemplateStatus;
+  category?: TemplateCategory;
+  structure: {
+    header?: { format: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION"; text?: string } & Record<string, unknown>;
+    body: { text: string };
+    footer?: { text: string };
+    buttons?: Array<{ type: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO"; text?: string } & Record<string, unknown>>;
+    type?: "TEXT" | "MEDIA" | "UNSUPPORTED";
+  } & Record<string, unknown>;
+  quality?: "HIGH" | "MEDIUM" | "LOW" | "UNKNOWN";
+  createdAt?: string;
+  lastUpdatedAt?: string;
+} & Record<string, unknown>;
+
 export type ListWhatsappTemplatesResponse = {
-  results: Array<({
-    id?: string;
-    businessAccountId?: number;
-    name?: string;
-    language?: "af" | "sq" | "ar" | "ar_EG" | "ar_AE" | "ar_LB" | "ar_MA" | "ar_QA" | "az" | "bn" | "bn_IN" | "bg" | "ca" | "zh_CN" | "zh_HK" | "zh_TW" | "hr" | "cs" | "da" | "nl" | "nl_BE" | "en" | "en_GB" | "en_US" | "en_AE" | "en_AU" | "en_CA" | "en_GH" | "en_IE" | "en_IN" | "en_JM" | "en_MY" | "en_NZ" | "en_QA" | "en_SG" | "en_UG" | "en_ZA" | "et" | "fil" | "fi" | "fr" | "fr_BE" | "fr_CA" | "fr_CH" | "fr_CI" | "fr_MA" | "ka" | "de" | "de_AT" | "de_CH" | "el" | "gu" | "ha" | "he" | "hi" | "hu" | "id" | "ga" | "it" | "ja" | "kn" | "kk" | "rw_RW" | "ko" | "ky_KG" | "lo" | "lv" | "lt" | "mk" | "ms" | "ml" | "mr" | "nb" | "fa" | "pl" | "pt_BR" | "pt_PT" | "pa" | "ro" | "ru" | "sr" | "si_LK" | "sk" | "sl" | "es" | "es_AR" | "es_CL" | "es_CO" | "es_CR" | "es_DO" | "es_EC" | "es_HN" | "es_MX" | "es_PA" | "es_PE" | "es_ES" | "es_UY" | "sw" | "sv" | "ta" | "te" | "th" | "tr" | "uk" | "ur" | "uz" | "vi" | "zu" | "unknown";
-    status?: "APPROVED" | "IN_APPEAL" | "PENDING" | "REJECTED" | "PENDING_DELETION" | "DELETED" | "REINSTATED" | "FLAGGED" | "FIRST_PAUSED" | "SECOND_PAUSED" | "DISABLED" | "ARCHIVED" | "UNKNOWN";
-    category?: "MARKETING" | "AUTHENTICATION" | "UTILITY";
-    structure: {
-      header?: ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & {
-        text?: string;
-      } & {
-        format: "TEXT";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & Record<string, unknown> & {
-        format: "IMAGE";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & Record<string, unknown> & {
-        format: "VIDEO";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & Record<string, unknown> & {
-        format: "GIF";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & Record<string, unknown> & {
-        format: "DOCUMENT";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & {
-        format: "LOCATION";
-      });
-      body: {
-        text: string;
-      };
-      footer?: {
-        text: string;
-      };
-      buttons?: Array<({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-        phoneNumber?: string;
-      } & {
-        type: "PHONE_NUMBER";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-        url?: string;
-        destinationUrl?: string;
-      } & {
-        type: "URL";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "QUICK_REPLY";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "COPY_CODE";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-        flowId?: number;
-        flowAction?: "NAVIGATE" | "DATA_EXCHANGE";
-        navigateScreen?: string;
-      } & {
-        type: "FLOW";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "CATALOG";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "MULTI_PRODUCT";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        variant?: "BRAZIL" | "INDIA";
-      } & {
-        type: "ORDER_DETAILS";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-        callValidityPeriod?: number;
-      } & {
-        type: "VOICE_CALL";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "REQUEST_CONTACT_INFO";
-      })>;
-      carousel?: {
-        cards: Array<Record<string, unknown>>;
-      };
-      limitedTimeOffer?: {
-        hasExpiration?: boolean;
-        text: string;
-      };
-      callPermissionRequest?: Record<string, unknown>;
-      shorteningOptions?: {
-        customDomain: string;
-      };
-      type?: "TEXT" | "MEDIA" | "UNSUPPORTED";
-    };
-    quality?: "HIGH" | "MEDIUM" | "LOW" | "UNKNOWN";
-    validityPeriod?: {
-      amount: number;
-      timeUnit?: "SECONDS" | "MINUTES" | "HOURS";
-    };
-    platform?: {
-      entityId?: string;
-      applicationId?: string;
-    };
-    createdAt?: string;
-    lastUpdatedAt?: string;
-    libraryTemplateName?: string;
-  } & {
-    category: "MARKETING";
-  }) | ({
-    id?: string;
-    businessAccountId?: number;
-    name?: string;
-    language?: "af" | "sq" | "ar" | "ar_EG" | "ar_AE" | "ar_LB" | "ar_MA" | "ar_QA" | "az" | "bn" | "bn_IN" | "bg" | "ca" | "zh_CN" | "zh_HK" | "zh_TW" | "hr" | "cs" | "da" | "nl" | "nl_BE" | "en" | "en_GB" | "en_US" | "en_AE" | "en_AU" | "en_CA" | "en_GH" | "en_IE" | "en_IN" | "en_JM" | "en_MY" | "en_NZ" | "en_QA" | "en_SG" | "en_UG" | "en_ZA" | "et" | "fil" | "fi" | "fr" | "fr_BE" | "fr_CA" | "fr_CH" | "fr_CI" | "fr_MA" | "ka" | "de" | "de_AT" | "de_CH" | "el" | "gu" | "ha" | "he" | "hi" | "hu" | "id" | "ga" | "it" | "ja" | "kn" | "kk" | "rw_RW" | "ko" | "ky_KG" | "lo" | "lv" | "lt" | "mk" | "ms" | "ml" | "mr" | "nb" | "fa" | "pl" | "pt_BR" | "pt_PT" | "pa" | "ro" | "ru" | "sr" | "si_LK" | "sk" | "sl" | "es" | "es_AR" | "es_CL" | "es_CO" | "es_CR" | "es_DO" | "es_EC" | "es_HN" | "es_MX" | "es_PA" | "es_PE" | "es_ES" | "es_UY" | "sw" | "sv" | "ta" | "te" | "th" | "tr" | "uk" | "ur" | "uz" | "vi" | "zu" | "unknown";
-    status?: "APPROVED" | "IN_APPEAL" | "PENDING" | "REJECTED" | "PENDING_DELETION" | "DELETED" | "REINSTATED" | "FLAGGED" | "FIRST_PAUSED" | "SECOND_PAUSED" | "DISABLED" | "ARCHIVED" | "UNKNOWN";
-    category?: "MARKETING" | "AUTHENTICATION" | "UTILITY";
-    structure: {
-      header?: ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & {
-        text?: string;
-      } & {
-        format: "TEXT";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & Record<string, unknown> & {
-        format: "IMAGE";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & Record<string, unknown> & {
-        format: "VIDEO";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & Record<string, unknown> & {
-        format: "GIF";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & Record<string, unknown> & {
-        format: "DOCUMENT";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & {
-        format: "LOCATION";
-      });
-      body: {
-        text: string;
-      };
-      footer?: {
-        text: string;
-      };
-      buttons?: Array<({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-        phoneNumber?: string;
-      } & {
-        type: "PHONE_NUMBER";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-        url?: string;
-        destinationUrl?: string;
-      } & {
-        type: "URL";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "QUICK_REPLY";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "COPY_CODE";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-        flowId?: number;
-        flowAction?: "NAVIGATE" | "DATA_EXCHANGE";
-        navigateScreen?: string;
-      } & {
-        type: "FLOW";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "CATALOG";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "MULTI_PRODUCT";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        variant?: "BRAZIL" | "INDIA";
-      } & {
-        type: "ORDER_DETAILS";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-        callValidityPeriod?: number;
-      } & {
-        type: "VOICE_CALL";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "REQUEST_CONTACT_INFO";
-      })>;
-      carousel?: {
-        cards: Array<Record<string, unknown>>;
-      };
-      limitedTimeOffer?: {
-        hasExpiration?: boolean;
-        text: string;
-      };
-      callPermissionRequest?: Record<string, unknown>;
-      shorteningOptions?: {
-        customDomain: string;
-      };
-      type?: "TEXT" | "MEDIA" | "UNSUPPORTED";
-    };
-    quality?: "HIGH" | "MEDIUM" | "LOW" | "UNKNOWN";
-    validityPeriod?: {
-      amount: number;
-      timeUnit?: "SECONDS" | "MINUTES" | "HOURS";
-    };
-    platform?: {
-      entityId?: string;
-      applicationId?: string;
-    };
-    createdAt?: string;
-    lastUpdatedAt?: string;
-    libraryTemplateName?: string;
-  } & {
-    subCategory?: "ORDER_STATUS";
-  } & {
-    category: "UTILITY";
-  }) | ({
-    id?: string;
-    businessAccountId?: number;
-    name?: string;
-    language?: "af" | "sq" | "ar" | "ar_EG" | "ar_AE" | "ar_LB" | "ar_MA" | "ar_QA" | "az" | "bn" | "bn_IN" | "bg" | "ca" | "zh_CN" | "zh_HK" | "zh_TW" | "hr" | "cs" | "da" | "nl" | "nl_BE" | "en" | "en_GB" | "en_US" | "en_AE" | "en_AU" | "en_CA" | "en_GH" | "en_IE" | "en_IN" | "en_JM" | "en_MY" | "en_NZ" | "en_QA" | "en_SG" | "en_UG" | "en_ZA" | "et" | "fil" | "fi" | "fr" | "fr_BE" | "fr_CA" | "fr_CH" | "fr_CI" | "fr_MA" | "ka" | "de" | "de_AT" | "de_CH" | "el" | "gu" | "ha" | "he" | "hi" | "hu" | "id" | "ga" | "it" | "ja" | "kn" | "kk" | "rw_RW" | "ko" | "ky_KG" | "lo" | "lv" | "lt" | "mk" | "ms" | "ml" | "mr" | "nb" | "fa" | "pl" | "pt_BR" | "pt_PT" | "pa" | "ro" | "ru" | "sr" | "si_LK" | "sk" | "sl" | "es" | "es_AR" | "es_CL" | "es_CO" | "es_CR" | "es_DO" | "es_EC" | "es_HN" | "es_MX" | "es_PA" | "es_PE" | "es_ES" | "es_UY" | "sw" | "sv" | "ta" | "te" | "th" | "tr" | "uk" | "ur" | "uz" | "vi" | "zu" | "unknown";
-    status?: "APPROVED" | "IN_APPEAL" | "PENDING" | "REJECTED" | "PENDING_DELETION" | "DELETED" | "REINSTATED" | "FLAGGED" | "FIRST_PAUSED" | "SECOND_PAUSED" | "DISABLED" | "ARCHIVED" | "UNKNOWN";
-    category?: "MARKETING" | "AUTHENTICATION" | "UTILITY";
-    structure: {
-      header?: ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & {
-        text?: string;
-      } & {
-        format: "TEXT";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & Record<string, unknown> & {
-        format: "IMAGE";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & Record<string, unknown> & {
-        format: "VIDEO";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & Record<string, unknown> & {
-        format: "GIF";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & Record<string, unknown> & {
-        format: "DOCUMENT";
-      }) | ({
-        format?: "TEXT" | "IMAGE" | "VIDEO" | "GIF" | "DOCUMENT" | "LOCATION";
-      } & {
-        format: "LOCATION";
-      });
-      body: {
-        text: string;
-      };
-      footer?: {
-        text: string;
-      };
-      buttons?: Array<({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-        phoneNumber?: string;
-      } & {
-        type: "PHONE_NUMBER";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-        url?: string;
-        destinationUrl?: string;
-      } & {
-        type: "URL";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "QUICK_REPLY";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "COPY_CODE";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-        flowId?: number;
-        flowAction?: "NAVIGATE" | "DATA_EXCHANGE";
-        navigateScreen?: string;
-      } & {
-        type: "FLOW";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "CATALOG";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "MULTI_PRODUCT";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        variant?: "BRAZIL" | "INDIA";
-      } & {
-        type: "ORDER_DETAILS";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-        callValidityPeriod?: number;
-      } & {
-        type: "VOICE_CALL";
-      }) | ({
-        type?: "PHONE_NUMBER" | "URL" | "QUICK_REPLY" | "COPY_CODE" | "FLOW" | "CATALOG" | "MULTI_PRODUCT" | "ORDER_DETAILS" | "VOICE_CALL" | "REQUEST_CONTACT_INFO";
-      } & {
-        text?: string;
-      } & {
-        type: "REQUEST_CONTACT_INFO";
-      })>;
-      carousel?: {
-        cards: Array<Record<string, unknown>>;
-      };
-      limitedTimeOffer?: {
-        hasExpiration?: boolean;
-        text: string;
-      };
-      callPermissionRequest?: Record<string, unknown>;
-      shorteningOptions?: {
-        customDomain: string;
-      };
-      type?: "TEXT" | "MEDIA" | "UNSUPPORTED";
-    };
-    quality?: "HIGH" | "MEDIUM" | "LOW" | "UNKNOWN";
-    validityPeriod?: {
-      amount: number;
-      timeUnit?: "SECONDS" | "MINUTES" | "HOURS";
-    };
-    platform?: {
-      entityId?: string;
-      applicationId?: string;
-    };
-    createdAt?: string;
-    lastUpdatedAt?: string;
-    libraryTemplateName?: string;
-  } & {
-    category: "AUTHENTICATION";
-  })>;
+  results: WhatsappTemplate[];
   paging: {
     page: number;
     size: number;

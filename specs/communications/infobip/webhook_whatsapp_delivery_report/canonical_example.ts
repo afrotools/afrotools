@@ -1,7 +1,7 @@
 /**
  * @provider Infobip
  * @capability webhook_whatsapp_delivery_report
- * @atss 1.0
+ * @atss 1.1
  * @capability_type webhook
  */
 
@@ -45,7 +45,7 @@ export type WebhookWhatsappDeliveryReportPayload = {
 
 /**
  * Infobip's OpenAPI doesn't document a signature on this webhook (see gotchas): no verification step here.
- * Keep the endpoint URL unguessable and confirm critical updates with the matching report/log endpoint.
+ * Keep the endpoint URL unguessable: the OpenAPI has no WhatsApp report or log endpoint to cross-check a report.
  */
 export function parseInfobipReport(rawBody: string): WebhookWhatsappDeliveryReportPayload {
   return JSON.parse(rawBody) as WebhookWhatsappDeliveryReportPayload;
