@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:d4ea54babf324a79362b28af9bd5d46c600f913adb79a2c0ba879dbc7a740bcb"
+    "spec_hash": "sha256:ff5852e297cbfc87f9d1147c57ae2007b8af6659be9c3867b9282093510216c6"
   },
   "currency": [
     "XOF",
@@ -29,7 +29,20 @@
     "format": "Bearer {token}",
     "header": "Authorization",
     "location": "header",
-    "env_var": "SASPAY_API_KEY"
+    "env_var": "SASPAY_API_KEY",
+    "credentials": [
+      {
+        "env_var": "SASPAY_API_KEY",
+        "description": "SasPay API key (Authorization: Bearer)"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {SASPAY_API_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
@@ -140,6 +153,9 @@
   },
   "gotchas": [
     "Only a PENDING session can be cancelled: a session already paid, expired or cancelled returns 409 not_pending."
+  ],
+  "open_questions": [
+    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
   ],
   "evidence": {
     "spans": [

@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2026-10-12",
   "capability": "send_wallet_transfer",
   "capability_type": "synchronous",
@@ -23,7 +23,20 @@
     "format": "Bearer {token}",
     "header": "Authorization",
     "location": "header",
-    "env_var": "SASPAY_API_KEY"
+    "env_var": "SASPAY_API_KEY",
+    "credentials": [
+      {
+        "env_var": "SASPAY_API_KEY",
+        "description": "SasPay API key (Authorization: Bearer)"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {SASPAY_API_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "url": "https://api.saspay.me/api/v1/wallet-transfers/",
@@ -159,6 +172,9 @@
     "Only one PENDING transfer per merchant at a time: a new call while one awaits admin approval returns 422 transfer_already_pending.",
     "The transfer is COMPLETED immediately only if WALLET_TRANSFER_AUTO_APPROVE is enabled; otherwise it stays PENDING until an admin approves it, and the target wallet is not credited before then.",
     "Send an Idempotency-Key: without it a network retry reserves the amount a second time. Reusing a key with a different body, or while the first call is still running, returns 409."
+  ],
+  "open_questions": [
+    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
   ],
   "evidence": {
     "spans": [

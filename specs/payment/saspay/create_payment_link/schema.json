@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:3ff5e3ad4ecb9f70fb9c10fdc1f8f455bd509a79f6cf0f484175926129b2ee5c"
+    "spec_hash": "sha256:f2c140863cd4a5275b01af6f594c86512871a93690913e43836cc9f81e86f342"
   },
   "currency": [
     "XOF",
@@ -29,7 +29,20 @@
     "format": "Bearer {token}",
     "header": "Authorization",
     "location": "header",
-    "env_var": "SASPAY_API_KEY"
+    "env_var": "SASPAY_API_KEY",
+    "credentials": [
+      {
+        "env_var": "SASPAY_API_KEY",
+        "description": "SasPay API key (Authorization: Bearer)"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {SASPAY_API_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "url": "https://api.saspay.me/api/v1/payment-links/",
@@ -253,6 +266,9 @@
     "No server-side cross-validation: a FIXED link without amount is accepted, so always send amount with amount_type FIXED.",
     "redirect_url is required when show_confirmation_page is false, otherwise 400.",
     "Idempotency-Key is not supported here: calling twice creates two separate links."
+  ],
+  "open_questions": [
+    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
   ],
   "evidence": {
     "spans": [
