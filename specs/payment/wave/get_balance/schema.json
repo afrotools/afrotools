@@ -22,7 +22,7 @@
     "credentials": [
       {
         "env_var": "WAVE_API_KEY",
-        "description": "API key from the Wave Business portal (sent as Authorization: Bearer); it is tied to a real wallet — there is no sandbox"
+        "description": "API key from the Wave Business portal (sent as Authorization: Bearer); it is tied to a real wallet — Wave documents no sandbox"
       }
     ],
     "apply": [
