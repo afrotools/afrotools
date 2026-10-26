@@ -9,7 +9,7 @@
     "environment": "production",
     "at": "2026-04-07",
     "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:6412c718214794dfa411086c31bc75cc8c8f44d8a8b344845bd123df668893b7"
+    "spec_hash": "sha256:86598ea26f763091f6fc7096f7fb3bcfa0e73ac55461a5747b4369d3b891d3f8"
   },
   "currency": [
     "GNF"
@@ -19,7 +19,24 @@
     "location": "header",
     "field": "Authorization",
     "format": "Basic {token}",
-    "env_var": "LENGOPAY_LICENSE_KEY"
+    "env_var": "LENGOPAY_LICENSE_KEY",
+    "credentials": [
+      {
+        "env_var": "LENGOPAY_LICENSE_KEY",
+        "description": "license key, sent as Authorization: Basic <license key> (the key as is, not base64 of user:password)"
+      },
+      {
+        "env_var": "LENGOPAY_WEBSITE_ID",
+        "description": "website ID of your LengoPay account, sent with the request (body field websiteid, or path segment for get_balance), separate from the license key"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Basic {LENGOPAY_LICENSE_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",

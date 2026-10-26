@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "verify_payment",
   "capability_type": "synchronous",
@@ -12,7 +12,24 @@
     "location": "header",
     "field": "Authorization",
     "format": "Basic {token}",
-    "env_var": "LENGOPAY_LICENSE_KEY"
+    "env_var": "LENGOPAY_LICENSE_KEY",
+    "credentials": [
+      {
+        "env_var": "LENGOPAY_LICENSE_KEY",
+        "description": "license key, sent as Authorization: Basic <license key> (the key as is, not base64 of user:password)"
+      },
+      {
+        "env_var": "LENGOPAY_WEBSITE_ID",
+        "description": "website ID of your LengoPay account, sent with the request (body field websiteid, or path segment for get_balance), separate from the license key"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Basic {LENGOPAY_LICENSE_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
