@@ -16,7 +16,7 @@
     "credentials": [
       {
         "env_var": "ORANGE_MONEY_BASIC_TOKEN",
-        "description": "base64 of clientId:clientSecret from the Orange Developer portal, used only to get the OAuth access token"
+        "description": "base64 of clientId:clientSecret, used only to get the OAuth access token"
       },
       {
         "env_var": "ORANGE_MONEY_MERCHANT_KEY",
@@ -162,5 +162,8 @@
     "The OAuth access token returned by /oauth/v3/token is short-lived. Request a fresh token before each create_payment call (or cache it with a safety margin under the documented expires_in) — do not embed a long-lived token in code.",
     "The endpoint path is country-specific: /orange-money-webpay/ml/v1/webpayment for Mali. Other countries (SN, CI, BF, etc.) use a different path segment — do not assume one URL covers all Orange Money markets.",
     "Always verify the payment server-side via the notif_url callback (using notif_token) before fulfilling the order. The browser redirect to return_url alone can be spoofed and is not proof of payment."
+  ],
+  "open_questions": [
+    "Sandbox: provider.json declares none and no gotcha documents a test host or test credentials for OM Web Payment Mali."
   ]
 }
