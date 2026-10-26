@@ -200,10 +200,10 @@ uses one sets `spec_version: "1.1"`; a 1.0 spec stays valid as is.
 the query string or a header goes in `parameters`:
 
 ```jsonc
-"endpoint": { "method": "GET", "url": "https://api.wave.com/v1/checkout/sessions/{id}" },
-"parameters": [
-  { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Checkout session id (cos-…)" },
-  { "name": "include_subaccounts", "in": "query", "schema": { "type": "boolean" } },
+"endpoint": { "method": "POST", "url": "https://api.example.com/v1/payouts/{batch_id}/items" },
+"parameters": [                          // illustrative provider
+  { "name": "batch_id", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Payout batch id" },
+  { "name": "dry_run", "in": "query", "schema": { "type": "boolean" } },
   { "name": "Idempotency-Key", "in": "header", "required": true, "schema": { "type": "string" } }
 ]
 ```
