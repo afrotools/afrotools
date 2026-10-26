@@ -100,7 +100,7 @@ One `provider.json` per provider directory. Carries provider-level metadata migr
 
 | Field | Type | Rule |
 |---|---|---|
-| spec_version | string | `"1.0"`, or `"1.1"` when the spec uses a block added in 1.1 (`verification`, `open_questions`) |
+| spec_version | string | `"1.0"`, or `"1.1"` when the spec uses a block added in 1.1 (see § Blocks added in ATSS 1.1) |
 | provider_api_version | string | YYYY-MM-DD if provider has no version string |
 | capability | string | snake_case — matches the directory name |
 | capability_type | enum | `synchronous`, `asynchronous`, `webhook`, or `sdk` |
@@ -112,7 +112,7 @@ One `provider.json` per provider directory. Carries provider-level metadata migr
 | auth | object | Auth descriptor — see auth variants below |
 | endpoint | object | `{ method, url }` |
 | example_prompt | string | Required for `ready`/`verified` — describes this specific capability usage for AI agents |
-| input_schema | object | JSON Schema describing the request body |
+| input_schema | object | JSON Schema describing the request body. Path, query and header parameters go in `parameters` (1.1) |
 | response_schema | object | JSON Schema describing the success response |
 | error_schema | object | JSON Schema describing the error response |
 | gotchas | string[] | MANDATORY — minimum 1 entry, no exceptions |
@@ -196,6 +196,25 @@ uses one sets `spec_version: "1.1"`; a 1.0 spec stays valid as is.
 }
 ```
 
+**Parameters outside the body** — `input_schema` is the request body; what travels in the URL path,
+the query string or a header goes in `parameters`:
+
+```jsonc
+"endpoint": { "method": "GET", "url": "https://api.wave.com/v1/checkout/sessions/{id}" },
+"parameters": [
+  { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Checkout session id (cos-…)" },
+  { "name": "include_subaccounts", "in": "query", "schema": { "type": "boolean" } },
+  { "name": "Idempotency-Key", "in": "header", "required": true, "schema": { "type": "string" } }
+]
+```
+
+**Success condition** — when a 2xx response is not enough (e.g. HTTP 200 with `{"code": 1}` on a failed
+payment), the response field that says the call succeeded:
+
+```jsonc
+"success_condition": { "field": "code", "equals": 0 }              // or "in": ["SUCCESS", "PENDING"]
+```
+
 **Environments** — in `provider.json`, the base URL of each environment the provider documents:
 
 ```jsonc
@@ -210,6 +229,9 @@ uses one sets `spec_version: "1.1"`; a 1.0 spec stays valid as is.
 | `auth.token_exchange` | `path` (on the environment's base URL) or `url` (a token server on another host, e.g. `https://idp.flutterwave.com/…/token`) — exactly one. `body` (name/value pairs) with its `content_type` (`application/x-www-form-urlencoded`) for a form-encoded token request; `headers` are headers only (`in: "header"`) |
 | `webhook.signature.key` | Exactly one `{ENV_VAR}` — the secret, never a literal. It declares that env var for the spec |
 | `algorithm`, `encoding` | `HMAC-SHA256`; `hex` or `base64` — the only values specs use so far; others are added with the first spec that needs them |
+| `parameters` | `in`: `path`, `query` or `header`; `name` once per `in` (header names ignore case), never one `auth.apply` already sends; `schema` is a JSON Schema. A `path` parameter is `required: true` and fills a `{placeholder}` of `endpoint.url`; once `parameters` is present, every lowercase `{placeholder}` of the URL is filled by a path parameter or by `auth.apply` (`{UPPER_CASE}` stays an env var). Not on a webhook: its URL is yours |
+| `success_condition` | `field` is a dotted path (`data.status`) that `response_schema` describes, when it describes anything; exactly one of `equals` (a string, number or boolean) or `in` (a list of them). Only what the provider's docs state — otherwise an open question. Not on a webhook |
+| Idempotency | Convention, warned by `validate`: a `POST` of a payment provider that moves money (payment, payout, transfer, charge, refund, cash-in/out — not a status check) says whether a retry is safe — its idempotency header in `parameters` (or field in `input_schema`), the behaviour in `gotchas`, or an `open_questions` entry when the docs say nothing. A retried payout without it can pay twice |
 | `environments` | `sandbox` and/or `production`, each with an `https://host[:port]` `base_url` (no path, query or fragment). The `endpoint.url` of every non-webhook spec of the provider must start with one of them. An environment the provider does not document is left out — never guessed — and its absence goes in the specs' `open_questions` (a convention, not checked) |
 
 ### capability_type definitions

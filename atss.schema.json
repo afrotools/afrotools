@@ -11,6 +11,35 @@
       "minItems": 1,
       "items": { "type": "string", "pattern": "\\S" }
     },
+    "parameters": {
+      "description": "Request parameters outside the body (input_schema is the body): path, query and header.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "in", "schema"],
+        "properties": {
+          "name": { "type": "string", "pattern": "\\S" },
+          "in": { "enum": ["path", "query", "header"] },
+          "required": { "type": "boolean" },
+          "description": { "type": "string", "pattern": "\\S" },
+          "schema": { "type": "object" }
+        }
+      }
+    },
+    "success_condition": {
+      "description": "When a 2xx response is not enough: the response field that says the call succeeded.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field"],
+      "oneOf": [{ "required": ["equals"] }, { "required": ["in"] }],
+      "properties": {
+        "field": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*$" },
+        "equals": { "type": ["string", "number", "boolean"] },
+        "in": { "type": "array", "minItems": 1, "items": { "type": ["string", "number", "boolean"] } }
+      }
+    },
     "auth": {
       "type": "object",
       "properties": {

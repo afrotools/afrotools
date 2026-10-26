@@ -394,7 +394,7 @@ function validateEvidence(specPath, schema) {
 }
 
 const SPEC_VERSIONS = ["1.0", "1.1"];
-const ATSS_1_1_FIELDS = ["verification", "open_questions", "webhook"];
+const ATSS_1_1_FIELDS = ["verification", "open_questions", "parameters", "success_condition", "webhook"];
 const AUTH_1_1_FIELDS = ["credentials", "signing", "token_exchange", "apply"];
 const ajv = new Ajv2020({ allErrors: true });
 addFormats(ajv);
@@ -484,6 +484,61 @@ function specHash(specPath, schema) {
 }
 
 /**
+ * Whether a dotted path ("data.status") names a property of a JSON Schema, through properties,
+ * allOf/oneOf/anyOf members and local $refs. true when the schema says nothing (no properties).
+ * @param {any} schema the response_schema
+ * @param {string} dotted
+ * @returns {boolean}
+ */
+function schemaHasPath(schema, dotted) {
+  /** @param {any} node @returns {any} */
+  const deref = (node) => {
+    if (node && typeof node.$ref === "string" && node.$ref.startsWith("#/")) {
+      return node.$ref.slice(2).split("/").reduce((/** @type {any} */ n, /** @type {string} */ k) => n?.[k], schema);
+    }
+    return node;
+  };
+  /** @param {any} node @param {string[]} keys @returns {boolean} */
+  const walk = (node, keys) => {
+    node = deref(node);
+    if (!keys.length) return true;
+    if (!node || typeof node !== "object") return false;
+    const members = [...(node.allOf ?? []), ...(node.oneOf ?? []), ...(node.anyOf ?? [])];
+    if (node.properties && keys[0] in node.properties && walk(node.properties[keys[0]], keys.slice(1))) return true;
+    return members.some((/** @type {any} */ m) => walk(m, keys));
+  };
+  const root = deref(schema);
+  const described = root && (root.properties || root.allOf || root.oneOf || root.anyOf);
+  return !described || walk(root, dotted.split("."));
+}
+
+// A POST that moves money: a retry after a timeout can charge or pay out twice. Not the POSTs that
+// only read (check_payment_status, verify_payment, list_cashin_transactions).
+const MONEY_MOVING = /payment|payout|transfer|charge|disburs|refund|withdraw|cashout|cashin|collect/;
+const READS = /^(check|verify|get|list|search|fetch|find|query|retrieve)_|_status$/;
+
+/**
+ * Warning: a money-moving POST of a payment provider says nothing about idempotency — no header in
+ * `parameters`, no idempotency field in input_schema, nothing in gotchas or open_questions.
+ * @param {string} specPath
+ * @param {any} schema
+ * @returns {string | null}
+ */
+function idempotencyWarning(specPath, schema) {
+  const category = path.relative(SPECS_ROOT, specPath).split(path.sep)[0];
+  if (category !== "payment" || schema.capability_type === "webhook" || schema.endpoint?.method !== "POST") return null;
+  if (!MONEY_MOVING.test(schema.capability) || READS.test(schema.capability)) return null;
+  const mentions = JSON.stringify([
+    (schema.parameters ?? []).map((/** @type {any} */ p) => p.name),
+    Object.keys(schema.input_schema?.properties ?? {}),
+    schema.gotchas ?? [],
+    schema.open_questions ?? [],
+  ]);
+  if (/idempoten/i.test(mentions)) return null;
+  return `[WARN] ${path.relative(SPECS_ROOT, specPath)}: a POST that moves money says nothing about idempotency — declare the provider's idempotency header in "parameters" (or field in input_schema), or add an open question if its docs say nothing`;
+}
+
+/**
  * Check 2c: ATSS 1.1 blocks (atss.schema.json) and the proof behind "verified".
  * @param {string} specPath
  * @param {any} schema
@@ -519,6 +574,38 @@ function validateAtss11(specPath, schema) {
   if ("webhook" in schema && schema.capability_type !== "webhook") {
     return fail(specPath, `"webhook" is only allowed on a capability_type "webhook", got "${schema.capability_type}"`);
   }
+  const params = schema.parameters ?? [];
+  if (params.length || "success_condition" in schema) {
+    // A webhook's URL is the integrator's, and it answers no response of the provider.
+    if (schema.capability_type === "webhook") {
+      return fail(specPath, `"parameters" and "success_condition" describe a call to the provider, not a webhook`);
+    }
+  }
+  if (params.length) {
+    const key = (/** @type {any} */ p) => `${p.in}:${p.in === "header" ? p.name.toLowerCase() : p.name}`;
+    const keys = params.map(key);
+    const dup = keys.filter((/** @type {string} */ k, /** @type {number} */ i) => keys.indexOf(k) !== i);
+    if (dup.length) return fail(specPath, `parameters lists ${[...new Set(dup)].join(", ")} more than once`);
+    const url = String(schema.endpoint?.url ?? "");
+    const applied = new Set((auth.apply ?? []).map((/** @type {any} */ a) => `${a.in}:${a.in === "header" ? a.name.toLowerCase() : a.name}`));
+    for (const p of params) {
+      if (applied.has(key(p))) return fail(specPath, `parameter ${p.in} "${p.name}" is already sent by auth.apply`);
+      if (p.in === "path" && !url.includes(`{${p.name}}`)) {
+        return fail(specPath, `parameter in path "${p.name}" is not a {placeholder} of endpoint.url`);
+      }
+      if (p.in === "path" && p.required !== true) return fail(specPath, `parameter in path "${p.name}" must be required: true`);
+    }
+    // Every {placeholder} of the URL is filled by a path parameter or auth.apply (UPPER_CASE ones
+    // are env vars, e.g. a per-account base URL).
+    const filled = new Set([...params, ...(auth.apply ?? [])].filter((/** @type {any} */ p) => p.in === "path").map((/** @type {any} */ p) => p.name));
+    const missing = [...url.matchAll(/\{([^{}]+)\}/g)].map((m) => m[1]).filter((n) => !/^[A-Z][A-Z0-9_]*$/.test(n) && !filled.has(n));
+    if (missing.length) return fail(specPath, `endpoint.url placeholder(s) without a path parameter: ${missing.map((n) => `{${n}}`).join(", ")}`);
+  }
+  if ("success_condition" in schema && !schemaHasPath(schema.response_schema, schema.success_condition.field)) {
+    return fail(specPath, `success_condition.field "${schema.success_condition.field}" is not a property of response_schema`);
+  }
+  const idem = idempotencyWarning(specPath, schema);
+  if (idem) console.warn(`        ${idem}`);
   const unresolved = unresolvedPlaceholders(schema, fs.readFileSync(path.join(specPath, "canonical_example.ts"), "utf8"));
   if (unresolved.length > 0) {
     return fail(specPath, `placeholder(s) that resolve to nothing — declare the env var in auth.credentials, or add the block that produces it: ${unresolved.join("; ")}`);

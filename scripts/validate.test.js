@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { execFileSync } = require("child_process");
+const { execFileSync, spawnSync } = require("child_process");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -457,4 +457,78 @@ test("auth.apply in path must fill a placeholder of endpoint.url", () => {
   const { code, stderr } = runValidate(bad);
   assert.equal(code, 1);
   assert.match(stderr, /auth\.apply in path "c" is not a \{placeholder\} of endpoint\.url/);
+});
+
+const ID_URL = { method: "GET", url: "https://fixture.example/payments/{id}" };
+const ID_PARAM = { name: "id", in: "path", required: true, schema: { type: "string" } };
+const withSchema = (extraSchema) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { spec_version: "1.1", ...extraSchema } });
+  return runValidate(dir);
+};
+
+test("parameters: path, query and header parameters outside the body pass", () => {
+  const parameters = [ID_PARAM, { name: "expand", in: "query", schema: { type: "string" } }, { name: "Idempotency-Key", in: "header", required: true, schema: { type: "string" } }];
+  assert.equal(withSchema({ endpoint: ID_URL, parameters }).code, 0);
+});
+
+test("parameters: every path parameter fills a placeholder, every placeholder has one", () => {
+  const notInUrl = withSchema({ parameters: [ID_PARAM] });
+  assert.equal(notInUrl.code, 1);
+  assert.match(notInUrl.stderr, /parameter in path "id" is not a \{placeholder\} of endpoint\.url/);
+  const unfilled = withSchema({ endpoint: { method: "GET", url: "https://fixture.example/payments/{id}/items/{item}" }, parameters: [ID_PARAM] });
+  assert.equal(unfilled.code, 1);
+  assert.match(unfilled.stderr, /placeholder\(s\) without a path parameter: \{item\}/);
+  const optional = withSchema({ endpoint: ID_URL, parameters: [{ ...ID_PARAM, required: false }] });
+  assert.equal(optional.code, 1);
+  assert.match(optional.stderr, /parameter in path "id" must be required: true/);
+});
+
+test("parameters: no duplicate, nothing auth.apply already sends, not on a webhook", () => {
+  const dup = withSchema({ parameters: [{ name: "X-Trace", in: "header", schema: {} }, { name: "x-trace", in: "header", schema: {} }] });
+  assert.equal(dup.code, 1);
+  assert.match(dup.stderr, /parameters lists header:x-trace more than once/);
+  const auth = { ...HMAC_AUTH, apply: [{ in: "header", name: "X-API-KEY", value: "{FIXTURE_ID}" }] };
+  const twice = withSchema({ auth, parameters: [{ name: "x-api-key", in: "header", schema: {} }] });
+  assert.equal(twice.code, 1);
+  assert.match(twice.stderr, /parameter header "x-api-key" is already sent by auth\.apply/);
+  const webhook = withSchema({ capability_type: "webhook", auth: { type: "none" }, parameters: [{ name: "q", in: "query", schema: {} }] });
+  assert.equal(webhook.code, 1);
+  assert.match(webhook.stderr, /describe a call to the provider, not a webhook/);
+});
+
+test("parameters need spec_version 1.1", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, { status: "ready", extraSchema: { parameters: [{ name: "q", in: "query", schema: {} }] } });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /parameters need spec_version "1\.1"/);
+});
+
+test("success_condition names a field of response_schema, with equals or in", () => {
+  const response_schema = { type: "object", properties: { data: { allOf: [{ $ref: "#/$defs/result" }] } }, $defs: { result: { type: "object", properties: { code: { type: "integer" } } } } };
+  assert.equal(withSchema({ response_schema, success_condition: { field: "data.code", equals: 0 } }).code, 0);
+  assert.equal(withSchema({ response_schema, success_condition: { field: "data.code", in: [0, 1] } }).code, 0);
+  const unknown = withSchema({ response_schema, success_condition: { field: "data.status", equals: "ok" } });
+  assert.equal(unknown.code, 1);
+  assert.match(unknown.stderr, /success_condition\.field "data\.status" is not a property of response_schema/);
+  assert.equal(withSchema({ response_schema, success_condition: { field: "data.code", equals: 0, in: [0] } }).code, 1);
+  // An undocumented response says nothing either way.
+  assert.equal(withSchema({ success_condition: { field: "code", equals: 0 } }).code, 0);
+});
+
+test("a money-moving POST that says nothing about idempotency warns, without failing", () => {
+  const run = (extraSchema) => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+    writeFixtureSpec(dir, { status: "ready", extraSchema });
+    return spawnSync("node", [path.resolve(__dirname, "validate.js")], { cwd: dir, encoding: "utf8" });
+  };
+  const silent = run({});
+  assert.equal(silent.status, 0);
+  assert.match(silent.stderr, /payment\/fixtureprovider\/create_payment: a POST that moves money says nothing about idempotency/);
+  for (const said of [
+    { gotchas: ["Retries with the same Idempotency-Key are not charged twice."] },
+    { spec_version: "1.1", open_questions: ["The docs do not say whether a retried payment is idempotent."] },
+    { spec_version: "1.1", parameters: [{ name: "Idempotency-Key", in: "header", schema: { type: "string" } }] },
+  ]) assert.doesNotMatch(run(said).stderr, /idempotency/);
 });
