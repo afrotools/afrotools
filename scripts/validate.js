@@ -511,6 +511,11 @@ function validateAtss11(specPath, schema) {
       return fail(specPath, `auth.env_var "${auth.env_var}" is missing from auth.credentials`);
     }
   }
+  for (const a of auth.apply ?? []) {
+    if (a.in === "path" && !String(schema.endpoint?.url).includes(`{${a.name}}`)) {
+      return fail(specPath, `auth.apply in path "${a.name}" is not a {placeholder} of endpoint.url`);
+    }
+  }
   if ("webhook" in schema && schema.capability_type !== "webhook") {
     return fail(specPath, `"webhook" is only allowed on a capability_type "webhook", got "${schema.capability_type}"`);
   }

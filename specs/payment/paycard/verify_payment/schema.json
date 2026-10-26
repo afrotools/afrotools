@@ -9,7 +9,7 @@
     "environment": "production",
     "at": "2026-04-06",
     "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:c317bef6ba0ae589da7207bd82a4a202e1186393be8a71802f3f521feb4955f8"
+    "spec_hash": "sha256:f56cc1e922fa2a190ded142979d920462589dd926a90cd7d453b2173f636d45b"
   },
   "currency": [
     "GNF"
@@ -19,7 +19,20 @@
     "location": "path",
     "field": "c",
     "format": "{token}",
-    "env_var": "PAYCARD_API_KEY"
+    "env_var": "PAYCARD_API_KEY",
+    "credentials": [
+      {
+        "env_var": "PAYCARD_API_KEY",
+        "description": "merchant API key, sent as the field c"
+      }
+    ],
+    "apply": [
+      {
+        "in": "path",
+        "name": "c",
+        "value": "{PAYCARD_API_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "GET",

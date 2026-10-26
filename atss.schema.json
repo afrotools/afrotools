@@ -127,7 +127,7 @@
         "additionalProperties": false,
         "required": ["in", "name", "value"],
         "properties": {
-          "in": { "enum": ["header", "query", "body"] },
+          "in": { "enum": ["header", "query", "body", "path"] },
           "name": { "type": "string", "pattern": "\\S" },
           "value": { "$ref": "#/$defs/template" }
         }
