@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v2",
   "capability": "accept_delivery_claim",
   "capability_type": "synchronous",
@@ -9,7 +9,20 @@
     "location": "header",
     "header": "Authorization",
     "format": "Bearer {token}",
-    "env_var": "YANGO_DELIVERY_TOKEN"
+    "env_var": "YANGO_DELIVERY_TOKEN",
+    "credentials": [
+      {
+        "env_var": "YANGO_DELIVERY_TOKEN",
+        "description": "OAuth token from your Yango Delivery account (Integration tab, Get token); changing the account password invalidates it"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {YANGO_DELIVERY_TOKEN}"
+      }
+    ]
   },
   "endpoint": {
     "url": "https://b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/accept",
@@ -131,6 +144,9 @@
     "Errors return { code, message }: branch on code. Documented on this endpoint: 404 not_found; 409 inappropriate_status, old_version, offer_expired, state_mismatch; 429 too_many_requests. The error guide adds 401 unauthorized (invalid token) and 500 (try again or change the request).",
     "Accept-Language is a required header on this endpoint (e.g. en); this example sends en.",
     "No test environment is documented: requests go to the production host, and confirming a claim starts the search for a courier. The error guide mentions test accounts (required_tariffs_disabled_for_user: 'Test account has expired or the specified rate is disabled') — ask your manager for one before testing."
+  ],
+  "open_questions": [
+    "No test environment is documented: the API reference gives only the service URL b2b.delivery.yango.tech, and confirming a claim starts a real courier search. Ask your Yango Delivery manager for a test account."
   ],
   "evidence": {
     "source_url": "https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/openapi/IntegrationV2ClaimsAccept.md",
