@@ -8,15 +8,30 @@
     "method": "app",
     "environment": "production",
     "at": "2026-10-24",
-    "spec_hash": "sha256:618c3c11c397260fe846e6a7d48883dd096e0907de20f0f34374db477743cf2e"
+    "spec_hash": "sha256:8ed788c48fec528f3b4b3ceef5d5cd72bb4ce2a1acaa44c35fe3bb1e15cfd25c"
   },
-  "currency": ["XOF"],
+  "currency": [
+    "XOF"
+  ],
   "auth": {
     "type": "api_key",
     "location": "header",
     "field": "X-Api-Key",
     "format": "{token}",
-    "env_var": "BICTORYS_API_KEY"
+    "env_var": "BICTORYS_API_KEY",
+    "credentials": [
+      {
+        "env_var": "BICTORYS_API_KEY",
+        "description": "Bictorys public API key sent as X-Api-Key on this endpoint; sandbox and production keys differ"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "X-Api-Key",
+        "value": "{BICTORYS_API_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "POST",
@@ -77,16 +92,29 @@
       "customerObject": {
         "type": "object",
         "description": "Customer details when no customerId is available.",
-        "required": ["country"],
+        "required": [
+          "country"
+        ],
         "properties": {
-          "name": { "type": "string" },
+          "name": {
+            "type": "string"
+          },
           "phone": {
             "type": "number",
             "description": "International-format phone number as a numeric value. Example: 221700000000."
           },
-          "email": { "type": "string", "format": "email" },
-          "country": { "type": "string", "description": "ISO 3166-1 alpha-2. Required inside customerObject." },
-          "locale": { "type": "string", "description": "BCP-47 locale tag. Default: \"en-US\"." }
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "country": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2. Required inside customerObject."
+          },
+          "locale": {
+            "type": "string",
+            "description": "BCP-47 locale tag. Default: \"en-US\"."
+          }
         }
       },
       "authorization": {
@@ -131,7 +159,10 @@
           },
           "type": {
             "type": "string",
-            "enum": ["MobilePaymentObject", "CardPaymentObject"]
+            "enum": [
+              "MobilePaymentObject",
+              "CardPaymentObject"
+            ]
           },
           "link": {
             "type": "string",
@@ -147,7 +178,14 @@
           },
           "state": {
             "type": "string",
-            "enum": ["AWAIT_3DS", "PURCHASED", "CAPTURED", "AUTHORIZED", "FAILED", "DECLINED"],
+            "enum": [
+              "AWAIT_3DS",
+              "PURCHASED",
+              "CAPTURED",
+              "AUTHORIZED",
+              "FAILED",
+              "DECLINED"
+            ],
             "description": "Card payment state. Present only for CardPaymentObject."
           },
           "3ds": {
@@ -164,7 +202,9 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": ["CheckoutLinkObject"]
+            "enum": [
+              "CheckoutLinkObject"
+            ]
           },
           "link": {
             "type": "string",
