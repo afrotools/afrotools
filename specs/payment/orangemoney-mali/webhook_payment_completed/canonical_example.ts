@@ -1,7 +1,7 @@
 /**
  * @provider Orange Money
  * @capability webhook_payment_completed
- * @atss 1.0
+ * @atss 1.1
  * @capability_type webhook
  */
 

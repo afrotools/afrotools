@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v1",
   "capability": "webhook_payment_completed",
   "capability_type": "webhook",

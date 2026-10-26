@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v1",
   "capability": "create_payment",
   "capability_type": "synchronous",
@@ -12,7 +12,43 @@
     "location": "header",
     "field": "Authorization",
     "format": "Bearer {access_token}",
-    "env_var": "ORANGE_MONEY_BASIC_TOKEN"
+    "env_var": "ORANGE_MONEY_BASIC_TOKEN",
+    "credentials": [
+      {
+        "env_var": "ORANGE_MONEY_BASIC_TOKEN",
+        "description": "base64 of clientId:clientSecret, used only to get the OAuth access token"
+      },
+      {
+        "env_var": "ORANGE_MONEY_MERCHANT_KEY",
+        "description": "merchant key, sent in the payment request body (merchant_key) — not interchangeable with the basic token"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {access_token}"
+      }
+    ],
+    "token_exchange": {
+      "method": "POST",
+      "path": "/oauth/v3/token",
+      "headers": [
+        {
+          "in": "header",
+          "name": "Authorization",
+          "value": "Basic {ORANGE_MONEY_BASIC_TOKEN}"
+        }
+      ],
+      "content_type": "application/x-www-form-urlencoded",
+      "body": [
+        {
+          "name": "grant_type",
+          "value": "client_credentials"
+        }
+      ],
+      "token_field": "access_token"
+    }
   },
   "endpoint": {
     "method": "POST",
@@ -126,5 +162,8 @@
     "The OAuth access token returned by /oauth/v3/token is short-lived. Request a fresh token before each create_payment call (or cache it with a safety margin under the documented expires_in) — do not embed a long-lived token in code.",
     "The endpoint path is country-specific: /orange-money-webpay/ml/v1/webpayment for Mali. Other countries (SN, CI, BF, etc.) use a different path segment — do not assume one URL covers all Orange Money markets.",
     "Always verify the payment server-side via the notif_url callback (using notif_token) before fulfilling the order. The browser redirect to return_url alone can be spoofed and is not proof of payment."
+  ],
+  "open_questions": [
+    "Sandbox: provider.json declares none and no gotcha documents a test host or test credentials for OM Web Payment Mali."
   ]
 }
