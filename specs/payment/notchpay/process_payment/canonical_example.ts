@@ -1,7 +1,7 @@
 /**
  * @provider Notch Pay
  * @capability process_payment
- * @atss 1.0
+ * @atss 1.1
  * @capability_type synchronous
  */
 

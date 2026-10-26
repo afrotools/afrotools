@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-01-01",
   "capability": "delete_webhook",
   "capability_type": "synchronous",
@@ -16,7 +16,20 @@
     "location": "header",
     "field": "Authorization",
     "format": "{token}",
-    "env_var": "NOTCHPAY_PRIVATE_KEY"
+    "env_var": "NOTCHPAY_PRIVATE_KEY",
+    "credentials": [
+      {
+        "env_var": "NOTCHPAY_PRIVATE_KEY",
+        "description": "Notch Pay private key, sent as is in Authorization, for transfers, beneficiaries, balance and webhooks"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "{NOTCHPAY_PRIVATE_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "DELETE",

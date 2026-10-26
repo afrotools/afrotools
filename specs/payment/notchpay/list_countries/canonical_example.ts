@@ -1,7 +1,7 @@
 /**
  * @provider Notch Pay
  * @capability list_countries
- * @atss 1.0
+ * @atss 1.1
  * @capability_type synchronous
  */
 
