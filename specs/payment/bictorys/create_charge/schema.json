@@ -8,7 +8,7 @@
     "method": "app",
     "environment": "production",
     "at": "2026-10-24",
-    "spec_hash": "sha256:186e324f1ebab7ccb9cdc564a9c3f69bda928fd143710938e61345dfab392a1d"
+    "spec_hash": "sha256:8ed788c48fec528f3b4b3ceef5d5cd72bb4ce2a1acaa44c35fe3bb1e15cfd25c"
   },
   "currency": [
     "XOF"
@@ -22,7 +22,7 @@
     "credentials": [
       {
         "env_var": "BICTORYS_API_KEY",
-        "description": "Bictorys API key sent as X-Api-Key on this endpoint; sandbox and production keys differ"
+        "description": "Bictorys public API key sent as X-Api-Key on this endpoint; sandbox and production keys differ"
       }
     ],
     "apply": [
