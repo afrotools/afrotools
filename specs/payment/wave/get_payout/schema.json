@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-03-29",
   "capability": "get_payout",
   "capability_type": "synchronous",
@@ -18,7 +18,20 @@
     "location": "header",
     "field": "Authorization",
     "format": "Bearer {token}",
-    "env_var": "WAVE_API_KEY"
+    "env_var": "WAVE_API_KEY",
+    "credentials": [
+      {
+        "env_var": "WAVE_API_KEY",
+        "description": "API key from the Wave Business portal (sent as Authorization: Bearer); it is tied to a real wallet — Wave documents no sandbox"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "Authorization",
+        "value": "Bearer {WAVE_API_KEY}"
+      }
+    ]
   },
   "endpoint": {
     "method": "GET",
