@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:4c906fcf7fa125455f8ed1704a65685f9468b1888c2f7ef7827003b7450001a7"
+    "spec_hash": "sha256:ad0fcd04fa70b72730c76daf77a58227fbb88aaa5b0eb3fe79bd6f30e118a3e4"
   },
   "currency": [
     "XOF",
@@ -109,10 +109,10 @@
       "fee_charge_mode": {
         "enum": [
           "ADD_ON",
-          "DEDUCTED"
+          "DEDUCTED",
+          null
         ],
-        "type": "string",
-        "nullable": true,
+        "type": ["string", "null"],
         "description": "ADD_ON : les frais s'ajoutent au montant débité au client. DEDUCTED : les frais sont déduits du montant net reversé au marchand. Défaut : configuration du marchand. Pris en compte SEULEMENT si l'option \"Autoriser le choix du mode de frais par l'API\" (ALLOW_CLIENT_OVERRIDE) est activée sur votre compte, sinon ignoré silencieusement — même garde que sur /payments/softpay/ et /payouts/initialize/."
       }
     }

@@ -411,6 +411,29 @@ const validateEnvironments = ajv.getSchema(`${atssSchema.$id}#/$defs/environment
  * @param {any} schema
  * @returns {boolean}
  */
+/**
+ * Where a schema uses the OpenAPI 3.0 keyword `nullable` (a property *named* nullable is fine):
+ * "" for the root, ".a.b" for a nested schema, null when it does not.
+ * @param {any} node
+ * @param {string} [at]
+ * @returns {string | null}
+ */
+function openApiNullable(node, at = "") {
+  if (!node || typeof node !== "object") return null;
+  if (Array.isArray(node)) {
+    for (const [i, x] of node.entries()) { const found = openApiNullable(x, `${at}[${i}]`); if (found !== null) return found; }
+    return null;
+  }
+  if ("nullable" in node) return at;
+  for (const [key, value] of Object.entries(node)) {
+    if (["enum", "const", "default", "examples", "example", "required"].includes(key)) continue; // data, not schemas
+    const named = ["properties", "patternProperties", "$defs", "definitions", "dependentSchemas"].includes(key);
+    const entries = named && value && typeof value === "object" ? Object.entries(value) : [[key, value]];
+    for (const [k, v] of entries) { const found = openApiNullable(v, `${at}.${named ? `${key}.${k}` : k}`); if (found !== null) return found; }
+  }
+  return null;
+}
+
 function validateJsonSchemas(specPath, schema) {
   const named = [
     ...["input_schema", "response_schema", "error_schema"].map((k) => [k, schema[k]]),
@@ -418,6 +441,8 @@ function validateJsonSchemas(specPath, schema) {
   ];
   for (const [name, s] of named) {
     if (!s || typeof s !== "object") continue;
+    const nullable = openApiNullable(s);
+    if (nullable) return fail(specPath, `${name}${nullable}: "nullable" is OpenAPI 3.0, which JSON Schema 2020-12 ignores — write "type": ["string", "null"] (and add null to its enum)`);
     // One instance per schema: $defs are local to each root, and compiled schemas are cached by $id
     const loose = new Ajv2020({ strict: false, allowUnionTypes: true, validateFormats: false });
     try {

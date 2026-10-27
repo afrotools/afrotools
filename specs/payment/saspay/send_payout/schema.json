@@ -123,10 +123,10 @@
       "fee_charge_mode": {
         "enum": [
           "ADD_ON",
-          "DEDUCTED"
+          "DEDUCTED",
+          null
         ],
-        "type": "string",
-        "nullable": true,
+        "type": ["string", "null"],
         "description": "ADD_ON : les frais s'ajoutent au montant débité au client. DEDUCTED : les frais sont déduits du montant net reversé au marchand. Défaut : configuration du marchand."
       },
       "preferred_gateway": {
