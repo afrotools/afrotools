@@ -28,16 +28,32 @@
     "url": "https://b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/accept",
     "method": "POST"
   },
+  "parameters": [
+    {
+      "name": "claim_id",
+      "in": "query",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "minLength": 32,
+        "maxLength": 64
+      },
+      "description": "Claim ID received at the claim creation stage Passed as a query parameter."
+    },
+    {
+      "name": "Accept-Language",
+      "in": "header",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Preferred response language. Examples: \"en\" — English"
+    }
+  ],
   "example_prompt": "Confirm a priced Yango Delivery claim so that a courier is dispatched for the order.",
   "input_schema": {
     "type": "object",
     "properties": {
-      "claim_id": {
-        "type": "string",
-        "minLength": 32,
-        "maxLength": 64,
-        "description": "Claim ID received at the claim creation stage Passed as a query parameter."
-      },
       "version": {
         "type": "integer",
         "format": "int64",
@@ -45,7 +61,6 @@
       }
     },
     "required": [
-      "claim_id",
       "version"
     ]
   },
