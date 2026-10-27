@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- ATSS 1.1 `parameters` on 14 providers (#138–#151): SasPay, Paycard, LengoPay, Djomy, Wave, NimbaSMS, KadevPay, Notch Pay, Flutterwave, Infobip, Yango, Smile ID, Intron, Bictorys. Path, query and header values move out of `input_schema` (now the body only), each anchored on the provider's docs; what the docs leave open is an `open_questions` entry. `success_condition` where a provider signals an error inside a 2xx (SasPay's `success` envelope, KadevPay, Wave `send_payout`) — never for a business outcome such as a wrong PIN. 14 verified specs keep their status with maintainer-approved `spec_hash` values. Orange Money Mali, PayGate and Africa's Talking are unchanged (docs private or blocked).
+- Compatibility policy in ATSS (#152): `deprecation` block on `deprecated` specs, `removed_capabilities` tombstones in `provider.json`, and `scripts/spec-diff.js` in CI — a removed capability or field fails a PR without the `breaking` label (a same-name move between the body and `parameters` is not breaking).
+
+### Fixed
+
+- `scripts/validate.js` scans every string of a spec and every comment of its example for injected instructions, and checks the host of every URL in `canonical_example.ts`, slash-less and split schemes included (#153).
+- `scripts/test_live.py` checks `success_condition` on 2xx responses only, so a negative test (`expected_status: [404]`) no longer fails on it (#154).
+
+### Added
+
 - ATSS 1.1 `parameters` (path, query and header parameters; `input_schema` stays the body) and `success_condition` (the response field that says a 2xx call succeeded). `validate` checks every path parameter fills an `endpoint.url` placeholder and every placeholder has one, that a parameter is not also a body field (and a GET/DELETE with parameters has no body), and that `success_condition` names a field of `response_schema` with values of its type. It warns on a payment POST that moves money without a word on idempotency (14 specs today), and on a 1.1 spec whose URL has placeholders but no `parameters` yet (the migration list). No spec uses the new blocks yet; plugin 1.7.1 points the spec skill at them.
 
 ### Fixed
