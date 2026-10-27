@@ -570,3 +570,28 @@ test("warnings: placeholders without parameters on a 1.1 spec; idempotency on ch
   const described = run({ input_schema: { type: "object", properties: { reference: { type: "string", description: "Unique per payment: the idempotency key." } } } });
   assert.doesNotMatch(described.stderr, /idempotency —/);
 });
+
+test("input_schema with a $ref to a missing $def fails validation", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, {
+    status: "ready",
+    extraSchema: {
+      input_schema: { type: "object", properties: { amount: { $ref: "#/$defs/missing" } }, $defs: { money: { type: "integer" } } },
+    },
+  });
+  const { code, stderr } = runValidate(dir);
+  assert.equal(code, 1);
+  assert.match(stderr, /input_schema does not compile/);
+});
+
+test("schemas with local $defs and OpenAPI formats pass", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+  writeFixtureSpec(dir, {
+    status: "ready",
+    extraSchema: {
+      input_schema: { type: "object", properties: { amount: { $ref: "#/$defs/money" } }, $defs: { money: { type: "integer", format: "int32" } } },
+      response_schema: { type: "object", properties: { id: { type: "string", format: "uuid" } } },
+    },
+  });
+  assert.equal(runValidate(dir).code, 0);
+});
