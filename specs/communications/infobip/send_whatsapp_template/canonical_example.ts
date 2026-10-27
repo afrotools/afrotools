@@ -26,7 +26,6 @@ export type SendWhatsappTemplateInput = {
         buttons?: Array<((Record<string, unknown> & Record<string, unknown>) | (Record<string, unknown> & Record<string, unknown> & Record<string, unknown>) & Record<string, unknown> & Record<string, unknown>) | ((Record<string, unknown> & Record<string, unknown> & Record<string, unknown>) | (Record<string, unknown> & Record<string, unknown>) & Record<string, unknown> & Record<string, unknown>) | (Record<string, unknown> & Record<string, unknown> & Record<string, unknown>) | (Record<string, unknown> & Record<string, unknown> & Record<string, unknown>) | (Record<string, unknown> & Record<string, unknown> & Record<string, unknown>) | (Record<string, unknown> & Record<string, unknown> & Record<string, unknown>) | (Record<string, unknown> & Record<string, unknown> & Record<string, unknown>) | (Record<string, unknown> & Record<string, unknown> & Record<string, unknown>)>;
         carousel?: Record<string, unknown>;
         limitedTimeOffer?: Record<string, unknown>;
-        orderStatus?: Record<string, unknown>;
       };
       language: string;
     };
