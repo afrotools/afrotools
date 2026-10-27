@@ -61,6 +61,8 @@ afrotools/afrotools/
 ├── scripts/
 │   ├── validate.js
 │   ├── validate.test.js
+│   ├── spec-diff.js             ← removed capabilities/fields vs main (CI, "breaking" label)
+│   ├── spec-diff.test.js
 │   ├── test_live.py
 │   ├── ci_resolve_live_test_env.py
 │   └── generate-readme.js
@@ -107,6 +109,7 @@ draft → ready → verified → deprecated → archived
 - `draft` — work in progress, not yet validated
 - `ready` — schema valid, canonical_example compiles, gotchas present. Visible in MCP.
 - `verified` — ready + tested against the API (`test:live`, a working app, or an accepted community integration report), recorded in the spec's `verification` block with its environment, date and `spec_hash` (see ATSS.md § verified). "AI Ready" is a promise of the whole registry, not earned per provider — see ATSS.md § AI Ready.
+- `deprecated` — the provider deprecated it: `deprecation` block (`reason`, `replaced_by?`, `removed_after?`), still served with a warning. Once removed, the folder is deleted and a tombstone goes in `provider.json` `removed_capabilities` — see ATSS.md § Compatibility policy. A PR that removes a capability or a field needs the `breaking` label (`scripts/spec-diff.js` in CI).
 - Only maintainers can set `verified`, `deprecated`, or `archived`.
 
 ## Running validation
