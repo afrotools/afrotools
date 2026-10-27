@@ -28,6 +28,17 @@
     "url": "https://b2b.delivery.yango.tech/b2b/cargo/integration/v2/check-price",
     "method": "POST"
   },
+  "parameters": [
+    {
+      "name": "Accept-Language",
+      "in": "header",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Preferred response language. Examples: \"en\" — English"
+    }
+  ],
   "example_prompt": "Estimate the cost of a Yango Delivery courier between two addresses in Abidjan before creating a claim.",
   "input_schema": {
     "type": "object",

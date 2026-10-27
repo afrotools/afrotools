@@ -28,20 +28,23 @@
     "url": "https://b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/tracking-links",
     "method": "GET"
   },
+  "parameters": [
+    {
+      "name": "claim_id",
+      "in": "query",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "minLength": 32,
+        "maxLength": 64
+      },
+      "description": "Claim ID received at the claim creation stage"
+    }
+  ],
   "example_prompt": "Get the link that lets my customer follow their Yango Delivery courier on a map.",
   "input_schema": {
     "type": "object",
-    "properties": {
-      "claim_id": {
-        "type": "string",
-        "minLength": 32,
-        "maxLength": 64,
-        "description": "Claim ID received at the claim creation stage Passed as a query parameter."
-      }
-    },
-    "required": [
-      "claim_id"
-    ]
+    "properties": {}
   },
   "response_schema": {
     "type": "object",

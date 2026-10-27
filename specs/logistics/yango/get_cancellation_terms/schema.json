@@ -28,20 +28,32 @@
     "url": "https://b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/cancel-info",
     "method": "POST"
   },
+  "parameters": [
+    {
+      "name": "claim_id",
+      "in": "query",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "minLength": 32,
+        "maxLength": 64
+      },
+      "description": "Claim ID received at the claim creation stage"
+    },
+    {
+      "name": "Accept-Language",
+      "in": "header",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Preferred response language. Examples: \"en\" — English"
+    }
+  ],
   "example_prompt": "Find out whether cancelling a Yango Delivery claim is still free, paid or no longer possible.",
   "input_schema": {
     "type": "object",
-    "properties": {
-      "claim_id": {
-        "type": "string",
-        "minLength": 32,
-        "maxLength": 64,
-        "description": "Claim ID received at the claim creation stage Passed as a query parameter."
-      }
-    },
-    "required": [
-      "claim_id"
-    ]
+    "properties": {}
   },
   "response_schema": {
     "type": "object",

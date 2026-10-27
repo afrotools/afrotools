@@ -28,16 +28,32 @@
     "url": "https://b2b.delivery.yango.tech/b2b/cargo/integration/v2/claims/create",
     "method": "POST"
   },
+  "parameters": [
+    {
+      "name": "request_id",
+      "in": "query",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "description": "Idempotency token. Letters, numbers, and other symbols are allowed. To guarantee that values are unique, we recommend using the uuid format and its derivatives. If a server error (code 5xx) or timeout occur when creating a claim, use the same value to retry. (Otherwise, claim duplicating is possible, which may result in multiple couriers coming for the order). In other cases (when creating a new claim), use the new request_id value. Learn more (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/faq.md#claim-create)"
+    },
+    {
+      "name": "Accept-Language",
+      "in": "header",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Preferred response language. Examples: \"en\" — English"
+    }
+  ],
   "example_prompt": "Create a Yango Delivery claim to send a parcel from my shop in Abidjan to a customer, then confirm it once it is priced.",
   "input_schema": {
     "type": "object",
     "properties": {
-      "request_id": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 128,
-        "description": "Idempotency token. Letters, numbers, and other symbols are allowed. To guarantee that values are unique, we recommend using the uuid format and its derivatives. If a server error (code 5xx) or timeout occur when creating a claim, use the same value to retry. (Otherwise, claim duplicating is possible, which may result in multiple couriers coming for the order). In other cases (when creating a new claim), use the new request_id value. Learn more (https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/faq.md#claim-create) Passed as a query parameter."
-      },
       "items": {
         "type": "array",
         "items": {
@@ -580,7 +596,6 @@
       }
     },
     "required": [
-      "request_id",
       "items",
       "route_points"
     ]
