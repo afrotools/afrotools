@@ -44,7 +44,12 @@ interface BictorysError {
   details: string;
 }
 
+// transactionId can come from a redirect query string: a visitor can send "../…" and make this
+// call, with your API key, hit another endpoint. Bictorys types it as a uuid — reject anything else.
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function verifyTransaction(transactionId: string): Promise<TransactionResponse> {
+  if (!UUID.test(transactionId)) throw new Error("Invalid Bictorys transactionId: " + JSON.stringify(transactionId));
   const response = await fetch(
     "https://api.bictorys.com/pay/v1/transactions/" + transactionId + "/status",
     {

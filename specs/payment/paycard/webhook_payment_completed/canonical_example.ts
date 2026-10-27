@@ -38,7 +38,15 @@ function isPaid(status: string | null | undefined): boolean {
   return status?.toLowerCase() === "success";
 }
 
+// The reference comes from the redirect or the unsigned callback: a visitor can send "../…" and make
+// this call, with your API key, hit another endpoint. The docs give no format, so reject anything that
+// could leave the path segment (tab and newline are stripped by URL parsing, "." is dropped).
+function assertPathSegment(value: string): void {
+  if (/^\.?$|\.\.|[\x00-\x20\/\\?#%]/.test(value)) throw new Error(`Invalid Paycard reference: ${JSON.stringify(value)}`);
+}
+
 async function verifyPayment(reference: string): Promise<VerifyPaymentResponse> {
+  assertPathSegment(reference);
   const url = `https://mapaycard.com/epay/${PAYCARD_API_KEY!}/${reference}/status`;
 
   const response = await fetch(url);
