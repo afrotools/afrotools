@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:3d0f8913bbf20f3fd5bd6dcc317d5943b8a79a144f92aa4dec4d836963b0a870"
+    "spec_hash": "sha256:f30a18bcebecbaa9f42df935205b730e2a16d043f70d177673d2de6a01be1184"
   },
   "currency": [
     "XOF",
@@ -129,10 +129,10 @@
       "fee_charge_mode": {
         "enum": [
           "ADD_ON",
-          "DEDUCTED"
+          "DEDUCTED",
+          null
         ],
-        "type": "string",
-        "nullable": true,
+        "type": ["string", "null"],
         "description": "ADD_ON : les frais s'ajoutent au montant débité au client. DEDUCTED : les frais sont déduits du montant net reversé au marchand. Défaut : configuration du marchand."
       },
       "preferred_gateway": {

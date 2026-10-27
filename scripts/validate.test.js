@@ -595,3 +595,17 @@ test("schemas with local $defs and OpenAPI formats pass", () => {
   });
   assert.equal(runValidate(dir).code, 0);
 });
+
+test("OpenAPI nullable fails: JSON Schema ignores it, a null value then breaks the type", () => {
+  const run = (response_schema) => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+    writeFixtureSpec(dir, { status: "ready", extraSchema: { response_schema } });
+    return runValidate(dir);
+  };
+  const nested = run({ type: "object", properties: { data: { type: "object", properties: { link: { type: "string", nullable: true } } } } });
+  assert.equal(nested.code, 1);
+  assert.match(nested.stderr, /response_schema\.properties\.data\.properties\.link: "nullable" is OpenAPI 3\.0/);
+  assert.equal(run({ type: "object", properties: { link: { type: ["string", "null"] } } }).code, 0);
+  // a field named nullable is not the keyword
+  assert.equal(run({ type: "object", properties: { nullable: { type: "boolean" } }, required: ["nullable"] }).code, 0);
+});

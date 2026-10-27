@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:cd51a9381be00ccb1f022f48d065cb6232cbf7902d7c23db57ac5cba5f61423a"
+    "spec_hash": "sha256:35f1418fb435844c9d03cafaf29ada4b3389a4bf8e8a3931bc93b86495148597"
   },
   "currency": [
     "XOF",
@@ -145,12 +145,10 @@
             "type": "string"
           },
           "checkout_session": {
-            "type": "string",
-            "nullable": true
+            "type": ["string", "null"]
           },
           "payment_link": {
-            "type": "string",
-            "nullable": true
+            "type": ["string", "null"]
           },
           "operation_msisdn": {
             "type": "string"
