@@ -12,6 +12,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- `scripts/validate.js` compiles each spec's `input_schema`, `response_schema`, `error_schema` and parameter schemas with ajv: a `$ref` to a missing `$def` used to pass CI (#132).
+- **Infobip** `send_whatsapp_template`: India/Brazil-only order templates (`ORDER_DETAILS` buttons, `orderStatus`: `orderCurrency` INR or BRL only) removed with a gotcha, and OpenAPI conversion noise normalised; `get_spec` 61.2K → 25.5K characters, same accepted payloads otherwise (#133). `send_sms` and `create_2fa_message_template` drop the parameters for numbers in India, Turkey and South Korea (#135).
+- **Yango** `create_delivery_claim`: one note instead of 18 repeated descriptions; `get_spec` 39.9K → 38.2K characters (#134).
 - **LengoPay** `webhook_payment_completed`: the example and the first gotcha verified payments with `GET /api/v1/payments/{payId}`, replaced in v1.2.0; they now call `POST /api/v1/transaction/status` like `verify_payment` and the example app (#130). Stays `verified`, with a maintainer-approved `spec_hash`.
 - **NimbaSMS**: the `list_sendernames` example filtered on status `active`, which the API never returns (`pending`, `refused`, `accepted`); `verify_code` no longer claims 4 to 6 digits, and records the docs' own 4-to-8 vs `maximum: 999999` contradiction as an open question (#129).
 - `scripts/validate.js` rejects a provider slug reused in another category, in every mode (`--changed` included): the registry, the MCP and the website index providers by slug alone, so the second provider silently shadowed the first. CI now runs `scripts/validate.test.js`.
