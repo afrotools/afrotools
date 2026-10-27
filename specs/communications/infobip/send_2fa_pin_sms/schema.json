@@ -32,14 +32,20 @@
     "url": "https://xxxxx.api.infobip.com/2fa/2/pin",
     "method": "POST"
   },
+  "parameters": [
+    {
+      "name": "ncNeeded",
+      "in": "query",
+      "schema": {
+        "type": "boolean"
+      },
+      "description": "Indicates if [Number Lookup](https://www.infobip.com/docs/api/connectivity/number-lookup) is needed before sending the 2FA message. If the parameter value is true, Number Lookup will be requested before sending the SMS. If the value is false, the SMS will be sent without requesting Number Lookup. Field's default value is `true`. Passed as a query parameter."
+    }
+  ],
   "example_prompt": "Send a one-time PIN by SMS to a user's phone through Infobip 2FA and keep the pinId to verify the code they type.",
   "input_schema": {
     "type": "object",
     "properties": {
-      "ncNeeded": {
-        "type": "boolean",
-        "description": "Indicates if [Number Lookup](https://www.infobip.com/docs/api/connectivity/number-lookup) is needed before sending the 2FA message. If the parameter value is true, Number Lookup will be requested before sending the SMS. If the value is false, the SMS will be sent without requesting Number Lookup. Field's default value is `true`. Passed as a query parameter."
-      },
       "applicationId": {
         "type": "string",
         "description": "The ID of the application that represents your service, e.g. 2FA for login, 2FA for changing the password, etc."
