@@ -69,11 +69,11 @@ Usage example:
 // Call after receiving a redirect callback or webhook event.
 const transaction = await verifyTransaction("abd2053b-638d-4133-957e-3caf63e6b79c");
 
-// Bictorys' integration guide: "authorized" (card pre-capture) → "Traiter comme succeeded".
-// "authorized" funds are reserved, not yet captured — whether a capture is needed
-// before fulfilling is an open question on this spec.
-if (transaction.status === "succeeded" || transaction.status === "authorized") {
+if (transaction.status === "succeeded") {
   await fulfillOrder(transaction.paymentReference, transaction.amount, transaction.currency);
+} else if (transaction.status === "authorized") {
+  // Funds only reserved, not captured — do not fulfil until the spec's open question
+  // (is a capture needed?) is resolved. See the "authorized" gotcha.
 } else {
   // Payment not complete; log and monitor
   console.warn("Payment not succeeded:", transaction.status, transaction.id);
