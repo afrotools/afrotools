@@ -15,7 +15,8 @@
  *      atss.schema.json; a "verified" spec carries its proof, unchanged since (spec_hash);
  *      input_schema, response_schema, error_schema and parameter schemas compile (a dangling $ref fails)
  *   3. canonical_example.ts — compiles with tsc --noEmit, zero errors
- *   4. Security    — endpoint safety, prompt injection in text fields, fetch/env coherence
+ *   4. Security    — endpoint safety, prompt injection in every string of schema.json and provider.json
+ *      and in the example's comments and strings, hosts of the example's URLs, fetch/env coherence
  *
  * Flags:
  *   --changed       validate only git-changed specs
@@ -28,6 +29,7 @@ const crypto = require("crypto");
 const { execSync } = require("child_process");
 const Ajv2020 = require("ajv/dist/2020").default;
 const addFormats = require("ajv-formats").default;
+const ts = require("typescript");
 
 const SPECS_ROOT = (() => {
   const cwdSpecs = path.resolve(process.cwd(), "specs");
@@ -754,7 +756,7 @@ const PROMPT_INJECTION_PATTERNS = [
   // Unambiguous override instructions — always block
   { re: /\b(IGNORE|DISREGARD|FORGET)\s+(ALL\s+)?(PREVIOUS|ABOVE|PRIOR)/i, label: "instruction d'override d'agent", blocking: true },
   // Credential/key exfiltration disguised as debugging — block
-  { re: /for\s+(debug|logging|monitoring|telemetry)\s+purposes?\s+.{0,80}(api[_\s]?key|token|secret|credential)/i, label: "exfiltration de credential déguisée en debug", blocking: true },
+  { re: /for\s+(debug|logging|monitoring|telemetry)\s+purposes?\W+.{0,80}(api[_\s]?key|token|secret|credential)/i, label: "exfiltration de credential déguisée en debug", blocking: true },
   // base64 obfuscation in text fields — block
   { re: /atob\s*\(|btoa\s*\(/, label: "encoding base64 suspect dans un champ texte", blocking: true },
   // Broad heuristics — warn only (too many false-positives as hard errors)
@@ -800,27 +802,37 @@ function validateEndpointUrl(url) {
 }
 
 /**
- * Scans string fields for prompt injection patterns.
- * @param {object} schema
+ * Every string of a JSON value, object keys included, with where it sits.
+ * @param {unknown} value
+ * @param {string} at
+ * @returns {Array<[string, string]>}
+ */
+function allStrings(value, at) {
+  if (typeof value === "string") return [[at, value]];
+  if (Array.isArray(value)) return value.flatMap((v, i) => allStrings(v, `${at}[${i}]`));
+  if (value && typeof value === "object")
+    return Object.entries(value).flatMap(([k, v]) => [[`${at} (clé)`, k], ...allStrings(v, `${at}.${k}`)]);
+  return [];
+}
+
+/**
+ * Scans texts for prompt injection patterns: an agent reads all of them, schema descriptions and
+ * example comments as much as gotchas.
+ * @param {Array<[string, string]>} texts  [where, text]
  * @returns {{ errors: string[], warnings: string[] }}
  */
-function scanTextFields(schema) {
+function scanTexts(texts) {
   /** @type {string[]} */ const errors = [];
   /** @type {string[]} */ const warnings = [];
 
-  const fields = [
-    schema.provider_name,
-    schema.capability,
-    schema.provider_api_version,
-    ...(Array.isArray(schema.gotchas) ? schema.gotchas : []),
-  ].filter((f) => typeof f === "string");
-
-  for (const field of fields) {
+  for (const [at, text] of texts) {
     for (const { re, label, blocking } of PROMPT_INJECTION_PATTERNS) {
-      if (re.test(field)) {
-        const excerpt = field.length > 80 ? field.slice(0, 80) + "…" : field;
-        if (blocking) errors.push(`[PROMPT INJECTION] ${label}: "${excerpt}"`);
-        else warnings.push(`[WARN] ${label}: "${excerpt}"`);
+      // Warnings stay on gotchas: descriptions, open_questions and evidence cite doc URLs by design.
+      if (!blocking && !at.startsWith("schema.json.gotchas")) continue;
+      if (re.test(text)) {
+        const excerpt = text.length > 80 ? text.slice(0, 80) + "…" : text;
+        if (blocking) errors.push(`[PROMPT INJECTION] ${label} (${at}): "${excerpt}"`);
+        else warnings.push(`[WARN] ${label} (${at}): "${excerpt}"`);
       }
     }
   }
@@ -828,34 +840,130 @@ function scanTextFields(schema) {
 }
 
 /**
+ * Hosts the example may send requests to: endpoint.url and auth.token_exchange.url of every
+ * capability of the provider (a webhook's own endpoint is a placeholder), and the provider.json
+ * environments.
+ * @param {string} specPath
+ * @returns {Set<string>}
+ */
+function allowedHosts(specPath) {
+  const providerDir = path.dirname(specPath);
+  /** @type {string[]} */ const urls = [];
+  try {
+    const provider = JSON.parse(fs.readFileSync(path.join(providerDir, "provider.json"), "utf8"));
+    urls.push(...Object.values(provider.environments ?? {}).map((/** @type {any} */ e) => e?.base_url));
+  } catch { /* provider.json missing or invalid — reported by validateSchema */ }
+  for (const dir of fs.readdirSync(providerDir)) {
+    try {
+      const s = JSON.parse(fs.readFileSync(path.join(providerDir, dir, "schema.json"), "utf8"));
+      urls.push(s.endpoint?.url, s.auth?.token_exchange?.url);
+    } catch { /* not a spec folder */ }
+  }
+  const hosts = new Set();
+  for (const u of urls) {
+    try { hosts.add(new URL(u).hostname); } catch { /* placeholder or absent */ }
+  }
+  return hosts;
+}
+
+/** Property names whose value is a URL the example sends to the provider, not one it calls. */
+const PAYLOAD_URL_KEY = /url|uri|callback|redirect|webhook|proof/i;
+
+/**
+ * A literal that is payload data: the value of a callback_url-like property, in an object passed
+ * straight to a call (the usage call of the example, JSON.stringify of a request body).
+ * `const t = { url: "https://…" }; fetch(t.url)` is not: the object is kept, then read.
+ * @param {import("typescript").Node} node
+ */
+function isPayloadUrl(node) {
+  const prop = node.parent;
+  if (!ts.isPropertyAssignment(prop) || prop.initializer !== node || !PAYLOAD_URL_KEY.test(prop.name.getText())) return false;
+  let n = prop.parent;
+  for (;;) {
+    const p = n.parent;
+    if (ts.isCallExpression(p)) return p.arguments.some((arg) => arg === n);
+    if (!(ts.isObjectLiteralExpression(p) || ts.isArrayLiteralExpression(p) || ts.isPropertyAssignment(p) ||
+          ts.isAsExpression(p) || ts.isSatisfiesExpression(p) || ts.isParenthesizedExpression(p))) return false;
+    n = p;
+  }
+}
+
+/**
+ * canonical_example.ts read through the TypeScript parser: every comment, and its string and
+ * template literal texts with whether each is payload data (isPayloadUrl).
+ * @param {string} source
+ */
+function exampleTexts(source) {
+  const file = ts.createSourceFile("canonical_example.ts", source, ts.ScriptTarget.Latest, true);
+  /** @type {Map<number, string>} */ const comments = new Map();
+  /** @type {Array<{ text: string, payload: boolean }>} */ const literals = [];
+  // Down to every token: a comment can sit before a ")" or "}" that no node starts at.
+  /** @param {import("typescript").Node} node */
+  const visit = (node) => {
+    for (const r of [...ts.getLeadingCommentRanges(source, node.getFullStart()) ?? [], ...ts.getTrailingCommentRanges(source, node.getFullStart()) ?? []])
+      comments.set(r.pos, source.slice(r.pos, r.end));
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateHead(node) ||
+        ts.isTemplateMiddle(node) || ts.isTemplateTail(node)) {
+      literals.push({ text: node.text, payload: isPayloadUrl(node) });
+    }
+    node.getChildren(file).forEach(visit);
+  };
+  visit(file);
+  return { comments: [...comments.values()], literals };
+}
+
+/**
+ * URLs in the example's string literals: each one http(s), on a host the provider declares, and
+ * whole — fetch reads "https:host", "https:/host" and "https:\\host" as https://host/, and a
+ * scheme split across literals ("https" + ":/" + "/host") hides the host. Payload URLs
+ * (isPayloadUrl) keep any host.
+ * ponytail: static check on literals only — a URL built at runtime (fromCharCode, a decoded
+ * string, a ":" literal joined to a host) passes it; review stays the gate for that.
+ * @param {Array<{ text: string, payload: boolean }>} literals
+ * @param {Set<string>} hosts
+ * @returns {string[]}
+ */
+function checkExampleUrls(literals, hosts) {
+  /** @type {string[]} */ const errors = [];
+  for (const { text, payload } of literals) {
+    if (/^(https?:?[\\/]*|[A-Za-z]*:[\\/]+|[A-Za-z]+:|[\\/]{2}.*)$/i.test(text.trim()))
+      errors.push(`[URL SPLIT] morceau d'URL seul dans une chaîne: "${text}"`);
+    for (const m of text.matchAll(/([A-Za-z][A-Za-z0-9+.-]*):\/\//g)) {
+      if (!/^https?$/i.test(m[1])) errors.push(`[URL SPLIT] URL sans schéma http(s): "${m[0]}"`);
+    }
+    for (const m of text.matchAll(/\bhttps?:[\\/]*[^\s'"`]*/gi)) {
+      let host;
+      try { host = new URL(m[0]).hostname; } catch { /* reported below */ }
+      if (!host) errors.push(`[INVALID URL] URL invalide dans canonical_example.ts: "${m[0]}"`);
+      else if (!payload && !hosts.has(host))
+        errors.push(`[EXFILTRATION] URL vers "${host}", hôte qu'aucun endpoint, token_exchange ni environment du provider ne déclare (${[...hosts].join(", ") || "aucun"})`);
+    }
+  }
+  return errors;
+}
+
+/**
  * Scans canonical_example.ts source for:
- *   - fetch() calls pointing outside the declared endpoint hostname (hard error)
+ *   - prompt injection in its comments and string literals (hard error)
+ *   - URLs on a host the provider does not declare, or split to hide it (hard error)
  *   - process.env references not in auth.env_var (warning — multi-credential APIs are legit)
  *   - dangerous code patterns (hard error)
  * @param {string} source
  * @param {object} schema
+ * @param {Set<string>} hosts  from allowedHosts()
  * @returns {{ errors: string[], warnings: string[] }}
  */
-function scanCanonicalExample(source, schema) {
+function scanCanonicalExample(source, schema, hosts) {
   /** @type {string[]} */ const errors = [];
   /** @type {string[]} */ const warnings = [];
 
-  // 1. Coherence: all literal fetch() URLs must match declared endpoint hostname
-  let allowedHost = null;
-  try { allowedHost = new URL(schema.endpoint.url).hostname; } catch { /* already flagged by validateEndpointUrl */ }
-
-  if (allowedHost) {
-    const fetchRe = /fetch\s*\(\s*['"`](https?:\/\/[^'"`\s]+)['"`]/g;
-    for (const m of source.matchAll(fetchRe)) {
-      try {
-        const fetchedHost = new URL(m[1]).hostname;
-        if (fetchedHost !== allowedHost)
-          errors.push(`[EXFILTRATION] fetch() vers "${fetchedHost}" mais endpoint déclaré est "${allowedHost}"`);
-      } catch {
-        errors.push(`[INVALID URL] URL de fetch() invalide: "${m[1]}"`);
-      }
-    }
-  }
+  // 1. Comments and strings an agent reads, and the hosts the example's URLs point to
+  const { comments, literals } = exampleTexts(source);
+  errors.push(...scanTexts([
+    ...comments.map((c) => /** @type {[string, string]} */ (["canonical_example.ts, commentaire", c])),
+    ...literals.map(({ text }) => /** @type {[string, string]} */ (["canonical_example.ts, chaîne", text])),
+  ]).errors);
+  errors.push(...checkExampleUrls(literals, hosts));
 
   // 2. process.env references not declared → warning on a 1.0 auth (multi-credential APIs used env vars
   //    for required params, e.g. website_id), error once the spec lists its auth.credentials (ATSS 1.1).
@@ -903,13 +1011,16 @@ function runSecurityScan(specPath) {
     allErrors.push(...validateEndpointUrl(schema.endpoint.url));
   }
 
-  const { errors: textErrors, warnings: textWarnings } = scanTextFields(schema);
+  /** @type {unknown} */ let provider = null;
+  try { provider = JSON.parse(fs.readFileSync(path.join(path.dirname(specPath), "provider.json"), "utf8")); }
+  catch { /* reported by validateSchema */ }
+  const { errors: textErrors, warnings: textWarnings } = scanTexts([...allStrings(schema, "schema.json"), ...allStrings(provider, "provider.json")]);
   allErrors.push(...textErrors);
   allWarnings.push(...textWarnings);
 
   try {
     const source = fs.readFileSync(path.join(specPath, "canonical_example.ts"), "utf8");
-    const { errors: codeErrors, warnings: codeWarnings } = scanCanonicalExample(source, schema);
+    const { errors: codeErrors, warnings: codeWarnings } = scanCanonicalExample(source, schema, allowedHosts(specPath));
     allErrors.push(...codeErrors);
     allWarnings.push(...codeWarnings);
   } catch { /* file missing — caught by check 1 */ }
