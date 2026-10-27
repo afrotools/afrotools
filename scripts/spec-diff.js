@@ -10,9 +10,9 @@
  *   - removed capabilities: served at the ref (unverified, ready, verified, deprecated), and now
  *     deleted or set to draft/archived;
  *   - removed or renamed fields of input_schema, response_schema and parameters (a rename is a
- *     removal plus an addition). A request field whose name is still in input_schema or
- *     parameters moved (e.g. a body field that became a header parameter, ATSS 1.1): listed as
- *     moved, not breaking.
+ *     removal plus an addition). A top-level body field that became a parameter of the same
+ *     name, or back (ATSS 1.1 migration), moved: listed as moved, not breaking. Header names
+ *     ignore case; nothing else does.
  *
  * Usage:
  *   node scripts/spec-diff.js [ref] [--allow-breaking]
@@ -73,8 +73,29 @@ function fields(schema) {
   ]);
 }
 
-/** The name a request field is sent under: last segment of input_schema.a.b / parameters.in.name. */
-const fieldName = (/** @type {string} */ f) => f.slice(f.lastIndexOf(".") + 1).toLowerCase();
+/** @param {any} p @param {string} name — HTTP header names ignore case, body and other parameter names do not */
+const sameName = (p, name) => (p.in === "header" ? p.name.toLowerCase() === name.toLowerCase() : p.name === name);
+
+/**
+ * Where a removed request field went, when it only moved: a top-level body field that became a
+ * parameter of the same name, or a parameter that became a top-level body field.
+ * @param {string} f a field of the old spec, as fields() names it
+ * @param {any} before
+ * @param {any} after
+ * @returns {string | undefined} the field in the new spec
+ */
+function movedTo(f, before, after) {
+  const params = (/** @type {any} */ s) => (Array.isArray(s.parameters) ? s.parameters : []);
+  const top = (/** @type {any} */ s) => [...propertyPaths(s.input_schema, "input_schema")]
+    .filter((b) => b.indexOf(".") === b.lastIndexOf(".")).map((b) => b.slice("input_schema.".length));
+  if (top(before).some((n) => f === `input_schema.${n}`)) {
+    const p = params(after).find((/** @type {any} */ p) => sameName(p, f.slice("input_schema.".length)));
+    return p && `parameters.${p.in}.${p.name}`;
+  }
+  const old = params(before).find((/** @type {any} */ p) => f === `parameters.${p.in}.${p.name}`);
+  const name = old && top(after).find((n) => sameName(old, n));
+  return name && `input_schema.${name}`;
+}
 
 /**
  * @param {string} ref
@@ -94,11 +115,9 @@ function specDiff(ref) {
     if (after === null) continue;
     if (!after || !SERVED.has(after.status)) { capabilities.push(id); continue; }
     const now = fields(after);
-    // Header names ignore case; body and parameter names are compared the same way.
-    const request = [...now].filter((f) => !f.startsWith("response_schema."));
     for (const f of fields(before)) {
       if (now.has(f)) continue;
-      const to = f.startsWith("response_schema.") ? undefined : request.find((r) => fieldName(r) === fieldName(f));
+      const to = movedTo(f, before, after);
       if (to) moved.push(`${id}: ${f} → ${to}`);
       else removedFields.push(`${id}: ${f}`);
     }

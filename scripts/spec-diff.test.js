@@ -89,3 +89,30 @@ test("spec-diff: a body field that became a parameter moved (exit 0); gone from 
   assert.equal(removedRun.status, 1);
   assert.match(removedRun.stdout, /Removed or renamed fields \(1\)[^]*create_payment: input_schema\.trace_id/);
 });
+
+test("spec-diff: only a top-level body field ↔ parameter of the same name moves; case counts outside headers", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "spec-diff-"));
+  const obj = (properties) => ({ type: "object", properties });
+  writeSpec(dir, "create_payment", {
+    input_schema: obj({ id: {}, amount: {}, country: {}, customer: obj({ country: {} }), ref: {} }),
+    parameters: [{ name: "X-Trace-Id", in: "header", schema: {} }],
+  });
+  commitBase(dir);
+
+  writeSpec(dir, "create_payment", {
+    // id moved inside data, customer.country deleted (a top-level country remains), amount renamed
+    // Amount, ref became query parameter Ref, the X-Trace-Id header became body field x-trace-id
+    input_schema: obj({ data: obj({ id: {} }), Amount: {}, country: {}, customer: obj({}), "x-trace-id": {} }),
+    parameters: [{ name: "Ref", in: "query", schema: {} }],
+  });
+  const res = run(dir);
+  assert.equal(res.status, 1);
+  const lines = res.stdout.split("\n").filter((l) => l.startsWith("  ")).map((l) => l.trim().replace("payment/fixtureprovider/create_payment: ", "")).sort();
+  assert.deepEqual(lines, [
+    "input_schema.amount",
+    "input_schema.customer.country",
+    "input_schema.id",
+    "input_schema.ref",
+    "parameters.header.X-Trace-Id → input_schema.x-trace-id",
+  ]);
+});

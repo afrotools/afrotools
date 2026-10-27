@@ -401,10 +401,10 @@ wrong without telling its agent is **breaking**:
 - removing a capability: deleting its folder, or setting a served spec (`unverified`, `ready`,
   `verified`, `deprecated`) back to `draft` or to `archived`, which the MCP does not serve;
 - removing or renaming a field of `response_schema`;
-- removing or renaming a request field: its name is in neither `input_schema` nor `parameters`
-  any more. A request field that moves between them under the same name (header names ignore
-  case), e.g. a body field that becomes a header parameter in the ATSS 1.1 migration, is a
-  relocation the agent reads in the new spec, not a break.
+- removing or renaming a field of `input_schema` or `parameters`, including a change of case or
+  a move to another place in the body. One move is not a break: a top-level `input_schema`
+  property that becomes a parameter of the same name, or back (the ATSS 1.1 migration) — the
+  agent reads the new location in the spec. Only header names ignore case.
 
 Changing a field's type, making an optional input required or narrowing an enum breaks
 integrations too; the reviewer judges these. Adding a capability, an optional field, a gotcha or
