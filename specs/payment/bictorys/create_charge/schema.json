@@ -8,7 +8,7 @@
     "method": "app",
     "environment": "production",
     "at": "2026-10-24",
-    "spec_hash": "sha256:88d608d321d0469d0e503608d7e20432868c98525e7e9f090d28e4c8700ab836"
+    "spec_hash": "sha256:81f3a4b8310197c621927732c33ec68b0c7bfef23b75c010fc7f54937eaf0e5d"
   },
   "currency": [
     "XOF"
@@ -288,7 +288,7 @@
     "Sandbox base URL is https://api.test.bictorys.com — the production base URL is https://api.bictorys.com. Sandbox and production use separate API keys obtained from the Bictorys dashboard.",
     "Card payments via the direct API (payment_type=card with a cardObject in the body) require PCI-DSS certification. Mobile money payments have no certification requirement.",
     "Card payments return E401-7: Card payment is not activated yet in production until Bictorys manually activates card payments for your merchant account — reproduces both with an explicit payment_type=card and via the hosted-checkout flow (no payment_type, customer picks card from Bictorys' page). Sandbox does not reproduce this — test cards work there with no activation step, so this will not surface until you go live. Contact Bictorys support to enable card payments on your production account before launch; mobile money has no such gate.",
-    "create_charge uses the PUBLIC API key (env BICTORYS_API_KEY, header X-Api-Key). verify_transaction and create_payout both use the PRIVATE key (env BICTORYS_PRIVATE_KEY, header X-API-Key) — despite Bictorys' documentation claiming verify_transaction needs the public key, a real sandbox call with the private key returns 200 successfully.",
+    "create_charge uses the PUBLIC API key (env BICTORYS_API_KEY, header X-Api-Key), and so does verify_transaction; create_payout uses the PRIVATE key (env BICTORYS_PRIVATE_KEY, header X-API-Key). The integration guide: \"Status check (GET /pay/v1/transactions/{id}/status) | Clé publique (BICTORYS_API_KEY)\", \"Payouts (retraits) | Clé privée (BICTORYS_PRIVATE_KEY)\", and \"Utiliser la clé privée pour une charge fonctionne, mais ce n'est pas recommandé.\" A sandbox call measured 2026-09-14 also accepted the private key on verify_transaction.",
     "Orange Money Côte d'Ivoire requires an OTP: the customer must dial #144*82# on their phone to generate a 6-8 digit code, then pass it as the 'otp' field in the request body. The OTP expires quickly — if the charge fails with an OTP error, ask the user to redial.",
     "The request body field is 'errorRedirectUrl' (lowercase e) — Bictorys' own documentation example shows 'ErrorRedirectUrl' (capital E), which appears to be a doc typo; lowercase is confirmed working end-to-end in production (charge creation + successful webhook).",
     "HTTP 403 with an HTML body (not JSON) means AWS WAF is rate-limiting your requests. Implement exponential backoff with at least 5-second spacing between retries."
