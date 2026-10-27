@@ -32,19 +32,23 @@
     "url": "https://xxxxx.api.infobip.com/whatsapp/1/templates",
     "method": "GET"
   },
-  "example_prompt": "List the WhatsApp templates on my Infobip account (filter by sender, status, name or language) before sending a template message.",
-  "input_schema": {
-    "type": "object",
-    "properties": {
-      "sender": {
+  "parameters": [
+    {
+      "name": "sender",
+      "in": "query",
+      "schema": {
         "type": "array",
         "items": {
           "type": "string"
         },
-        "uniqueItems": true,
-        "description": "List of registered WhatsApp senders numbers separated by comma. Must be in international format. Passed as a query parameter."
+        "uniqueItems": true
       },
-      "status": {
+      "description": "List of registered WhatsApp senders numbers separated by comma. Must be in international format."
+    },
+    {
+      "name": "status",
+      "in": "query",
+      "schema": {
         "type": "array",
         "items": {
           "type": "string",
@@ -64,14 +68,22 @@
             "UNKNOWN"
           ]
         },
-        "uniqueItems": true,
-        "description": "List of template statuses, separated by commas. Passed as a query parameter."
+        "uniqueItems": true
       },
-      "name": {
-        "type": "string",
-        "description": "Template name. Passed as a query parameter."
+      "description": "List of template statuses, separated by commas."
+    },
+    {
+      "name": "name",
+      "in": "query",
+      "schema": {
+        "type": "string"
       },
-      "language": {
+      "description": "Template name."
+    },
+    {
+      "name": "language",
+      "in": "query",
+      "schema": {
         "type": "array",
         "items": {
           "type": "string",
@@ -187,10 +199,14 @@
             "unknown"
           ]
         },
-        "uniqueItems": true,
-        "description": "List of languages for the templates, separated by commas. Passed as a query parameter."
+        "uniqueItems": true
       },
-      "category": {
+      "description": "List of languages for the templates, separated by commas."
+    },
+    {
+      "name": "category",
+      "in": "query",
+      "schema": {
         "type": "array",
         "items": {
           "type": "string",
@@ -200,37 +216,62 @@
             "UTILITY"
           ]
         },
-        "uniqueItems": true,
-        "description": "List of template categories, separated by commas. Passed as a query parameter."
+        "uniqueItems": true
       },
-      "applicationId": {
-        "type": "string",
-        "description": "Application ID used in outbound send requests. It is also returned in notification events. For more details, refer to the [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management). Passed as a query parameter."
+      "description": "List of template categories, separated by commas."
+    },
+    {
+      "name": "applicationId",
+      "in": "query",
+      "schema": {
+        "type": "string"
       },
-      "entityId": {
-        "type": "string",
-        "description": "Entity ID used in outbound send requests. It is also returned in notification events. For more details, refer to the [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management). Passed as a query parameter."
+      "description": "Application ID used in outbound send requests. It is also returned in notification events. For more details, refer to the [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management)."
+    },
+    {
+      "name": "entityId",
+      "in": "query",
+      "schema": {
+        "type": "string"
       },
-      "page": {
+      "description": "Entity ID used in outbound send requests. It is also returned in notification events. For more details, refer to the [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management)."
+    },
+    {
+      "name": "page",
+      "in": "query",
+      "schema": {
         "type": "integer",
         "format": "int32",
-        "default": 0,
-        "description": "Current page number. Passed as a query parameter."
+        "default": 0
       },
-      "size": {
+      "description": "Current page number."
+    },
+    {
+      "name": "size",
+      "in": "query",
+      "schema": {
         "type": "integer",
         "format": "int32",
         "default": 10,
         "maximum": 100,
-        "minimum": 1,
-        "description": "Number of items per page. Passed as a query parameter."
+        "minimum": 1
       },
-      "orderBy": {
+      "description": "Number of items per page."
+    },
+    {
+      "name": "orderBy",
+      "in": "query",
+      "schema": {
         "type": "string",
-        "default": "templateId,ASC",
-        "description": "Sorting criteria in the format property,direction. Can be ascending (ASC) or descending (DESC). Available properties: category, language, name, status, templateId Passed as a query parameter."
-      }
+        "default": "templateId,ASC"
+      },
+      "description": "Sorting criteria in the format property,direction. Can be ascending (ASC) or descending (DESC). Available properties: category, language, name, status, templateId"
     }
+  ],
+  "example_prompt": "List the WhatsApp templates on my Infobip account (filter by sender, status, name or language) before sending a template message.",
+  "input_schema": {
+    "type": "object",
+    "properties": {}
   },
   "response_schema": {
     "type": "object",

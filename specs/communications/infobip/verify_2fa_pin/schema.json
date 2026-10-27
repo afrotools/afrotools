@@ -32,21 +32,27 @@
     "url": "https://xxxxx.api.infobip.com/2fa/2/pin/{pinId}/verify",
     "method": "POST"
   },
+  "parameters": [
+    {
+      "name": "pinId",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "ID of the pin code that has to be verified."
+    }
+  ],
   "example_prompt": "Check the PIN a user typed against the Infobip 2FA pinId and only log them in when it is verified.",
   "input_schema": {
     "type": "object",
     "properties": {
-      "pinId": {
-        "type": "string",
-        "description": "ID of the pin code that has to be verified. Passed as a path parameter."
-      },
       "pin": {
         "type": "string",
         "description": "The PIN code to verify."
       }
     },
     "required": [
-      "pinId",
       "pin"
     ]
   },

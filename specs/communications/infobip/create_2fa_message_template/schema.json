@@ -32,14 +32,21 @@
     "url": "https://xxxxx.api.infobip.com/2fa/2/applications/{appId}/messages",
     "method": "POST"
   },
+  "parameters": [
+    {
+      "name": "appId",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "ID of application for which requested message was created."
+    }
+  ],
   "example_prompt": "Create the SMS message template (text with the {{pin}} placeholder, PIN length and type) used by my Infobip 2FA application.",
   "input_schema": {
     "type": "object",
     "properties": {
-      "appId": {
-        "type": "string",
-        "description": "ID of application for which requested message was created. Passed as a path parameter."
-      },
       "language": {
         "type": "string",
         "description": "Language code which message is written in. This is used when sending text-to-speech messages. More about Text-to-speech functionality and supported TTS languages can be found [here](https://www.infobip.com/docs/voice-and-video/outbound-calls#text-to-speech-voice-over-broadcast). If not set, default language is `English [en]`. If voice is not set, then default voice for that specific language is used. In the case of English language, the voice is `[Joanna]`."
@@ -86,7 +93,6 @@
       }
     },
     "required": [
-      "appId",
       "messageText",
       "pinType"
     ]
