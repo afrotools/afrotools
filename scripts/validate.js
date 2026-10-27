@@ -277,6 +277,20 @@ function validateSchema(specPath) {
     const errors = (validateEnvironments.errors ?? []).map((e) => `${e.instancePath || "/"} ${e.message}`);
     return fail(specPath, `provider.json environments invalid (atss.schema.json $defs/environments): ${errors.join("; ")}`);
   }
+  if ("removed_capabilities" in providerManifest) {
+    const removed = providerManifest.removed_capabilities;
+    if (!validateRemovedCapabilities(removed)) {
+      const errors = (validateRemovedCapabilities.errors ?? []).map((e) => `${e.instancePath || "/"} ${e.message}`);
+      return fail(specPath, `provider.json removed_capabilities invalid (atss.schema.json $defs/removed_capabilities): ${errors.join("; ")}`);
+    }
+    const names = removed.map((/** @type {any} */ r) => r.capability);
+    const dup = names.filter((/** @type {string} */ n, /** @type {number} */ i) => names.indexOf(n) !== i);
+    if (dup.length) return fail(specPath, `provider.json removed_capabilities lists ${[...new Set(dup)].join(", ")} more than once`);
+    const present = names.filter((/** @type {string} */ n) => fs.existsSync(path.join(providerDir, n)));
+    if (present.length) return fail(specPath, `provider.json removed_capabilities lists ${present.join(", ")}, still a folder of this provider: delete it, or drop the tombstone`);
+    const missing = removed.flatMap((/** @type {any} */ r) => r.alternatives ?? []).filter((/** @type {string} */ a) => !fs.existsSync(path.join(providerDir, a)));
+    if (missing.length) return fail(specPath, `provider.json removed_capabilities alternatives ${[...new Set(missing)].join(", ")}: no such capability of this provider`);
+  }
   const baseUrls = Object.values(providerManifest.environments ?? {}).map((/** @type {any} */ e) => e.base_url);
   if (baseUrls.length > 0 && !["webhook", "sdk"].includes(schema.capability_type) &&
       !baseUrls.some((/** @type {string} */ b) => String(schema.endpoint?.url).startsWith(`${b}/`))) {
@@ -397,13 +411,14 @@ function validateEvidence(specPath, schema) {
 }
 
 const SPEC_VERSIONS = ["1.0", "1.1"];
-const ATSS_1_1_FIELDS = ["verification", "open_questions", "parameters", "success_condition", "webhook"];
+const ATSS_1_1_FIELDS = ["verification", "deprecation", "open_questions", "parameters", "success_condition", "webhook"];
 const AUTH_1_1_FIELDS = ["credentials", "signing", "token_exchange", "apply"];
 const ajv = new Ajv2020({ allErrors: true, allowUnionTypes: true });
 addFormats(ajv);
 const atssSchema = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../atss.schema.json"), "utf8"));
 const validateAtss11Blocks = ajv.compile(atssSchema);
 const validateEnvironments = ajv.getSchema(`${atssSchema.$id}#/$defs/environments`);
+const validateRemovedCapabilities = ajv.getSchema(`${atssSchema.$id}#/$defs/removed_capabilities`);
 
 /**
  * The JSON Schemas a spec carries must compile: a $ref to a missing $def, or a keyword with a
@@ -595,7 +610,7 @@ function idempotencyWarning(specPath, schema) {
 }
 
 /**
- * Check 2c: ATSS 1.1 blocks (atss.schema.json) and the proof behind "verified".
+ * Check 2c: ATSS 1.1 blocks (atss.schema.json), the proof behind "verified" and the deprecation of "deprecated".
  * @param {string} specPath
  * @param {any} schema
  * @returns {boolean}
@@ -689,6 +704,16 @@ function validateAtss11(specPath, schema) {
   const unresolved = unresolvedPlaceholders(schema, fs.readFileSync(path.join(specPath, "canonical_example.ts"), "utf8"));
   if (unresolved.length > 0) {
     return fail(specPath, `placeholder(s) that resolve to nothing — declare the env var in auth.credentials, or add the block that produces it: ${unresolved.join("; ")}`);
+  }
+  const d = schema.deprecation;
+  if (schema.status === "deprecated" && !d) {
+    return fail(specPath, `status "deprecated" needs a "deprecation" block (reason, replaced_by?, removed_after?) — see ATSS.md § Compatibility policy`);
+  }
+  if (d && schema.status !== "deprecated") {
+    return fail(specPath, `"deprecation" is only allowed on a "deprecated" spec, got status "${schema.status}"`);
+  }
+  if (d?.replaced_by && (d.replaced_by === path.basename(specPath) || !fs.existsSync(path.join(path.dirname(specPath), d.replaced_by)))) {
+    return fail(specPath, `deprecation.replaced_by "${d.replaced_by}" must be another capability of this provider`);
   }
   const v = schema.verification;
   if (schema.status === "verified" && !v) {
