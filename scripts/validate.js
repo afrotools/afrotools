@@ -756,7 +756,7 @@ const PROMPT_INJECTION_PATTERNS = [
   // Unambiguous override instructions — always block
   { re: /\b(IGNORE|DISREGARD|FORGET)\s+(ALL\s+)?(PREVIOUS|ABOVE|PRIOR)/i, label: "instruction d'override d'agent", blocking: true },
   // Credential/key exfiltration disguised as debugging — block
-  { re: /for\s+(debug|logging|monitoring|telemetry)\s+purposes?\s+.{0,80}(api[_\s]?key|token|secret|credential)/i, label: "exfiltration de credential déguisée en debug", blocking: true },
+  { re: /for\s+(debug|logging|monitoring|telemetry)\s+purposes?\W+.{0,80}(api[_\s]?key|token|secret|credential)/i, label: "exfiltration de credential déguisée en debug", blocking: true },
   // base64 obfuscation in text fields — block
   { re: /atob\s*\(|btoa\s*\(/, label: "encoding base64 suspect dans un champ texte", blocking: true },
   // Broad heuristics — warn only (too many false-positives as hard errors)
@@ -866,49 +866,76 @@ function allowedHosts(specPath) {
   return hosts;
 }
 
+/** Property names whose value is a URL the example sends to the provider, not one it calls. */
+const PAYLOAD_URL_KEY = /url|uri|callback|redirect|webhook|proof/i;
+
 /**
- * canonical_example.ts read through the TypeScript parser: its comments, and its string and
- * template literal texts with whether each is an object property value.
+ * A literal that is payload data: the value of a callback_url-like property, in an object passed
+ * straight to a call (the usage call of the example, JSON.stringify of a request body).
+ * `const t = { url: "https://…" }; fetch(t.url)` is not: the object is kept, then read.
+ * @param {import("typescript").Node} node
+ */
+function isPayloadUrl(node) {
+  const prop = node.parent;
+  if (!ts.isPropertyAssignment(prop) || prop.initializer !== node || !PAYLOAD_URL_KEY.test(prop.name.getText())) return false;
+  let n = prop.parent;
+  for (;;) {
+    const p = n.parent;
+    if (ts.isCallExpression(p)) return p.arguments.some((arg) => arg === n);
+    if (!(ts.isObjectLiteralExpression(p) || ts.isArrayLiteralExpression(p) || ts.isPropertyAssignment(p) ||
+          ts.isAsExpression(p) || ts.isSatisfiesExpression(p) || ts.isParenthesizedExpression(p))) return false;
+    n = p;
+  }
+}
+
+/**
+ * canonical_example.ts read through the TypeScript parser: every comment, and its string and
+ * template literal texts with whether each is payload data (isPayloadUrl).
  * @param {string} source
  */
 function exampleTexts(source) {
   const file = ts.createSourceFile("canonical_example.ts", source, ts.ScriptTarget.Latest, true);
   /** @type {Map<number, string>} */ const comments = new Map();
-  /** @type {Array<{ text: string, propertyValue: boolean }>} */ const literals = [];
+  /** @type {Array<{ text: string, payload: boolean }>} */ const literals = [];
+  // Down to every token: a comment can sit before a ")" or "}" that no node starts at.
   /** @param {import("typescript").Node} node */
   const visit = (node) => {
-    for (const r of [...ts.getLeadingCommentRanges(source, node.getFullStart()) ?? [], ...ts.getTrailingCommentRanges(source, node.end) ?? []])
+    for (const r of [...ts.getLeadingCommentRanges(source, node.getFullStart()) ?? [], ...ts.getTrailingCommentRanges(source, node.getFullStart()) ?? []])
       comments.set(r.pos, source.slice(r.pos, r.end));
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateHead(node) ||
         ts.isTemplateMiddle(node) || ts.isTemplateTail(node)) {
-      literals.push({ text: node.text, propertyValue: ts.isPropertyAssignment(node.parent) && node.parent.initializer === node });
+      literals.push({ text: node.text, payload: isPayloadUrl(node) });
     }
-    ts.forEachChild(node, visit);
+    node.getChildren(file).forEach(visit);
   };
   visit(file);
   return { comments: [...comments.values()], literals };
 }
 
 /**
- * URLs in the example's string literals: each one http(s) and whole (a scheme split across two
- * literals, as in "https:/" + "/host", hides the host), on a host the spec declares. A URL that is
- * an object property value is payload data (callback_url, return_url), not a request target.
+ * URLs in the example's string literals: each one http(s), on a host the provider declares, and
+ * whole — fetch reads "https:host", "https:/host" and "https:\\host" as https://host/, and a
+ * scheme split across literals ("https" + ":/" + "/host") hides the host. Payload URLs
+ * (isPayloadUrl) keep any host.
  * ponytail: static check on literals only — a URL built at runtime (fromCharCode, a decoded
- * string), or kept in a property and fetched from there, passes it; review stays the gate for that.
- * @param {Array<{ text: string, propertyValue: boolean }>} literals
+ * string, a ":" literal joined to a host) passes it; review stays the gate for that.
+ * @param {Array<{ text: string, payload: boolean }>} literals
  * @param {Set<string>} hosts
  * @returns {string[]}
  */
 function checkExampleUrls(literals, hosts) {
   /** @type {string[]} */ const errors = [];
-  for (const { text, propertyValue } of literals) {
-    if (/^https?:\/?$/i.test(text.trim())) errors.push(`[URL SPLIT] début d'URL seul dans une chaîne: "${text}"`);
-    for (const m of text.matchAll(/([A-Za-z][A-Za-z0-9+.-]*)?:\/\/[^\s'"`]*/g)) {
-      if (!/^https?$/i.test(m[1] ?? "")) { errors.push(`[URL SPLIT] URL sans schéma http(s): "${m[0]}"`); continue; }
+  for (const { text, payload } of literals) {
+    if (/^(https?:?[\\/]*|[A-Za-z]*:[\\/]+|[A-Za-z]+:|[\\/]{2}.*)$/i.test(text.trim()))
+      errors.push(`[URL SPLIT] morceau d'URL seul dans une chaîne: "${text}"`);
+    for (const m of text.matchAll(/([A-Za-z][A-Za-z0-9+.-]*):\/\//g)) {
+      if (!/^https?$/i.test(m[1])) errors.push(`[URL SPLIT] URL sans schéma http(s): "${m[0]}"`);
+    }
+    for (const m of text.matchAll(/\bhttps?:[\\/]*[^\s'"`]*/gi)) {
       let host;
       try { host = new URL(m[0]).hostname; } catch { /* reported below */ }
       if (!host) errors.push(`[INVALID URL] URL invalide dans canonical_example.ts: "${m[0]}"`);
-      else if (!propertyValue && !hosts.has(host))
+      else if (!payload && !hosts.has(host))
         errors.push(`[EXFILTRATION] URL vers "${host}", hôte qu'aucun endpoint, token_exchange ni environment du provider ne déclare (${[...hosts].join(", ") || "aucun"})`);
     }
   }
