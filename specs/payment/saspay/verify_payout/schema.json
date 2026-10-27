@@ -172,7 +172,8 @@
     }
   },
   "gotchas": [
-    "A PENDING payout is re-checked against the gateway on each call, so the status can change between two calls."
+    "A PENDING payout is re-checked against the gateway on each call, so the status can change between two calls.",
+    "`success: true` only means the call worked; the outcome is in data.status (SUCCESS for a completed payout; transaction statuses PENDING | SUCCESS | FAILED | CANCELLED)."
   ],
   "open_questions": [
     "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."

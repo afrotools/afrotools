@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:e261f66e4f60e7ee8f5d9de080b225dae7658c36e580f00fb3a3a5397c1f274c"
+    "spec_hash": "sha256:49b31b785826b870ab778e07188cbd7a66f736cbba2efbdd328a47171ae10099"
   },
   "currency": [
     "XOF",
@@ -235,7 +235,8 @@
     "A PENDING payment is re-checked against the gateway on each call, so the status can change between two calls.",
     "Every response is wrapped in the same envelope: read the payload from data, and on failure read error.message and error.code.",
     "Only PENDING, SUCCESS and FAILED occur in practice: CANCELLED exists in the data model but no flow reaches it today, so treat it as a non-successful terminal state without expecting it.",
-    "For accounting, never use the requested amount alone: what left the payer and what you receive depend on fee_charge_mode. Read debited_amount and net_amount, or the amounts object (requested, fee, charged, net)."
+    "For accounting, never use the requested amount alone: what left the payer and what you receive depend on fee_charge_mode. Read debited_amount and net_amount, or the amounts object (requested, fee, charged, net).",
+    "`success: true` only means the call worked; the outcome is in data.status (SUCCESS for a paid payment; transaction statuses PENDING | SUCCESS | FAILED | CANCELLED)."
   ],
   "open_questions": [
     "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."

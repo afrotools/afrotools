@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:8c0a438ff4943ae5d580f48db2f9f909ff805930c39d1b7391e3b5d67359f955"
+    "spec_hash": "sha256:11527ed2c5a8d351038dac27cafdec8fa3e0e9b31e05694fcfe06c3cf21e40db"
   },
   "currency": [
     "XOF",
@@ -123,7 +123,8 @@
   },
   "gotchas": [
     "Meant for polling when no webhook is configured: it re-checks the real gateway state on each call.",
-    "Authenticated calls are limited to 300 requests per minute per account; beyond that the API returns 429, so space out polling."
+    "Authenticated calls are limited to 300 requests per minute per account; beyond that the API returns 429, so space out polling.",
+    "`success: true` only means the call worked; the outcome is in data.status (PAID for a paid session; session statuses PENDING | PAID | EXPIRED | CANCELLED) and data.transaction_status (SUCCESS for the payment; transaction statuses PENDING | SUCCESS | FAILED | CANCELLED)."
   ],
   "open_questions": [
     "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."

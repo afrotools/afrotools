@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:3178316a073de56ef6df2dbec7374e567532f097de08dcd637ef3aaf29a9a4c6"
+    "spec_hash": "sha256:0028bd2437879d31b4db079995e235a6878718c8269537bce63f7ebd94abeb3c"
   },
   "currency": [
     "XOF",
@@ -57,7 +57,7 @@
         "type": "string",
         "maxLength": 255
       },
-      "description": "Unique key you generate for this attempt (e.g. a UUID). Optional: without it every call is a new request. Resending the same key (after a timeout or network cut) returns the original response instead of creating a second operation; the same key with a different body returns 409."
+      "description": "Unique key you generate for this attempt (e.g. a UUID). Optional: without it every call is a new request. Resending the same key (after a timeout or network cut) returns the original response instead of creating a second operation; the same key with a different body, or while the first call is still in progress, returns 409."
     }
   ],
   "example_prompt": "Charge my customer by mobile money with SasPay from my checkout.",
