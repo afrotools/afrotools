@@ -671,3 +671,33 @@ test("example URLs: another host or a split scheme fails; the provider's hosts a
     }
   }
 });
+
+test("deprecated spec carries a deprecation block, replaced_by names another capability", () => {
+  const run = (status, deprecation) => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+    // a second capability of the provider, for replaced_by
+    writeFixtureSpec(dir, { status: "ready" });
+    fs.cpSync(path.join(dir, ...CAP_DIR), path.join(dir, ...CAP_DIR.slice(0, -1), "create_checkout"), { recursive: true });
+    writeFixtureSpec(dir, { status, extraSchema: { spec_version: "1.1", ...(deprecation ? { deprecation } : {}) } });
+    return runValidate(dir);
+  };
+  assert.match(run("deprecated").stderr, /needs a "deprecation" block/);
+  assert.match(run("ready", { reason: "Retired." }).stderr, /only allowed on a "deprecated" spec/);
+  assert.match(run("deprecated", { reason: "Retired.", replaced_by: "create_bill" }).stderr, /must be another capability of this provider/);
+  assert.match(run("deprecated", { reason: "Retired.", removed_after: "next year" }).stderr, /atss\.schema\.json/);
+  assert.equal(run("deprecated", { reason: "The provider retires v3 on 2027-01-31.", replaced_by: "create_checkout", removed_after: "2027-01-31" }).code, 0);
+});
+
+test("removed_capabilities: tombstones of capabilities that have no folder left", () => {
+  const run = (removed_capabilities) => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+    writeFixtureSpec(dir, { status: "ready", extraProvider: { removed_capabilities } });
+    return runValidate(dir);
+  };
+  const tombstone = { capability: "create_bill", removed_in: "2027-02-03", reason: "Shut down by the provider.", alternatives: ["create_payment"] };
+  assert.equal(run([tombstone]).code, 0);
+  assert.match(run([{ ...tombstone, capability: "create_payment" }]).stderr, /still a folder of this provider/);
+  assert.match(run([{ ...tombstone, alternatives: ["create_charge"] }]).stderr, /no such capability of this provider/);
+  assert.match(run([tombstone, tombstone]).stderr, /more than once/);
+  assert.match(run([{ capability: "create_bill", removed_in: "2027-02-03" }]).stderr, /removed_capabilities invalid/);
+});

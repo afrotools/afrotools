@@ -221,6 +221,19 @@ payment), the response field that says the call succeeded:
 "environments": { "sandbox": { "base_url": "https://sandbox-api.djomy.africa" } }
 ```
 
+**Deprecation and removal** — see § Compatibility policy:
+
+```jsonc
+"deprecation": {                         // schema.json: required when status is "deprecated", forbidden otherwise
+  "reason": "The provider retires this endpoint on 2027-01-31 (changelog link).",
+  "replaced_by": "create_charge",        // optional: a capability of the same provider
+  "removed_after": "2027-01-31"          // optional: the registry removes the capability after this date
+},
+"removed_capabilities": [                // provider.json: one tombstone per removed capability
+  { "capability": "create_bill", "removed_in": "2027-02-03", "reason": "The provider shut the endpoint down on 2027-01-31.", "alternatives": ["create_charge"] }
+]
+```
+
 | Rule | |
 |---|---|
 | Placeholders | `{ENV_VAR}` is a declared credential; `{signature}` needs `auth.signing` (or is the `webhook.signature` result); `{access_token}` needs `auth.token_exchange`; `{raw_body}` is the request body exactly as received and `{header:Name}` the raw value of a request header — both in `webhook.signature.message` only, where an `{ENV_VAR}` may also be an identifier of yours that `canonical_example.ts` reads (e.g. `{header:Response-Timestamp}{SMILEID_PARTNER_ID}sid_request`); elsewhere `{ENV_VAR}` is a declared credential. `validate` rejects a placeholder that resolves to nothing |
@@ -233,6 +246,8 @@ payment), the response field that says the call succeeded:
 | `success_condition` | `field` is a dotted path (`data.status`, through array items) that `response_schema` describes, when it describes anything; exactly one of `equals` (a string, number, boolean or null) or `in` (a list of them), of the field's type (`0`, not `"0"`, for an integer `code`). Only what the provider's docs state — otherwise an open question. Not on a webhook |
 | Idempotency | Convention, warned by `validate`: a `POST` of a payment provider that moves money (payment, checkout, payout, transfer, charge, refund, cash-in/out, OTP confirmation — not a status check or a recipient setup) says whether a retry is safe — its idempotency header in `parameters` (or field in `input_schema`), the behaviour in `gotchas`, or an `open_questions` entry when the docs say nothing. A retried payout without it can pay twice |
 | `environments` | `sandbox` and/or `production`, each with an `https://host[:port]` `base_url` (no path, query or fragment). The `endpoint.url` of every non-webhook spec of the provider must start with one of them. An environment the provider does not document is left out — never guessed — and its absence goes in the specs' `open_questions` (a convention, not checked) |
+| `deprecation` | `reason` says what the provider announced, with its date when it gave one. `replaced_by` names another capability folder of the same provider; `removed_after` is a date (`YYYY-MM-DD`) |
+| `removed_capabilities` | `capability` once per list, with no folder left in the provider directory; `removed_in` is the date of the removal; `reason` a non-empty string; `alternatives` (optional) capability folders of the same provider |
 
 ### capability_type definitions
 
@@ -375,6 +390,45 @@ AI Ready is a promise of the whole registry, not a per-provider badge: every pub
 has ATSS specs an agent can integrate from without parsing documentation pages. It does not mean
 a spec is error-free — a spec can be wrong until it is tested, which is what `status` tells the
 agent. Never describe AI Ready as "verified", "tested" or "production-ready".
+
+---
+
+## Compatibility policy
+
+Agents maintain integrations generated from these specs. A change that makes such an integration
+wrong without telling its agent is **breaking**:
+
+- removing a capability: deleting its folder, or setting a served spec (`unverified`, `ready`,
+  `verified`, `deprecated`) back to `draft` or to `archived`, which the MCP does not serve;
+- removing or renaming a field of `response_schema`;
+- removing or renaming a field of `input_schema` or `parameters`, including a change of case or
+  a move to another place in the body. One move is not a break: a top-level `input_schema`
+  property that becomes a parameter of the same name, or back (the ATSS 1.1 migration) — the
+  agent reads the new location in the spec. Only header names ignore case.
+
+Changing a field's type, making an optional input required or narrowing an enum breaks
+integrations too; the reviewer judges these. Adding a capability, an optional field, a gotcha or
+an open question, or fixing a description, is not breaking.
+
+`scripts/spec-diff.js` compares a PR's specs to `main` and lists the removed capabilities and the
+removed or renamed fields (a rename shows as a removal), and, for information, the request fields
+that moved. CI fails when it finds a removal, unless the PR has the `breaking` label: a maintainer
+sets it once the removal is intended, then re-runs the job.
+
+**When the provider deprecates a capability** (announces its end, or a replacement):
+
+1. Set `status` to `"deprecated"` with a `deprecation` block (`spec_version: "1.1"`): `reason`,
+   and `replaced_by` / `removed_after` when known. The MCP keeps serving the spec, with a warning
+   that names `replaced_by`.
+2. Once the provider shut it down (or after `removed_after`), delete the folder and add a
+   tombstone to `removed_capabilities` in `provider.json`. `get_spec` then answers with an error
+   carrying `removed_in`, `reason` and `alternatives`, instead of a plain "not found". This PR needs
+   the `breaking` label.
+
+**When the registry drops a capability the provider still offers** (a rewrite, a spec that should
+not have been written): delete the folder, with the `breaking` label, and no `deprecated` status
+or tombstone — `get_spec` answers with the provider's remaining capabilities. Example: the 25
+Flutterwave capabilities that afrotools/afrotools#94 removed.
 
 ---
 

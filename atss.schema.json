@@ -2,10 +2,21 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/afrotools/afrotools/blob/main/atss.schema.json",
   "title": "ATSS 1.1 — capability blocks added in 1.1",
-  "description": "Validated by scripts/validate.js on every schema.json ($defs/environments on provider.json). The 1.0 fields are checked by validate.js itself; see ATSS.md for every rule.",
+  "description": "Validated by scripts/validate.js on every schema.json ($defs/environments and $defs/removed_capabilities on provider.json). The 1.0 fields are checked by validate.js itself; see ATSS.md for every rule.",
   "type": "object",
   "properties": {
     "verification": { "$ref": "#/$defs/verification" },
+    "deprecation": {
+      "description": "Present when status is \"deprecated\": what the provider announced (ATSS.md § Compatibility policy).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason"],
+      "properties": {
+        "reason": { "type": "string", "pattern": "\\S" },
+        "replaced_by": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "removed_after": { "type": "string", "format": "date" }
+      }
+    },
     "open_questions": {
       "type": "array",
       "minItems": 1,
@@ -130,6 +141,22 @@
       "then": {
         "required": ["ref"],
         "properties": { "ref": { "type": "string", "pattern": "^https://github\\.com/afrotools/afrotools/issues/[0-9]+$" } }
+      }
+    },
+    "removed_capabilities": {
+      "description": "provider.json: tombstones of the capabilities removed after a provider deprecation.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["capability", "removed_in", "reason"],
+        "properties": {
+          "capability": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "removed_in": { "type": "string", "format": "date" },
+          "reason": { "type": "string", "pattern": "\\S" },
+          "alternatives": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z0-9_]+$" } }
+        }
       }
     },
     "env_var": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },

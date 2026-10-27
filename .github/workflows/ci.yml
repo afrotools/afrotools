@@ -33,8 +33,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - name: Validator tests
-        run: node --test scripts/validate.test.js
+      - name: Validator and spec-diff tests
+        run: node --test scripts/validate.test.js scripts/spec-diff.test.js
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
@@ -152,6 +152,32 @@ jobs:
           else
             echo "✅  No plugin/skills/ changes — no version bump required."
           fi
+
+  # A removed capability or field breaks the integrations built on it: the PR needs the "breaking"
+  # label (ATSS.md § Compatibility policy). Labels are read when the job runs, so re-running it after
+  # setting the label is enough (a re-run keeps the event's original payload).
+  # The checkout is the PR merged into its base: compared with that base (HEAD^1), not with today's
+  # main, so specs merged since do not show up as removed on a re-run. The base's spec-diff.js runs
+  # (built-ins only), so a PR cannot edit the check it is judged by; the PR's own copy only while
+  # the base has none (the PR that adds it).
+  spec-diff:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+      - name: Removed capabilities and fields need the breaking label
+        run: |
+          git show HEAD^1:scripts/spec-diff.js > "$RUNNER_TEMP/spec-diff.js" || cp scripts/spec-diff.js "$RUNNER_TEMP/spec-diff.js"
+          if gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json labels --jq '.labels[].name' | grep -qx breaking; then
+            node "$RUNNER_TEMP/spec-diff.js" HEAD^1 --allow-breaking
+          else
+            node "$RUNNER_TEMP/spec-diff.js" HEAD^1
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
 
   # Security scan + CodeQL — only when specs/** changed
   security:
