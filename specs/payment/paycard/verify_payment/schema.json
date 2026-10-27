@@ -9,7 +9,7 @@
     "environment": "production",
     "at": "2026-04-06",
     "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:f56cc1e922fa2a190ded142979d920462589dd926a90cd7d453b2173f636d45b"
+    "spec_hash": "sha256:b25a7603bc0949125a308145e4f8f955dad3ca995224744df568b6a3774ee61f"
   },
   "currency": [
     "GNF"
@@ -38,19 +38,19 @@
     "method": "GET",
     "url": "https://mapaycard.com/epay/{c}/{ref}/status"
   },
-  "example_prompt": "Add server-side Paycard payment verification to my order fulfillment flow.",
-  "input_schema": {
-    "type": "object",
-    "required": [
-      "ref"
-    ],
-    "properties": {
-      "ref": {
-        "type": "string",
-        "description": "The operation_reference returned by create_payment."
-      }
+  "parameters": [
+    {
+      "name": "ref",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "The operation_reference returned by create_payment."
     }
-  },
+  ],
+  "example_prompt": "Add server-side Paycard payment verification to my order fulfillment flow.",
+  "input_schema": {},
   "response_schema": {
     "type": "object",
     "properties": {
