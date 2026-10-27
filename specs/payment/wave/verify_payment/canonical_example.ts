@@ -55,22 +55,22 @@ export function isPaymentSucceeded(session: CheckoutSession): boolean {
 }
 
 /*
-Usage example (handler success_url ou fallback webhook) :
+Usage example (success_url handler or webhook fallback):
 
 const session = await verifyPayment("cos-abc123");
 
 if (isPaymentSucceeded(session)) {
-  // Valider la commande
+  // Confirm the order
   await db.orders.update(
     { wave_session_id: session.id },
     { status: "paid", transaction_id: session.transaction_id }
   );
 } else {
-  // checkout_status peut être 'open' (pas encore payé) ou 'expired'
-  // payment_status peut être 'processing' (en cours) ou 'cancelled'
+  // checkout_status can be 'open' (not paid yet) or 'expired'
+  // payment_status can be 'processing' (in progress) or 'cancelled'
   console.log("Paiement non complété :", session.checkout_status, session.payment_status);
 }
 
-// Toujours vérifier les DEUX champs :
-// checkout_status === 'complete' ET payment_status === 'succeeded'
+// Always check BOTH fields:
+// checkout_status === 'complete' AND payment_status === 'succeeded'
 */

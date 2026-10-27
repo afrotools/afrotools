@@ -53,11 +53,11 @@ export async function searchCheckouts(
 }
 
 /*
-Usage example — récupérer une session perdue (session.id non stocké) :
+Usage example — recovering a lost session (session.id not stored):
 
 const sessions = await searchCheckouts("order_123");
 
-// Trouver la session payée parmi les résultats
+// Find the paid session among the results
 const paid = sessions.find(
   (s) => s.checkout_status === "complete" && s.payment_status === "succeeded"
 );
@@ -69,6 +69,6 @@ if (paid) {
   console.log("Aucun paiement réussi pour order_123");
 }
 
-// Conseil : toujours utiliser un client_reference unique par commande
-// pour que cette recherche retourne exactement un résultat.
+// Tip: always use a unique client_reference per order
+// so that this search returns exactly one result.
 */

@@ -89,26 +89,26 @@ export async function getPayoutBatch(batchId: string): Promise<PayoutBatchStatus
 }
 
 /*
-Usage example — envoi de payroll :
+Usage example — sending payroll:
 
-// 1. Créer le batch
+// 1. Create the batch
 const batch = await createPayoutBatch([
   { currency: "XOF", receive_amount: "150000", mobile: "+221700000001", name: "Mamadou Diallo", client_reference: "payroll_2024_01_emp_1" },
   { currency: "XOF", receive_amount: "200000", mobile: "+221700000002", name: "Fatoumata Bah",  client_reference: "payroll_2024_01_emp_2" },
   { currency: "XOF", receive_amount: "175000", mobile: "+221700000003", name: "Ibrahima Sow",   client_reference: "payroll_2024_01_emp_3" },
 ]);
 
-// 2. Stocker le batch.id et attendre le traitement
+// 2. Store the batch.id and wait for processing
 await db.payrollBatches.create({ wave_batch_id: batch.id, status: "processing" });
 
-// 3. Interroger jusqu'à complétion (via job, webhook, ou polling manuel)
+// 3. Query until completion (via job, webhook, or manual polling)
 let result: PayoutBatchStatus;
 do {
   await new Promise((resolve) => setTimeout(resolve, 5000));
   result = await getPayoutBatch(batch.id);
 } while (result.status === "processing");
 
-// 4. Vérifier chaque payout individuellement — 'complete' ≠ tout réussi
+// 4. Check each payout individually — 'complete' ≠ all succeeded
 for (const payout of result.payouts) {
   if (payout.status === "succeeded") {
     await db.payroll.update({ client_reference: payout.client_reference }, { status: "paid" });

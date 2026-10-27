@@ -29,18 +29,18 @@ export async function refundCheckout(sessionId: string): Promise<void> {
     throw new Error(`Wave error ${response.status}: ${error.message ?? error.code}`);
   }
 
-  // HTTP 200 avec corps vide — pas de valeur de retour
+  // HTTP 200 with an empty body — no return value
 }
 
 /*
 Usage example :
 
 await refundCheckout("cos-abc123");
-// Le montant est recrédité sur le compte Wave du payeur.
+// The amount is credited back to the payer's Wave account.
 
-// Cet endpoint est idempotent — appeler deux fois ne crée pas un double remboursement.
-// Utile pour les retry en cas de timeout réseau.
+// This endpoint is idempotent — calling it twice does not create a double refund.
+// Useful for retries on a network timeout.
 
-// Seules les sessions avec payment_status === 'succeeded' peuvent être remboursées.
-// Vérifier le statut via verify_payment avant d'appeler refundCheckout si nécessaire.
+// Only sessions with payment_status === 'succeeded' can be refunded.
+// Check the status via verify_payment before calling refundCheckout if needed.
 */

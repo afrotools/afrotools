@@ -49,33 +49,33 @@
     "properties": {
       "amount": {
         "type": "string",
-        "description": "Montant à collecter, en string. 0 à 2 décimales selon la devise. XOF n'accepte pas de décimales. Ex: \"5000\" ou \"1500.50\"."
+        "description": "Amount to collect, as a string. 0 to 2 decimals depending on the currency. XOF does not accept decimals. e.g. \"5000\" or \"1500.50\"."
       },
       "currency": {
         "type": "string",
-        "description": "Code ISO 4217 en majuscules. Ex: \"XOF\", \"GNF\", \"UGX\"."
+        "description": "Uppercase ISO 4217 code. e.g. \"XOF\", \"GNF\", \"UGX\"."
       },
       "error_url": {
         "type": "string",
         "format": "uri",
-        "description": "URL HTTPS vers laquelle Wave redirige l'utilisateur en cas d'échec ou d'annulation du paiement."
+        "description": "HTTPS URL Wave redirects the user to if the payment fails or is cancelled."
       },
       "success_url": {
         "type": "string",
         "format": "uri",
-        "description": "URL HTTPS vers laquelle Wave redirige l'utilisateur après un paiement réussi."
+        "description": "HTTPS URL Wave redirects the user to after a successful payment."
       },
       "client_reference": {
         "type": "string",
-        "description": "Référence interne (max 255 chars) pour corréler la session avec votre système. Renvoyée dans la réponse et les webhooks."
+        "description": "Internal reference (max 255 chars) to correlate the session with your system. Returned in the response and in webhooks."
       },
       "restrict_payer_mobile": {
         "type": "string",
-        "description": "Numéro E.164 (ex: \"+221700000000\"). Si présent, seul ce compte Wave peut payer cette session."
+        "description": "E.164 number (e.g. \"+221700000000\"). If present, only this Wave account can pay this session."
       },
       "aggregated_merchant_id": {
         "type": "string",
-        "description": "ID de marchand agrégé. Uniquement pour les plateformes ayant activé l'API Aggregated Merchants."
+        "description": "Aggregated merchant ID. Only for platforms that have enabled the Aggregated Merchants API."
       }
     }
   },
@@ -84,12 +84,12 @@
     "properties": {
       "id": {
         "type": "string",
-        "description": "Identifiant unique de la session (préfixe \"cos-\", max 20 chars). Stocker avant de rediriger — requis pour verify_payment."
+        "description": "Unique session identifier (prefix \"cos-\", max 20 chars). Store it before redirecting — required for verify_payment."
       },
       "wave_launch_url": {
         "type": "string",
         "format": "uri",
-        "description": "URL à ouvrir dans le navigateur pour lancer le paiement Wave. Ne pas ouvrir dans une WebView."
+        "description": "URL to open in the browser to launch the Wave payment. Do not open it in a WebView."
       },
       "checkout_status": {
         "type": "string",
@@ -99,7 +99,7 @@
           "expired",
           "failed"
         ],
-        "description": "État de la session de checkout. 'failed' peut apparaître dans le contexte de l'événement webhook checkout.session.payment_failed."
+        "description": "Checkout session state. 'failed' can appear in the context of the checkout.session.payment_failed webhook event."
       },
       "payment_status": {
         "type": "string",
@@ -108,64 +108,64 @@
           "cancelled",
           "succeeded"
         ],
-        "description": "État du paiement associé."
+        "description": "State of the associated payment."
       },
       "amount": {
         "type": "string",
-        "description": "Montant demandé."
+        "description": "Requested amount."
       },
       "currency": {
         "type": "string",
-        "description": "Code ISO 4217."
+        "description": "ISO 4217 code."
       },
       "client_reference": {
         "type": "string",
-        "description": "Référence interne fournie à la création."
+        "description": "Internal reference provided at creation."
       },
       "business_name": {
         "type": "string",
-        "description": "Nom du business affiché au payeur."
+        "description": "Business name shown to the payer."
       },
       "transaction_id": {
         "type": "string",
-        "description": "Identifiant de transaction Wave (visible dans l'app utilisateur). Absent si le paiement n'est pas encore complété."
+        "description": "Wave transaction identifier (visible in the user's app). Absent if the payment is not completed yet."
       },
       "when_created": {
         "type": "string",
         "format": "date-time",
-        "description": "Horodatage ISO 8601 UTC de création."
+        "description": "ISO 8601 UTC creation timestamp."
       },
       "when_expires": {
         "type": "string",
         "format": "date-time",
-        "description": "Horodatage ISO 8601 UTC d'expiration. Par défaut : 30 minutes après création."
+        "description": "ISO 8601 UTC expiration timestamp. Default: 30 minutes after creation."
       },
       "when_completed": {
         "type": "string",
         "format": "date-time",
-        "description": "Horodatage ISO 8601 UTC de complétion ou d'expiration. Absent si la session est encore ouverte."
+        "description": "ISO 8601 UTC completion or expiration timestamp. Absent if the session is still open."
       },
       "success_url": {
         "type": "string",
         "format": "uri",
-        "description": "URL de redirection post-paiement réussi, telle que fournie à la création."
+        "description": "Redirect URL after a successful payment, as provided at creation."
       },
       "error_url": {
         "type": "string",
         "format": "uri",
-        "description": "URL de redirection en cas d'échec, telle que fournie à la création."
+        "description": "Redirect URL on failure, as provided at creation."
       },
       "restrict_payer_mobile": {
         "type": "string",
-        "description": "Numéro E.164 de restriction si fourni à la création."
+        "description": "Restriction E.164 number, if provided at creation."
       },
       "aggregated_merchant_id": {
         "type": "string",
-        "description": "ID de marchand agrégé utilisé pour cette session."
+        "description": "Aggregated merchant ID used for this session."
       },
       "last_payment_error": {
         "type": "object",
-        "description": "Dernière erreur de paiement. Présent uniquement si payment_status est processing ou cancelled.",
+        "description": "Last payment error. Present only if payment_status is processing or cancelled.",
         "properties": {
           "code": {
             "type": "string"
@@ -182,14 +182,14 @@
     "properties": {
       "code": {
         "type": "string",
-        "description": "Code d'erreur. Ex: request-validation-error, unauthorized-wallet, service-unavailable."
+        "description": "Error code. e.g. request-validation-error, unauthorized-wallet, service-unavailable."
       },
       "message": {
         "type": "string",
-        "description": "Description lisible de l'erreur."
+        "description": "Human-readable error description."
       },
       "details": {
-        "description": "Détails de validation retournés sur request-validation-error. Chaque entrée contient loc (localisation du champ), msg (message), type (type d erreur). Peut valoir null ou être absent (mesuré le 2026-10-24 sur des erreurs 401) — tester avant de parcourir.",
+        "description": "Validation details returned on request-validation-error. Each entry contains loc (field location), msg (message), type (error type). Can be null or absent (measured on 2026-10-24 on 401 errors) — check before iterating.",
         "oneOf": [
           {
             "type": "array",
@@ -216,14 +216,14 @@
     }
   },
   "gotchas": [
-    "Stocker session.id immédiatement avant de rediriger l'utilisateur — c'est le seul identifiant pour appeler verify_payment côté serveur.",
-    "wave_launch_url doit être ouvert directement dans le navigateur de l'utilisateur. Ne jamais l'ouvrir dans une WebView ou un iframe — le paiement ne s'initiera pas correctement.",
-    "La session expire par défaut 30 minutes après création. Après expiration, checkout_status passe à 'expired' et le paiement est impossible.",
-    "amount est une string, pas un nombre. XOF n'accepte aucune décimale — envoyer \"5000\" et non \"5000.00\" ou 5000.",
-    "La clé API est liée à un seul wallet Wave. Pour opérer dans plusieurs pays, obtenir une clé par wallet.",
-    "La documentation Wave ne décrit aucun environnement sandbox ni hôte de test : le seul hôte documenté est https://api.wave.com, et la clé API est liée à un wallet réel.",
-    "Si la clé API a été créée avec la signature des requêtes (option facultative du Business Portal), chaque appel doit porter Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + corps brut)} calculé avec le signing secret (format wave_sn_AKS_…, affiché une seule fois) — corps vide pour un GET. Sans lui : 401 missing-signature ; autres codes : invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp de plus de 5 minutes dans le passé ou de plus de 30 secondes dans le futur). L'option est définitive pour une clé : pour l'abandonner, révoquer la clé et en créer une autre.",
-    "[MUST TELL USER] La liste blanche d'IP de l'API s'active dès la première adresse ajoutée dans le Business Portal (section Developer) et ne se désactive plus depuis le portail — il faut passer par votre account manager Wave. Les appels depuis une IP non listée reçoivent 403 ip-not-allowed : sur un hébergement sans IP sortante fixe (fonctions serverless, la plupart des PaaS), n'ajoutez pas d'IP sans avoir d'abord une sortie fixe.",
-    "Wave vérifie la clé avant tout le reste, même avant le routage : une clé invalide renvoie 401 sur n'importe quel chemin. Le message de no-matching-api-key cite les 4 derniers caractères de la clé reçue (\"No API key found ending in '…'\") — comparez-les à votre clé pour repérer une variable d'environnement mal chargée. (Mesuré sans clé valide le 2026-10-24.)"
+    "Store session.id immediately before redirecting the user — it is the only identifier for calling verify_payment server-side.",
+    "wave_launch_url must be opened directly in the user's browser. Never open it in a WebView or an iframe — the payment will not initiate correctly.",
+    "By default the session expires 30 minutes after creation. After expiration, checkout_status changes to 'expired' and payment is not possible.",
+    "amount is a string, not a number. XOF accepts no decimals — send \"5000\", not \"5000.00\" or 5000.",
+    "The API key is tied to a single Wave wallet. To operate in several countries, get one key per wallet.",
+    "The Wave documentation describes no sandbox environment or test host: the only documented host is https://api.wave.com, and the API key is tied to a real wallet.",
+    "If the API key was created with request signing (optional Business Portal setting), every call must carry Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + raw body)} computed with the signing secret (format wave_sn_AKS_…, shown only once) — empty body for a GET. Without it: 401 missing-signature; other codes: invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp more than 5 minutes in the past or more than 30 seconds in the future). The setting is permanent for a key: to drop it, revoke the key and create another one.",
+    "[MUST TELL USER] The API IP whitelist turns on as soon as the first address is added in the Business Portal (Developer section) and can no longer be turned off from the portal — you have to go through your Wave account manager. Calls from an unlisted IP get 403 ip-not-allowed: on hosting without a fixed outbound IP (serverless functions, most PaaS), do not add any IP before you have a fixed egress.",
+    "Wave checks the key before anything else, even before routing: an invalid key returns 401 on any path. The no-matching-api-key message quotes the last 4 characters of the received key (\"No API key found ending in '…'\") — compare them with your key to spot a badly loaded environment variable. (Measured without a valid key on 2026-10-24.)"
   ]
 }

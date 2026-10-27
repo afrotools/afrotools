@@ -46,12 +46,12 @@ const balance = await getBalance();
 console.log(`Solde : ${balance.amount} ${balance.currency}`);
 // "Solde : 125000 XOF"
 
-// amount est une string — parser avant comparaison
+// amount is a string — parse before comparing
 const amount = parseFloat(balance.amount);
 if (amount < 10000) {
   console.warn("Solde insuffisant pour des payouts");
 }
 
-// Pour un wallet multi-pays, appeler avec des clés API différentes par pays
-// (chaque clé est liée à un seul wallet)
+// For a multi-country wallet, call with different API keys per country
+// (each key is tied to a single wallet)
 */

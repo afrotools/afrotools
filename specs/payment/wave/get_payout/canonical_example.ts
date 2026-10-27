@@ -49,7 +49,7 @@ export async function getPayout(payoutId: string): Promise<PayoutResponse> {
 }
 
 /*
-Usage example — polling d'un payout en status 'processing' :
+Usage example — polling a payout in 'processing' status:
 
 async function waitForPayout(payoutId: string, maxAttempts = 10): Promise<PayoutResponse> {
   for (let i = 0; i < maxAttempts; i++) {
@@ -59,7 +59,7 @@ async function waitForPayout(payoutId: string, maxAttempts = 10): Promise<Payout
       return payout;
     }
 
-    // Attendre avant de re-interroger (backoff simple)
+    // Wait before querying again (simple backoff)
     await new Promise((resolve) => setTimeout(resolve, 2000 * (i + 1)));
   }
 

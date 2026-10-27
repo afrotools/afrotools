@@ -29,21 +29,21 @@ export async function expireCheckout(sessionId: string): Promise<void> {
     throw new Error(`Wave error ${response.status}: ${error.message ?? error.code}`);
   }
 
-  // HTTP 200 avec corps vide — pas de valeur de retour
+  // HTTP 200 with an empty body — no return value
 }
 
 /*
 Usage example :
 
-// Cas d'usage typique : l'utilisateur annule sa commande avant de payer
+// Typical use case: the user cancels their order before paying
 await expireCheckout("cos-abc123");
 
-// Attention : retourne HTTP 409 si la session est déjà complétée ou expirée.
-// Vérifier le statut via verify_payment si vous n'êtes pas sûr du statut courant.
+// Warning: returns HTTP 409 if the session is already completed or expired.
+// Check the status via verify_payment if you are not sure of the current status.
 try {
   await expireCheckout("cos-abc123");
 } catch (err) {
-  // 409 = déjà complétée ou expirée — ignorer silencieusement si c'est attendu
+  // 409 = already completed or expired — ignore silently if expected
   if (!(err instanceof Error) || !err.message.includes("409")) throw err;
 }
 */

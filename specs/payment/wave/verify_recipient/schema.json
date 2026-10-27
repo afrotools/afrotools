@@ -46,23 +46,23 @@
     "properties": {
       "mobile": {
         "type": "string",
-        "description": "Numéro de téléphone du destinataire au format E.164. Ex: \"+221700000000\"."
+        "description": "Recipient's phone number in E.164 format. e.g. \"+221700000000\"."
       },
       "name": {
         "type": "string",
-        "description": "Nom attendu du destinataire. Si fourni, Wave retourne name_match indiquant si le nom correspond."
+        "description": "Expected recipient name. If provided, Wave returns name_match indicating whether the name matches."
       },
       "national_id": {
         "type": "string",
-        "description": "Numéro de pièce d'identité nationale attendu. Retourne national_id_match si fourni."
+        "description": "Expected national ID document number. Returns national_id_match if provided."
       },
       "amount": {
         "type": "string",
-        "description": "Montant prévu du payout. Si fourni, Wave retourne within_limits indiquant si le destinataire peut recevoir ce montant."
+        "description": "Planned payout amount. If provided, Wave returns within_limits indicating whether the recipient can receive this amount."
       },
       "currency": {
         "type": "string",
-        "description": "Code ISO 4217. Requis si amount est fourni."
+        "description": "ISO 4217 code. Required if amount is provided."
       }
     }
   },
@@ -74,7 +74,7 @@
           "boolean",
           "null"
         ],
-        "description": "true si le destinataire peut recevoir le montant demandé. null si amount n'a pas été fourni."
+        "description": "true if the recipient can receive the requested amount. null if amount was not provided."
       },
       "name_match": {
         "type": [
@@ -87,7 +87,7 @@
           "NAME_NOT_KNOWN",
           null
         ],
-        "description": "Résultat de la comparaison du nom (algorithme Jaro-Winkler, seuil 0.65). NAME_NOT_KNOWN si le destinataire n'est pas KYC-2. null si name n'a pas été fourni."
+        "description": "Result of the name comparison (Jaro-Winkler algorithm, threshold 0.65). NAME_NOT_KNOWN if the recipient is not KYC-2. null if name was not provided."
       },
       "national_id_match": {
         "type": [
@@ -100,7 +100,7 @@
           "ID_NOT_KNOWN",
           null
         ],
-        "description": "Résultat de la vérification de la pièce d'identité. null si national_id n'a pas été fourni."
+        "description": "Result of the ID document check. null if national_id was not provided."
       }
     }
   },
@@ -109,14 +109,14 @@
     "properties": {
       "code": {
         "type": "string",
-        "description": "Code d'erreur. Ex: too-many-requests si la limite de 30 vérifications par 5 min est dépassée."
+        "description": "Error code. e.g. too-many-requests if the limit of 30 checks per 5 min is exceeded."
       },
       "message": {
         "type": "string",
-        "description": "Description lisible de l'erreur."
+        "description": "Human-readable error description."
       },
       "details": {
-        "description": "Détails de validation retournés sur request-validation-error. Chaque entrée contient loc (localisation du champ), msg (message), type (type d erreur). Peut valoir null ou être absent (mesuré le 2026-10-24 sur des erreurs 401) — tester avant de parcourir.",
+        "description": "Validation details returned on request-validation-error. Each entry contains loc (field location), msg (message), type (error type). Can be null or absent (measured on 2026-10-24 on 401 errors) — check before iterating.",
         "oneOf": [
           {
             "type": "array",
@@ -143,11 +143,11 @@
     }
   },
   "gotchas": [
-    "Limite de rate : 30 vérifications incluant une comparaison de nom (champ name fourni) pour le même numéro dans une fenêtre de 5 minutes. Au-delà, ce numéro est bloqué pendant 60 minutes. Les appels sans name ne sont pas soumis à cette limite.",
-    "NAME_NOT_KNOWN ne signifie pas que le nom est incorrect — cela signifie que Wave n'a pas d'information légale sur ce destinataire (non KYC-2). Ne pas bloquer un payout sur cette base seule.",
-    "La comparaison de nom utilise Jaro-Winkler avec un seuil de 0.65 — les variations orthographiques mineures (accents, abréviations) peuvent retourner MATCH.",
-    "national_id_match nécessite une activation spécifique par Wave. Sans cette activation, le champ retourne toujours null même si national_id est fourni.",
-    "Si la clé API a été créée avec la signature des requêtes (option facultative du Business Portal), chaque appel doit porter Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + corps brut)} calculé avec le signing secret (format wave_sn_AKS_…, affiché une seule fois) — corps vide pour un GET. Sans lui : 401 missing-signature ; autres codes : invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp de plus de 5 minutes dans le passé ou de plus de 30 secondes dans le futur). L'option est définitive pour une clé : pour l'abandonner, révoquer la clé et en créer une autre.",
-    "[MUST TELL USER] La liste blanche d'IP de l'API s'active dès la première adresse ajoutée dans le Business Portal (section Developer) et ne se désactive plus depuis le portail — il faut passer par votre account manager Wave. Les appels depuis une IP non listée reçoivent 403 ip-not-allowed : sur un hébergement sans IP sortante fixe (fonctions serverless, la plupart des PaaS), n'ajoutez pas d'IP sans avoir d'abord une sortie fixe."
+    "Rate limit: 30 checks including a name comparison (name field provided) for the same number within a 5-minute window. Beyond that, this number is blocked for 60 minutes. Calls without name are not subject to this limit.",
+    "NAME_NOT_KNOWN does not mean that the name is incorrect — it means that Wave has no legal information on this recipient (not KYC-2). Do not block a payout on that basis alone.",
+    "The name comparison uses Jaro-Winkler with a 0.65 threshold — minor spelling variations (accents, abbreviations) can return MATCH.",
+    "national_id_match requires specific activation by Wave. Without this activation, the field always returns null even if national_id is provided.",
+    "If the API key was created with request signing (optional Business Portal setting), every call must carry Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + raw body)} computed with the signing secret (format wave_sn_AKS_…, shown only once) — empty body for a GET. Without it: 401 missing-signature; other codes: invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp more than 5 minutes in the past or more than 30 seconds in the future). The setting is permanent for a key: to drop it, revoke the key and create another one.",
+    "[MUST TELL USER] The API IP whitelist turns on as soon as the first address is added in the Business Portal (Developer section) and can no longer be turned off from the portal — you have to go through your Wave account manager. Calls from an unlisted IP get 403 ip-not-allowed: on hosting without a fixed outbound IP (serverless functions, most PaaS), do not add any IP before you have a fixed egress."
   ]
 }

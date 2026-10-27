@@ -46,7 +46,7 @@
     "properties": {
       "id": {
         "type": "string",
-        "description": "Identifiant du payout retourné par send_payout."
+        "description": "Payout identifier returned by send_payout."
       }
     }
   },
@@ -55,7 +55,7 @@
     "properties": {
       "id": {
         "type": "string",
-        "description": "Identifiant unique du payout (préfixe \"pt-\", max 20 chars)."
+        "description": "Unique payout identifier (prefix \"pt-\", max 20 chars)."
       },
       "status": {
         "type": "string",
@@ -65,52 +65,52 @@
           "failed",
           "reversed"
         ],
-        "description": "État courant du payout."
+        "description": "Current payout state."
       },
       "currency": {
         "type": "string",
-        "description": "Code ISO 4217."
+        "description": "ISO 4217 code."
       },
       "receive_amount": {
         "type": "string",
-        "description": "Montant reçu par le destinataire."
+        "description": "Amount received by the recipient."
       },
       "fee": {
         "type": "string",
-        "description": "Frais prélevés sur le wallet."
+        "description": "Fees deducted from the wallet."
       },
       "mobile": {
         "type": "string",
-        "description": "Numéro E.164 du destinataire."
+        "description": "Recipient's E.164 number."
       },
       "name": {
         "type": "string",
-        "description": "Nom du destinataire si fourni."
+        "description": "Recipient's name, if provided."
       },
       "national_id": {
         "type": "string",
-        "description": "Pièce d'identité si fournie."
+        "description": "ID document, if provided."
       },
       "client_reference": {
         "type": "string",
-        "description": "Référence interne si fournie."
+        "description": "Internal reference, if provided."
       },
       "payment_reason": {
         "type": "string",
-        "description": "Motif du paiement si fourni."
+        "description": "Payment reason, if provided."
       },
       "aggregated_merchant_id": {
         "type": "string",
-        "description": "ID de marchand agrégé si applicable."
+        "description": "Aggregated merchant ID, if applicable."
       },
       "timestamp": {
         "type": "string",
         "format": "date-time",
-        "description": "Horodatage ISO 8601 UTC du payout."
+        "description": "ISO 8601 UTC payout timestamp."
       },
       "payout_error": {
         "type": "object",
-        "description": "Présent uniquement si status est 'failed'.",
+        "description": "Present only if status is 'failed'.",
         "properties": {
           "error_code": {
             "type": "string"
@@ -127,13 +127,13 @@
     "properties": {
       "code": {
         "type": "string",
-        "description": "Code d'erreur. Ex: not-found (404)."
+        "description": "Error code. e.g. not-found (404)."
       },
       "message": {
         "type": "string"
       },
       "details": {
-        "description": "Détails de validation retournés sur request-validation-error. Chaque entrée contient loc (localisation du champ), msg (message), type (type d erreur). Peut valoir null ou être absent (mesuré le 2026-10-24 sur des erreurs 401) — tester avant de parcourir.",
+        "description": "Validation details returned on request-validation-error. Each entry contains loc (field location), msg (message), type (error type). Can be null or absent (measured on 2026-10-24 on 401 errors) — check before iterating.",
         "oneOf": [
           {
             "type": "array",
@@ -160,9 +160,9 @@
     }
   },
   "gotchas": [
-    "Utiliser cet endpoint pour surveiller un payout en status 'processing' retourné par send_payout. Un payout 'processing' peut encore basculer vers 'succeeded' ou 'failed' — ne jamais le marquer définitivement échoué avant d'avoir observé un status final.",
-    "Un payout en status 'reversed' a été annulé via POST /v1/payout/{id}/reverse. Le montant + les frais sont recrédités sur le wallet expéditeur.",
-    "Si la clé API a été créée avec la signature des requêtes (option facultative du Business Portal), chaque appel doit porter Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + corps brut)} calculé avec le signing secret (format wave_sn_AKS_…, affiché une seule fois) — corps vide pour un GET. Sans lui : 401 missing-signature ; autres codes : invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp de plus de 5 minutes dans le passé ou de plus de 30 secondes dans le futur). L'option est définitive pour une clé : pour l'abandonner, révoquer la clé et en créer une autre.",
-    "[MUST TELL USER] La liste blanche d'IP de l'API s'active dès la première adresse ajoutée dans le Business Portal (section Developer) et ne se désactive plus depuis le portail — il faut passer par votre account manager Wave. Les appels depuis une IP non listée reçoivent 403 ip-not-allowed : sur un hébergement sans IP sortante fixe (fonctions serverless, la plupart des PaaS), n'ajoutez pas d'IP sans avoir d'abord une sortie fixe."
+    "Use this endpoint to monitor a payout in 'processing' status returned by send_payout. A 'processing' payout can still switch to 'succeeded' or 'failed' — never mark it as permanently failed before observing a final status.",
+    "A payout in 'reversed' status was cancelled via POST /v1/payout/{id}/reverse. The amount + the fees are credited back to the sending wallet.",
+    "If the API key was created with request signing (optional Business Portal setting), every call must carry Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + raw body)} computed with the signing secret (format wave_sn_AKS_…, shown only once) — empty body for a GET. Without it: 401 missing-signature; other codes: invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp more than 5 minutes in the past or more than 30 seconds in the future). The setting is permanent for a key: to drop it, revoke the key and create another one.",
+    "[MUST TELL USER] The API IP whitelist turns on as soon as the first address is added in the Business Portal (Developer section) and can no longer be turned off from the portal — you have to go through your Wave account manager. Calls from an unlisted IP get 403 ip-not-allowed: on hosting without a fixed outbound IP (serverless functions, most PaaS), do not add any IP before you have a fixed egress."
   ]
 }

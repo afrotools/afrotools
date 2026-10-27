@@ -93,7 +93,7 @@ export async function getTransactions(
   return response.json() as Promise<TransactionsResponse>;
 }
 
-/** Récupère toutes les transactions d'un jour donné en gérant la pagination. */
+/** Fetches all transactions for a given day, handling pagination. */
 export async function getAllTransactionsForDate(date: string): Promise<Transaction[]> {
   const all: Transaction[] = [];
   let cursor: string | undefined;
@@ -110,17 +110,17 @@ export async function getAllTransactionsForDate(date: string): Promise<Transacti
 /*
 Usage example :
 
-// Transactions du jour courant (UTC)
+// Current day's transactions (UTC)
 const today = await getTransactions();
 console.log(`${today.items.length} transactions le ${today.date}`);
 
-// Toutes les transactions d'une date spécifique (avec pagination automatique)
+// All transactions for a specific date (with automatic pagination)
 const transactions = await getAllTransactionsForDate("2024-03-15");
 
-// Filtrer uniquement les paiements checkout
+// Filter checkout payments only
 const checkouts = transactions.filter(t => t.transaction_type === "api_checkout");
 
-// Les transactions sont retournées de la plus ancienne à la plus récente.
-// Pour les plus récentes en premier :
+// Transactions are returned from oldest to newest.
+// For the most recent first:
 const recent = [...transactions].reverse();
 */

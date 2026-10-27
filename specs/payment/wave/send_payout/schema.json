@@ -48,35 +48,35 @@
     "properties": {
       "currency": {
         "type": "string",
-        "description": "Code ISO 4217 en majuscules. Ex: \"XOF\", \"GNF\", \"UGX\"."
+        "description": "Uppercase ISO 4217 code. e.g. \"XOF\", \"GNF\", \"UGX\"."
       },
       "receive_amount": {
         "type": "string",
-        "description": "Montant que le destinataire reçoit, en string, sans décimales. Ex: \"5000\"."
+        "description": "Amount the recipient receives, as a string, without decimals. e.g. \"5000\"."
       },
       "mobile": {
         "type": "string",
-        "description": "Numéro de téléphone du destinataire au format E.164. Ex: \"+221700000000\"."
+        "description": "Recipient's phone number in E.164 format. e.g. \"+221700000000\"."
       },
       "name": {
         "type": "string",
-        "description": "Nom du destinataire (max 255 chars). Utilisé pour la vérification si national_id est aussi fourni."
+        "description": "Recipient's name (max 255 chars). Used for verification if national_id is also provided."
       },
       "national_id": {
         "type": "string",
-        "description": "Numéro de pièce d'identité nationale du destinataire (max 255 chars). Optionnel."
+        "description": "Recipient's national ID document number (max 255 chars). Optional."
       },
       "client_reference": {
         "type": "string",
-        "description": "Référence interne (max 255 chars) pour corréler le payout avec votre système."
+        "description": "Internal reference (max 255 chars) to correlate the payout with your system."
       },
       "payment_reason": {
         "type": "string",
-        "description": "Motif du paiement visible par le destinataire (max 40 chars)."
+        "description": "Payment reason visible to the recipient (max 40 chars)."
       },
       "aggregated_merchant_id": {
         "type": "string",
-        "description": "ID de marchand agrégé. Requis pour les agrégateurs ayant activé l'API Aggregated Merchants."
+        "description": "Aggregated merchant ID. Required for aggregators that have enabled the Aggregated Merchants API."
       }
     }
   },
@@ -85,7 +85,7 @@
     "properties": {
       "id": {
         "type": "string",
-        "description": "Identifiant unique du payout (préfixe \"pt-\", max 20 chars). Stocker pour pouvoir faire un reversal ou suivre le statut via get_payout."
+        "description": "Unique payout identifier (prefix \"pt-\", max 20 chars). Store it to be able to do a reversal or track the status via get_payout."
       },
       "status": {
         "type": "string",
@@ -95,40 +95,40 @@
           "failed",
           "reversed"
         ],
-        "description": "État du payout. 'processing' signifie que le résultat n'est pas encore définitif. 'reversed' indique que le payout a été annulé via POST /v1/payout/{id}/reverse."
+        "description": "Payout state. 'processing' means the result is not final yet. 'reversed' indicates that the payout was cancelled via POST /v1/payout/{id}/reverse."
       },
       "currency": {
         "type": "string",
-        "description": "Code ISO 4217."
+        "description": "ISO 4217 code."
       },
       "receive_amount": {
         "type": "string",
-        "description": "Montant reçu par le destinataire."
+        "description": "Amount received by the recipient."
       },
       "fee": {
         "type": "string",
-        "description": "Frais prélevés sur votre wallet."
+        "description": "Fees deducted from your wallet."
       },
       "mobile": {
         "type": "string",
-        "description": "Numéro E.164 du destinataire."
+        "description": "Recipient's E.164 number."
       },
       "name": {
         "type": "string",
-        "description": "Nom du destinataire si fourni."
+        "description": "Recipient's name, if provided."
       },
       "client_reference": {
         "type": "string",
-        "description": "Référence interne si fournie."
+        "description": "Internal reference, if provided."
       },
       "timestamp": {
         "type": "string",
         "format": "date-time",
-        "description": "Horodatage ISO 8601 UTC du payout."
+        "description": "ISO 8601 UTC payout timestamp."
       },
       "payout_error": {
         "type": "object",
-        "description": "Présent uniquement si status est 'failed'.",
+        "description": "Present only if status is 'failed'.",
         "properties": {
           "error_code": {
             "type": "string"
@@ -145,14 +145,14 @@
     "properties": {
       "code": {
         "type": "string",
-        "description": "Code d'erreur. Ex: insufficient-funds, recipient-account-blocked, idempotency-mismatch."
+        "description": "Error code. e.g. insufficient-funds, recipient-account-blocked, idempotency-mismatch."
       },
       "message": {
         "type": "string",
-        "description": "Description lisible de l'erreur."
+        "description": "Human-readable error description."
       },
       "details": {
-        "description": "Détails de validation retournés sur request-validation-error. Chaque entrée contient loc (localisation du champ), msg (message), type (type d erreur). Peut valoir null ou être absent (mesuré le 2026-10-24 sur des erreurs 401) — tester avant de parcourir.",
+        "description": "Validation details returned on request-validation-error. Each entry contains loc (field location), msg (message), type (error type). Can be null or absent (measured on 2026-10-24 on 401 errors) — check before iterating.",
         "oneOf": [
           {
             "type": "array",
@@ -179,13 +179,13 @@
     }
   },
   "gotchas": [
-    "Chaque requête POST /v1/payout doit inclure un header Idempotency-Key unique (UUID v4 recommandé, max 255 chars). Sans cette clé, un retry en cas d'erreur réseau peut créer un payout en double.",
-    "Si le payout retourne status 'processing', ne pas le marquer comme échoué — le considérer comme pending et surveiller via GET /v1/payout/{id}. Marquer comme échoué trop tôt peut pousser l'utilisateur à retenter, causant un doublon.",
-    "En cas d'erreur 5xx, timeout ou connexion interrompue : retenter avec le MÊME Idempotency-Key et un backoff exponentiel. Wave garantit l'idempotence.",
-    "En cas d'erreur 'idempotency-mismatch' (409) : le même Idempotency-Key a été utilisé avec un body différent. Générer un nouveau key et retenter.",
-    "Le reversal d'un payout est limité à 3 jours après création. Après ce délai, POST /v1/payout/{id}/reverse retourne une erreur.",
-    "receive_amount est une string sans décimales pour XOF — envoyer \"5000\" et non 5000 ou \"5000.00\".",
-    "Si la clé API a été créée avec la signature des requêtes (option facultative du Business Portal), chaque appel doit porter Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + corps brut)} calculé avec le signing secret (format wave_sn_AKS_…, affiché une seule fois) — corps vide pour un GET. Sans lui : 401 missing-signature ; autres codes : invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp de plus de 5 minutes dans le passé ou de plus de 30 secondes dans le futur). L'option est définitive pour une clé : pour l'abandonner, révoquer la clé et en créer une autre.",
-    "[MUST TELL USER] La liste blanche d'IP de l'API s'active dès la première adresse ajoutée dans le Business Portal (section Developer) et ne se désactive plus depuis le portail — il faut passer par votre account manager Wave. Les appels depuis une IP non listée reçoivent 403 ip-not-allowed : sur un hébergement sans IP sortante fixe (fonctions serverless, la plupart des PaaS), n'ajoutez pas d'IP sans avoir d'abord une sortie fixe."
+    "Every POST /v1/payout request must include a unique Idempotency-Key header (UUID v4 recommended, max 255 chars). Without this key, a retry after a network error can create a duplicate payout.",
+    "If the payout returns status 'processing', do not mark it as failed — treat it as pending and monitor it via GET /v1/payout/{id}. Marking it as failed too early can push the user to retry, causing a duplicate.",
+    "On a 5xx error, timeout or interrupted connection: retry with the SAME Idempotency-Key and exponential backoff. Wave guarantees idempotency.",
+    "On an 'idempotency-mismatch' error (409): the same Idempotency-Key was used with a different body. Generate a new key and retry.",
+    "Reversing a payout is limited to 3 days after creation. After that period, POST /v1/payout/{id}/reverse returns an error.",
+    "receive_amount is a string without decimals for XOF — send \"5000\", not 5000 or \"5000.00\".",
+    "If the API key was created with request signing (optional Business Portal setting), every call must carry Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + raw body)} computed with the signing secret (format wave_sn_AKS_…, shown only once) — empty body for a GET. Without it: 401 missing-signature; other codes: invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp more than 5 minutes in the past or more than 30 seconds in the future). The setting is permanent for a key: to drop it, revoke the key and create another one.",
+    "[MUST TELL USER] The API IP whitelist turns on as soon as the first address is added in the Business Portal (Developer section) and can no longer be turned off from the portal — you have to go through your Wave account manager. Calls from an unlisted IP get 403 ip-not-allowed: on hosting without a fixed outbound IP (serverless functions, most PaaS), do not add any IP before you have a fixed egress."
   ]
 }
