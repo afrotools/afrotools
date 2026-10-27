@@ -33,8 +33,7 @@
       "name": "limit",
       "in": "query",
       "schema": {
-        "type": "integer",
-        "minimum": 1
+        "type": "integer"
       },
       "description": "Maximum number of contacts to return."
     },
@@ -42,8 +41,7 @@
       "name": "offset",
       "in": "query",
       "schema": {
-        "type": "integer",
-        "minimum": 0
+        "type": "integer"
       },
       "description": "Pagination offset."
     }
