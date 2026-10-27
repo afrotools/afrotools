@@ -37,18 +37,21 @@
     "method": "GET",
     "url": "https://api.wave.com/v1/checkout/sessions/{id}"
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Checkout session identifier (prefix \"cos-\"). Taken from the create_checkout_session response."
+    }
+  ],
   "example_prompt": "Add server-side Wave payment verification to my order fulfillment flow.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "id"
-    ],
-    "properties": {
-      "id": {
-        "type": "string",
-        "description": "Checkout session identifier (prefix \"cos-\"). Taken from the create_checkout_session response."
-      }
-    }
+    "properties": {}
   },
   "response_schema": {
     "type": "object",

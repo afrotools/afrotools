@@ -225,5 +225,8 @@
     "If the API key was created with request signing (optional Business Portal setting), every call must carry Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + raw body)} computed with the signing secret (format wave_sn_AKS_…, shown only once) — empty body for a GET. Without it: 401 missing-signature; other codes: invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp more than 5 minutes in the past or more than 30 seconds in the future). The setting is permanent for a key: to drop it, revoke the key and create another one.",
     "[MUST TELL USER] The API IP whitelist turns on as soon as the first address is added in the Business Portal (Developer section) and can no longer be turned off from the portal — you have to go through your Wave account manager. Calls from an unlisted IP get 403 ip-not-allowed: on hosting without a fixed outbound IP (serverless functions, most PaaS), do not add any IP before you have a fixed egress.",
     "Wave checks the key before anything else, even before routing: an invalid key returns 401 on any path. The no-matching-api-key message quotes the last 4 characters of the received key (\"No API key found ending in '…'\") — compare them with your key to spot a badly loaded environment variable. (Measured without a valid key on 2026-10-24.)"
+  ],
+  "open_questions": [
+    "Wave's Checkout API reference documents no Idempotency-Key header for POST /v1/checkout/sessions (the Payout API does): is a retried creation safe, or does it open a second session?"
   ]
 }

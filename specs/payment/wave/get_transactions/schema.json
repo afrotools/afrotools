@@ -37,27 +37,44 @@
     "method": "GET",
     "url": "https://api.wave.com/v1/transactions"
   },
+  "parameters": [
+    {
+      "name": "date",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Date in YYYY-MM-DD format. If absent, returns the current day's transactions."
+    },
+    {
+      "name": "after",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Opaque pagination cursor. Pass the end_cursor value from the previous response to get the next page."
+    },
+    {
+      "name": "include_subaccounts",
+      "in": "query",
+      "schema": {
+        "type": "boolean"
+      },
+      "description": "If true, includes sub-account transactions."
+    },
+    {
+      "name": "first",
+      "in": "query",
+      "schema": {
+        "type": "integer"
+      },
+      "description": "Maximum number of transactions to return per page. If absent, Wave returns the full page."
+    }
+  ],
   "example_prompt": "Get my recent Wave wallet transactions.",
   "input_schema": {
     "type": "object",
-    "properties": {
-      "date": {
-        "type": "string",
-        "description": "Date in YYYY-MM-DD format. If absent, returns the current day's transactions."
-      },
-      "after": {
-        "type": "string",
-        "description": "Opaque pagination cursor. Pass the end_cursor value from the previous response to get the next page."
-      },
-      "include_subaccounts": {
-        "type": "boolean",
-        "description": "If true, includes sub-account transactions."
-      },
-      "first": {
-        "type": "integer",
-        "description": "Maximum number of transactions to return per page. If absent, Wave returns the full page."
-      }
-    }
+    "properties": {}
   },
   "response_schema": {
     "type": "object",

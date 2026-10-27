@@ -37,15 +37,20 @@
     "method": "GET",
     "url": "https://api.wave.com/v1/balance"
   },
+  "parameters": [
+    {
+      "name": "include_subaccounts",
+      "in": "query",
+      "schema": {
+        "type": "boolean"
+      },
+      "description": "If true, includes sub-account balances in the returned total."
+    }
+  ],
   "example_prompt": "Check my Wave wallet balance.",
   "input_schema": {
     "type": "object",
-    "properties": {
-      "include_subaccounts": {
-        "type": "boolean",
-        "description": "If true, includes sub-account balances in the returned total."
-      }
-    }
+    "properties": {}
   },
   "response_schema": {
     "type": "object",

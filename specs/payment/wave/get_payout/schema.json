@@ -37,18 +37,21 @@
     "method": "GET",
     "url": "https://api.wave.com/v1/payout/{id}"
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Payout identifier returned by send_payout."
+    }
+  ],
   "example_prompt": "Check the status of a Wave payout I sent.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "id"
-    ],
-    "properties": {
-      "id": {
-        "type": "string",
-        "description": "Payout identifier returned by send_payout."
-      }
-    }
+    "properties": {}
   },
   "response_schema": {
     "type": "object",
