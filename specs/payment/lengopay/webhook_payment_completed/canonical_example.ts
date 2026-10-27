@@ -8,7 +8,10 @@
 const LENGOPAY_LICENSE_KEY = process.env.LENGOPAY_LICENSE_KEY;
 if (!LENGOPAY_LICENSE_KEY) throw new Error("Missing env: LENGOPAY_LICENSE_KEY");
 
-type PaymentStatus = "SUCCESS" | "FAILED" | "PENDING" | "CANCELLED";
+const LENGOPAY_WEBSITE_ID = process.env.LENGOPAY_WEBSITE_ID;
+if (!LENGOPAY_WEBSITE_ID) throw new Error("Missing env: LENGOPAY_WEBSITE_ID");
+
+type PaymentStatus = "SUCCESS" | "FAILED" | "PENDING";
 
 interface LengoPayWebhookPayload {
   pay_id: string;
@@ -23,24 +26,25 @@ interface VerifyPaymentResponse {
   pay_id: string;
   status: PaymentStatus;
   amount: number;
-  currency: string;
-  message: string;
-  metadata?: Record<string, unknown>;
+  date: string;
 }
 
 interface LengoPayError {
   message: string;
 }
 
+// Same call as verify_payment: POST /api/v1/transaction/status (the GET /api/v1/payments/{payId} it replaced no longer works)
 async function verifyPayment(payId: string): Promise<VerifyPaymentResponse> {
   const response = await fetch(
-    `https://portal.lengopay.com/api/v1/payments/${payId}`,
+    "https://portal.lengopay.com/api/v1/transaction/status",
     {
-      method: "GET",
+      method: "POST",
       headers: {
         Authorization: `Basic ${LENGOPAY_LICENSE_KEY!}`,
         Accept: "application/json",
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({ pay_id: payId, websiteid: LENGOPAY_WEBSITE_ID! }),
     }
   );
 
@@ -60,7 +64,7 @@ async function verifyPayment(payId: string): Promise<VerifyPaymentResponse> {
  */
 export async function handleLengoPayWebhook(
   body: LengoPayWebhookPayload,
-  fulfillOrder: (payId: string, amount: number, currency: string) => Promise<void>,
+  fulfillOrder: (payId: string, amount: number) => Promise<void>,
   sendResponse: (status: number) => void
 ): Promise<void> {
   // Respond 200 immediately — LengoPay retries on failure, which can cause duplicate processing.
@@ -75,7 +79,7 @@ export async function handleLengoPayWebhook(
 
     if (result.status === "SUCCESS") {
       // fulfillOrder must be idempotent: LengoPay may deliver the same webhook multiple times.
-      await fulfillOrder(result.pay_id, result.amount, result.currency);
+      await fulfillOrder(result.pay_id, result.amount);
     }
   } catch {
     // Log and alert — do not rethrow. The 200 is already sent.
@@ -92,12 +96,12 @@ app.use(express.json());
 app.post("/api/lengopay/callback", async (req, res) => {
   await handleLengoPayWebhook(
     req.body,
-    async (payId, amount, currency) => {
+    async (payId, amount) => {
       // Guard against duplicate delivery
       const alreadyFulfilled = await db.orders.findOne({ pay_id: payId, status: "paid" });
       if (alreadyFulfilled) return;
 
-      await db.orders.update({ pay_id: payId }, { status: "paid", amount, currency });
+      await db.orders.update({ pay_id: payId }, { status: "paid", amount });
     },
     (status) => res.sendStatus(status)
   );
