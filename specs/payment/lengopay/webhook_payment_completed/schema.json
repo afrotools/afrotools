@@ -9,7 +9,7 @@
     "environment": "production",
     "at": "2026-04-07",
     "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:060de834b90ddd98da6f86a4a18d868641e129f1cabc76a402d978858fd4473b"
+    "spec_hash": "sha256:7cf84496cc7339cb9babdc0846ede9779b89e182017a882b8008ab34b3db332d"
   },
   "currency": [
     "GNF"
@@ -24,11 +24,11 @@
   "example_prompt": "Add a LengoPay webhook handler to automatically confirm orders when payment completes.",
   "input_schema": {
     "type": "object",
-    "description": "Payload que LengoPay POSTe à votre callback_url lorsqu'un paiement est traité.",
+    "description": "Payload that LengoPay POSTs to your callback_url when a payment is processed.",
     "properties": {
       "pay_id": {
         "type": "string",
-        "description": "Identifiant unique du paiement. Utiliser pour appeler verify_payment et confirmer côté serveur."
+        "description": "Unique payment identifier. Use it to call verify_payment and confirm server-side."
       },
       "status": {
         "type": "string",
@@ -36,37 +36,37 @@
           "SUCCESS",
           "FAILED"
         ],
-        "description": "Statut final de la transaction envoyé par le webhook."
+        "description": "Final transaction status sent by the webhook."
       },
       "amount": {
         "type": "number",
-        "description": "Montant du paiement traité."
+        "description": "Amount of the processed payment."
       },
       "message": {
         "type": "string",
-        "description": "Message décrivant le résultat de la transaction."
+        "description": "Message describing the outcome of the transaction."
       },
       "Client": {
         "type": "string",
-        "description": "Numéro de téléphone du payeur."
+        "description": "Payer's phone number."
       },
       "metadata": {
         "type": "object",
-        "description": "Données passées à create_payment, renvoyées à l'identique.",
+        "description": "Data passed to create_payment, returned unchanged.",
         "additionalProperties": true
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "description": "Votre endpoint doit retourner HTTP 200. Le corps de la réponse est ignoré par LengoPay."
+    "description": "Your endpoint must return HTTP 200. The response body is ignored by LengoPay."
   },
   "error_schema": {},
   "gotchas": [
-    "Ne jamais fulfiller une commande sur la base du webhook seul. Appeler verify_payment (GET /api/v1/payments/{payId}) pour confirmer côté serveur — le webhook peut être forgé par quiconque connaît votre callback_url.",
-    "Répondre HTTP 200 immédiatement et traiter le paiement de façon asynchrone. LengoPay retry en cas d'échec, ce qui peut provoquer des doublons si votre handler est lent.",
-    "Implémenter l'idempotence : LengoPay peut envoyer le même webhook plusieurs fois pour le même pay_id. Vérifier que la commande n'est pas déjà fulfillée avant d'agir.",
-    "Le champ Client contient le numéro de téléphone du payeur (ex: '624897845'). Il est absent du payload dans certains cas — ne pas en dépendre.",
-    "[MUST TELL USER] LengoPay n'appelle le callback_url qu'en HTTPS — les URLs http:// sont silencieusement ignorées. En développement local, le webhook ne se déclenchera jamais sans tunnel HTTPS. Indiquer explicitement à l'utilisateur : lancer `ngrok http 3000`, puis mettre à jour NEXT_PUBLIC_BASE_URL (ou l'équivalent) avec l'URL ngrok avant de tester."
+    "Never fulfill an order based on the webhook alone. Call verify_payment (GET /api/v1/payments/{payId}) to confirm server-side — the webhook can be forged by anyone who knows your callback_url.",
+    "Respond HTTP 200 immediately and process the payment asynchronously. LengoPay retries on failure, which can cause duplicates if your handler is slow.",
+    "Implement idempotency: LengoPay may send the same webhook multiple times for the same pay_id. Check that the order is not already fulfilled before acting.",
+    "The Client field contains the payer's phone number (e.g. '624897845'). It is missing from the payload in some cases — do not rely on it.",
+    "[MUST TELL USER] LengoPay only calls the callback_url over HTTPS — http:// URLs are silently ignored. In local development, the webhook will never fire without an HTTPS tunnel. Tell the user explicitly: run `ngrok http 3000`, then update NEXT_PUBLIC_BASE_URL (or the equivalent) with the ngrok URL before testing."
   ]
 }

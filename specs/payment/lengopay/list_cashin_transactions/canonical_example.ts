@@ -49,7 +49,7 @@ export async function listCashinTransactions(
 
   const data = await response.json() as CashinTransaction[];
 
-  // Normaliser account en string (l'API peut retourner un number)
+  // Normalize account to a string (the API may return a number)
   return data.map(t => ({ ...t, account: String(t.account) }));
 }
 
@@ -58,7 +58,7 @@ Usage example:
 
 const transactions = await listCashinTransactions(LENGOPAY_WEBSITE_ID!);
 
-// Grouper par réseau
+// Group by network
 const byGateway = transactions.reduce<Record<string, CashinTransaction[]>>((acc, t) => {
   acc[t.gateway] = acc[t.gateway] ?? [];
   acc[t.gateway].push(t);

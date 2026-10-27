@@ -45,11 +45,11 @@
     "properties": {
       "pay_id": {
         "type": "string",
-        "description": "Identifiant du paiement retourné par create_payment."
+        "description": "Payment identifier returned by create_payment."
       },
       "websiteid": {
         "type": "string",
-        "description": "Identifiant unique du site (ID Site dans le tableau de bord LengoPay)."
+        "description": "Unique site identifier (Site ID in the LengoPay dashboard)."
       }
     }
   },
@@ -58,7 +58,7 @@
     "properties": {
       "pay_id": {
         "type": "string",
-        "description": "Identifiant du paiement."
+        "description": "Payment identifier."
       },
       "status": {
         "type": "string",
@@ -67,15 +67,15 @@
           "FAILED",
           "PENDING"
         ],
-        "description": "Statut final de la transaction. Toujours en UPPERCASE."
+        "description": "Final transaction status. Always in UPPERCASE."
       },
       "amount": {
         "type": "number",
-        "description": "Montant du paiement traité."
+        "description": "Amount of the processed payment."
       },
       "date": {
         "type": "string",
-        "description": "Date de la transaction (format YYYY-MM-DD HH:MM:SS)."
+        "description": "Transaction date (format YYYY-MM-DD HH:MM:SS)."
       }
     }
   },
@@ -84,14 +84,14 @@
     "properties": {
       "message": {
         "type": "string",
-        "description": "Description de l'erreur."
+        "description": "Error description."
       }
     }
   },
   "gotchas": [
-    "Toujours appeler verify_payment côté serveur avant de valider une commande. Le webhook seul ne suffit pas — il peut être forgé par quiconque connaît votre callback_url.",
-    "PENDING est un statut valide : le paiement est en cours de traitement. Ne pas fulfiller la commande sur PENDING — attendre SUCCESS.",
-    "Le statut est en UPPERCASE strict : comparer avec status === 'SUCCESS'.",
-    "L'endpoint a changé en v1.2.0 : il est désormais POST /api/v1/transaction/status avec pay_id et websiteid dans le body. L'ancien GET /api/v1/payments/{payId} ne fonctionne plus."
+    "Always call verify_payment server-side before confirming an order. The webhook alone is not enough — it can be forged by anyone who knows your callback_url.",
+    "PENDING is a valid status: the payment is being processed. Do not fulfill the order on PENDING — wait for SUCCESS.",
+    "The status is strictly UPPERCASE: compare with status === 'SUCCESS'.",
+    "The endpoint changed in v1.2.0: it is now POST /api/v1/transaction/status with pay_id and websiteid in the body. The old GET /api/v1/payments/{payId} no longer works."
   ]
 }

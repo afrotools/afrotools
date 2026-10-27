@@ -60,17 +60,17 @@ export async function cashinRequest(
 Usage example:
 
 const result = await cashinRequest({
-  amount: "1000",          // string, pas un number
+  amount: "1000",          // string, not a number
   currency: "GNF",
   websiteid: LENGOPAY_WEBSITE_ID!,
-  type_account: "lp-om-gn", // Orange Money Guinée
+  type_account: "lp-om-gn", // Orange Money Guinea
   account: "620124578",
   callback_url: "https://myapp.com/callback/cashin",
 });
 
 if (result.status === "Success" && result.pay_id) {
-  // Conserver pay_id pour suivre la transaction via cashinStatus
-  // Le paiement n'est PAS encore effectué à ce stade
+  // Keep pay_id to track the transaction via cashinStatus
+  // The payment is NOT yet completed at this point
   await db.orders.update({ id: orderId }, { pay_id: result.pay_id });
 }
 */
