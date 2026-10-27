@@ -111,11 +111,10 @@
     }
   },
   "gotchas": [
-    "The Authorization header value is your public key with no prefix — do not add 'Bearer ' before it.",
+    "Authorization takes the key as is, with no 'Bearer ' prefix. Which key goes there is unsettled: Notch Pay's Authentication page shows the public key in it next to X-Grant (`-H \"Authorization: YOUR_PUBLIC_KEY\"` `-H \"X-Grant: YOUR_PRIVATE_KEY\"`), while this spec sends the private key, following its earlier note that a public key returns 406 Not Acceptable (not stated in the docs). See open_questions before relying on either.",
     "The id path parameter must be the Notch Pay beneficiary ID (from create_beneficiary response), not the account_number or phone number.",
     "A 404 response means the beneficiary does not exist under the authenticated account — beneficiaries are scoped to the API key used to create them.",
     "Do not URL-encode the beneficiary ID when inserting it into the path — pass it as-is.",
-    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable.",
     "This endpoint also requires the `X-Grant` header carrying your private key (`X-Grant: YOUR_PRIVATE_KEY`). Without it Notch Pay returns 403 \"This endpoint requires additional authentication\"; a wrong value returns 403 \"Invalid grant key\"."
   ],
   "open_questions": [
