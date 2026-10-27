@@ -41,18 +41,24 @@
     "method": "POST",
     "url": "https://sandbox-api.djomy.africa/v1/payments/{transactionReference}/confirmOTP"
   },
+  "parameters": [
+    {
+      "name": "transactionReference",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "The transactionId returned by create_payment. Passed as a path parameter."
+    }
+  ],
   "example_prompt": "Add OTP confirmation to my Djomy payment flow.",
   "input_schema": {
     "type": "object",
     "required": [
-      "transactionReference",
       "oneTimePin"
     ],
     "properties": {
-      "transactionReference": {
-        "type": "string",
-        "description": "The transactionId returned by create_payment. Passed as a path parameter."
-      },
       "oneTimePin": {
         "type": "string",
         "pattern": "\\d{4,6}",
@@ -213,6 +219,7 @@
     "Only the X-API-KEY header is documented for this endpoint (no Bearer token, unlike create_payment and verify_payment)."
   ],
   "open_questions": [
-    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it."
+    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it.",
+    "Is a retried confirmOTP call safe? Djomy's API reference (openapi-partner.json) documents no idempotency header or behaviour for POST /v1/payments/{transactionReference}/confirmOTP."
   ]
 }

@@ -9,7 +9,7 @@
     "environment": "sandbox",
     "at": "2026-04-10",
     "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:e3d323a20b906140ad920bea5205de0b6df747f697eef346c98526beaa5d8626"
+    "spec_hash": "sha256:e87e8568c0d175324b0fa405bb0aa431a8debc9356314d75d78b27db2b7024a4"
   },
   "currency": [
     "GNF"
@@ -66,20 +66,20 @@
     "method": "GET",
     "url": "https://sandbox-api.djomy.africa/v1/payments/{transactionId}/status"
   },
-  "example_prompt": "Add server-side Djomy payment verification to my order fulfillment flow.",
-  "input_schema": {
-    "type": "object",
-    "required": [
-      "transactionId"
-    ],
-    "properties": {
-      "transactionId": {
+  "parameters": [
+    {
+      "name": "transactionId",
+      "in": "path",
+      "required": true,
+      "schema": {
         "type": "string",
-        "format": "uuid",
-        "description": "The transactionId returned by create_payment or create_payment_gateway. Passed as a path parameter."
-      }
+        "format": "uuid"
+      },
+      "description": "The transactionId returned by create_payment or create_payment_gateway. Passed as a path parameter."
     }
-  },
+  ],
+  "example_prompt": "Add server-side Djomy payment verification to my order fulfillment flow.",
+  "input_schema": {},
   "response_schema": {
     "type": "object",
     "description": "All responses are wrapped in { success, message, data, error, errors, timestamp, status }.",

@@ -59,19 +59,19 @@
     "method": "GET",
     "url": "https://sandbox-api.djomy.africa/v1/links/{reference}"
   },
-  "example_prompt": "Add a check to see if a customer has paid via the Djomy link I sent them.",
-  "input_schema": {
-    "type": "object",
-    "required": [
-      "reference"
-    ],
-    "properties": {
-      "reference": {
-        "type": "string",
-        "description": "The paymentLinkReference returned by create_payment_link. Passed as a path parameter."
-      }
+  "parameters": [
+    {
+      "name": "reference",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "The paymentLinkReference returned by create_payment_link. Passed as a path parameter."
     }
-  },
+  ],
+  "example_prompt": "Add a check to see if a customer has paid via the Djomy link I sent them.",
+  "input_schema": {},
   "response_schema": {
     "type": "object",
     "description": "All responses are wrapped in { success, message, data, error, errors, timestamp, status }.",
