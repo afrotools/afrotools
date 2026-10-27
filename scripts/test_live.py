@@ -594,11 +594,13 @@ def run(provider_slug, only_capability=None, raw_capability=None, report_path=No
                 fail(f"HTTP {status_code} → {json.dumps(resp)[:300]}", f"HTTP {status_code}")
             continue
 
-        # response_schema describes a success: a negative test (expected_status: [404]) only checks the status
-        response_schema = schema.get("response_schema", {}) if 200 <= status_code < 300 else {}
+        # response_schema and success_condition describe a success: a negative test
+        # (expected_status: [404]) only checks the status
+        is_2xx = 200 <= status_code < 300
+        response_schema = schema.get("response_schema", {}) if is_2xx else {}
         for message, for_report in schema_errors(resp, response_schema):
             fail(f"❌  {message}", for_report)
-        condition = success_error(resp, schema.get("success_condition"))
+        condition = success_error(resp, schema.get("success_condition")) if is_2xx else None
         if condition:
             fail(f"❌  {condition}", condition.split(", got ")[0])
         for key in undocumented_keys(resp, response_schema):
