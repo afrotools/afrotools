@@ -57,23 +57,23 @@ const result = await verifyRecipient({
   currency: "XOF",
 });
 
-// Vérifier la capacité à recevoir le montant
+// Check the ability to receive the amount
 if (result.within_limits === false) {
   throw new Error("Le destinataire ne peut pas recevoir ce montant (limite dépassée)");
 }
 
-// Vérifier le nom
+// Check the name
 if (result.name_match === "NO_MATCH") {
-  // Avertir l'utilisateur — ne pas bloquer automatiquement
+  // Warn the user — do not block automatically
   console.warn("Le nom fourni ne correspond pas au compte Wave");
 }
 
-// NAME_NOT_KNOWN = le destinataire n'est pas KYC-2 chez Wave
-// Ce n'est pas une erreur — ne pas bloquer le payout sur cette base
+// NAME_NOT_KNOWN = the recipient is not KYC-2 at Wave
+// This is not an error — do not block the payout on this basis
 if (result.name_match === "NAME_NOT_KNOWN") {
   console.log("Vérification du nom impossible : données KYC insuffisantes");
 }
 
-// ATTENTION : max 30 vérifications du même numéro par 5 minutes
-// Au-delà, ce numéro est bloqué 60 minutes
+// WARNING: max 30 checks of the same number per 5 minutes
+// Beyond that, this number is blocked for 60 minutes
 */

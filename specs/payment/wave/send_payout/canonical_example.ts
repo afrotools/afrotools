@@ -66,7 +66,7 @@ export async function sendPayout(
 /*
 Usage example :
 
-// Générer et stocker l'idempotency key AVANT l'appel — en cas de retry, réutiliser la même key.
+// Generate and store the idempotency key BEFORE the call — on retry, reuse the same key.
 const idempotencyKey = randomUUID();
 await db.payouts.create({ idempotency_key: idempotencyKey, status: "pending", mobile: "+221700000000" });
 
@@ -75,29 +75,29 @@ try {
   payout = await sendPayout(
     {
       currency: "XOF",
-      receive_amount: "5000",   // string, sans décimales
-      mobile: "+221700000000",  // format E.164
+      receive_amount: "5000",   // string, without decimals
+      mobile: "+221700000000",  // E.164 format
       client_reference: "withdrawal_456",
       payment_reason: "Remboursement commande",
     },
     idempotencyKey
   );
 } catch (err) {
-  // Erreur réseau ou 5xx : retenter avec le MÊME idempotencyKey + backoff exponentiel
-  // Erreur 4xx (insufficient-funds, etc.) : marquer comme failed définitivement
+  // Network error or 5xx: retry with the SAME idempotencyKey + exponential backoff
+  // 4xx error (insufficient-funds, etc.): mark as failed permanently
   throw err;
 }
 
 if (payout.status === "succeeded") {
   await db.payouts.update({ idempotency_key: idempotencyKey }, { status: "succeeded", payout_id: payout.id });
 } else if (payout.status === "processing") {
-  // Pas encore définitif — surveiller via GET /v1/payout/{id}
+  // Not final yet — monitor via GET /v1/payout/{id}
   await db.payouts.update({ idempotency_key: idempotencyKey }, { status: "processing", payout_id: payout.id });
 } else {
   // failed
   await db.payouts.update({ idempotency_key: idempotencyKey }, { status: "failed", error: payout.payout_error?.error_code });
 }
 
-// IMPORTANT : ne jamais marquer "failed" un payout en status "processing".
-// L'utilisateur pourrait retenter, causant un doublon si le payout finit par réussir.
+// IMPORTANT: never mark a payout in "processing" status as "failed".
+// The user could retry, causing a duplicate if the payout ends up succeeding.
 */

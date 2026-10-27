@@ -46,27 +46,27 @@
     "properties": {
       "id": {
         "type": "string",
-        "description": "Identifiant de la session checkout à rembourser (préfixe \"cos-\")."
+        "description": "Identifier of the checkout session to refund (prefix \"cos-\")."
       }
     }
   },
   "response_schema": {
     "type": "object",
-    "description": "HTTP 200 avec corps vide en cas de succès."
+    "description": "HTTP 200 with an empty body on success."
   },
   "error_schema": {
     "type": "object",
     "properties": {
       "code": {
         "type": "string",
-        "description": "Code d'erreur. Ex: checkout-session-not-found (404), checkout-refund-failed (500)."
+        "description": "Error code. e.g. checkout-session-not-found (404), checkout-refund-failed (500)."
       },
       "message": {
         "type": "string",
-        "description": "Description lisible de l'erreur."
+        "description": "Human-readable error description."
       },
       "details": {
-        "description": "Détails de validation retournés sur request-validation-error. Chaque entrée contient loc (localisation du champ), msg (message), type (type d erreur). Peut valoir null ou être absent (mesuré le 2026-10-24 sur des erreurs 401) — tester avant de parcourir.",
+        "description": "Validation details returned on request-validation-error. Each entry contains loc (field location), msg (message), type (error type). Can be null or absent (measured on 2026-10-24 on 401 errors) — check before iterating.",
         "oneOf": [
           {
             "type": "array",
@@ -93,11 +93,11 @@
     }
   },
   "gotchas": [
-    "Cet endpoint est idempotent — appeler refund deux fois sur la même session retourne HTTP 200 sans créer de remboursement en double.",
-    "Seule une session avec payment_status 'succeeded' peut être remboursée. Appeler refund sur une session non complétée retourne une erreur.",
-    "Le remboursement est total — Wave ne supporte pas les remboursements partiels via cet endpoint.",
-    "Alternative par transaction ID : si l'ID de session est perdu mais que le transaction_id Wave est connu, utiliser POST /v1/transactions/{transaction_id}/refund (Balance API) pour rembourser par transaction.",
-    "Si la clé API a été créée avec la signature des requêtes (option facultative du Business Portal), chaque appel doit porter Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + corps brut)} calculé avec le signing secret (format wave_sn_AKS_…, affiché une seule fois) — corps vide pour un GET. Sans lui : 401 missing-signature ; autres codes : invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp de plus de 5 minutes dans le passé ou de plus de 30 secondes dans le futur). L'option est définitive pour une clé : pour l'abandonner, révoquer la clé et en créer une autre.",
-    "[MUST TELL USER] La liste blanche d'IP de l'API s'active dès la première adresse ajoutée dans le Business Portal (section Developer) et ne se désactive plus depuis le portail — il faut passer par votre account manager Wave. Les appels depuis une IP non listée reçoivent 403 ip-not-allowed : sur un hébergement sans IP sortante fixe (fonctions serverless, la plupart des PaaS), n'ajoutez pas d'IP sans avoir d'abord une sortie fixe."
+    "This endpoint is idempotent — calling refund twice on the same session returns HTTP 200 without creating a duplicate refund.",
+    "Only a session with payment_status 'succeeded' can be refunded. Calling refund on a session that is not completed returns an error.",
+    "The refund is for the full amount — Wave does not support partial refunds via this endpoint.",
+    "Alternative by transaction ID: if the session ID is lost but the Wave transaction_id is known, use POST /v1/transactions/{transaction_id}/refund (Balance API) to refund by transaction.",
+    "If the API key was created with request signing (optional Business Portal setting), every call must carry Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + raw body)} computed with the signing secret (format wave_sn_AKS_…, shown only once) — empty body for a GET. Without it: 401 missing-signature; other codes: invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp more than 5 minutes in the past or more than 30 seconds in the future). The setting is permanent for a key: to drop it, revoke the key and create another one.",
+    "[MUST TELL USER] The API IP whitelist turns on as soon as the first address is added in the Business Portal (Developer section) and can no longer be turned off from the portal — you have to go through your Wave account manager. Calls from an unlisted IP get 403 ip-not-allowed: on hosting without a fixed outbound IP (serverless functions, most PaaS), do not add any IP before you have a fixed egress."
   ]
 }

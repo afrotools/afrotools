@@ -67,17 +67,17 @@ export async function createCheckoutSession(
 Usage example:
 
 const session = await createCheckoutSession({
-  amount: "5000",        // string, pas un nombre — XOF sans décimales
+  amount: "5000",        // string, not a number — XOF without decimals
   currency: "XOF",
   success_url: "https://myapp.com/payment/success",
   error_url: "https://myapp.com/payment/error",
   client_reference: "order_123",
 });
 
-// Stocker session.id en base AVANT de rediriger.
-// C'est le seul moyen de vérifier le paiement côté serveur.
+// Store session.id in the database BEFORE redirecting.
+// It is the only way to verify the payment server-side.
 await db.orders.update({ id: "order_123" }, { wave_session_id: session.id });
 
-// Rediriger l'utilisateur vers Wave (navigateur natif, pas de WebView)
+// Redirect the user to Wave (native browser, no WebView)
 // res.redirect(session.wave_launch_url);
 */

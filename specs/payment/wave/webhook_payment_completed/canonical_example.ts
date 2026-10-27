@@ -51,8 +51,8 @@ function verifyWaveSignature(
   secret: string
 ): boolean {
   // Format: "t=1234567890,v1=abc123..."
-  // Pendant une rotation de secret, Wave envoie plusieurs valeurs v1= dans le même header.
-  // Utiliser un tableau pour toutes les capturer — ne pas écraser avec un simple map.
+  // During a secret rotation, Wave sends several v1= values in the same header.
+  // Use an array to capture all of them — do not overwrite with a simple map.
   let timestamp: string | undefined;
   const signatures: string[] = [];
 
@@ -67,7 +67,7 @@ function verifyWaveSignature(
 
   if (!timestamp || signatures.length === 0) return false;
 
-  // Rejeter les requêtes de plus de 5 minutes
+  // Reject requests older than 5 minutes
   const now = Math.floor(Date.now() / 1000);
   if (Math.abs(now - parseInt(timestamp, 10)) > 300) return false;
 
@@ -75,19 +75,19 @@ function verifyWaveSignature(
   const expected = createHmac("sha256", secret).update(payload).digest("hex");
   const expBuf = Buffer.from(expected);
 
-  // Vérifier si l'une des signatures correspond (cas multi-signatures lors d'une rotation)
+  // Check whether one of the signatures matches (multi-signature case during a rotation)
   return signatures.some((sig) => {
     const sigBuf = Buffer.from(sig);
-    // timingSafeEqual throws si longueurs différentes — vérifier d'abord
+    // timingSafeEqual throws if lengths differ — check first
     if (sigBuf.length !== expBuf.length) return false;
     return timingSafeEqual(sigBuf, expBuf);
   });
 }
 
 /**
- * Wave propose deux modes, choisis à l'enregistrement du webhook :
- * - Signing Secret (recommandé) : en-tête Wave-Signature, vérifié par HMAC ;
- * - Shared Secret : le secret en clair dans Authorization: Bearer <secret>.
+ * Wave offers two modes, chosen when the webhook is registered:
+ * - Signing Secret (recommended): Wave-Signature header, verified by HMAC;
+ * - Shared Secret: the secret in plain text in Authorization: Bearer <secret>.
  */
 function authenticateWaveWebhook(
   rawBody: string,
@@ -121,11 +121,11 @@ async function verifyPaymentServerSide(sessionId: string): Promise<CheckoutSessi
 }
 
 /**
- * Express-style webhook handler pour checkout.session.completed.
- * Monter à l'URL configurée dans le Wave Business Portal.
+ * Express-style webhook handler for checkout.session.completed.
+ * Mount at the URL configured in the Wave Business Portal.
  *
- * Wave ne retente que les livraisons sans réponse 2xx (pendant 3 jours, timeout 5 s) : l'événement est donc
- * enregistré AVANT de répondre 200. Une fois le 200 envoyé, Wave ne retentera plus.
+ * Wave retries only deliveries without a 2xx response (for 3 days, 5 s timeout): the event is therefore
+ * recorded BEFORE responding 200. Once the 200 is sent, Wave will not retry.
  */
 export async function handleWaveWebhook(
   rawBody: string,
@@ -148,14 +148,14 @@ export async function handleWaveWebhook(
   }
 
   try {
-    // Persister avant de répondre : c'est ce qui permet le rattrapage si la suite échoue
+    // Persist before responding: this is what allows catch-up if the rest fails
     await recordEvent(payload);
   } catch {
-    sendResponse(500); // Wave retentera la livraison
+    sendResponse(500); // Wave will retry the delivery
     return;
   }
 
-  // Répondre 2xx immédiatement, traiter ensuite
+  // Respond 2xx immediately, process afterwards
   sendResponse(200);
 
   if (payload.type !== "checkout.session.completed") return;
@@ -164,19 +164,19 @@ export async function handleWaveWebhook(
   const eventId = payload.id;
 
   try {
-    // Vérifier côté serveur — ne jamais se fier au payload seul
+    // Verify server-side — never trust the payload alone
     const session = await verifyPaymentServerSide(sessionId);
 
     if (
       session.checkout_status === "complete" &&
       session.payment_status === "succeeded"
     ) {
-      // fulfillOrder doit être idempotent via eventId ou sessionId
+      // fulfillOrder must be idempotent via eventId or sessionId
       await fulfillOrder(session.id, session.client_reference, session.currency);
     }
   } catch (error) {
-    // Wave ne retentera PAS : le 200 est déjà envoyé. La commande reste en attente dans votre stockage (recordEvent) ;
-    // une tâche de rattrapage doit la reprendre via verify_payment (ou search_checkouts par client_reference).
+    // Wave will NOT retry: the 200 is already sent. The order stays pending in your storage (recordEvent);
+    // a catch-up job must pick it up via verify_payment (or search_checkouts by client_reference).
     console.error(`Wave webhook ${eventId}: vérification de ${sessionId} échouée`, error);
   }
 }
@@ -187,17 +187,17 @@ Usage example (Express) :
 import express from "express";
 const app = express();
 
-// IMPORTANT: utiliser express.raw() — ne pas parser en JSON avant la vérification de signature
+// IMPORTANT: use express.raw() — do not parse as JSON before signature verification
 app.post("/api/wave/webhook", express.raw({ type: "application/json" }), async (req, res) => {
   await handleWaveWebhook(
     req.body.toString(),
     { signature: req.get("Wave-Signature"), authorization: req.get("Authorization") },
-    // Enregistrer l'événement (id + data.id) : une erreur ici renvoie 500 et Wave retentera
+    // Record the event (id + data.id): an error here returns 500 and Wave will retry
     async (event) => {
       await db.waveEvents.upsert({ id: event.id }, { session_id: event.data.id, received_at: new Date() });
     },
     async (sessionId, clientReference, currency) => {
-      // Guard idempotence via l'event id ou le sessionId
+      // Idempotency guard via the event id or the sessionId
       const already = await db.orders.findOne({ wave_session_id: sessionId, status: "paid" });
       if (already) return;
 
@@ -210,6 +210,6 @@ app.post("/api/wave/webhook", express.raw({ type: "application/json" }), async (
   );
 });
 
-// Ne pas mettre de middleware d'authentification sur cette route.
-// La vérification se fait via Wave-Signature (Signing Secret) ou Authorization (Shared Secret).
+// Do not put authentication middleware on this route.
+// Verification is done via Wave-Signature (Signing Secret) or Authorization (Shared Secret).
 */

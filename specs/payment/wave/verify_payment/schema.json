@@ -46,7 +46,7 @@
     "properties": {
       "id": {
         "type": "string",
-        "description": "Identifiant de la session de checkout (préfixe \"cos-\"). Récupéré depuis la réponse de create_checkout_session."
+        "description": "Checkout session identifier (prefix \"cos-\"). Taken from the create_checkout_session response."
       }
     }
   },
@@ -55,7 +55,7 @@
     "properties": {
       "id": {
         "type": "string",
-        "description": "Identifiant unique de la session."
+        "description": "Unique session identifier."
       },
       "checkout_status": {
         "type": "string",
@@ -65,7 +65,7 @@
           "expired",
           "failed"
         ],
-        "description": "État de la session. Vérifier que checkout_status est 'complete' ET payment_status est 'succeeded' avant de valider une commande. 'failed' peut apparaître dans le contexte du webhook checkout.session.payment_failed."
+        "description": "Session state. Check that checkout_status is 'complete' AND payment_status is 'succeeded' before confirming an order. 'failed' can appear in the context of the checkout.session.payment_failed webhook."
       },
       "payment_status": {
         "type": "string",
@@ -74,46 +74,46 @@
           "cancelled",
           "succeeded"
         ],
-        "description": "État du paiement."
+        "description": "Payment state."
       },
       "amount": {
         "type": "string",
-        "description": "Montant demandé."
+        "description": "Requested amount."
       },
       "currency": {
         "type": "string",
-        "description": "Code ISO 4217."
+        "description": "ISO 4217 code."
       },
       "transaction_id": {
         "type": "string",
-        "description": "Identifiant de transaction Wave. Présent uniquement si le paiement a été initié."
+        "description": "Wave transaction identifier. Present only if the payment was initiated."
       },
       "client_reference": {
         "type": "string",
-        "description": "Référence interne fournie à la création."
+        "description": "Internal reference provided at creation."
       },
       "business_name": {
         "type": "string",
-        "description": "Nom du business affiché au payeur."
+        "description": "Business name shown to the payer."
       },
       "when_created": {
         "type": "string",
         "format": "date-time",
-        "description": "Horodatage ISO 8601 UTC de création."
+        "description": "ISO 8601 UTC creation timestamp."
       },
       "when_expires": {
         "type": "string",
         "format": "date-time",
-        "description": "Horodatage ISO 8601 UTC d'expiration."
+        "description": "ISO 8601 UTC expiration timestamp."
       },
       "when_completed": {
         "type": "string",
         "format": "date-time",
-        "description": "Horodatage ISO 8601 UTC de complétion. Absent si la session est encore ouverte."
+        "description": "ISO 8601 UTC completion timestamp. Absent if the session is still open."
       },
       "last_payment_error": {
         "type": "object",
-        "description": "Dernière erreur de paiement. Présent si payment_status est processing ou cancelled.",
+        "description": "Last payment error. Present if payment_status is processing or cancelled.",
         "properties": {
           "code": {
             "type": "string"
@@ -130,14 +130,14 @@
     "properties": {
       "code": {
         "type": "string",
-        "description": "Code d'erreur. Ex: checkout-session-not-found, unauthorized-wallet."
+        "description": "Error code. e.g. checkout-session-not-found, unauthorized-wallet."
       },
       "message": {
         "type": "string",
-        "description": "Description lisible de l'erreur."
+        "description": "Human-readable error description."
       },
       "details": {
-        "description": "Détails de validation retournés sur request-validation-error. Chaque entrée contient loc (localisation du champ), msg (message), type (type d erreur). Peut valoir null ou être absent (mesuré le 2026-10-24 sur des erreurs 401) — tester avant de parcourir.",
+        "description": "Validation details returned on request-validation-error. Each entry contains loc (field location), msg (message), type (error type). Can be null or absent (measured on 2026-10-24 on 401 errors) — check before iterating.",
         "oneOf": [
           {
             "type": "array",
@@ -164,10 +164,10 @@
     }
   },
   "gotchas": [
-    "Toujours vérifier côté serveur avant de valider une commande — ne jamais se fier uniquement au success_url ou au webhook. Un utilisateur peut manipuler la redirection.",
-    "Vérifier les DEUX champs : checkout_status === 'complete' ET payment_status === 'succeeded'. Un checkout_status 'complete' avec payment_status 'cancelled' signifie que le paiement a échoué.",
-    "verify_payment est aussi le mécanisme de récupération si le webhook n'a pas été reçu (timeout, serveur indisponible, redémarrage).",
-    "Si la clé API a été créée avec la signature des requêtes (option facultative du Business Portal), chaque appel doit porter Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + corps brut)} calculé avec le signing secret (format wave_sn_AKS_…, affiché une seule fois) — corps vide pour un GET. Sans lui : 401 missing-signature ; autres codes : invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp de plus de 5 minutes dans le passé ou de plus de 30 secondes dans le futur). L'option est définitive pour une clé : pour l'abandonner, révoquer la clé et en créer une autre.",
-    "[MUST TELL USER] La liste blanche d'IP de l'API s'active dès la première adresse ajoutée dans le Business Portal (section Developer) et ne se désactive plus depuis le portail — il faut passer par votre account manager Wave. Les appels depuis une IP non listée reçoivent 403 ip-not-allowed : sur un hébergement sans IP sortante fixe (fonctions serverless, la plupart des PaaS), n'ajoutez pas d'IP sans avoir d'abord une sortie fixe."
+    "Always verify server-side before confirming an order — never rely solely on the success_url or the webhook. A user can tamper with the redirect.",
+    "Check BOTH fields: checkout_status === 'complete' AND payment_status === 'succeeded'. A checkout_status 'complete' with payment_status 'cancelled' means that the payment failed.",
+    "verify_payment is also the recovery mechanism if the webhook was not received (timeout, server unavailable, restart).",
+    "If the API key was created with request signing (optional Business Portal setting), every call must carry Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + raw body)} computed with the signing secret (format wave_sn_AKS_…, shown only once) — empty body for a GET. Without it: 401 missing-signature; other codes: invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp more than 5 minutes in the past or more than 30 seconds in the future). The setting is permanent for a key: to drop it, revoke the key and create another one.",
+    "[MUST TELL USER] The API IP whitelist turns on as soon as the first address is added in the Business Portal (Developer section) and can no longer be turned off from the portal — you have to go through your Wave account manager. Calls from an unlisted IP get 403 ip-not-allowed: on hosting without a fixed outbound IP (serverless functions, most PaaS), do not add any IP before you have a fixed egress."
   ]
 }

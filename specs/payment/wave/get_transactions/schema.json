@@ -43,19 +43,19 @@
     "properties": {
       "date": {
         "type": "string",
-        "description": "Date au format YYYY-MM-DD. Si absent, retourne les transactions du jour courant."
+        "description": "Date in YYYY-MM-DD format. If absent, returns the current day's transactions."
       },
       "after": {
         "type": "string",
-        "description": "Curseur de pagination opaque. Passer la valeur end_cursor de la réponse précédente pour obtenir la page suivante."
+        "description": "Opaque pagination cursor. Pass the end_cursor value from the previous response to get the next page."
       },
       "include_subaccounts": {
         "type": "boolean",
-        "description": "Si true, inclut les transactions des sous-comptes."
+        "description": "If true, includes sub-account transactions."
       },
       "first": {
         "type": "integer",
-        "description": "Nombre maximum de transactions à retourner par page. Si absent, Wave retourne la page complète."
+        "description": "Maximum number of transactions to return per page. If absent, Wave returns the full page."
       }
     }
   },
@@ -64,15 +64,15 @@
     "properties": {
       "page_info": {
         "type": "object",
-        "description": "Informations de pagination.",
+        "description": "Pagination information.",
         "properties": {
           "has_next_page": {
             "type": "boolean",
-            "description": "true s'il reste des transactions à récupérer."
+            "description": "true if there are transactions left to fetch."
           },
           "end_cursor": {
             "type": "string",
-            "description": "Curseur à passer comme paramètre after pour obtenir la page suivante."
+            "description": "Cursor to pass as the after parameter to get the next page."
           },
           "start_cursor": {
             "type": [
@@ -84,22 +84,22 @@
       },
       "date": {
         "type": "string",
-        "description": "Date des transactions retournées, au format YYYY-MM-DD."
+        "description": "Date of the returned transactions, in YYYY-MM-DD format."
       },
       "items": {
         "type": "array",
-        "description": "Liste de transactions, triées de la plus ancienne à la plus récente.",
+        "description": "List of transactions, sorted from oldest to newest.",
         "items": {
           "type": "object",
           "properties": {
             "timestamp": {
               "type": "string",
               "format": "date-time",
-              "description": "Horodatage ISO 8601 UTC d'exécution de la transaction."
+              "description": "ISO 8601 UTC timestamp of the transaction's execution."
             },
             "transaction_id": {
               "type": "string",
-              "description": "Identifiant unique de la transaction (max 20 chars)."
+              "description": "Unique transaction identifier (max 20 chars)."
             },
             "transaction_type": {
               "type": "string",
@@ -116,96 +116,96 @@
                 "b2b_payment_reversal",
                 "merchant_sweep"
               ],
-              "description": "Type de la transaction."
+              "description": "Transaction type."
             },
             "amount": {
               "type": "string",
-              "description": "Variation nette du solde (peut être négatif pour les débits)."
+              "description": "Net balance change (can be negative for debits)."
             },
             "fee": {
               "type": "string",
-              "description": "Frais de la transaction."
+              "description": "Transaction fees."
             },
             "currency": {
               "type": "string",
-              "description": "Code ISO 4217."
+              "description": "ISO 4217 code."
             },
             "is_reversal": {
               "type": "boolean",
-              "description": "true si la transaction est un remboursement ou reversal."
+              "description": "true if the transaction is a refund or reversal."
             },
             "counterparty_name": {
               "type": "string",
-              "description": "Nom de l'expéditeur ou du destinataire."
+              "description": "Name of the sender or recipient."
             },
             "counterparty_mobile": {
               "type": "string",
-              "description": "Numéro de téléphone de la contrepartie."
+              "description": "Counterparty's phone number."
             },
             "client_reference": {
               "type": "string",
-              "description": "Référence interne fournie lors de la création du paiement."
+              "description": "Internal reference provided when the payment was created."
             },
             "checkout_api_session_id": {
               "type": "string",
-              "description": "ID de la session checkout associée (pour api_checkout)."
+              "description": "ID of the associated checkout session (for api_checkout)."
             },
             "balance": {
               "type": "string",
-              "description": "Solde du wallet après cette transaction. Utile pour la réconciliation ligne à ligne."
+              "description": "Wallet balance after this transaction. Useful for line-by-line reconciliation."
             },
             "counterparty_id": {
               "type": "string",
-              "description": "Identifiant de la contrepartie pour les paiements B2B."
+              "description": "Counterparty identifier for B2B payments."
             },
             "payment_reason": {
               "type": "string",
-              "description": "Motif du paiement fourni par l'expéditeur."
+              "description": "Payment reason provided by the sender."
             },
             "batch_id": {
               "type": "string",
-              "description": "Identifiant du lot pour les paiements bulk."
+              "description": "Batch identifier for bulk payments."
             },
             "aggregated_merchant_id": {
               "type": "string",
-              "description": "ID de marchand agrégé si applicable."
+              "description": "Aggregated merchant ID, if applicable."
             },
             "custom_fields": {
               "type": "object",
-              "description": "Métadonnées clé-valeur associées à la transaction.",
+              "description": "Key-value metadata associated with the transaction.",
               "additionalProperties": true
             },
             "submerchant_id": {
               "type": "string",
-              "description": "Identifiant du sous-compte si include_subaccounts est activé."
+              "description": "Sub-account identifier if include_subaccounts is enabled."
             },
             "government_tax_amount": {
               "type": "string",
-              "description": "Montant de taxe gouvernementale appliqué (Sénégal uniquement)."
+              "description": "Government tax amount applied (Senegal only)."
             },
             "government_tax_paid_by_wave": {
               "type": "string",
-              "description": "Montant de taxe pris en charge par Wave (Sénégal uniquement)."
+              "description": "Tax amount covered by Wave (Senegal only)."
             },
             "business_user_name": {
               "type": "string",
-              "description": "Nom de l'agent ou du dépositaire associé à la transaction."
+              "description": "Name of the agent or depositary associated with the transaction."
             },
             "business_user_mobile": {
               "type": "string",
-              "description": "Numéro de téléphone de l'agent ou du dépositaire."
+              "description": "Phone number of the agent or depositary."
             },
             "employee_id": {
               "type": "string",
-              "description": "Identifiant employé associé à la transaction."
+              "description": "Employee identifier associated with the transaction."
             },
             "aggregated_merchant_name": {
               "type": "string",
-              "description": "Nom du marchand agrégé si applicable."
+              "description": "Aggregated merchant name, if applicable."
             },
             "submerchant_name": {
               "type": "string",
-              "description": "Nom du sous-compte si include_subaccounts est activé."
+              "description": "Sub-account name if include_subaccounts is enabled."
             }
           }
         }
@@ -222,7 +222,7 @@
         "type": "string"
       },
       "details": {
-        "description": "Détails de validation retournés sur request-validation-error. Chaque entrée contient loc (localisation du champ), msg (message), type (type d erreur). Peut valoir null ou être absent (mesuré le 2026-10-24 sur des erreurs 401) — tester avant de parcourir.",
+        "description": "Validation details returned on request-validation-error. Each entry contains loc (field location), msg (message), type (error type). Can be null or absent (measured on 2026-10-24 on 401 errors) — check before iterating.",
         "oneOf": [
           {
             "type": "array",
@@ -249,11 +249,11 @@
     }
   },
   "gotchas": [
-    "Les transactions sont retournées de la plus ancienne à la plus récente pour un jour donné. Pour récupérer les transactions les plus récentes en premier, il faut inverser le tableau côté client.",
-    "Sans paramètre date, Wave retourne uniquement les transactions du jour courant (UTC). Pour la réconciliation, toujours spécifier la date explicitement.",
-    "La pagination utilise des curseurs opaques (end_cursor), pas des offsets. Ne pas construire le curseur manuellement — utiliser uniquement la valeur retournée par l'API.",
-    "Pour récupérer toutes les transactions d'un jour, boucler tant que page_info.has_next_page === true en passant end_cursor comme paramètre after.",
-    "Si la clé API a été créée avec la signature des requêtes (option facultative du Business Portal), chaque appel doit porter Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + corps brut)} calculé avec le signing secret (format wave_sn_AKS_…, affiché une seule fois) — corps vide pour un GET. Sans lui : 401 missing-signature ; autres codes : invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp de plus de 5 minutes dans le passé ou de plus de 30 secondes dans le futur). L'option est définitive pour une clé : pour l'abandonner, révoquer la clé et en créer une autre.",
-    "[MUST TELL USER] La liste blanche d'IP de l'API s'active dès la première adresse ajoutée dans le Business Portal (section Developer) et ne se désactive plus depuis le portail — il faut passer par votre account manager Wave. Les appels depuis une IP non listée reçoivent 403 ip-not-allowed : sur un hébergement sans IP sortante fixe (fonctions serverless, la plupart des PaaS), n'ajoutez pas d'IP sans avoir d'abord une sortie fixe."
+    "Transactions are returned from oldest to newest for a given day. To get the most recent transactions first, reverse the array client-side.",
+    "Without a date parameter, Wave returns only the current day's transactions (UTC). For reconciliation, always specify the date explicitly.",
+    "Pagination uses opaque cursors (end_cursor), not offsets. Do not build the cursor manually — use only the value returned by the API.",
+    "To fetch all of a day's transactions, loop while page_info.has_next_page === true, passing end_cursor as the after parameter.",
+    "If the API key was created with request signing (optional Business Portal setting), every call must carry Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + raw body)} computed with the signing secret (format wave_sn_AKS_…, shown only once) — empty body for a GET. Without it: 401 missing-signature; other codes: invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp more than 5 minutes in the past or more than 30 seconds in the future). The setting is permanent for a key: to drop it, revoke the key and create another one.",
+    "[MUST TELL USER] The API IP whitelist turns on as soon as the first address is added in the Business Portal (Developer section) and can no longer be turned off from the portal — you have to go through your Wave account manager. Calls from an unlisted IP get 403 ip-not-allowed: on hosting without a fixed outbound IP (serverless functions, most PaaS), do not add any IP before you have a fixed egress."
   ]
 }

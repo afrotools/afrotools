@@ -23,61 +23,61 @@
   "example_prompt": "Add a Wave webhook handler to automatically confirm orders when payment completes.",
   "input_schema": {
     "type": "object",
-    "description": "Payload que Wave POSTe à votre endpoint lors d'un événement checkout.session.completed.",
+    "description": "Payload Wave POSTs to your endpoint on a checkout.session.completed event.",
     "properties": {
       "id": {
         "type": "string",
-        "description": "Identifiant unique de l'événement. Utiliser pour l'idempotence — Wave peut livrer le même événement plusieurs fois."
+        "description": "Unique event identifier. Use it for idempotency — Wave can deliver the same event several times."
       },
       "type": {
         "type": "string",
         "enum": [
           "checkout.session.completed"
         ],
-        "description": "Type de l'événement."
+        "description": "Event type."
       },
       "data": {
         "type": "object",
-        "description": "Objet checkout session complet au moment de l'événement.",
+        "description": "Full checkout session object at the time of the event.",
         "properties": {
           "id": {
             "type": "string",
-            "description": "Identifiant de la session (préfixe \"cos-\")."
+            "description": "Session identifier (prefix \"cos-\")."
           },
           "checkout_status": {
             "type": "string",
             "enum": [
               "complete"
             ],
-            "description": "Toujours 'complete' pour cet événement."
+            "description": "Always 'complete' for this event."
           },
           "payment_status": {
             "type": "string",
             "enum": [
               "succeeded"
             ],
-            "description": "Toujours 'succeeded' pour cet événement."
+            "description": "Always 'succeeded' for this event."
           },
           "amount": {
             "type": "string",
-            "description": "Montant du paiement."
+            "description": "Payment amount."
           },
           "currency": {
             "type": "string",
-            "description": "Code ISO 4217."
+            "description": "ISO 4217 code."
           },
           "transaction_id": {
             "type": "string",
-            "description": "Identifiant de transaction Wave."
+            "description": "Wave transaction identifier."
           },
           "client_reference": {
             "type": "string",
-            "description": "Référence interne fournie à la création. Utiliser pour retrouver la commande dans votre système."
+            "description": "Internal reference provided at creation. Use it to find the order in your system."
           },
           "when_completed": {
             "type": "string",
             "format": "date-time",
-            "description": "Horodatage ISO 8601 UTC de complétion."
+            "description": "ISO 8601 UTC completion timestamp."
           }
         }
       }
@@ -85,17 +85,17 @@
   },
   "response_schema": {
     "type": "object",
-    "description": "Votre endpoint doit retourner HTTP 2xx dans les 5 secondes. Le corps de la réponse est ignoré par Wave."
+    "description": "Your endpoint must return HTTP 2xx within 5 seconds. The response body is ignored by Wave."
   },
   "error_schema": {},
   "gotchas": [
-    "Wave envoie aussi l'événement checkout.session.payment_failed lorsqu'un paiement échoue. Implémenter un handler pour cet événement afin de notifier l'utilisateur ou libérer le stock réservé.",
-    "Ne jamais fulfiller une commande sur la base du webhook seul. Appeler verify_payment (GET /v1/checkout/sessions/{id}) pour confirmer côté serveur — le payload webhook peut être forgé.",
-    "Répondre 2xx immédiatement puis traiter de façon asynchrone : Wave ne retente que si votre endpoint ne répond pas en 2xx (pendant 3 jours, timeout de 5 secondes). Une fois le 200 envoyé, Wave ne retentera plus : enregistrer l'événement (au moins data.id) AVANT de répondre, et répondre 5xx si cet enregistrement échoue. Wave prévient aussi que des événements peuvent être perdus, dupliqués ou arriver dans le désordre : prévoir une tâche de rattrapage qui interroge verify_payment (ou search_checkouts par client_reference) pour les commandes restées en attente.",
-    "Wave propose deux modes de sécurité, choisis à l'enregistrement du webhook : Shared Secret (le secret en clair dans Authorization: Bearer <secret>) et Signing Secret (en-tête Wave-Signature, recommandé pour la production). Avec un webhook en Shared Secret, il n'y a pas d'en-tête Wave-Signature : un handler qui ne vérifie que la signature rejette chaque événement. Cet exemple accepte les deux modes.",
-    "Implémenter l'idempotence via event.id — Wave peut livrer le même événement plusieurs fois. Vérifier que la commande n'est pas déjà fulfillée avant d'agir.",
-    "Vérifier la signature Wave-Signature en production : HMAC-SHA256 du timestamp + raw body. Utiliser le raw body, pas le JSON parsé — certains frameworks modifient le body entre réception et parsing.",
-    "[MUST TELL USER] Wave whitelisté 15 plages d'IPs qui envoient les webhooks. Si votre serveur filtre le trafic entrant, ajouter ces IPs dans votre firewall ou les webhooks échoueront silencieusement. La liste est publique sur https://docs.wave.com/webhook (section IP Whitelisting) : il faut toutes les autoriser, sinon certains webhooks peuvent être rejetés au hasard.",
-    "[MUST TELL USER] En développement local, Wave ne peut pas joindre localhost. Utiliser un tunnel HTTPS (ex: `ngrok http 3000`) et configurer l'URL ngrok dans le Business Portal avant de tester."
+    "Wave also sends the checkout.session.payment_failed event when a payment fails. Implement a handler for this event to notify the user or release the reserved stock.",
+    "Never fulfill an order based on the webhook alone. Call verify_payment (GET /v1/checkout/sessions/{id}) to confirm server-side — the webhook payload can be forged.",
+    "Respond 2xx immediately, then process asynchronously: Wave retries only if your endpoint does not respond with 2xx (for 3 days, 5-second timeout). Once the 200 is sent, Wave will not retry: record the event (at least data.id) BEFORE responding, and respond 5xx if that write fails. Wave also warns that events can be lost, duplicated or arrive out of order: set up a catch-up job that queries verify_payment (or search_checkouts by client_reference) for orders still pending.",
+    "Wave offers two security modes, chosen when the webhook is registered: Shared Secret (the secret in plain text in Authorization: Bearer <secret>) and Signing Secret (Wave-Signature header, recommended for production). With a Shared Secret webhook there is no Wave-Signature header: a handler that only checks the signature rejects every event. This example accepts both modes.",
+    "Implement idempotency via event.id — Wave can deliver the same event several times. Check that the order is not already fulfilled before acting.",
+    "Verify the Wave-Signature signature in production: HMAC-SHA256 of timestamp + raw body. Use the raw body, not the parsed JSON — some frameworks modify the body between receipt and parsing.",
+    "[MUST TELL USER] Wave sends webhooks from 15 IP ranges. If your server filters incoming traffic, add these IPs to your firewall or the webhooks will fail silently. The list is public at https://docs.wave.com/webhook (IP Whitelisting section): you must allow all of them, otherwise some webhooks can be rejected at random.",
+    "[MUST TELL USER] In local development, Wave cannot reach localhost. Use an HTTPS tunnel (e.g. `ngrok http 3000`) and configure the ngrok URL in the Business Portal before testing."
   ]
 }
