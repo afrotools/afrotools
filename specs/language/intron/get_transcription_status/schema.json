@@ -28,27 +28,34 @@
     "method": "GET",
     "url": "https://infer.voice.intron.io/file/v1/status/{file_id}"
   },
-  "example_prompt": "Check whether an Intron transcription job has finished and read its transcript and post-processing results.",
-  "input_schema": {
-    "type": "object",
-    "required": [
-      "file_id"
-    ],
-    "properties": {
-      "file_id": {
-        "type": "string",
-        "description": "the file id generated in response when the file was queued. Passed as a path parameter."
+  "parameters": [
+    {
+      "name": "file_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
       },
-      "get_structured_post_processing": {
+      "description": "the file id generated in response when the file was queued. Passed as a path parameter."
+    },
+    {
+      "name": "get_structured_post_processing",
+      "in": "query",
+      "schema": {
         "type": "string",
         "enum": [
           "f",
           "t"
         ],
-        "default": "f",
-        "description": "if true the post-processed results will be structured as json else it will be a MarkDown formated text. Passed as a query parameter."
-      }
+        "default": "f"
+      },
+      "description": "if true the post-processed results will be structured as json else it will be a MarkDown formated text. Passed as a query parameter."
     }
+  ],
+  "example_prompt": "Check whether an Intron transcription job has finished and read its transcript and post-processing results.",
+  "input_schema": {
+    "type": "object",
+    "properties": {}
   },
   "response_schema": {
     "type": "object",

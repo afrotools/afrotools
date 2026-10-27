@@ -28,18 +28,21 @@
     "method": "GET",
     "url": "https://infer.voice.intron.io/tts/v1/status/{text_id}"
   },
+  "parameters": [
+    {
+      "name": "text_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "the text id generated in response when the text was queued. Passed as a path parameter."
+    }
+  ],
   "example_prompt": "Check whether an Intron text-to-speech job is done and get the generated audio's location.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "text_id"
-    ],
-    "properties": {
-      "text_id": {
-        "type": "string",
-        "description": "the text id generated in response when the text was queued. Passed as a path parameter."
-      }
-    }
+    "properties": {}
   },
   "response_schema": {
     "type": "object",
