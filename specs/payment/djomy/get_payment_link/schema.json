@@ -59,19 +59,19 @@
     "method": "GET",
     "url": "https://sandbox-api.djomy.africa/v1/links/{reference}"
   },
-  "example_prompt": "Add a check to see if a customer has paid via the Djomy link I sent them.",
-  "input_schema": {
-    "type": "object",
-    "required": [
-      "reference"
-    ],
-    "properties": {
-      "reference": {
-        "type": "string",
-        "description": "The paymentLinkReference returned by create_payment_link. Passed as a path parameter."
-      }
+  "parameters": [
+    {
+      "name": "reference",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "The paymentLinkReference returned by create_payment_link. Passed as a path parameter."
     }
-  },
+  ],
+  "example_prompt": "Add a check to see if a customer has paid via the Djomy link I sent them.",
+  "input_schema": {},
   "response_schema": {
     "type": "object",
     "description": "All responses are wrapped in { success, message, data, error, errors, timestamp, status }.",
@@ -231,7 +231,7 @@
     }
   },
   "gotchas": [
-    "Pass paymentLinkReference (not reference) as the path parameter. The reference field is deprecated — always use paymentLinkReference returned by create_payment_link.",
+    "Fill the {reference} path parameter with paymentLinkReference from create_payment_link, not its deprecated `reference` field (\"Merci de considérer le champs paymentLinkReference\").",
     "A 404 is returned if the reference does not exist or belongs to a different merchant account. Check that you are using the correct credentials and the correct reference.",
     "For UNIQUE links, data.status becomes REVOKED after one successful payment — not PAID. PAID is only set in specific conditions. Use data.numberOfUsage > 0 as the reliable indicator that a UNIQUE link has been used.",
     "Pass the reference directly as a path segment — do not URL-encode it. The paymentLinkReference format contains only safe characters.",
