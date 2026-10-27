@@ -38,14 +38,8 @@
   "example_prompt": "Update the phone number and address of an existing Notch Pay customer.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "id"
-    ],
+    "required": [],
     "properties": {
-      "id": {
-        "type": "string",
-        "description": "Unique identifier of the customer. Interpolated into the URL path."
-      },
       "name": {
         "type": "string",
         "description": "New full name of the customer."
@@ -119,6 +113,17 @@
       }
     }
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Unique identifier of the customer. Interpolated into the URL path."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

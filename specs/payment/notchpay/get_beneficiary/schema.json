@@ -38,16 +38,20 @@
   "example_prompt": "Retrieve details of a specific Notch Pay beneficiary by ID.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "id"
-    ],
-    "properties": {
-      "id": {
-        "type": "string",
-        "description": "The unique beneficiary ID returned by create_beneficiary or list_beneficiaries."
-      }
-    }
+    "required": [],
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "The unique beneficiary ID returned by create_beneficiary or list_beneficiaries."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

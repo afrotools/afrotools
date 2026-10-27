@@ -47,16 +47,20 @@
   "example_prompt": "Check the status of a Notch Pay transfer after initiating a disbursement.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "reference"
-    ],
-    "properties": {
-      "reference": {
-        "type": "string",
-        "description": "The transfer reference returned by send_transfer (transfer.reference)."
-      }
-    }
+    "required": [],
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "reference",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "The transfer reference returned by send_transfer (transfer.reference)."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

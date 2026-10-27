@@ -38,24 +38,38 @@
   "example_prompt": "List all payments associated with a specific Notch Pay customer, paginated.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "id"
-    ],
-    "properties": {
-      "id": {
-        "type": "string",
-        "description": "Unique identifier of the customer. Interpolated into the URL path."
-      },
-      "limit": {
-        "type": "integer",
-        "description": "Number of results per page."
-      },
-      "page": {
-        "type": "integer",
-        "description": "Page number to retrieve (1-based)."
-      }
-    }
+    "required": [],
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Unique identifier of the customer. Interpolated into the URL path."
+    },
+    {
+      "name": "limit",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "default": 30
+      },
+      "description": "Number of results per page."
+    },
+    {
+      "name": "page",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "default": 1
+      },
+      "description": "Page number to retrieve (1-based)."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

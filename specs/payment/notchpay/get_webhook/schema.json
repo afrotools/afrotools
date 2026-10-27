@@ -38,16 +38,20 @@
   "example_prompt": "Retrieve the details of a specific Notch Pay webhook endpoint by its ID.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "endpoint"
-    ],
-    "properties": {
-      "endpoint": {
-        "type": "string",
-        "description": "The webhook endpoint ID returned by create_webhook or list_webhooks."
-      }
-    }
+    "required": [],
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "endpoint",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "The webhook endpoint ID returned by create_webhook or list_webhooks."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

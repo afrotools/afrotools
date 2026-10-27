@@ -38,16 +38,20 @@
   "example_prompt": "Delete a Notch Pay webhook endpoint that is no longer needed.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "endpoint"
-    ],
-    "properties": {
-      "endpoint": {
-        "type": "string",
-        "description": "The webhook endpoint ID to delete."
-      }
-    }
+    "required": [],
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "endpoint",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "The webhook endpoint ID to delete."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {
