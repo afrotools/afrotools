@@ -36,7 +36,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "the file id generated in response when the file was queued. Passed as a path parameter."
+      "description": "the file id generated in response when the file was queued."
     },
     {
       "name": "get_structured_post_processing",
@@ -49,7 +49,7 @@
         ],
         "default": "f"
       },
-      "description": "if true the post-processed results will be structured as json else it will be a MarkDown formated text. Passed as a query parameter."
+      "description": "if true the post-processed results will be structured as json else it will be a MarkDown formated text."
     }
   ],
   "example_prompt": "Check whether an Intron transcription job has finished and read its transcript and post-processing results.",
