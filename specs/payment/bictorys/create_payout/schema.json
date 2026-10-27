@@ -31,6 +31,45 @@
     "method": "POST",
     "url": "https://api.bictorys.com/pay/v1/payouts"
   },
+  "parameters": [
+    {
+      "name": "payment_type",
+      "in": "query",
+      "schema": {
+        "type": "string",
+        "enum": [
+          "wave_money",
+          "orange_money",
+          "maxit",
+          "mtn_money",
+          "free_money",
+          "moov",
+          "mobicash",
+          "togocell",
+          "bictorys",
+          "card"
+        ]
+      },
+      "description": "The type parameter allows to select the payout service provider. E.g mtn_money, orange_money, wave_money, move_money"
+    },
+    {
+      "name": "idempotency-key",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "The value of this query parameter guarantees the idempotence of the operation. Several HTTP requests with the same request identified value are interpreted as the same request to be executed only once. This value may be generated randomly by the caller, but the same value should be used in case of retry."
+    },
+    {
+      "name": "X-Amzn-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string"
+      },
+      "description": "The parameter Identifies this HTTP request across all services. It helps to diagnostic request errors. The parameter is added automatically by the API gateway"
+    }
+  ],
   "example_prompt": "Send money to a mobile money account (Wave, Orange Money, MTN Money, etc.) as a single payout.",
   "input_schema": {
     "type": "object",

@@ -8,7 +8,7 @@
     "method": "app",
     "environment": "production",
     "at": "2026-10-24",
-    "spec_hash": "sha256:8ed788c48fec528f3b4b3ceef5d5cd72bb4ce2a1acaa44c35fe3bb1e15cfd25c"
+    "spec_hash": "sha256:8517e4c1ffba90354ce638b86f9239d5185bd8defb4d79f6e34e90ad1c6bc340"
   },
   "currency": [
     "XOF"
@@ -37,6 +37,44 @@
     "method": "POST",
     "url": "https://api.bictorys.com/pay/v1/charges"
   },
+  "parameters": [
+    {
+      "name": "payment_type",
+      "in": "query",
+      "schema": {
+        "type": "string",
+        "enum": [
+          "wave_money",
+          "orange_money",
+          "maxit",
+          "mtn_money",
+          "free_money",
+          "moov",
+          "mobicash",
+          "togocell",
+          "bictorys",
+          "card"
+        ]
+      },
+      "description": "Optional. The type of payment method to use. E.g card, mtn_money, orange_money, free_money. If the type is not provided, the customer will be redirected to Bictorys checkout page"
+    },
+    {
+      "name": "payment_category",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Integration guide: \"For cards, add payment_category=card\" (payment_type=card&payment_category=card)."
+    },
+    {
+      "name": "X-Amzn-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string"
+      },
+      "description": "HTTP request identifier allow to trace individual request sent from client to service."
+    }
+  ],
   "example_prompt": "Initiate a mobile money or card payment and redirect the customer to complete checkout.",
   "input_schema": {
     "type": "object",
