@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-24",
-    "spec_hash": "sha256:d382f27c1c71966687fd78bb9fac3b564283921b2cd13a6b676f48c0b3adf2a7"
+    "spec_hash": "sha256:c5ffb89f5e9671657bb8ada0d67d89a05a16bce4265932913cb1e0bcc85af43c"
   },
   "auth": {
     "type": "api_key",
@@ -61,19 +61,22 @@
     "method": "GET",
     "url": "https://api.smileidentity.com/v3/status/{jobId}"
   },
+  "parameters": [
+    {
+      "name": "jobId",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "pattern": "^job_[0-9a-hjkmnp-tv-z]{26}$"
+      },
+      "description": "TypeID format verification identifier with 'job_' prefix."
+    }
+  ],
   "example_prompt": "Check the current status of a submitted Smile ID verification by its job_id, e.g. to poll an Enhanced KYC job until it leaves 'processing'.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "jobId"
-    ],
-    "properties": {
-      "jobId": {
-        "type": "string",
-        "pattern": "^job_[0-9a-hjkmnp-tv-z]{26}$",
-        "description": "TypeID format verification identifier with 'job_' prefix. Passed as a path parameter."
-      }
-    }
+    "properties": {}
   },
   "response_schema": {
     "type": "object",

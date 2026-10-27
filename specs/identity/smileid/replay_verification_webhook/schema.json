@@ -55,15 +55,22 @@
     "method": "POST",
     "url": "https://api.smileidentity.com/v3/replay/{job_id}"
   },
+  "parameters": [
+    {
+      "name": "job_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "pattern": "^job_[0-9a-z]{26}$"
+      },
+      "description": "TypeID format verification identifier with 'job_' prefix."
+    }
+  ],
   "example_prompt": "Ask Smile ID to re-send the result webhook of a completed verification, e.g. after all delivery attempts to your callback_url failed.",
   "input_schema": {
     "type": "object",
     "properties": {
-      "job_id": {
-        "type": "string",
-        "pattern": "^job_[0-9a-z]{26}$",
-        "description": "TypeID format verification identifier with 'job_' prefix. Passed as a path parameter."
-      },
       "callback_url": {
         "type": "string",
         "format": "uri",
@@ -71,9 +78,6 @@
         "description": "Override callback URL. Must be on the partner's callback domain allowlist. If omitted, the stored callback URL is used. Can also be provided via the token payload (see /v3/token)."
       }
     },
-    "required": [
-      "job_id"
-    ],
     "description": "job_id goes in the path; the optional multipart/form-data body only carries callback_url."
   },
   "response_schema": {

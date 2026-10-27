@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-24",
-    "spec_hash": "sha256:d2498e3039d8714628bce035be94b97b6fd087bd4b9302381a85d298283966c4"
+    "spec_hash": "sha256:f4e6b11f37c19531ddb25548accb60f7c63309f750516c7ee8b6dc6f3f2044fd"
   },
   "auth": {
     "type": "none"
@@ -17,11 +17,11 @@
     "method": "GET",
     "url": "https://api.smileidentity.com/v3/services/supported_documents"
   },
-  "example_prompt": "List the identity documents Smile ID can verify for a country (e.g. country_code=SN) to build a document picker before Document Verification.",
-  "input_schema": {
-    "type": "object",
-    "properties": {
-      "continent": {
+  "parameters": [
+    {
+      "name": "continent",
+      "in": "query",
+      "schema": {
         "type": "string",
         "enum": [
           "AFRICA",
@@ -30,25 +30,38 @@
           "NORTH AMERICA",
           "OCEANIA",
           "SOUTH AMERICA"
-        ],
-        "description": "Filter results to a single continent. Query parameter."
+        ]
       },
-      "country_code": {
+      "description": "Filter results to a single continent."
+    },
+    {
+      "name": "country_code",
+      "in": "query",
+      "schema": {
         "type": "string",
-        "pattern": "^[A-Z]{2}$",
-        "description": "Filter results to a single country. Must be an ISO 3166-1 alpha-2 code\n(two uppercase letters). Query parameter."
+        "pattern": "^[A-Z]{2}$"
       },
-      "locale": {
+      "description": "Filter results to a single country. Must be an ISO 3166-1 alpha-2 code\n(two uppercase letters)."
+    },
+    {
+      "name": "locale",
+      "in": "query",
+      "schema": {
         "type": "string",
         "default": "en-GB",
         "enum": [
           "en-GB",
           "fr-FR",
           "ar-EG"
-        ],
-        "description": "Locale for document names. Defaults to `en-GB`.\nSupported values: `en-GB`, `fr-FR`, `ar-EG`. Query parameter."
-      }
+        ]
+      },
+      "description": "Locale for document names. Defaults to `en-GB`.\nSupported values: `en-GB`, `fr-FR`, `ar-EG`."
     }
+  ],
+  "example_prompt": "List the identity documents Smile ID can verify for a country (e.g. country_code=SN) to build a document picker before Document Verification.",
+  "input_schema": {
+    "type": "object",
+    "properties": {}
   },
   "response_schema": {
     "type": "object",
