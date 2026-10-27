@@ -20,11 +20,7 @@
     "credentials": [
       {
         "env_var": "NOTCHPAY_PRIVATE_KEY",
-        "description": "Notch Pay private key, sent as is in Authorization, for transfers, beneficiaries, balance and webhooks"
-      },
-      {
-        "env_var": "NOTCHPAY_GRANT_TOKEN",
-        "description": "grant token generated in the Notch Pay dashboard, sent as X-Grant on transfer endpoints"
+        "description": "Notch Pay private key, sent as is in Authorization and in X-Grant, for transfers, beneficiaries, balance and webhooks"
       }
     ],
     "apply": [
@@ -36,7 +32,7 @@
       {
         "in": "header",
         "name": "X-Grant",
-        "value": "{NOTCHPAY_GRANT_TOKEN}"
+        "value": "{NOTCHPAY_PRIVATE_KEY}"
       }
     ]
   },
@@ -125,8 +121,11 @@
   },
   "gotchas": [
     "Only record a disbursement as successful when transfer.status is \"complete\". \"pending\" means the mobile money network has not yet confirmed delivery.",
-    "All transfer endpoints require an additional `X-Grant` header for enhanced security. Pass the grant token generated in your Notch Pay dashboard as `X-Grant: {token}`. Requests without this header return 401.",
+    "This endpoint also requires the `X-Grant` header carrying your private key (`X-Grant: YOUR_PRIVATE_KEY`). Without it Notch Pay returns 403 \"This endpoint requires additional authentication\"; a wrong value returns 403 \"Invalid grant key\".",
     "The Authorization header uses your public key with no 'Bearer ' prefix.",
     "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
+  ],
+  "open_questions": [
+    "Notch Pay's docs show `Authorization: YOUR_PUBLIC_KEY` together with `X-Grant: YOUR_PRIVATE_KEY` on this endpoint, while this spec sends the private key in Authorization (see the gotcha about 406 with a public key). Which key Authorization must carry when X-Grant is present is not confirmed."
   ]
 }
