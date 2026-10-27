@@ -70,17 +70,31 @@
     "method": "PUT",
     "url": "https://f4bexperience.flutterwave.com/chargebacks/{id}"
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "ID of the chargeback"
+    },
+    {
+      "name": "X-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to track this operation. It must be between 12 and 255 characters in length."
+    }
+  ],
   "example_prompt": "Accept a Flutterwave chargeback, or decline it with proof of delivery, before its due date.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "id"
-    ],
     "properties": {
-      "id": {
-        "type": "string",
-        "description": "Path parameter. ID of the chargeback"
-      },
       "status": {
         "type": "string",
         "description": "The status indicates the final resolution of a dispute or request, showing whether it has been accepted or declined.",

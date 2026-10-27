@@ -70,6 +70,29 @@
     "method": "POST",
     "url": "https://f4bexperience.flutterwave.com/transfers/senders"
   },
+  "parameters": [
+    {
+      "name": "X-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to track this operation. It must be between 12 and 255 characters in length."
+    },
+    {
+      "name": "X-Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to prevent duplicate requests. It must be between 12 and 255 characters in length."
+    }
+  ],
   "example_prompt": "Register the KYC details of a payout sender, required by Flutterwave for EGP, INR, EUR and GBP transfers.",
   "input_schema": {
     "oneOf": [

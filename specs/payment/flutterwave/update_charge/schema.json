@@ -74,17 +74,41 @@
     "method": "PUT",
     "url": "https://f4bexperience.flutterwave.com/charges/{id}"
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "ID of the charge."
+    },
+    {
+      "name": "X-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to track this operation. It must be between 12 and 255 characters in length."
+    },
+    {
+      "name": "X-Scenario-Key",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+      },
+      "description": "Simulates test scenarios (e.g. scenario:auth_redirect); a string of 1 to 1000 characters."
+    }
+  ],
   "example_prompt": "Complete a pending Flutterwave card charge by sending the customer's encrypted PIN, then the OTP (or AVS address) the charge asks for.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "id"
-    ],
     "properties": {
-      "id": {
-        "description": "Path parameter. ID of the charge.",
-        "type": "string"
-      },
       "meta": {
         "type": "object",
         "additionalProperties": {

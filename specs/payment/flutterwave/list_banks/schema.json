@@ -70,16 +70,13 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/banks"
   },
-  "example_prompt": "List the banks Flutterwave can pay out to in a country, to let the user pick their bank and get its code.",
-  "input_schema": {
-    "type": "object",
-    "required": [
-      "country"
-    ],
-    "properties": {
-      "country": {
+  "parameters": [
+    {
+      "name": "country",
+      "in": "query",
+      "required": true,
+      "schema": {
         "type": "string",
-        "description": "Query parameter. ISO 2 country code.",
         "enum": [
           "CM",
           "CI",
@@ -102,9 +99,22 @@
           "ZA",
           "ZM"
         ]
-      }
+      },
+      "description": "ISO 2 country code."
+    },
+    {
+      "name": "X-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to track this operation. It must be between 12 and 255 characters in length."
     }
-  },
+  ],
+  "example_prompt": "List the banks Flutterwave can pay out to in a country, to let the user pick their bank and get its code.",
+  "input_schema": {},
   "response_schema": {
     "type": "object",
     "properties": {

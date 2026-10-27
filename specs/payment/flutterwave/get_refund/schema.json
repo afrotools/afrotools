@@ -70,19 +70,29 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/refunds/{id}"
   },
-  "example_prompt": "Check whether a Flutterwave refund has reached the customer.",
-  "input_schema": {
-    "type": "object",
-    "required": [
-      "id"
-    ],
-    "properties": {
-      "id": {
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "ID of the refund"
+    },
+    {
+      "name": "X-Trace-Id",
+      "in": "header",
+      "schema": {
         "type": "string",
-        "description": "Path parameter. ID of the refund"
-      }
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to track this operation. It must be between 12 and 255 characters in length."
     }
-  },
+  ],
+  "example_prompt": "Check whether a Flutterwave refund has reached the customer.",
+  "input_schema": {},
   "response_schema": {
     "type": "object",
     "properties": {

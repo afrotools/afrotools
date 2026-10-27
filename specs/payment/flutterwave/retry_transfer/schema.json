@@ -70,18 +70,55 @@
     "method": "POST",
     "url": "https://f4bexperience.flutterwave.com/transfers/{id}/retries"
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "ID of the initial transfer"
+    },
+    {
+      "name": "X-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to track this operation. It must be between 12 and 255 characters in length."
+    },
+    {
+      "name": "X-Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to prevent duplicate requests. It must be between 12 and 255 characters in length."
+    },
+    {
+      "name": "X-Scenario-Key",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+      },
+      "description": "Simulates test scenarios (e.g. scenario:auth_redirect); a string of 1 to 1000 characters."
+    }
+  ],
   "example_prompt": "Retry a FAILED Flutterwave payout (or deliberately duplicate a successful one) without rebuilding the request.",
   "input_schema": {
     "type": "object",
     "required": [
-      "id",
       "action"
     ],
     "properties": {
-      "id": {
-        "description": "Path parameter. ID of the initial transfer",
-        "type": "string"
-      },
       "action": {
         "type": "string",
         "description": "The action to be performed on the transfer. It can be `retry` or `duplicate`.",

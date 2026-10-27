@@ -70,19 +70,29 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/wallets/balances/{currency}"
   },
-  "example_prompt": "Check my Flutterwave NGN balance before sending a payout.",
-  "input_schema": {
-    "type": "object",
-    "required": [
-      "currency"
-    ],
-    "properties": {
-      "currency": {
-        "description": "Path parameter. The currency for the balance you want to fetch",
+  "parameters": [
+    {
+      "name": "currency",
+      "in": "path",
+      "required": true,
+      "schema": {
         "type": "string"
-      }
+      },
+      "description": "The currency for the balance you want to fetch"
+    },
+    {
+      "name": "X-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to track this operation. It must be between 12 and 255 characters in length."
     }
-  },
+  ],
+  "example_prompt": "Check my Flutterwave NGN balance before sending a payout.",
+  "input_schema": {},
   "response_schema": {
     "type": "object",
     "properties": {
