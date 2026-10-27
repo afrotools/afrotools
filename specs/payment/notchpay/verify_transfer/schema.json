@@ -16,18 +16,22 @@
     "location": "header",
     "field": "Authorization",
     "format": "{token}",
-    "env_var": "NOTCHPAY_PRIVATE_KEY",
+    "env_var": "NOTCHPAY_PUBLIC_KEY",
     "credentials": [
       {
+        "env_var": "NOTCHPAY_PUBLIC_KEY",
+        "description": "Notch Pay public key, sent as is in Authorization; a key containing test_ works in sandbox (same host for test and live)"
+      },
+      {
         "env_var": "NOTCHPAY_PRIVATE_KEY",
-        "description": "Notch Pay private key, sent as is in Authorization and in X-Grant, for transfers, beneficiaries, balance and webhooks"
+        "description": "Notch Pay private key, sent as is in X-Grant, for transfers, beneficiaries, balance and webhooks"
       }
     ],
     "apply": [
       {
         "in": "header",
         "name": "Authorization",
-        "value": "{NOTCHPAY_PRIVATE_KEY}"
+        "value": "{NOTCHPAY_PUBLIC_KEY}"
       },
       {
         "in": "header",
@@ -122,9 +126,6 @@
   "gotchas": [
     "Only record a disbursement as successful when transfer.status is \"complete\". \"pending\" means the mobile money network has not yet confirmed delivery.",
     "This endpoint also requires the `X-Grant` header carrying your private key (`X-Grant: YOUR_PRIVATE_KEY`). Without it Notch Pay returns 403 \"This endpoint requires additional authentication\"; a wrong value returns 403 \"Invalid grant key\".",
-    "Authorization takes the key as is, with no 'Bearer ' prefix. Which key goes there is unsettled: Notch Pay's Authentication page shows the public key in it next to X-Grant (`-H \"Authorization: YOUR_PUBLIC_KEY\"` `-H \"X-Grant: YOUR_PRIVATE_KEY\"`), while this spec sends the private key, following its earlier note that a public key returns 406 Not Acceptable (not stated in the docs). See open_questions before relying on either."
-  ],
-  "open_questions": [
-    "Notch Pay's docs show `Authorization: YOUR_PUBLIC_KEY` together with `X-Grant: YOUR_PRIVATE_KEY` on this endpoint, while this spec sends the private key in Authorization (see the gotcha about 406 with a public key). Which key Authorization must carry when X-Grant is present is not confirmed."
+    "Authorization takes your public key as is, with no 'Bearer ' prefix, and X-Grant your private key (Notch Pay's Authentication page: `-H \"Authorization: YOUR_PUBLIC_KEY\"` `-H \"X-Grant: YOUR_PRIVATE_KEY\"`)."
   ]
 }
