@@ -162,6 +162,7 @@ class TestLive(unittest.TestCase):
 
     def test_a_negative_test_checks_the_status_not_the_success_schema(self):
         self.edit("live_test_fixtures.json", lambda f: f["steps"][1].update({"expected_status": [404]}))
+        self.edit("get_payment/schema.json", lambda s: s.update({"success_condition": {"field": "id", "equals": "pay_1"}}))
         self.assertEqual(self.run_with([(201, {"id": "pay_1"}), (404, {"error": "not found"})]), 0)
 
 
