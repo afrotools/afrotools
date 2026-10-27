@@ -600,8 +600,7 @@
         "description": "Claim ID obtained at the claim creation stage"
       },
       "items": {
-        "type": "array",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "array"
       },
       "revision": {
         "type": "integer",
@@ -609,8 +608,7 @@
         "description": "Revision (int64)"
       },
       "route_points": {
-        "type": "array",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "array"
       },
       "status": {
         "enum": [
@@ -658,20 +656,16 @@
         "description": "Version (int64)"
       },
       "callback_properties": {
-        "type": "object",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "object"
       },
       "client_requirements": {
-        "type": "object",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "object"
       },
       "comment": {
-        "type": "string",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "string"
       },
       "corp_client_id": {
-        "type": "string",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "string"
       },
       "current_point_id": {
         "type": "integer",
@@ -679,12 +673,10 @@
         "description": "Integer point ID (int64) generated on the Yango Delivery side. It is in the route_points[].id field. Applicable to source, destination, and return points."
       },
       "due": {
-        "type": "string",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "string"
       },
       "emergency_contact": {
-        "type": "object",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "object"
       },
       "error_messages": {
         "type": "array",
@@ -714,16 +706,13 @@
         "description": "Estimated order fulfillment time in minutes (int64)"
       },
       "matched_cars": {
-        "type": "array",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "array"
       },
       "optional_return": {
-        "type": "boolean",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "boolean"
       },
       "performer_info": {
-        "type": "object",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "object"
       },
       "pricing": {
         "type": "object",
@@ -803,32 +792,25 @@
         "description": "Information about the order cost"
       },
       "route_id": {
-        "type": "string",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "string"
       },
       "same_day_data": {
-        "type": "object",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "object"
       },
       "shipping_document": {
-        "type": "string",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "string"
       },
       "skip_act": {
-        "type": "boolean",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "boolean"
       },
       "skip_client_notify": {
-        "type": "boolean",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "boolean"
       },
       "skip_door_to_door": {
-        "type": "boolean",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "boolean"
       },
       "skip_emergency_notify": {
-        "type": "boolean",
-        "description": "Same field as in get_delivery_claim's response_schema (the claim object), where its full schema is."
+        "type": "boolean"
       },
       "warnings": {
         "type": "array",
@@ -867,7 +849,7 @@
       "user_request_revision",
       "version"
     ],
-    "description": "The created claim: the same claim object get_delivery_claim returns (the claims/create and claims/info reference pages document the same object). Fields needed right after creation are described here; for the others (items, route_points, callback_properties, client_requirements…) fetch the get_delivery_claim spec."
+    "description": "The created claim: the same claim object get_delivery_claim returns (the claims/create and claims/info reference pages document the same object). Fields needed right after creation are described here; for the others (items, route_points, callback_properties, client_requirements…) fetch the get_delivery_claim spec. The properties typed here without a description (items, route_points, callback_properties, client_requirements, comment, corp_client_id, due, emergency_contact, matched_cars, optional_return, performer_info, route_id, same_day_data, shipping_document, skip_act, skip_client_notify, skip_door_to_door, skip_emergency_notify) are the same fields as in get_delivery_claim's response_schema, where their full schema is."
   },
   "error_schema": {
     "type": "object",
