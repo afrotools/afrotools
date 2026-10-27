@@ -28,19 +28,22 @@
     "method": "GET",
     "url": "https://api.nimbasms.com/v1/messages/{id}"
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "Unique message identifier returned by send_message (messageid field)."
+    }
+  ],
   "example_prompt": "Check the delivery status of an SMS I sent via NimbaSMS.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "id"
-    ],
-    "properties": {
-      "id": {
-        "type": "string",
-        "format": "uuid",
-        "description": "Unique message identifier returned by send_message (messageid field)."
-      }
-    }
+    "properties": {}
   },
   "response_schema": {
     "type": "object",

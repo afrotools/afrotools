@@ -28,19 +28,25 @@
     "method": "PATCH",
     "url": "https://api.nimbasms.com/v1/verifications/{id}"
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "Verification identifier returned by send_verification (verificationid field)."
+    }
+  ],
   "example_prompt": "Verify the OTP my user entered during phone verification.",
   "input_schema": {
     "type": "object",
     "required": [
-      "id",
       "code"
     ],
     "properties": {
-      "id": {
-        "type": "string",
-        "format": "uuid",
-        "description": "Verification identifier returned by send_verification (verificationid field)."
-      },
       "code": {
         "type": "integer",
         "minimum": 1000,
@@ -67,6 +73,10 @@
         "description": "Verification status after the attempt. 'approved' = correct code. 'too_many_attemps' = attempts exhausted (typo in the API, a single 't' in 'attempts')."
       }
     }
+  },
+  "success_condition": {
+    "field": "status",
+    "equals": "approved"
   },
   "error_schema": {
     "type": "object",

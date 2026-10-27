@@ -28,21 +28,30 @@
     "method": "GET",
     "url": "https://api.nimbasms.com/v1/groups"
   },
+  "parameters": [
+    {
+      "name": "limit",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "description": "Maximum number of groups to return."
+    },
+    {
+      "name": "offset",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "description": "Pagination offset."
+    }
+  ],
   "example_prompt": "List my NimbaSMS contact groups.",
   "input_schema": {
     "type": "object",
-    "properties": {
-      "limit": {
-        "type": "integer",
-        "minimum": 1,
-        "description": "Maximum number of groups to return."
-      },
-      "offset": {
-        "type": "integer",
-        "minimum": 0,
-        "description": "Pagination offset."
-      }
-    }
+    "properties": {}
   },
   "response_schema": {
     "type": "object",
