@@ -119,7 +119,7 @@ npm run validate:changed       # validate only git-changed specs (CI)
 
 Validation checks:
 1. Folder structure — exactly `schema.json` + `canonical_example.ts`
-2. `schema.json` — valid against ATSS JSON schema, all required fields present
+2. `schema.json` — valid against ATSS JSON schema, all required fields present; `input_schema`, `response_schema`, `error_schema` and parameter schemas compile (a dangling `$ref` fails)
 3. `canonical_example.ts` — compiles with `tsc --noEmit`, zero errors
 
 ## Git workflow

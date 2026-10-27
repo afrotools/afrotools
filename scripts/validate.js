@@ -12,7 +12,8 @@
  * Checks per spec folder:
  *   1. Structure  — exactly schema.json + canonical_example.ts, nothing else
  *   2. schema.json — all required ATSS fields present and valid; ATSS 1.1 blocks against
- *      atss.schema.json; a "verified" spec carries its proof, unchanged since (spec_hash)
+ *      atss.schema.json; a "verified" spec carries its proof, unchanged since (spec_hash);
+ *      input_schema, response_schema, error_schema and parameter schemas compile (a dangling $ref fails)
  *   3. canonical_example.ts — compiles with tsc --noEmit, zero errors
  *   4. Security    — endpoint safety, prompt injection in text fields, fetch/env coherence
  *
@@ -401,6 +402,32 @@ addFormats(ajv);
 const atssSchema = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../atss.schema.json"), "utf8"));
 const validateAtss11Blocks = ajv.compile(atssSchema);
 const validateEnvironments = ajv.getSchema(`${atssSchema.$id}#/$defs/environments`);
+
+/**
+ * The JSON Schemas a spec carries must compile: a $ref to a missing $def, or a keyword with a
+ * wrong type, would otherwise pass CI and reach agents. Not strict: specs keep OpenAPI keywords
+ * and formats (int32, …) the agent reads but ajv doesn't know.
+ * @param {string} specPath
+ * @param {any} schema
+ * @returns {boolean}
+ */
+function validateJsonSchemas(specPath, schema) {
+  const named = [
+    ...["input_schema", "response_schema", "error_schema"].map((k) => [k, schema[k]]),
+    ...(schema.parameters ?? []).map((/** @type {any} */ p) => [`parameters.${p.name}.schema`, p.schema]),
+  ];
+  for (const [name, s] of named) {
+    if (!s || typeof s !== "object") continue;
+    // One instance per schema: $defs are local to each root, and compiled schemas are cached by $id
+    const loose = new Ajv2020({ strict: false, allowUnionTypes: true, validateFormats: false });
+    try {
+      loose.compile(s);
+    } catch (/** @type {any} */ err) {
+      return fail(specPath, `${name} does not compile as JSON Schema: ${err.message}`);
+    }
+  }
+  return true;
+}
 
 /**
  * Env vars a spec declares: auth.credentials, and the secret named in webhook.signature.key.
@@ -1116,6 +1143,7 @@ for (const specPath of specs) {
     if (!validateSchema(specPath))     { failures++; continue; }
     if (!validateEvidence(specPath, JSON.parse(fs.readFileSync(path.join(specPath, "schema.json"), "utf8")))) { failures++; continue; }
     if (!validateAtss11(specPath, JSON.parse(fs.readFileSync(path.join(specPath, "schema.json"), "utf8")))) { failures++; continue; }
+    if (!validateJsonSchemas(specPath, JSON.parse(fs.readFileSync(path.join(specPath, "schema.json"), "utf8")))) { failures++; continue; }
     if (!validateTypeScript(specPath)) { failures++; continue; }
 
     try {
