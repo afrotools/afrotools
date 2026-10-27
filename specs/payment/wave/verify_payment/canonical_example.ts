@@ -68,7 +68,7 @@ if (isPaymentSucceeded(session)) {
 } else {
   // checkout_status can be 'open' (not paid yet) or 'expired'
   // payment_status can be 'processing' (in progress) or 'cancelled'
-  console.log("Paiement non complété :", session.checkout_status, session.payment_status);
+  console.log("Payment not completed:", session.checkout_status, session.payment_status);
 }
 
 // Always check BOTH fields:

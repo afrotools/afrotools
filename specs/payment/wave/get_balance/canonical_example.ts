@@ -43,13 +43,13 @@ export async function getBalance(
 Usage example :
 
 const balance = await getBalance();
-console.log(`Solde : ${balance.amount} ${balance.currency}`);
-// "Solde : 125000 XOF"
+console.log(`Balance: ${balance.amount} ${balance.currency}`);
+// "Balance: 125000 XOF"
 
 // amount is a string — parse before comparing
 const amount = parseFloat(balance.amount);
 if (amount < 10000) {
-  console.warn("Solde insuffisant pour des payouts");
+  console.warn("Insufficient balance for payouts");
 }
 
 // For a multi-country wallet, call with different API keys per country

@@ -78,7 +78,7 @@ try {
       receive_amount: "5000",   // string, without decimals
       mobile: "+221700000000",  // E.164 format
       client_reference: "withdrawal_456",
-      payment_reason: "Remboursement commande",
+      payment_reason: "Order refund",
     },
     idempotencyKey
   );

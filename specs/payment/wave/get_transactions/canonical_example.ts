@@ -112,7 +112,7 @@ Usage example :
 
 // Current day's transactions (UTC)
 const today = await getTransactions();
-console.log(`${today.items.length} transactions le ${today.date}`);
+console.log(`${today.items.length} transactions on ${today.date}`);
 
 // All transactions for a specific date (with automatic pagination)
 const transactions = await getAllTransactionsForDate("2024-03-15");
