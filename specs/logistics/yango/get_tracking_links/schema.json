@@ -38,7 +38,7 @@
         "minLength": 32,
         "maxLength": 64
       },
-      "description": "Claim ID received at the claim creation stage Passed as a query parameter."
+      "description": "Claim ID received at the claim creation stage"
     }
   ],
   "example_prompt": "Get the link that lets my customer follow their Yango Delivery courier on a map.",
