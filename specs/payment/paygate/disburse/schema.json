@@ -103,5 +103,8 @@
     "Check your balance (check_balance) on the matching network BEFORE calling disburse. Disbursing FLOOZ from an empty Flooz wallet (even if your T-Money balance is plentiful) fails — the two balances are separate.",
     "PayGate's introductory text on this endpoint talks specifically about 'Moov' transfers, but the network enum officially supports both FLOOZ and TMONEY.",
     "[MUST TELL USER] PayGate API documentation is private. Confirm response semantics in your dashboard if you observe a different status code on success."
+  ],
+  "open_questions": [
+    "Is a retried disburse safe? PayGate's docs (https://paygateglobal.com) are private to the merchant dashboard and no idempotency key or duplicate handling could be checked; whether PayGate rejects a reused `reference` is unknown."
   ]
 }

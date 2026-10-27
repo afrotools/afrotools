@@ -108,5 +108,8 @@
     "The returned pay_id is base64-encoded — keep it as is to use it in cashin_status, without decoding.",
     "callback_url must be a valid HTTPS URL. HTTP URLs are silently ignored.",
     "type_account must match the network of the account number (e.g. do not use lp-om-gn for an MTN number)."
+  ],
+  "open_questions": [
+    "Is a retried cashin_request safe? LengoPay's docs are not public (lengopay.com answers 403 to non-browser requests) and no idempotency key or duplicate handling is documented for this call."
   ]
 }

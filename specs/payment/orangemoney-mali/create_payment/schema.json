@@ -164,6 +164,7 @@
     "Always verify the payment server-side via the notif_url callback (using notif_token) before fulfilling the order. The browser redirect to return_url alone can be spoofed and is not proof of payment."
   ],
   "open_questions": [
-    "Sandbox: provider.json declares none and no gotcha documents a test host or test credentials for OM Web Payment Mali."
+    "Sandbox: provider.json declares none and no gotcha documents a test host or test credentials for OM Web Payment Mali.",
+    "Is a retried create_payment safe? Orange's public OM Web Payment pages (https://developer.orange.com/apis/om-webpay, /overview, /faq; /api-reference serves the same overview) document no idempotency key or duplicate handling, and the 403 on a reused order_id in this spec's gotchas is not found there."
   ]
 }

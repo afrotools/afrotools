@@ -9,7 +9,7 @@
     "environment": "production",
     "at": "2026-04-07",
     "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:983e5b51f748dbbb13053c36365c6db79eb00c270e8ff48535c334b4f8f6f8eb"
+    "spec_hash": "sha256:72bd3a740f57f674f2943817688b9aa54f851505c93f4c4a21f0231236333cad"
   },
   "currency": [
     "GNF"
@@ -112,5 +112,8 @@
     "The Authorization header expects the license key directly: 'Basic {license_key}'. This is not standard Basic Auth (no base64 username:password) — pass the key as is.",
     "websiteid is a required parameter, separate from the license key. Both must be configured as separate environment variables.",
     "There is no sandbox. All calls hit production — use small amounts for testing."
+  ],
+  "open_questions": [
+    "Is a retried create_payment safe? LengoPay's docs are not public (lengopay.com answers 403 to non-browser requests) and no idempotency key or duplicate handling is documented for this call."
   ]
 }

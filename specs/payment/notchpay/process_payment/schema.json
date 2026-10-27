@@ -139,6 +139,10 @@
     "The channel slug is country-and-operator specific (e.g. \"cm.mtn\", \"cm.orange\"). Using a slug that does not match the customer's operator will result in a failed payment.",
     "Calling process_payment on a transaction that is already 'complete', 'canceled', or 'failed' returns 422 with message 'Payment cannot be processed'.",
     "The Authorization header uses your public key with no 'Bearer ' prefix.",
-    "The API also accepts PUT /payments/{reference} with the same body and response — this is a legacy alias. Prefer POST."
+    "The API also accepts PUT /payments/{reference} with the same body and response — this is a legacy alias. Prefer POST.",
+    "Notch Pay documents no idempotency header; duplicates are prevented by the payment reference, which create_payment sets and this call takes in its path: \"Use unique, idempotent references for each payment to prevent duplicate payments and simplify reconciliation.\" (Notch Pay API reference, Payments, Best Practices)."
+  ],
+  "open_questions": [
+    "Is a retried process_payment safe while the payment is still pending? Notch Pay's docs (https://developer.notchpay.co/api-reference/payments.md) only say that a payment already completed, canceled or failed returns 422 \"Payment cannot be processed\"; they do not say whether a second call on a pending reference sends the operator prompt again."
   ]
 }

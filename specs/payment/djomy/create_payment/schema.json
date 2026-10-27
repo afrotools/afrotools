@@ -259,6 +259,7 @@
     "A missing or invalid X-API-KEY returns HTTP 401 (documented as \"Clé API manquante ou invalide\")."
   ],
   "open_questions": [
-    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it."
+    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it.",
+    "Is a retried create_payment safe? Djomy's docs (https://developers.djomy.africa/documentation/openapi-partner.json) document no idempotency key or duplicate handling; `merchantPaymentReference` is only described as \"Elle n'est pas obligatoire, mais fortement recommandée\", with nothing about a reused value being rejected."
   ]
 }

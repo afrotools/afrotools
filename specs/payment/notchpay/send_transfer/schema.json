@@ -152,6 +152,10 @@
     "This endpoint also requires the `X-Grant` header carrying your private key (`X-Grant: YOUR_PRIVATE_KEY`). Without it Notch Pay returns 403 \"This endpoint requires additional authentication\"; a wrong value returns 403 \"Invalid grant key\".",
     "Your server's IP address must be whitelisted in the Notch Pay dashboard before API transfers will be accepted. Requests from non-whitelisted IPs are rejected regardless of valid API credentials.",
     "Authorization takes your public key as is, with no 'Bearer ' prefix, and X-Grant your private key (Notch Pay's Authentication page: `-H \"Authorization: YOUR_PUBLIC_KEY\"` `-H \"X-Grant: YOUR_PRIVATE_KEY\"`).",
-    "The currency must match the channel's country: XAF for cm.* channels (Cameroon), XOF for ci.*/sn.* (Côte d'Ivoire/Senegal), KES for ke.* (Kenya), UGX for ug.* (Uganda), GHS for gh.* (Ghana). A mismatch returns 422."
+    "The currency must match the channel's country: XAF for cm.* channels (Cameroon), XOF for ci.*/sn.* (Côte d'Ivoire/Senegal), KES for ke.* (Kenya), UGX for ug.* (Uganda), GHS for gh.* (Ghana). A mismatch returns 422.",
+    "Notch Pay documents no idempotency header; duplicates are prevented by the transfer reference: \"Use unique, idempotent references for each transfer to prevent duplicate transfers and simplify reconciliation.\" (Notch Pay API reference, Transfers, Best Practices). Set `reference` yourself so a retry carries the same value."
+  ],
+  "open_questions": [
+    "What does Notch Pay return when a transfer is retried with a reference already used? Its docs (https://developer.notchpay.co/api-reference/transfers.md) only ask for \"unique, idempotent references\"; the 422 conflict in this spec's `reference` description is not found there (its 422 examples are insufficient balance, unknown beneficiary and invalid channel)."
   ]
 }
