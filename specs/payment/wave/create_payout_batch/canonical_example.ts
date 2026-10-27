@@ -113,7 +113,7 @@ for (const payout of result.payouts) {
   if (payout.status === "succeeded") {
     await db.payroll.update({ client_reference: payout.client_reference }, { status: "paid" });
   } else if (payout.status === "failed") {
-    console.error(`Payout échoué pour ${payout.mobile} :`, payout.payout_error?.error_code);
+    console.error(`Payout failed for ${payout.mobile}:`, payout.payout_error?.error_code);
     await db.payroll.update({ client_reference: payout.client_reference }, { status: "failed" });
   }
 }

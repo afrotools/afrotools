@@ -63,13 +63,13 @@ async function waitForPayout(payoutId: string, maxAttempts = 10): Promise<Payout
     await new Promise((resolve) => setTimeout(resolve, 2000 * (i + 1)));
   }
 
-  throw new Error(`Payout ${payoutId} toujours en 'processing' après ${maxAttempts} tentatives`);
+  throw new Error(`Payout ${payoutId} still 'processing' after ${maxAttempts} attempts`);
 }
 
 const payout = await waitForPayout("payout-abc123");
 if (payout.status === "succeeded") {
   await db.payouts.update({ id: payout.id }, { status: "succeeded" });
 } else if (payout.status === "failed") {
-  console.error("Payout échoué :", payout.payout_error?.error_code);
+  console.error("Payout failed:", payout.payout_error?.error_code);
 }
 */

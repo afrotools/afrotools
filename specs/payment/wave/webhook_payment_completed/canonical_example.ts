@@ -177,7 +177,7 @@ export async function handleWaveWebhook(
   } catch (error) {
     // Wave will NOT retry: the 200 is already sent. The order stays pending in your storage (recordEvent);
     // a catch-up job must pick it up via verify_payment (or search_checkouts by client_reference).
-    console.error(`Wave webhook ${eventId}: vérification de ${sessionId} échouée`, error);
+    console.error(`Wave webhook ${eventId}: verification of ${sessionId} failed`, error);
   }
 }
 

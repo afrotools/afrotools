@@ -63,10 +63,10 @@ const paid = sessions.find(
 );
 
 if (paid) {
-  console.log("Session payée retrouvée :", paid.id, paid.transaction_id);
+  console.log("Paid session found:", paid.id, paid.transaction_id);
   await db.orders.update({ client_reference: "order_123" }, { status: "paid", wave_session_id: paid.id });
 } else {
-  console.log("Aucun paiement réussi pour order_123");
+  console.log("No successful payment for order_123");
 }
 
 // Tip: always use a unique client_reference per order
