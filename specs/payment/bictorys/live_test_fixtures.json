@@ -22,7 +22,7 @@
     {
       "capability": "verify_transaction",
       "path_params": { "transactionId": "$charge.transactionId" },
-      "headers": { "X-API-Key": "$env:BICTORYS_SECRET_KEY" }
+      "headers": { "X-API-Key": "$env:BICTORYS_API_KEY" }
     },
     {
       "capability": "create_payout",
@@ -47,7 +47,7 @@
         }
       },
       "headers": {
-        "X-API-Key": "$env:BICTORYS_SECRET_KEY"
+        "X-API-Key": "$env:BICTORYS_PRIVATE_KEY"
       },
       "acceptable_error_codes": ["E400-38"]
     }
