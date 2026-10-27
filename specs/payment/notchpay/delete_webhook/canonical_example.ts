@@ -7,6 +7,8 @@
 
 const NOTCHPAY_PRIVATE_KEY = process.env.NOTCHPAY_PRIVATE_KEY;
 if (!NOTCHPAY_PRIVATE_KEY) throw new Error("Missing env: NOTCHPAY_PRIVATE_KEY");
+const NOTCHPAY_PUBLIC_KEY = process.env.NOTCHPAY_PUBLIC_KEY;
+if (!NOTCHPAY_PUBLIC_KEY) throw new Error("Missing env: NOTCHPAY_PUBLIC_KEY");
 
 interface DeleteWebhookInput {
   endpoint: string;
@@ -31,7 +33,7 @@ export async function deleteWebhook(
     {
       method: "DELETE",
       headers: {
-        Authorization: NOTCHPAY_PRIVATE_KEY!,
+        Authorization: NOTCHPAY_PUBLIC_KEY!,
         "X-Grant": NOTCHPAY_PRIVATE_KEY!,
       },
     }
