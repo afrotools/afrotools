@@ -116,3 +116,31 @@ test("spec-diff: only a top-level body field ↔ parameter of the same name move
     "parameters.header.X-Trace-Id → input_schema.x-trace-id",
   ]);
 });
+
+test("spec-diff: fields under additionalProperties, patternProperties, prefixItems and if/then/else count", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "spec-diff-"));
+  const obj = (properties) => ({ type: "object", properties });
+  const schema = (keep) => ({
+    type: "object",
+    properties: {
+      details: { type: "object", additionalProperties: obj(keep ? { score: {}, name: {} } : { name: {} }) },
+      codes: { type: "object", patternProperties: { "^[A-Z]+$": obj(keep ? { label: {} } : {}) } },
+      pair: { type: "array", prefixItems: [obj(keep ? { first: {} } : {})] },
+    },
+    if: obj({ kind: { const: "card" } }),
+    then: obj(keep ? { last4: {} } : {}),
+  });
+  writeSpec(dir, "get_payment", { response_schema: schema(true) });
+  commitBase(dir);
+
+  writeSpec(dir, "get_payment", { response_schema: schema(false) });
+  const res = run(dir);
+  assert.equal(res.status, 1);
+  const lines = res.stdout.split("\n").filter((l) => l.startsWith("  ")).map((l) => l.trim().replace("payment/fixtureprovider/get_payment: ", "")).sort();
+  assert.deepEqual(lines, [
+    "response_schema.codes.*.label",
+    "response_schema.details.*.score",
+    "response_schema.last4",
+    "response_schema.pair.first",
+  ]);
+});

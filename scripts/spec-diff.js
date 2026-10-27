@@ -37,8 +37,9 @@ function parse(text) {
 }
 
 /**
- * Dotted paths of the properties a JSON Schema describes, through array items, allOf/oneOf/anyOf
- * members and local $refs.
+ * Dotted paths of the properties a JSON Schema describes, through array items and prefixItems,
+ * allOf/oneOf/anyOf members, if/then/else and local $refs. The values of a map
+ * (additionalProperties, patternProperties) are under "*": data.*.score.
  * @param {any} root
  * @param {string} prefix
  * @returns {Set<string>}
@@ -57,8 +58,9 @@ function propertyPaths(root, prefix) {
       out.add(`${at}.${name}`);
       walk(child, `${at}.${name}`, refs);
     }
-    if (node.items) walk(node.items, at, refs);
-    for (const m of [...(node.allOf ?? []), ...(node.oneOf ?? []), ...(node.anyOf ?? [])]) walk(m, at, refs);
+    for (const m of [node.items, ...(node.prefixItems ?? []), ...(node.allOf ?? []), ...(node.oneOf ?? []), ...(node.anyOf ?? []),
+      node.if, node.then, node.else]) walk(m, at, refs);
+    for (const m of [node.additionalProperties, ...Object.values(node.patternProperties ?? {})]) walk(m, `${at}.*`, refs);
   };
   walk(root, prefix, new Set());
   return out;
