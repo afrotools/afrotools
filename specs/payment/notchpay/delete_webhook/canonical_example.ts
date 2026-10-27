@@ -32,6 +32,7 @@ export async function deleteWebhook(
       method: "DELETE",
       headers: {
         Authorization: NOTCHPAY_PRIVATE_KEY!,
+        "X-Grant": NOTCHPAY_PRIVATE_KEY!,
       },
     }
   );

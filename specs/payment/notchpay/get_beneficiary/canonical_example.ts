@@ -34,6 +34,7 @@ export async function getBeneficiary(id: string): Promise<GetBeneficiaryResponse
     method: "GET",
     headers: {
       Authorization: NOTCHPAY_PRIVATE_KEY!,
+      "X-Grant": NOTCHPAY_PRIVATE_KEY!,
     },
   });
 

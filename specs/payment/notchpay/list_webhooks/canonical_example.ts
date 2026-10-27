@@ -51,6 +51,7 @@ export async function listWebhooks(
     method: "GET",
     headers: {
       Authorization: NOTCHPAY_PRIVATE_KEY!,
+      "X-Grant": NOTCHPAY_PRIVATE_KEY!,
     },
   });
 

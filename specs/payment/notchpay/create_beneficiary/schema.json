@@ -20,13 +20,18 @@
     "credentials": [
       {
         "env_var": "NOTCHPAY_PRIVATE_KEY",
-        "description": "Notch Pay private key, sent as is in Authorization, for transfers, beneficiaries, balance and webhooks"
+        "description": "Notch Pay private key, sent as is in Authorization and in X-Grant, for transfers, beneficiaries, balance and webhooks"
       }
     ],
     "apply": [
       {
         "in": "header",
         "name": "Authorization",
+        "value": "{NOTCHPAY_PRIVATE_KEY}"
+      },
+      {
+        "in": "header",
+        "name": "X-Grant",
         "value": "{NOTCHPAY_PRIVATE_KEY}"
       }
     ]
@@ -144,6 +149,10 @@
     "account_number must be a valid phone number for mobile money channels — include the country code (e.g. +237XXXXXXXXX). Passing just a local number may fail silently or create an unusable beneficiary.",
     "Store the returned beneficiary.id immediately — it is required to initiate transfers to this recipient and to delete the beneficiary later.",
     "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable.",
-    "The channel slug determines the settlement currency: cm.* → XAF, ci.*/sn.* → XOF, ke.* → KES, ug.* → UGX, gh.* → GHS. The currency does not need to be specified at beneficiary creation but is fixed by the channel."
+    "The channel slug determines the settlement currency: cm.* → XAF, ci.*/sn.* → XOF, ke.* → KES, ug.* → UGX, gh.* → GHS. The currency does not need to be specified at beneficiary creation but is fixed by the channel.",
+    "This endpoint also requires the `X-Grant` header carrying your private key (`X-Grant: YOUR_PRIVATE_KEY`). Without it Notch Pay returns 403 \"This endpoint requires additional authentication\"; a wrong value returns 403 \"Invalid grant key\"."
+  ],
+  "open_questions": [
+    "Notch Pay's docs show `Authorization: YOUR_PUBLIC_KEY` together with `X-Grant: YOUR_PRIVATE_KEY` on this endpoint, while this spec sends the private key in Authorization (see the gotcha about 406 with a public key). Which key Authorization must carry when X-Grant is present is not confirmed."
   ]
 }

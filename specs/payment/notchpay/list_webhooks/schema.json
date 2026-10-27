@@ -20,13 +20,18 @@
     "credentials": [
       {
         "env_var": "NOTCHPAY_PRIVATE_KEY",
-        "description": "Notch Pay private key, sent as is in Authorization, for transfers, beneficiaries, balance and webhooks"
+        "description": "Notch Pay private key, sent as is in Authorization and in X-Grant, for transfers, beneficiaries, balance and webhooks"
       }
     ],
     "apply": [
       {
         "in": "header",
         "name": "Authorization",
+        "value": "{NOTCHPAY_PRIVATE_KEY}"
+      },
+      {
+        "in": "header",
+        "name": "X-Grant",
         "value": "{NOTCHPAY_PRIVATE_KEY}"
       }
     ]
@@ -142,6 +147,10 @@
     "All query parameters are optional. Omitting them returns the full paginated list with the API default page size.",
     "The top-level array is named 'endpoints' (not 'items'). Pagination uses 'totals' (not 'total') and 'selected' (not 'per_page'). Reading the wrong field name silently returns undefined.",
     "Iterate through pages by incrementing the page param and stop when current_page equals last_page.",
-    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
+    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable.",
+    "This endpoint also requires the `X-Grant` header carrying your private key (`X-Grant: YOUR_PRIVATE_KEY`). Without it Notch Pay returns 403 \"This endpoint requires additional authentication\"; a wrong value returns 403 \"Invalid grant key\"."
+  ],
+  "open_questions": [
+    "Notch Pay's docs show `Authorization: YOUR_PUBLIC_KEY` together with `X-Grant: YOUR_PRIVATE_KEY` on this endpoint, while this spec sends the private key in Authorization (see the gotcha about 406 with a public key). Which key Authorization must carry when X-Grant is present is not confirmed."
   ]
 }
