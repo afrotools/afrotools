@@ -59,10 +59,10 @@ export async function listSendernames(
 Usage example:
 
 const page = await listSendernames();
-const active = page.results.filter((s) => s.status === "active");
-console.log(`Sender names actifs : ${active.map((s) => s.name).join(", ")}`);
+const accepted = page.results.filter((s) => s.status === "accepted");
+console.log(`Accepted sender names: ${accepted.map((s) => s.name).join(", ")}`);
 
-// Use only sender names with status 'active' in send_message
+// Use only sender names with status 'accepted' in send_message
 // 'pending' sender names are under validation — do not use them
 // Sender names must be created from the NimbaSMS dashboard, not via the API
 */

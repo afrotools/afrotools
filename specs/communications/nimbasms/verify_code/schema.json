@@ -45,7 +45,7 @@
         "type": "integer",
         "minimum": 1000,
         "maximum": 999999,
-        "description": "Code entered by the user (integer, 4 to 6 digits depending on code_length). Send as an integer, not as a string."
+        "description": "Code entered by the user. Send as an integer, not as a string. NimbaSMS docs: «Code de verification. Longueur entre 4 et 8 chiffres», while the same schema sets maximum 999999 (6 digits): see open_questions."
       }
     }
   },
@@ -92,6 +92,7 @@
     "Never call this endpoint client-side — call it only server-side with the code entered by the user. An 'approved' status must immediately mark the number as verified in the database."
   ],
   "open_questions": [
-    "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."
+    "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production.",
+    "Code length: the NimbaSMS OpenAPI describes the code as «Longueur entre 4 et 8 chiffres» (and send_verification's code_length as «Min 4, Max 8») but sets maximum: 999999 on it, so a 7- or 8-digit code would fail this schema. Which one the API enforces is not documented."
   ]
 }
