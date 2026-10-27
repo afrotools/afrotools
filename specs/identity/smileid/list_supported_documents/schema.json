@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-24",
-    "spec_hash": "sha256:6090fe033beeb046d7cb0e66e06f87be6694fa22b4838e7f35a7995a69568ed8"
+    "spec_hash": "sha256:f4e6b11f37c19531ddb25548accb60f7c63309f750516c7ee8b6dc6f3f2044fd"
   },
   "auth": {
     "type": "none"
@@ -32,7 +32,7 @@
           "SOUTH AMERICA"
         ]
       },
-      "description": "Filter results to a single continent. Query parameter."
+      "description": "Filter results to a single continent."
     },
     {
       "name": "country_code",
@@ -41,7 +41,7 @@
         "type": "string",
         "pattern": "^[A-Z]{2}$"
       },
-      "description": "Filter results to a single country. Must be an ISO 3166-1 alpha-2 code\n(two uppercase letters). Query parameter."
+      "description": "Filter results to a single country. Must be an ISO 3166-1 alpha-2 code\n(two uppercase letters)."
     },
     {
       "name": "locale",
@@ -55,7 +55,7 @@
           "ar-EG"
         ]
       },
-      "description": "Locale for document names. Defaults to `en-GB`.\nSupported values: `en-GB`, `fr-FR`, `ar-EG`. Query parameter."
+      "description": "Locale for document names. Defaults to `en-GB`.\nSupported values: `en-GB`, `fr-FR`, `ar-EG`."
     }
   ],
   "example_prompt": "List the identity documents Smile ID can verify for a country (e.g. country_code=SN) to build a document picker before Document Verification.",

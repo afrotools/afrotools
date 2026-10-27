@@ -64,7 +64,7 @@
         "type": "string",
         "pattern": "^job_[0-9a-z]{26}$"
       },
-      "description": "TypeID format verification identifier with 'job_' prefix. Passed as a path parameter."
+      "description": "TypeID format verification identifier with 'job_' prefix."
     }
   ],
   "example_prompt": "Ask Smile ID to re-send the result webhook of a completed verification, e.g. after all delivery attempts to your callback_url failed.",
@@ -106,10 +106,6 @@
         "description": "Human-readable confirmation message."
       }
     }
-  },
-  "success_condition": {
-    "field": "status",
-    "equals": "accepted"
   },
   "error_schema": {
     "type": "object",
