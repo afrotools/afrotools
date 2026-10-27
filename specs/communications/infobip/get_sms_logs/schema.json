@@ -39,7 +39,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "Mobile Country Code. Passed as a query parameter."
+      "description": "Mobile Country Code."
     },
     {
       "name": "mnc",
@@ -47,7 +47,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "Mobile Network Code. Mobile Country Code is required if this property is used. Passed as a query parameter."
+      "description": "Mobile Network Code. Mobile Country Code is required if this property is used."
     },
     {
       "name": "sender",
@@ -55,7 +55,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "The sender ID which can be alphanumeric or numeric. Passed as a query parameter."
+      "description": "The sender ID which can be alphanumeric or numeric."
     },
     {
       "name": "destination",
@@ -63,7 +63,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "Message destination address. Passed as a query parameter."
+      "description": "Message destination address."
     },
     {
       "name": "bulkId",
@@ -74,7 +74,7 @@
           "type": "string"
         }
       },
-      "description": "Unique ID assigned to the request if messaging multiple recipients or sending multiple messages via a single API request. May contain multiple comma-separated values. Maximum length 2048 characters. Passed as a query parameter."
+      "description": "Unique ID assigned to the request if messaging multiple recipients or sending multiple messages via a single API request. May contain multiple comma-separated values. Maximum length 2048 characters."
     },
     {
       "name": "messageId",
@@ -85,7 +85,7 @@
           "type": "string"
         }
       },
-      "description": "Unique message ID for which a log is requested. May contain multiple comma-separated values. Maximum length 2048 characters. Passed as a query parameter."
+      "description": "Unique message ID for which a log is requested. May contain multiple comma-separated values. Maximum length 2048 characters."
     },
     {
       "name": "generalStatus",
@@ -100,8 +100,7 @@
           "EXPIRED",
           "REJECTED"
         ]
-      },
-      "description": "Passed as a query parameter."
+      }
     },
     {
       "name": "sentSince",
@@ -110,7 +109,7 @@
         "type": "string",
         "format": "date-time"
       },
-      "description": "The logs will only include messages sent after this date. Use it alongside sentUntil to specify a time range for the logs, but only up to the maximum limit of 1000 logs per call. Has the following format: yyyy-MM-dd'T'HH:mm:ss.SSSZ. Passed as a query parameter."
+      "description": "The logs will only include messages sent after this date. Use it alongside sentUntil to specify a time range for the logs, but only up to the maximum limit of 1000 logs per call. Has the following format: yyyy-MM-dd'T'HH:mm:ss.SSSZ."
     },
     {
       "name": "sentUntil",
@@ -119,7 +118,7 @@
         "type": "string",
         "format": "date-time"
       },
-      "description": "The logs will only include messages sent before this date. Use it alongside sentSince to specify a time range for the logs, but only up to the maximum limit of 1000 logs per call. Has the following format: yyyy-MM-dd'T'HH:mm:ss.SSSZ. Passed as a query parameter."
+      "description": "The logs will only include messages sent before this date. Use it alongside sentSince to specify a time range for the logs, but only up to the maximum limit of 1000 logs per call. Has the following format: yyyy-MM-dd'T'HH:mm:ss.SSSZ."
     },
     {
       "name": "limit",
@@ -130,7 +129,7 @@
         "default": 50,
         "maximum": 1000
       },
-      "description": "Maximum number of messages to include in logs. If not set, the latest 50 records are returned. Maximum limit value is 1000 and you can only access logs for the last 48h. Passed as a query parameter."
+      "description": "Maximum number of messages to include in logs. If not set, the latest 50 records are returned. Maximum limit value is 1000 and you can only access logs for the last 48h."
     },
     {
       "name": "entityId",
@@ -138,7 +137,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "Entity id used to send the message. For more details, see our [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management). Passed as a query parameter."
+      "description": "Entity id used to send the message. For more details, see our [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management)."
     },
     {
       "name": "applicationId",
@@ -146,7 +145,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "Application id used to send the message. For more details, see our [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management). Passed as a query parameter."
+      "description": "Application id used to send the message. For more details, see our [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management)."
     },
     {
       "name": "campaignReferenceId",
@@ -157,7 +156,7 @@
           "type": "string"
         }
       },
-      "description": "ID of a campaign that was sent in the message. May contain multiple comma-separated values. Passed as a query parameter."
+      "description": "ID of a campaign that was sent in the message. May contain multiple comma-separated values."
     },
     {
       "name": "useCursor",
@@ -165,7 +164,7 @@
       "schema": {
         "type": "boolean"
       },
-      "description": "Flag used to enable cursor-based pagination. When set to true, the system will use the cursor to fetch the next set of logs. Passed as a query parameter."
+      "description": "Flag used to enable cursor-based pagination. When set to true, the system will use the cursor to fetch the next set of logs."
     },
     {
       "name": "cursor",
@@ -173,7 +172,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "Value which represents the current position in the data set. For the first request, this field shouldn't be defined. In subsequent requests, use the `nextCursor` value returned from the previous response to continue fetching data. Passed as a query parameter."
+      "description": "Value which represents the current position in the data set. For the first request, this field shouldn't be defined. In subsequent requests, use the `nextCursor` value returned from the previous response to continue fetching data."
     }
   ],
   "example_prompt": "Search the logs of SMS messages sent through Infobip (by bulkId, messageId, destination or date range) to audit sending.",

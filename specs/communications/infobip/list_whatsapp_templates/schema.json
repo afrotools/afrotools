@@ -43,7 +43,7 @@
         },
         "uniqueItems": true
       },
-      "description": "List of registered WhatsApp senders numbers separated by comma. Must be in international format. Passed as a query parameter."
+      "description": "List of registered WhatsApp senders numbers separated by comma. Must be in international format."
     },
     {
       "name": "status",
@@ -70,7 +70,7 @@
         },
         "uniqueItems": true
       },
-      "description": "List of template statuses, separated by commas. Passed as a query parameter."
+      "description": "List of template statuses, separated by commas."
     },
     {
       "name": "name",
@@ -78,7 +78,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "Template name. Passed as a query parameter."
+      "description": "Template name."
     },
     {
       "name": "language",
@@ -201,7 +201,7 @@
         },
         "uniqueItems": true
       },
-      "description": "List of languages for the templates, separated by commas. Passed as a query parameter."
+      "description": "List of languages for the templates, separated by commas."
     },
     {
       "name": "category",
@@ -218,7 +218,7 @@
         },
         "uniqueItems": true
       },
-      "description": "List of template categories, separated by commas. Passed as a query parameter."
+      "description": "List of template categories, separated by commas."
     },
     {
       "name": "applicationId",
@@ -226,7 +226,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "Application ID used in outbound send requests. It is also returned in notification events. For more details, refer to the [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management). Passed as a query parameter."
+      "description": "Application ID used in outbound send requests. It is also returned in notification events. For more details, refer to the [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management)."
     },
     {
       "name": "entityId",
@@ -234,7 +234,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "Entity ID used in outbound send requests. It is also returned in notification events. For more details, refer to the [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management). Passed as a query parameter."
+      "description": "Entity ID used in outbound send requests. It is also returned in notification events. For more details, refer to the [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management)."
     },
     {
       "name": "page",
@@ -244,7 +244,7 @@
         "format": "int32",
         "default": 0
       },
-      "description": "Current page number. Passed as a query parameter."
+      "description": "Current page number."
     },
     {
       "name": "size",
@@ -256,7 +256,7 @@
         "maximum": 100,
         "minimum": 1
       },
-      "description": "Number of items per page. Passed as a query parameter."
+      "description": "Number of items per page."
     },
     {
       "name": "orderBy",
@@ -265,7 +265,7 @@
         "type": "string",
         "default": "templateId,ASC"
       },
-      "description": "Sorting criteria in the format property,direction. Can be ascending (ASC) or descending (DESC). Available properties: category, language, name, status, templateId Passed as a query parameter."
+      "description": "Sorting criteria in the format property,direction. Can be ascending (ASC) or descending (DESC). Available properties: category, language, name, status, templateId"
     }
   ],
   "example_prompt": "List the WhatsApp templates on my Infobip account (filter by sender, status, name or language) before sending a template message.",

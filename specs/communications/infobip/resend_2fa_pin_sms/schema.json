@@ -40,7 +40,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "ID of the pin code that has to be verified. Passed as a path parameter."
+      "description": "ID of the pin code that has to be verified."
     }
   ],
   "example_prompt": "Resend the same 2FA PIN by SMS when the user didn't receive it, using the pinId from the original send.",

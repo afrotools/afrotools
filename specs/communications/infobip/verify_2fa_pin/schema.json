@@ -40,7 +40,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "ID of the pin code that has to be verified. Passed as a path parameter."
+      "description": "ID of the pin code that has to be verified."
     }
   ],
   "example_prompt": "Check the PIN a user typed against the Infobip 2FA pinId and only log them in when it is verified.",
@@ -90,10 +90,6 @@
         "description": "Indicates whether the phone number (`MSISDN`) was successfully verified."
       }
     }
-  },
-  "success_condition": {
-    "field": "verified",
-    "equals": true
   },
   "error_schema": {
     "type": "object",

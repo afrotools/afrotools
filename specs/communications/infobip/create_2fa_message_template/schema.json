@@ -40,7 +40,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "ID of application for which requested message was created. Passed as a path parameter."
+      "description": "ID of application for which requested message was created."
     }
   ],
   "example_prompt": "Create the SMS message template (text with the {{pin}} placeholder, PIN length and type) used by my Infobip 2FA application.",

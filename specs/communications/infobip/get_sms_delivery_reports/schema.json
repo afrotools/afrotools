@@ -39,7 +39,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "The ID that uniquely identifies the request. Bulk ID will be received only when you send a message to more than one destination address. Passed as a query parameter."
+      "description": "The ID that uniquely identifies the request. Bulk ID will be received only when you send a message to more than one destination address."
     },
     {
       "name": "messageId",
@@ -47,7 +47,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "The ID that uniquely identifies the message sent. Passed as a query parameter."
+      "description": "The ID that uniquely identifies the message sent."
     },
     {
       "name": "limit",
@@ -58,7 +58,7 @@
         "default": 50,
         "maximum": 1000
       },
-      "description": "Maximum number of delivery reports to be returned. If not set, the latest 50 records are returned. Maximum limit value is 1000 and you can only access reports for the last 48h. Passed as a query parameter."
+      "description": "Maximum number of delivery reports to be returned. If not set, the latest 50 records are returned. Maximum limit value is 1000 and you can only access reports for the last 48h."
     },
     {
       "name": "entityId",
@@ -66,7 +66,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "Entity id used to send the message. For more details, see our [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management). Passed as a query parameter."
+      "description": "Entity id used to send the message. For more details, see our [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management)."
     },
     {
       "name": "applicationId",
@@ -74,7 +74,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "Application id used to send the message. For more details, see our [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management). Passed as a query parameter."
+      "description": "Application id used to send the message. For more details, see our [documentation](https://www.infobip.com/docs/cpaas-x/application-and-entity-management)."
     },
     {
       "name": "campaignReferenceId",
@@ -82,7 +82,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "ID of a campaign that was sent in the message. Passed as a query parameter."
+      "description": "ID of a campaign that was sent in the message."
     }
   ],
   "example_prompt": "Fetch the latest SMS delivery reports from Infobip when a webhook isn't available, to confirm whether messages were delivered.",

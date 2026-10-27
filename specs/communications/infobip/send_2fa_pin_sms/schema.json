@@ -39,7 +39,7 @@
       "schema": {
         "type": "boolean"
       },
-      "description": "Indicates if [Number Lookup](https://www.infobip.com/docs/api/connectivity/number-lookup) is needed before sending the 2FA message. If the parameter value is true, Number Lookup will be requested before sending the SMS. If the value is false, the SMS will be sent without requesting Number Lookup. Field's default value is `true`. Passed as a query parameter."
+      "description": "Indicates if [Number Lookup](https://www.infobip.com/docs/api/connectivity/number-lookup) is needed before sending the 2FA message. If the parameter value is true, Number Lookup will be requested before sending the SMS. If the value is false, the SMS will be sent without requesting Number Lookup. Field's default value is `true`."
     }
   ],
   "example_prompt": "Send a one-time PIN by SMS to a user's phone through Infobip 2FA and keep the pinId to verify the code they type.",
