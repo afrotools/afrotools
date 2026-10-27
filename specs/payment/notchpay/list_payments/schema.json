@@ -47,7 +47,8 @@
       "in": "query",
       "schema": {
         "type": "integer",
-        "default": 30
+        "default": 30,
+        "maximum": 100
       },
       "description": "Number of payments per page."
     },
@@ -183,7 +184,7 @@
     "Pagination uses 'totals' (not 'total') and 'selected' (not 'per_page') — using the wrong field name will silently return undefined."
   ],
   "open_questions": [
-    "The OpenAPI (https://developer.notchpay.co/openapi.yaml) gives date_start and date_end as format: date, \"Start date (YYYY-MM-DD)\" / \"End date (YYYY-MM-DD)\", while a gotcha of this spec says plain dates without a time may be rejected: which form does the API accept (YYYY-MM-DD, a full ISO 8601 date-time, or both)?",
+    "The docs agree that date_start and date_end are dates: the OpenAPI (https://developer.notchpay.co/openapi.yaml) gives format: date, \"Start date (YYYY-MM-DD)\" / \"End date (YYYY-MM-DD)\", and the Payments API page (https://developer.notchpay.co/api-reference/payments.md) says \"Start date filter (format: YYYY-MM-DD)\" / \"End date filter (format: YYYY-MM-DD)\"; a gotcha of this spec says plain dates without a time may be rejected: does the API also accept a full ISO 8601 date-time, or only YYYY-MM-DD?",
     "Which values does the status filter accept? The OpenAPI says only \"Filter by status\" (type string) and lists no enum."
   ]
 }

@@ -46,7 +46,8 @@
       "in": "query",
       "schema": {
         "type": "integer",
-        "default": 30
+        "default": 30,
+        "maximum": 100
       },
       "description": "Number of results per page."
     },
