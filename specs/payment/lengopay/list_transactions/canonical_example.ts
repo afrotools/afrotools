@@ -51,7 +51,7 @@ Usage example:
 
 const transactions = await listTransactions(LENGOPAY_WEBSITE_ID!);
 
-// Filtrer les paiements réussis uniquement
+// Filter successful payments only
 const successful = transactions.filter(t => t.status === "SUCCESS");
 console.log(`${successful.length} paiements réussis sur ${transactions.length} total`);
 */

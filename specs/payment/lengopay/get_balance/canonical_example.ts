@@ -50,7 +50,7 @@ Usage example:
 const result = await getBalance(LENGOPAY_WEBSITE_ID!);
 
 if (result.status === "Success") {
-  // balance est une string — utiliser parseFloat pour les calculs
+  // balance is a string — use parseFloat for calculations
   const balanceAmount = parseFloat(result.balance);
   console.log(`Solde: ${balanceAmount} ${result.currency}`);
 }

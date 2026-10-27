@@ -44,7 +44,7 @@
     "properties": {
       "websiteId": {
         "type": "string",
-        "description": "Identifiant unique du site (ID Site dans le tableau de bord LengoPay). Intégré dans le path."
+        "description": "Unique site identifier (Site ID in the LengoPay dashboard). Embedded in the path."
       }
     }
   },
@@ -53,15 +53,15 @@
     "properties": {
       "status": {
         "type": "string",
-        "description": "\"Success\" si la requête a abouti."
+        "description": "\"Success\" if the request succeeded."
       },
       "balance": {
         "type": "string",
-        "description": "Solde du compte sous forme de chaîne numérique (ex: \"7792\")."
+        "description": "Account balance as a numeric string (e.g. \"7792\")."
       },
       "currency": {
         "type": "string",
-        "description": "Devise du solde (ex: \"GNF\")."
+        "description": "Balance currency (e.g. \"GNF\")."
       }
     }
   },
@@ -70,12 +70,12 @@
     "properties": {
       "message": {
         "type": "string",
-        "description": "Description de l'erreur."
+        "description": "Error description."
       }
     }
   },
   "gotchas": [
-    "balance est retourné comme une string (ex: \"7792\"), pas un number — utiliser parseFloat(balance) avant tout calcul.",
-    "L'URL n'a pas de préfixe /v1/ contrairement aux autres endpoints LengoPay (ex: /api/getbalance/ et non /api/v1/getbalance/)."
+    "balance is returned as a string (e.g. \"7792\"), not a number — use parseFloat(balance) before any calculation.",
+    "The URL has no /v1/ prefix, unlike the other LengoPay endpoints (e.g. /api/getbalance/ and not /api/v1/getbalance/)."
   ]
 }

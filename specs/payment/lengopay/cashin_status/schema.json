@@ -45,11 +45,11 @@
     "properties": {
       "pay_id": {
         "type": "string",
-        "description": "Identifiant de la transaction retourné par cashin_request (encodé en base64)."
+        "description": "Transaction identifier returned by cashin_request (base64-encoded)."
       },
       "websiteid": {
         "type": "string",
-        "description": "Identifiant unique du site (ID Site dans le tableau de bord LengoPay)."
+        "description": "Unique site identifier (Site ID in the LengoPay dashboard)."
       }
     }
   },
@@ -63,23 +63,23 @@
           "FAILED",
           "PENDING"
         ],
-        "description": "Statut du paiement Cash In."
+        "description": "Cash In payment status."
       },
       "pay_id": {
         "type": "string",
-        "description": "Identifiant du paiement."
+        "description": "Payment identifier."
       },
       "amount": {
         "type": "number",
-        "description": "Montant du paiement."
+        "description": "Payment amount."
       },
       "account": {
         "type": "string",
-        "description": "Numéro de téléphone destinataire du paiement."
+        "description": "Phone number of the payment recipient."
       },
       "date": {
         "type": "string",
-        "description": "Date de la transaction (format YYYY-MM-DD HH:MM:SS)."
+        "description": "Transaction date (format YYYY-MM-DD HH:MM:SS)."
       }
     }
   },
@@ -88,13 +88,13 @@
     "properties": {
       "message": {
         "type": "string",
-        "description": "Description de l'erreur."
+        "description": "Error description."
       }
     }
   },
   "gotchas": [
-    "Utiliser le pay_id base64 retourné par cashin_request sans décodage — LengoPay l'attend tel quel.",
-    "PENDING signifie que le paiement est en cours de traitement sur le réseau mobile. Ne pas considérer PENDING comme final — attendre SUCCESS ou FAILED.",
-    "Ne jamais fulfiller une commande sur le statut PENDING, même après plusieurs vérifications successives."
+    "Use the base64 pay_id returned by cashin_request without decoding — LengoPay expects it as is.",
+    "PENDING means the payment is being processed on the mobile network. Do not treat PENDING as final — wait for SUCCESS or FAILED.",
+    "Never fulfill an order on PENDING status, even after several successive checks."
   ]
 }

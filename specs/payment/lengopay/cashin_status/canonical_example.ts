@@ -65,9 +65,9 @@ const result = await cashinStatus({
 });
 
 if (result.status === "SUCCESS") {
-  // Paiement confirmé — fulfiller la commande
+  // Payment confirmed — fulfill the order
   await db.orders.update({ pay_id: result.pay_id }, { status: "paid" });
 } else if (result.status === "PENDING") {
-  // En cours — réessayer plus tard ou attendre le callback
+  // In progress — retry later or wait for the callback
 }
 */

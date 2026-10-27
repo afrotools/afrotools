@@ -44,7 +44,7 @@
     "properties": {
       "websiteid": {
         "type": "string",
-        "description": "Identifiant unique du site (ID Site dans le tableau de bord LengoPay)."
+        "description": "Unique site identifier (Site ID in the LengoPay dashboard)."
       }
     }
   },
@@ -55,19 +55,19 @@
       "properties": {
         "pay_id": {
           "type": "string",
-          "description": "Identifiant du paiement."
+          "description": "Payment identifier."
         },
         "date": {
           "type": "string",
-          "description": "Date de la transaction (format YYYY-MM-DD HH:MM:SS)."
+          "description": "Transaction date (format YYYY-MM-DD HH:MM:SS)."
         },
         "amount": {
           "type": "number",
-          "description": "Montant du paiement."
+          "description": "Payment amount."
         },
         "status": {
           "type": "string",
-          "description": "Statut du paiement (SUCCESS, FAILED, PENDING ou entier selon les cas)."
+          "description": "Payment status (SUCCESS, FAILED, PENDING, or an integer depending on the case)."
         }
       }
     }
@@ -77,12 +77,12 @@
     "properties": {
       "message": {
         "type": "string",
-        "description": "Description de l'erreur."
+        "description": "Error description."
       }
     }
   },
   "gotchas": [
-    "Retourne uniquement les transactions Cash Out (paiements initiés via create_payment avec URL de paiement). Pour les transactions Cash In, utiliser list_cashin_transactions.",
-    "Le champ status peut être une string (\"SUCCESS\") ou un entier (0) selon la transaction — normaliser avant utilisation."
+    "Returns only Cash Out transactions (payments initiated via create_payment with a payment URL). For Cash In transactions, use list_cashin_transactions.",
+    "The status field may be a string (\"SUCCESS\") or an integer (0) depending on the transaction — normalize before use."
   ]
 }
