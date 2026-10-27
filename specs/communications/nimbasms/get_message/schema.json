@@ -38,7 +38,7 @@
       "id": {
         "type": "string",
         "format": "uuid",
-        "description": "Identifiant unique du message retourné par send_message (champ messageid)."
+        "description": "Unique message identifier returned by send_message (messageid field)."
       }
     }
   },
@@ -48,15 +48,15 @@
       "messageid": {
         "type": "string",
         "format": "uuid",
-        "description": "Identifiant unique du message."
+        "description": "Unique message identifier."
       },
       "sender_name": {
         "type": "string",
-        "description": "Nom d'expéditeur utilisé."
+        "description": "Sender name used."
       },
       "message": {
         "type": "string",
-        "description": "Contenu du message."
+        "description": "Message content."
       },
       "status": {
         "type": "string",
@@ -65,19 +65,19 @@
           "sent",
           "failure"
         ],
-        "description": "Statut global du message."
+        "description": "Overall message status."
       },
       "sent_at": {
         "type": "integer",
-        "description": "Horodatage d'envoi en Unix timestamp (secondes). Convertir avec new Date(sent_at * 1000)."
+        "description": "Send time as a Unix timestamp (seconds). Convert with new Date(sent_at * 1000)."
       },
       "message_cost": {
         "type": "integer",
-        "description": "Nombre de SMS consommés."
+        "description": "Number of SMS consumed."
       },
       "numbers": {
         "type": "array",
-        "description": "Statut de livraison par destinataire.",
+        "description": "Delivery status per recipient.",
         "items": {
           "type": "object",
           "properties": {
@@ -87,7 +87,7 @@
             },
             "contact": {
               "type": "string",
-              "description": "Numéro destinataire."
+              "description": "Recipient number."
             },
             "status": {
               "type": "string",
@@ -98,7 +98,7 @@
                 "failure",
                 "not_available"
               ],
-              "description": "Statut de livraison pour ce destinataire."
+              "description": "Delivery status for this recipient."
             }
           }
         }
@@ -110,15 +110,15 @@
     "properties": {
       "detail": {
         "type": "string",
-        "description": "Erreur générale (ex: 404 not found, 401 unauthorized)."
+        "description": "General error (e.g. 404 not found, 401 unauthorized)."
       }
     }
   },
   "gotchas": [
-    "Le champ d'identifiant dans la réponse est 'messageid' (pas 'id'). Utiliser le messageid retourné par send_message.",
-    "sent_at est un Unix timestamp en secondes (integer), pas une date ISO 8601. Convertir avec new Date(sent_at * 1000) en JavaScript.",
-    "Le statut global ('status') peut être 'sent' alors que certains destinataires dans 'numbers' ont statut 'failure' ou 'not_available'. Inspecter 'numbers' pour le statut par destinataire.",
-    "Le statut 'received' dans 'numbers' signifie livré (delivery receipt reçu de l'opérateur). 'sent' signifie envoyé à l'opérateur mais non encore confirmé livré."
+    "The identifier field in the response is 'messageid' (not 'id'). Use the messageid returned by send_message.",
+    "sent_at is a Unix timestamp in seconds (integer), not an ISO 8601 date. Convert with new Date(sent_at * 1000) in JavaScript.",
+    "The overall status ('status') can be 'sent' while some recipients in 'numbers' have status 'failure' or 'not_available'. Inspect 'numbers' for the per-recipient status.",
+    "The 'received' status in 'numbers' means delivered (delivery receipt received from the carrier). 'sent' means sent to the carrier but not yet confirmed delivered."
   ],
   "open_questions": [
     "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."

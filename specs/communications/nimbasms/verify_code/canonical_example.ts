@@ -18,7 +18,7 @@ type VerificationStatus =
   | "expired"
   | "failure"
   | "received"
-  | "too_many_attemps" // typo dans l'API NimbaSMS (un seul 't')
+  | "too_many_attemps" // typo in the NimbaSMS API (a single 't')
   | "approved"
   | "read";
 
@@ -33,7 +33,7 @@ interface NimbaSMSError {
 
 export async function verifyCode(
   verificationId: string,
-  code: number // integer, pas string
+  code: number // integer, not string
 ): Promise<VerifyCodeResponse> {
   const endpoint = `https://api.nimbasms.com/v1/verifications/${verificationId}`;
   const response = await fetch(endpoint, {
@@ -56,22 +56,22 @@ export async function verifyCode(
 /*
 Usage example:
 
-// code est un integer (pas une string)
+// code is an integer (not a string)
 const userCode = parseInt(req.body.code, 10);
 const result = await verifyCode(
-  "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // verificationid de send_verification
+  "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", // verificationid from send_verification
   userCode
 );
 
 if (result.status === "approved") {
-  // Numéro vérifié — marquer en base de données immédiatement
+  // Number verified — mark it in the database immediately
   await db.users.markPhoneVerified(userId);
 } else if (result.status === "too_many_attemps") {
-  // Note: typo volontaire de l'API (un seul 't') — créer une nouvelle vérification
+  // Note: intentional API typo (a single 't') — create a new verification
   throw new Error("Trop de tentatives — veuillez recommencer");
 } else if (result.status === "expired") {
   throw new Error("Code expiré — veuillez recommencer");
 }
 
-// Appeler uniquement côté serveur — jamais exposer verificationid au client
+// Call only server-side — never expose verificationid to the client
 */

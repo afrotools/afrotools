@@ -27,7 +27,7 @@
       "messageid": {
         "type": "string",
         "format": "uuid",
-        "description": "Identifiant du message dont le statut a changé. Correspond au messageid retourné par send_message."
+        "description": "Identifier of the message whose status changed. Matches the messageid returned by send_message."
       },
       "status": {
         "type": "string",
@@ -36,12 +36,12 @@
           "failed"
         ],
         "default": "received",
-        "description": "Nouveau statut du message. 'received' = livré au destinataire, 'failed' = échec de livraison."
+        "description": "New message status. 'received' = delivered to the recipient, 'failed' = delivery failure."
       },
       "contact": {
         "type": "string",
         "maxLength": 15,
-        "description": "Numéro de téléphone du destinataire concerné."
+        "description": "Phone number of the recipient concerned."
       },
       "metadata": {
         "type": "object",
@@ -54,7 +54,7 @@
             "enum": [
               "API"
             ],
-            "description": "Type de message. Toujours 'API' pour les envois via l'API."
+            "description": "Message type. Always 'API' for messages sent via the API."
           }
         }
       }
@@ -66,7 +66,7 @@
       "status": {
         "type": "string",
         "default": "OK",
-        "description": "Votre serveur doit retourner HTTP 200 avec ce champ pour confirmer la réception."
+        "description": "Your server must return HTTP 200 with this field to confirm receipt."
       }
     }
   },
@@ -75,10 +75,10 @@
     "properties": {}
   },
   "gotchas": [
-    "Votre serveur doit retourner HTTP 200 immédiatement après réception — NimbaSMS renvoie la notification jusqu'à 3 fois si la réponse n'est pas 200. Tout traitement lourd doit être asynchrone.",
-    "Le webhook est configuré dans le dashboard NimbaSMS (API KEYS > Webhooks), pas via l'API. Un seul URL webhook par compte.",
-    "Les notifications ne sont disponibles que pour les envois effectués via l'API (metadata.message_type: 'API').",
-    "NimbaSMS ne signe pas les requêtes entrantes — valider que messageid existe bien dans votre système avant de traiter la notification pour éviter les requêtes frauduleuses.",
-    "Le webhook reçoit un événement par destinataire (champ 'contact') — un message envoyé à 10 destinataires peut déclencher jusqu'à 10 appels webhook distincts."
+    "Your server must return HTTP 200 immediately upon receipt — NimbaSMS resends the notification up to 3 times if the response is not 200. Any heavy processing must be asynchronous.",
+    "The webhook is configured in the NimbaSMS dashboard (API KEYS > Webhooks), not via the API. Only one webhook URL per account.",
+    "Notifications are only available for messages sent via the API (metadata.message_type: 'API').",
+    "NimbaSMS does not sign incoming requests — validate that messageid actually exists in your system before processing the notification, to guard against fraudulent requests.",
+    "The webhook receives one event per recipient ('contact' field) — a message sent to 10 recipients can trigger up to 10 separate webhook calls."
   ]
 }

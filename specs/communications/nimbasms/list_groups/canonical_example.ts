@@ -63,6 +63,6 @@ for (const group of page.results) {
   console.log(group.name);
 }
 
-// Les noms retournés ici sont ceux à passer dans create_contact({ groups: [...] })
-// La casse est significative — copier les noms exactement tels qu'ils apparaissent
+// The names returned here are the ones to pass to create_contact({ groups: [...] })
+// Case is significant — copy the names exactly as they appear
 */

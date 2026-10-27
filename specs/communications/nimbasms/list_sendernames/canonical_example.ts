@@ -62,7 +62,7 @@ const page = await listSendernames();
 const active = page.results.filter((s) => s.status === "active");
 console.log(`Sender names actifs : ${active.map((s) => s.name).join(", ")}`);
 
-// Utiliser uniquement les sender names avec status 'active' dans send_message
-// Les sender names 'pending' sont en cours de validation — ne pas les utiliser
-// Les sender names doivent être créés depuis le dashboard NimbaSMS, pas via l'API
+// Use only sender names with status 'active' in send_message
+// 'pending' sender names are under validation — do not use them
+// Sender names must be created from the NimbaSMS dashboard, not via the API
 */

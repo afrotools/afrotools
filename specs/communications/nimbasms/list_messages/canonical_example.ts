@@ -69,20 +69,20 @@ export async function listMessages(
 /*
 Usage example:
 
-// Récupérer les 10 derniers messages
+// Retrieve the last 10 messages
 const page = await listMessages({ limit: 10 });
 console.log(`Total : ${page.count} messages`);
 for (const msg of page.results) {
   console.log(`${msg.id} — ${msg.status} — ${msg.sent_at}`);
 }
 
-// Filtrer par plage de dates
+// Filter by date range
 const filtered = await listMessages({
   sent_at__gte: "2024-01-01T00:00:00Z",
   sent_at__lte: "2024-01-31T23:59:59Z",
   limit: 50,
 });
 
-// 'count' indique le total mais 'results' ne contient que la page courante
-// Utiliser 'next' pour paginer sur toutes les pages
+// 'count' gives the total but 'results' contains only the current page
+// Use 'next' to paginate through all pages
 */

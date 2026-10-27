@@ -17,7 +17,7 @@ interface AccountResponse {
   sms_balance: number;
   whatsapp_balance: number;
   webhook_url: string | null;
-  balance: number; // deprecated — utiliser sms_balance
+  balance: number; // deprecated — use sms_balance
 }
 
 interface NimbaSMSError {
@@ -45,11 +45,11 @@ Usage example:
 
 const account = await getBalance();
 
-// Utiliser sms_balance — 'balance' est deprecated
+// Use sms_balance — 'balance' is deprecated
 console.log(`Solde SMS : ${account.sms_balance} SMS disponibles`);
 console.log(`Solde WhatsApp : ${account.whatsapp_balance}`);
 
-// Vérifier avant envoi groupé
+// Check before a bulk send
 if (account.sms_balance < 100) {
   throw new Error("Solde insuffisant pour l'envoi groupé");
 }

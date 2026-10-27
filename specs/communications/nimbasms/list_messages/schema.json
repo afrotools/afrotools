@@ -35,27 +35,27 @@
       "limit": {
         "type": "integer",
         "minimum": 1,
-        "description": "Nombre maximum de messages à retourner."
+        "description": "Maximum number of messages to return."
       },
       "offset": {
         "type": "integer",
         "minimum": 0,
-        "description": "Décalage pour la pagination."
+        "description": "Pagination offset."
       },
       "sent_at": {
         "type": "string",
         "format": "date-time",
-        "description": "Filtrer les messages envoyés exactement à cette date et heure (ISO 8601)."
+        "description": "Filter messages sent exactly at this date and time (ISO 8601)."
       },
       "sent_at__lte": {
         "type": "string",
         "format": "date-time",
-        "description": "Filtrer les messages envoyés avant ou à cette date et heure (ISO 8601)."
+        "description": "Filter messages sent before or at this date and time (ISO 8601)."
       },
       "sent_at__gte": {
         "type": "string",
         "format": "date-time",
-        "description": "Filtrer les messages envoyés après ou à cette date et heure (ISO 8601)."
+        "description": "Filter messages sent after or at this date and time (ISO 8601)."
       }
     }
   },
@@ -64,21 +64,21 @@
     "properties": {
       "count": {
         "type": "integer",
-        "description": "Nombre total de messages disponibles."
+        "description": "Total number of available messages."
       },
       "next": {
         "type": [
           "string",
           "null"
         ],
-        "description": "URL de la page suivante ou null si dernière page."
+        "description": "URL of the next page, or null if last page."
       },
       "previous": {
         "type": [
           "string",
           "null"
         ],
-        "description": "URL de la page précédente ou null si première page."
+        "description": "URL of the previous page, or null if first page."
       },
       "results": {
         "type": "array",
@@ -111,7 +111,7 @@
             "message_cost": {
               "type": "integer",
               "readOnly": true,
-              "description": "Nombre de SMS consommés : longueur du message en nombre de SMS × nombre de destinataires."
+              "description": "Number of SMS consumed: message length in number of SMS × number of recipients."
             }
           }
         }
@@ -123,14 +123,14 @@
     "properties": {
       "detail": {
         "type": "string",
-        "description": "Erreur générale (ex: 401 unauthorized)."
+        "description": "General error (e.g. 401 unauthorized)."
       }
     }
   },
   "gotchas": [
-    "La réponse est paginée — le champ 'count' indique le total mais 'results' ne contient que la page courante. Utiliser 'next' pour itérer sur toutes les pages.",
-    "Les filtres sent_at__lte et sent_at__gte peuvent être combinés pour définir une plage de dates. Les dates doivent être en format ISO 8601.",
-    "Chaque item retourné dans 'results' inclut un champ message_cost indiquant le nombre de SMS consommés pour ce message (longueur × destinataires). Utiliser ce champ pour les rapports de consommation."
+    "The response is paginated — the 'count' field gives the total but 'results' contains only the current page. Use 'next' to iterate over all pages.",
+    "The sent_at__lte and sent_at__gte filters can be combined to define a date range. Dates must be in ISO 8601 format.",
+    "Each item returned in 'results' includes a message_cost field indicating the number of SMS consumed for that message (length × recipients). Use this field for consumption reports."
   ],
   "open_questions": [
     "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."

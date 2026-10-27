@@ -39,13 +39,13 @@
       "id": {
         "type": "string",
         "format": "uuid",
-        "description": "Identifiant de la vérification retourné par send_verification (champ verificationid)."
+        "description": "Verification identifier returned by send_verification (verificationid field)."
       },
       "code": {
         "type": "integer",
         "minimum": 1000,
         "maximum": 999999,
-        "description": "Code saisi par l'utilisateur (integer, 4 à 6 chiffres selon code_length). Envoyer comme integer, pas comme string."
+        "description": "Code entered by the user (integer, 4 to 6 digits depending on code_length). Send as an integer, not as a string."
       }
     }
   },
@@ -64,7 +64,7 @@
           "approved",
           "read"
         ],
-        "description": "Statut de la vérification après tentative. 'approved' = code correct. 'too_many_attemps' = tentatives épuisées (typo dans l'API, un seul 't' à 'attempts')."
+        "description": "Verification status after the attempt. 'approved' = correct code. 'too_many_attemps' = attempts exhausted (typo in the API, a single 't' in 'attempts')."
       }
     }
   },
@@ -73,23 +73,23 @@
     "properties": {
       "detail": {
         "type": "string",
-        "description": "Erreur générale (ex: not found, unauthorized)."
+        "description": "General error (e.g. not found, unauthorized)."
       },
       "code": {
         "type": "array",
         "items": {
           "type": "string"
         },
-        "description": "Erreurs de validation sur le champ 'code'."
+        "description": "Validation errors on the 'code' field."
       }
     }
   },
   "gotchas": [
-    "Le champ 'code' est un integer (pas une string). Envoyer le code saisi par l'utilisateur comme nombre entier dans le body JSON.",
-    "Le champ 'id' dans l'URL correspond au champ 'verificationid' (pas 'id') retourné par send_verification.",
-    "Le statut 'too_many_attemps' (avec une seule lettre 't' à 'attempts') est un typo dans l'API NimbaSMS — prévoir cette valeur exacte dans le code.",
-    "Chaque appel erroné décrémente le compteur de tentatives. Une fois épuisé (status: 'too_many_attemps'), la vérification expire — créer une nouvelle via send_verification.",
-    "Ne jamais appeler cet endpoint côté client — appeler uniquement côté serveur avec le code saisi par l'utilisateur. Un status 'approved' doit immédiatement marquer le numéro comme vérifié en base de données."
+    "The 'code' field is an integer (not a string). Send the code entered by the user as an integer in the JSON body.",
+    "The 'id' field in the URL corresponds to the 'verificationid' field (not 'id') returned by send_verification.",
+    "The 'too_many_attemps' status (with a single letter 't' in 'attempts') is a typo in the NimbaSMS API — handle this exact value in the code.",
+    "Each wrong call decrements the attempt counter. Once exhausted (status: 'too_many_attemps'), the verification expires — create a new one via send_verification.",
+    "Never call this endpoint client-side — call it only server-side with the code entered by the user. An 'approved' status must immediately mark the number as verified in the database."
   ],
   "open_questions": [
     "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."

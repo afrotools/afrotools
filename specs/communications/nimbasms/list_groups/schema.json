@@ -35,12 +35,12 @@
       "limit": {
         "type": "integer",
         "minimum": 1,
-        "description": "Nombre maximum de groupes à retourner."
+        "description": "Maximum number of groups to return."
       },
       "offset": {
         "type": "integer",
         "minimum": 0,
-        "description": "Décalage pour la pagination."
+        "description": "Pagination offset."
       }
     }
   },
@@ -49,21 +49,21 @@
     "properties": {
       "count": {
         "type": "integer",
-        "description": "Nombre total de groupes."
+        "description": "Total number of groups."
       },
       "next": {
         "type": [
           "string",
           "null"
         ],
-        "description": "URL de la page suivante ou null."
+        "description": "URL of the next page, or null."
       },
       "previous": {
         "type": [
           "string",
           "null"
         ],
-        "description": "URL de la page précédente ou null."
+        "description": "URL of the previous page, or null."
       },
       "results": {
         "type": "array",
@@ -73,20 +73,20 @@
             "groupe_id": {
               "type": "string",
               "format": "uuid",
-              "description": "Identifiant unique du groupe."
+              "description": "Unique group identifier."
             },
             "name": {
               "type": "string",
               "maxLength": 100,
-              "description": "Nom du groupe."
+              "description": "Group name."
             },
             "added_at": {
               "type": "string",
-              "description": "Date d'ajout du groupe."
+              "description": "Date the group was added."
             },
             "total_contact": {
               "type": "integer",
-              "description": "Nombre de contacts dans le groupe."
+              "description": "Number of contacts in the group."
             }
           }
         }
@@ -98,14 +98,14 @@
     "properties": {
       "detail": {
         "type": "string",
-        "description": "Erreur générale (ex: 401 unauthorized)."
+        "description": "General error (e.g. 401 unauthorized)."
       }
     }
   },
   "gotchas": [
-    "Les noms de groupes retournés ici sont ceux à passer dans create_contact({ groups: [...] }). La casse est significative — copier les valeurs exactes retournées par cet endpoint.",
-    "Les groupes ne peuvent pas être créés via l'API — ils doivent être créés depuis le dashboard NimbaSMS.",
-    "Le SDK NimbaSMS strip les champs 'count', 'next', 'previous' de la réponse paginée et ne retourne que 'results'. En appelant l'API directement, la réponse brute contient tous ces champs."
+    "The group names returned here are the ones to pass to create_contact({ groups: [...] }). Case is significant — copy the exact values returned by this endpoint.",
+    "Groups cannot be created via the API — they must be created from the NimbaSMS dashboard.",
+    "The NimbaSMS SDK strips the 'count', 'next', 'previous' fields from the paginated response and returns only 'results'. When calling the API directly, the raw response contains all of these fields."
   ],
   "open_questions": [
     "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."
