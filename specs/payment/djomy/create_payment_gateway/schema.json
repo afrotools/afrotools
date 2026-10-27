@@ -9,7 +9,7 @@
     "environment": "sandbox",
     "at": "2026-04-10",
     "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:1f7ebcdf19a35ad7de39b49b2b91cb158ca0f436bd147bc520233052e6fc65ee"
+    "spec_hash": "sha256:4ac9698e935b471f2775f2ca2bafa826cf15a624a8b621ebe1707e3ab186ae7c"
   },
   "currency": [
     "GNF"
@@ -264,6 +264,7 @@
     "A missing or invalid X-API-KEY returns HTTP 401 (documented as \"Clé API manquante ou invalide\")."
   ],
   "open_questions": [
-    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it."
+    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it.",
+    "Is a retried create_payment_gateway safe? Djomy's docs (https://developers.djomy.africa/documentation/openapi-partner.json) document no idempotency key or duplicate handling; `merchantPaymentReference` is only described as \"Elle n'est pas obligatoire, mais fortement recommandée\", with nothing about a reused value being rejected."
   ]
 }

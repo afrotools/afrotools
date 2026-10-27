@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v1",
   "capability": "disburse",
   "capability_type": "asynchronous",
@@ -108,5 +108,8 @@
     "[MUST TELL USER] Qosic mandates two-factor authentication (Authenticator app + QR code) for withdrawals from the merchant balance. This is on the dashboard side, not API-driven, but you need to enable it before disbursing in production.",
     "Same URL routing as initiate_payment: TOGOCEL -> /tm/v1/deposit, MOOV -> /tg/v1/deposit. Each operator has its own clientid in the dashboard.",
     "transref MUST be unique. Reusing a transref across an initiate_payment and a disburse breaks status lookups."
+  ],
+  "open_questions": [
+    "Is a retried disburse safe? Qosic's QosicBridge docs (https://qosic.gitbook.io/qospay/api-documentation/disbursements-deposit) document no idempotency key or duplicate handling for /deposit. Qosic's separate Merchant API (/api/v1/…) does: \"`transRef` est la clé d’idempotence et de rapprochement du marchand\" and \"Une réutilisation produit `Payment reference already exists` ou `Transaction exist with the specified transaction reference`\" (https://qosic.gitbook.io/qospay/merchant-api/integration-rules/idempotency-and-retries); whether QosicBridge applies the same rule to `transref` is not stated."
   ]
 }

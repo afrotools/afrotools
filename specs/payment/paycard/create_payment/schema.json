@@ -9,7 +9,7 @@
     "environment": "production",
     "at": "2026-04-06",
     "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:b398ccf8a651ac988538184eb3a90fc42ed27533d34143e9f7e7ff8e2a2a288a"
+    "spec_hash": "sha256:8c3f8344f944b7e0293ae0de959bedf37724326a67f5a4e607065097617f1007"
   },
   "currency": [
     "GNF"
@@ -161,5 +161,8 @@
     "Auth is the field 'c' sent in the POST body, not an HTTP header. Do not confuse it with a Bearer token or X-Api-Key pattern.",
     "There is no sandbox environment. All requests hit production. Use minimal amounts (e.g. 100 GNF) when testing.",
     "paycard-redirect-with-get: 'on' redirects the user's browser to paycard-callback-url with the reference appended as the query param 'paycard-operation-reference' (e.g. ?paycard-operation-reference=2604-XXX&c=...&transaction-reference=...). No server-to-server POST is sent. Read 'paycard-operation-reference' from the query string and pass it to verify_payment server-side before fulfilling the order."
+  ],
+  "open_questions": [
+    "Is a retried create_payment safe? Paycard's docs are not public and document no idempotency key or duplicate handling that could be checked; whether Paycard rejects a reused paycard-operation-reference is unknown."
   ]
 }
