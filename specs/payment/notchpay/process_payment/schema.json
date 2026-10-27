@@ -39,14 +39,9 @@
   "input_schema": {
     "type": "object",
     "required": [
-      "reference",
       "channel"
     ],
     "properties": {
-      "reference": {
-        "type": "string",
-        "description": "The transaction reference returned by create_payment (transaction.reference). Used as a path parameter."
-      },
       "channel": {
         "type": "string",
         "description": "Slug of the payment channel to use, e.g. \"cm.mtn\" or \"cm.orange\"."
@@ -75,6 +70,17 @@
       }
     }
   },
+  "parameters": [
+    {
+      "name": "reference",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "The transaction reference returned by create_payment (transaction.reference). Used as a path parameter."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

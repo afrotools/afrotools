@@ -39,21 +39,53 @@
   "input_schema": {
     "type": "object",
     "required": [],
-    "properties": {
-      "limit": {
-        "type": "integer",
-        "description": "Number of results per page."
-      },
-      "page": {
-        "type": "integer",
-        "description": "Page number to retrieve (1-indexed)."
-      },
-      "search": {
-        "type": "string",
-        "description": "Optional search string to filter beneficiaries by name, email, or account number."
-      }
-    }
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "limit",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "default": 30,
+        "maximum": 100
+      },
+      "description": "Number of results per page."
+    },
+    {
+      "name": "page",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "default": 1
+      },
+      "description": "Page number to retrieve (1-indexed)."
+    },
+    {
+      "name": "search",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Optional search string to filter beneficiaries by name, email, or account number."
+    },
+    {
+      "name": "country",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Filter by country code (Beneficiaries API page, https://developer.notchpay.co/api-reference/beneficiaries.md, GET /beneficiaries; not in the OpenAPI export)."
+    },
+    {
+      "name": "type",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Filter by beneficiary type (Beneficiaries API page, https://developer.notchpay.co/api-reference/beneficiaries.md, GET /beneficiaries; not in the OpenAPI export)."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

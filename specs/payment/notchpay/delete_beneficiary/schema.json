@@ -38,16 +38,20 @@
   "example_prompt": "Delete a Notch Pay beneficiary by ID.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "id"
-    ],
-    "properties": {
-      "id": {
-        "type": "string",
-        "description": "The unique beneficiary ID to delete."
-      }
-    }
+    "required": [],
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "The unique beneficiary ID to delete."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

@@ -38,16 +38,20 @@
   "example_prompt": "Block a Notch Pay customer to prevent them from initiating new payments.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "id"
-    ],
-    "properties": {
-      "id": {
-        "type": "string",
-        "description": "Unique identifier of the customer to block. Interpolated into the URL path."
-      }
-    }
+    "required": [],
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Unique identifier of the customer to block. Interpolated into the URL path."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

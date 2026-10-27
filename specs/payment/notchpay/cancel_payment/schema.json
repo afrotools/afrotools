@@ -38,16 +38,20 @@
   "example_prompt": "Cancel a pending Notch Pay payment before the user completes it.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "reference"
-    ],
-    "properties": {
-      "reference": {
-        "type": "string",
-        "description": "The transaction reference returned by create_payment (transaction.reference)."
-      }
-    }
+    "required": [],
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "reference",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "The transaction reference returned by create_payment (transaction.reference)."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

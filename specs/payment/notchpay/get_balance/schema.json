@@ -38,13 +38,19 @@
   "example_prompt": "Check my Notch Pay account balance before initiating a transfer.",
   "input_schema": {
     "type": "object",
-    "properties": {
-      "currency": {
-        "type": "string",
-        "description": "ISO 4217 currency code to filter by. Defaults to XAF if omitted."
-      }
-    }
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "currency",
+      "in": "query",
+      "schema": {
+        "type": "string",
+        "default": "XAF"
+      },
+      "description": "ISO 4217 currency code to filter by. Defaults to XAF if omitted."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

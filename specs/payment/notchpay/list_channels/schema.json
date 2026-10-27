@@ -38,21 +38,35 @@
   "example_prompt": "List available payment channels in Cameroon to offer MTN MoMo and Orange Money to users.",
   "input_schema": {
     "type": "object",
-    "properties": {
-      "country": {
-        "type": "string",
-        "description": "ISO 3166-1 alpha-2 country code to filter channels by country, e.g. \"CM\"."
-      },
-      "amount": {
-        "type": "number",
-        "description": "Filter channels that accept this specific amount."
-      },
-      "currency": {
-        "type": "string",
-        "description": "ISO 4217 currency code to filter channels, e.g. \"XAF\"."
-      }
-    }
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "country",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "ISO 3166-1 alpha-2 country code to filter channels by country, e.g. \"CM\"."
+    },
+    {
+      "name": "amount",
+      "in": "query",
+      "schema": {
+        "type": "number"
+      },
+      "description": "Filter channels that accept this specific amount."
+    },
+    {
+      "name": "currency",
+      "in": "query",
+      "schema": {
+        "type": "string",
+        "default": "XAF"
+      },
+      "description": "ISO 4217 currency code to filter channels, e.g. \"XAF\"."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

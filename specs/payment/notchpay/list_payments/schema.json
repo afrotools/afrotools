@@ -39,39 +39,71 @@
   "input_schema": {
     "type": "object",
     "required": [],
-    "properties": {
-      "limit": {
-        "type": "integer",
-        "description": "Number of payments per page."
-      },
-      "page": {
-        "type": "integer",
-        "description": "Page number for pagination."
-      },
-      "search": {
-        "type": "string",
-        "description": "Search term to filter payments by reference, customer, or other fields."
-      },
-      "status": {
-        "type": "string",
-        "description": "Filter by payment status, e.g. \"complete\", \"pending\", \"failed\", \"canceled\"."
-      },
-      "channels": {
-        "type": "string",
-        "description": "Comma-separated list of channel slugs to filter by, e.g. \"cm.mtn,cm.orange\"."
-      },
-      "date_start": {
-        "type": "string",
-        "format": "date-time",
-        "description": "ISO 8601 start date for filtering payments by creation date."
-      },
-      "date_end": {
-        "type": "string",
-        "format": "date-time",
-        "description": "ISO 8601 end date for filtering payments by creation date."
-      }
-    }
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "limit",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "default": 30,
+        "maximum": 100
+      },
+      "description": "Number of payments per page."
+    },
+    {
+      "name": "page",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "default": 1
+      },
+      "description": "Page number for pagination."
+    },
+    {
+      "name": "search",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Search term to filter payments by reference, customer, or other fields."
+    },
+    {
+      "name": "status",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Filter by payment status, e.g. \"complete\", \"pending\", \"failed\", \"canceled\"."
+    },
+    {
+      "name": "channels",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Comma-separated list of channel slugs to filter by, e.g. \"cm.mtn,cm.orange\"."
+    },
+    {
+      "name": "date_start",
+      "in": "query",
+      "schema": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "ISO 8601 start date for filtering payments by creation date."
+    },
+    {
+      "name": "date_end",
+      "in": "query",
+      "schema": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "ISO 8601 end date for filtering payments by creation date."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {
@@ -150,5 +182,9 @@
     "The Authorization header uses your public key with no 'Bearer ' prefix.",
     "Iterate through pages using the page param and stop when current_page equals last_page to avoid requesting beyond the last page.",
     "Pagination uses 'totals' (not 'total') and 'selected' (not 'per_page') — using the wrong field name will silently return undefined."
+  ],
+  "open_questions": [
+    "The docs agree that date_start and date_end are dates: the OpenAPI (https://developer.notchpay.co/openapi.yaml) gives format: date, \"Start date (YYYY-MM-DD)\" / \"End date (YYYY-MM-DD)\", and the Payments API page (https://developer.notchpay.co/api-reference/payments.md) says \"Start date filter (format: YYYY-MM-DD)\" / \"End date filter (format: YYYY-MM-DD)\"; a gotcha of this spec says plain dates without a time may be rejected: does the API also accept a full ISO 8601 date-time, or only YYYY-MM-DD?",
+    "Which values does the status filter accept? The OpenAPI says only \"Filter by status\" (type string) and lists no enum."
   ]
 }

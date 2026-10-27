@@ -38,14 +38,8 @@
   "example_prompt": "Update a Notch Pay webhook endpoint to change its URL or the list of subscribed events.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "endpoint"
-    ],
+    "required": [],
     "properties": {
-      "endpoint": {
-        "type": "string",
-        "description": "The webhook endpoint ID to update."
-      },
       "url": {
         "type": "string",
         "format": "uri",
@@ -79,6 +73,17 @@
       }
     }
   },
+  "parameters": [
+    {
+      "name": "endpoint",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "The webhook endpoint ID to update."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

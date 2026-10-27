@@ -81,8 +81,8 @@ Usage example:
 // Fetch the first page of completed payments in January 2024
 const result = await listPayments({
   status: "complete",
-  date_start: "2024-01-01T00:00:00Z",
-  date_end: "2024-01-31T23:59:59Z",
+  date_start: "2024-01-01",
+  date_end: "2024-01-31",
   limit: 20,
   page: 1,
 });

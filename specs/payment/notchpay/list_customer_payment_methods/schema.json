@@ -38,16 +38,20 @@
   "example_prompt": "List the saved payment methods (mobile money accounts) for a Notch Pay customer before showing a checkout form.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "id"
-    ],
-    "properties": {
-      "id": {
-        "type": "string",
-        "description": "Unique identifier of the customer (from create_customer or list_customers). Interpolated into the URL path."
-      }
-    }
+    "required": [],
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Unique identifier of the customer (from create_customer or list_customers). Interpolated into the URL path."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

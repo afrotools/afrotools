@@ -38,16 +38,20 @@
   "example_prompt": "Permanently delete a customer from Notch Pay by their ID.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "id"
-    ],
-    "properties": {
-      "id": {
-        "type": "string",
-        "description": "Unique identifier of the customer to delete. Interpolated into the URL path."
-      }
-    }
+    "required": [],
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Unique identifier of the customer to delete. Interpolated into the URL path."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

@@ -47,44 +47,71 @@
   "example_prompt": "List all Notch Pay transfers with their status and amounts, optionally filtered by status or date range.",
   "input_schema": {
     "type": "object",
-    "properties": {
-      "limit": {
-        "type": "integer",
-        "description": "Number of transfers to return per page."
-      },
-      "page": {
-        "type": "integer",
-        "description": "Page number for pagination, starting at 1."
-      },
-      "search": {
-        "type": "string",
-        "description": "Search keyword to filter transfers by reference or beneficiary."
-      },
-      "status": {
-        "type": "string",
-        "enum": [
-          "pending",
-          "complete",
-          "failed"
-        ],
-        "description": "Filter transfers by status."
-      },
-      "channels": {
-        "type": "string",
-        "description": "Filter transfers by channel (e.g. mobile money channel slug)."
-      },
-      "date_start": {
-        "type": "string",
-        "format": "date-time",
-        "description": "ISO 8601 start date to filter transfers (inclusive)."
-      },
-      "date_end": {
-        "type": "string",
-        "format": "date-time",
-        "description": "ISO 8601 end date to filter transfers (inclusive)."
-      }
-    }
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "limit",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "default": 30,
+        "maximum": 100
+      },
+      "description": "Number of transfers to return per page."
+    },
+    {
+      "name": "page",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "default": 1
+      },
+      "description": "Page number for pagination, starting at 1."
+    },
+    {
+      "name": "search",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Search keyword to filter transfers by reference or beneficiary."
+    },
+    {
+      "name": "status",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Filter transfers by status."
+    },
+    {
+      "name": "channels",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Filter transfers by channel (e.g. mobile money channel slug)."
+    },
+    {
+      "name": "date_start",
+      "in": "query",
+      "schema": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "ISO 8601 start date to filter transfers (inclusive)."
+    },
+    {
+      "name": "date_end",
+      "in": "query",
+      "schema": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "ISO 8601 end date to filter transfers (inclusive)."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {
@@ -192,5 +219,9 @@
     "Pagination uses 'totals' (not 'total') and 'selected' (not 'per_page'). Reading the wrong field name silently returns undefined.",
     "The totals field reflects the count across all pages, not just the current page. Use last_page to know when you have fetched all records.",
     "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
+  ],
+  "open_questions": [
+    "The docs agree that date_start and date_end are dates: the OpenAPI (https://developer.notchpay.co/openapi.yaml) gives format: date, \"Start date (YYYY-MM-DD)\" / \"End date (YYYY-MM-DD)\", and the Transfers API page (https://developer.notchpay.co/api-reference/transfers.md) says \"Start date filter (format: YYYY-MM-DD)\" / \"End date filter (format: YYYY-MM-DD)\"; a gotcha of this spec says plain dates without a time may be rejected: does the API also accept a full ISO 8601 date-time, or only YYYY-MM-DD?",
+    "Which values does the status filter accept? The OpenAPI says only \"Filter by status\" (type string) with no enum; the Transfers API page documents the transfer statuses pending, processing, complete, failed and canceled, but not which of them the filter takes."
   ]
 }

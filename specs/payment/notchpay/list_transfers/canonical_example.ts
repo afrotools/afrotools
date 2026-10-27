@@ -14,7 +14,7 @@ interface ListTransfersInput {
   limit?: number;
   page?: number;
   search?: string;
-  status?: "pending" | "complete" | "failed";
+  status?: string;
   channels?: string;
   date_start?: string;
   date_end?: string;
@@ -94,8 +94,8 @@ for (const transfer of result.items) {
 // Filter completed transfers within a date range
 const completed = await listTransfers({
   status: "complete",
-  date_start: "2024-01-01T00:00:00Z",
-  date_end: "2024-01-31T23:59:59Z",
+  date_start: "2024-01-01",
+  date_end: "2024-01-31",
 });
 
 // Never treat a "pending" transfer as a successful payout.

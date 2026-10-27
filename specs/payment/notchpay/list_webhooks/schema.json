@@ -39,17 +39,29 @@
   "input_schema": {
     "type": "object",
     "required": [],
-    "properties": {
-      "limit": {
-        "type": "integer",
-        "description": "Number of webhook endpoints per page."
-      },
-      "page": {
-        "type": "integer",
-        "description": "Page number for pagination."
-      }
-    }
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "limit",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "default": 30,
+        "maximum": 100
+      },
+      "description": "Number of webhook endpoints per page."
+    },
+    {
+      "name": "page",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "default": 1
+      },
+      "description": "Page number for pagination."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {

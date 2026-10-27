@@ -38,21 +38,37 @@
   "example_prompt": "Fetch the paginated list of Notch Pay customers, filtering by a search term.",
   "input_schema": {
     "type": "object",
-    "properties": {
-      "limit": {
-        "type": "integer",
-        "description": "Number of results per page."
-      },
-      "page": {
-        "type": "integer",
-        "description": "Page number to retrieve (1-based)."
-      },
-      "search": {
-        "type": "string",
-        "description": "Search term to filter customers by name, email, or phone."
-      }
-    }
+    "properties": {}
   },
+  "parameters": [
+    {
+      "name": "limit",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "default": 30,
+        "maximum": 100
+      },
+      "description": "Number of results per page."
+    },
+    {
+      "name": "page",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "default": 1
+      },
+      "description": "Page number to retrieve (1-based)."
+    },
+    {
+      "name": "search",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Search term to filter customers by name, email, or phone."
+    }
+  ],
   "response_schema": {
     "type": "object",
     "properties": {
