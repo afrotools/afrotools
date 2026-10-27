@@ -54,6 +54,7 @@ export async function listBeneficiaries(
     method: "GET",
     headers: {
       Authorization: NOTCHPAY_PRIVATE_KEY!,
+      "X-Grant": NOTCHPAY_PRIVATE_KEY!,
     },
   });
 

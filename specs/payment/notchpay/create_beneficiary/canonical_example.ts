@@ -48,6 +48,7 @@ export async function createBeneficiary(
     method: "POST",
     headers: {
       Authorization: NOTCHPAY_PRIVATE_KEY!,
+      "X-Grant": NOTCHPAY_PRIVATE_KEY!,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(input),

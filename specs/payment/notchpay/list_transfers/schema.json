@@ -20,11 +20,7 @@
     "credentials": [
       {
         "env_var": "NOTCHPAY_PRIVATE_KEY",
-        "description": "Notch Pay private key, sent as is in Authorization, for transfers, beneficiaries, balance and webhooks"
-      },
-      {
-        "env_var": "NOTCHPAY_GRANT_TOKEN",
-        "description": "grant token generated in the Notch Pay dashboard, sent as X-Grant on transfer endpoints"
+        "description": "Notch Pay private key, sent as is in Authorization and in X-Grant, for transfers, beneficiaries, balance and webhooks"
       }
     ],
     "apply": [
@@ -36,7 +32,7 @@
       {
         "in": "header",
         "name": "X-Grant",
-        "value": "{NOTCHPAY_GRANT_TOKEN}"
+        "value": "{NOTCHPAY_PRIVATE_KEY}"
       }
     ]
   },
@@ -211,17 +207,17 @@
     }
   },
   "gotchas": [
-    "The Authorization header value is your public key with no prefix — do not add 'Bearer ' before it.",
-    "All transfer endpoints require an additional `X-Grant` header for enhanced security. Pass the grant token generated in your Notch Pay dashboard as `X-Grant: {token}`. Requests without this header return 401.",
+    "Authorization takes the key as is, with no 'Bearer ' prefix. Which key goes there is unsettled: Notch Pay's Authentication page shows the public key in it next to X-Grant (`-H \"Authorization: YOUR_PUBLIC_KEY\"` `-H \"X-Grant: YOUR_PRIVATE_KEY\"`), while this spec sends the private key, following its earlier note that a public key returns 406 Not Acceptable (not stated in the docs). See open_questions before relying on either.",
+    "This endpoint also requires the `X-Grant` header carrying your private key (`X-Grant: YOUR_PRIVATE_KEY`). Without it Notch Pay returns 403 \"This endpoint requires additional authentication\"; a wrong value returns 403 \"Invalid grant key\".",
     "Pagination starts at page 1, not page 0. Passing page=0 may return an unexpected result or an error.",
     "date_start and date_end must be ISO 8601 formatted strings. Passing plain date strings (e.g. '2024-01-01') without time and timezone may be rejected or silently ignored.",
     "A transfer with status 'pending' is still in progress — do not treat it as completed. Only 'complete' status confirms a successful payout.",
     "Pagination uses 'totals' (not 'total') and 'selected' (not 'per_page'). Reading the wrong field name silently returns undefined.",
-    "The totals field reflects the count across all pages, not just the current page. Use last_page to know when you have fetched all records.",
-    "This endpoint requires your Notch Pay **private key** in the Authorization header, not the public key used for create_payment. Using a public key returns 406 Not Acceptable."
+    "The totals field reflects the count across all pages, not just the current page. Use last_page to know when you have fetched all records."
   ],
   "open_questions": [
     "The docs agree that date_start and date_end are dates: the OpenAPI (https://developer.notchpay.co/openapi.yaml) gives format: date, \"Start date (YYYY-MM-DD)\" / \"End date (YYYY-MM-DD)\", and the Transfers API page (https://developer.notchpay.co/api-reference/transfers.md) says \"Start date filter (format: YYYY-MM-DD)\" / \"End date filter (format: YYYY-MM-DD)\"; a gotcha of this spec says plain dates without a time may be rejected: does the API also accept a full ISO 8601 date-time, or only YYYY-MM-DD?",
-    "Which values does the status filter accept? The OpenAPI says only \"Filter by status\" (type string) with no enum; the Transfers API page documents the transfer statuses pending, processing, complete, failed and canceled, but not which of them the filter takes."
+    "Which values does the status filter accept? The OpenAPI says only \"Filter by status\" (type string) with no enum; the Transfers API page documents the transfer statuses pending, processing, complete, failed and canceled, but not which of them the filter takes.",
+    "Notch Pay's docs show `Authorization: YOUR_PUBLIC_KEY` together with `X-Grant: YOUR_PRIVATE_KEY` on this endpoint, while this spec sends the private key in Authorization (see the gotcha about 406 with a public key). Which key Authorization must carry when X-Grant is present is not confirmed."
   ]
 }

@@ -59,6 +59,7 @@ export async function updateWebhook(
     method: "PUT",
     headers: {
       Authorization: NOTCHPAY_PRIVATE_KEY!,
+      "X-Grant": NOTCHPAY_PRIVATE_KEY!,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),

@@ -24,6 +24,7 @@ export async function deleteBeneficiary(id: string): Promise<DeleteBeneficiaryRe
     method: "DELETE",
     headers: {
       Authorization: NOTCHPAY_PRIVATE_KEY!,
+      "X-Grant": NOTCHPAY_PRIVATE_KEY!,
     },
   });
 

@@ -40,6 +40,7 @@ export async function getWebhook(
       method: "GET",
       headers: {
         Authorization: NOTCHPAY_PRIVATE_KEY!,
+        "X-Grant": NOTCHPAY_PRIVATE_KEY!,
       },
     }
   );

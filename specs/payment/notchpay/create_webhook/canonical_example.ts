@@ -56,6 +56,7 @@ export async function createWebhook(
     method: "POST",
     headers: {
       Authorization: NOTCHPAY_PRIVATE_KEY!,
+      "X-Grant": NOTCHPAY_PRIVATE_KEY!,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(input),

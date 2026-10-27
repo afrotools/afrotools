@@ -7,8 +7,6 @@
 
 const NOTCHPAY_PRIVATE_KEY = process.env.NOTCHPAY_PRIVATE_KEY;
 if (!NOTCHPAY_PRIVATE_KEY) throw new Error("Missing env: NOTCHPAY_PRIVATE_KEY");
-const NOTCHPAY_GRANT_TOKEN = process.env.NOTCHPAY_GRANT_TOKEN;
-if (!NOTCHPAY_GRANT_TOKEN) throw new Error("Missing env: NOTCHPAY_GRANT_TOKEN");
 
 interface NotchPayTransfer {
   id: string;
@@ -42,7 +40,7 @@ export async function verifyTransfer(
       method: "GET",
       headers: {
         Authorization: NOTCHPAY_PRIVATE_KEY!,
-        "X-Grant": NOTCHPAY_GRANT_TOKEN!,
+        "X-Grant": NOTCHPAY_PRIVATE_KEY!,
       },
     }
   );

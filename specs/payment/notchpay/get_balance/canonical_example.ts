@@ -39,6 +39,7 @@ export async function getBalance(
     method: "GET",
     headers: {
       Authorization: NOTCHPAY_PRIVATE_KEY!,
+      "X-Grant": NOTCHPAY_PRIVATE_KEY!,
     },
   });
 
