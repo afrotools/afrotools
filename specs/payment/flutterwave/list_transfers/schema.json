@@ -70,66 +70,112 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/transfers"
   },
-  "example_prompt": "List Flutterwave payouts by status, recipient, currency or date to reconcile the payout ledger.",
-  "input_schema": {
-    "type": "object",
-    "properties": {
-      "next": {
-        "type": "string",
-        "description": "Query parameter."
-      },
-      "previous": {
-        "type": "string",
-        "description": "Query parameter."
-      },
-      "size": {
+  "parameters": [
+    {
+      "name": "next",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "previous",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "size",
+      "in": "query",
+      "schema": {
         "type": "integer",
         "minimum": 10,
         "maximum": 50,
-        "default": 10,
-        "description": "Query parameter. Length of data returned. Defaults to 10."
+        "default": 10
       },
-      "bulk_id": {
-        "type": "string",
-        "description": "Query parameter. ID of a bulk transfer"
+      "description": "Length of data returned. Defaults to 10."
+    },
+    {
+      "name": "bulk_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
       },
-      "recipient_id": {
-        "type": "string",
-        "description": "Query parameter. ID of the recipient"
+      "description": "ID of a bulk transfer"
+    },
+    {
+      "name": "recipient_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
       },
-      "sender_id": {
-        "type": "string",
-        "description": "Query parameter. ID of the sender"
+      "description": "ID of the recipient"
+    },
+    {
+      "name": "sender_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
       },
-      "destination_currency": {
-        "type": "string",
-        "description": "Query parameter. Destination currency in the payment instruction"
+      "description": "ID of the sender"
+    },
+    {
+      "name": "destination_currency",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
       },
-      "source_currency": {
-        "type": "string",
-        "description": "Query parameter. Source currency in the payment instruction"
+      "description": "Destination currency in the payment instruction"
+    },
+    {
+      "name": "source_currency",
+      "in": "query",
+      "required": false,
+      "schema": {
+        "type": "string"
       },
-      "action": {
+      "description": "Source currency in the payment instruction"
+    },
+    {
+      "name": "action",
+      "in": "query",
+      "required": false,
+      "schema": {
         "type": "string",
         "enum": [
           "instant",
           "deferred",
           "scheduled",
           "retry"
-        ],
-        "description": "Query parameter. Action of the transfer"
+        ]
       },
-      "type": {
+      "description": "Action of the transfer"
+    },
+    {
+      "name": "type",
+      "in": "query",
+      "required": false,
+      "schema": {
         "type": "string",
         "enum": [
           "bank",
           "mobile_money",
           "wallet",
           "cash_pickup"
-        ],
-        "description": "Query parameter. type of transfer"
+        ]
       },
-      "status": {
+      "description": "type of transfer"
+    },
+    {
+      "name": "status",
+      "in": "query",
+      "required": false,
+      "schema": {
         "type": "string",
         "enum": [
           "new",
@@ -137,19 +183,39 @@
           "failed",
           "successful",
           "cancelled"
-        ],
-        "description": "Query parameter. The status of transfer"
+        ]
       },
-      "from": {
-        "type": "string",
-        "description": "Query parameter. The start date and time for a period. This parameter is used in conjunction with the 'to' parameter to define a time range. The value should be in ISO 8601 format."
+      "description": "The status of transfer"
+    },
+    {
+      "name": "from",
+      "in": "query",
+      "schema": {
+        "type": "string"
       },
-      "to": {
+      "description": "The start date and time for a period. This parameter is used in conjunction with the 'to' parameter to define a time range. The value should be in ISO 8601 format."
+    },
+    {
+      "name": "to",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "The end date and time for a period. This parameter is used in conjunction with the 'from' parameter to define a time range. The value should be in **ISO 8601 format**."
+    },
+    {
+      "name": "X-Trace-Id",
+      "in": "header",
+      "schema": {
         "type": "string",
-        "description": "Query parameter. The end date and time for a period. This parameter is used in conjunction with the 'from' parameter to define a time range. The value should be in **ISO 8601 format**."
-      }
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to track this operation. It must be between 12 and 255 characters in length."
     }
-  },
+  ],
+  "example_prompt": "List Flutterwave payouts by status, recipient, currency or date to reconcile the payout ledger.",
+  "input_schema": {},
   "response_schema": {
     "type": "object",
     "properties": {

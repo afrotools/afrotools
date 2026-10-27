@@ -70,6 +70,39 @@
     "method": "POST",
     "url": "https://f4bexperience.flutterwave.com/customers/search"
   },
+  "parameters": [
+    {
+      "name": "page",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "minimum": 1,
+        "default": 1
+      },
+      "description": "The page of the data to retrieve. The most recent data entry is on page 1."
+    },
+    {
+      "name": "size",
+      "in": "query",
+      "schema": {
+        "type": "integer",
+        "minimum": 10,
+        "maximum": 50,
+        "default": 10
+      },
+      "description": "Length of data returned. Defaults to 10."
+    },
+    {
+      "name": "X-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to track this operation. It must be between 12 and 255 characters in length."
+    }
+  ],
   "example_prompt": "Find an existing Flutterwave customer by email before creating a new one.",
   "input_schema": {
     "type": "object",
@@ -77,19 +110,6 @@
       "email"
     ],
     "properties": {
-      "page": {
-        "type": "integer",
-        "minimum": 1,
-        "default": 1,
-        "description": "Query parameter. The page of the data to retrieve. The most recent data entry is on page 1."
-      },
-      "size": {
-        "type": "integer",
-        "minimum": 10,
-        "maximum": 50,
-        "default": 10,
-        "description": "Query parameter. Length of data returned. Defaults to 10."
-      },
       "email": {
         "type": "string",
         "description": "The Customer's email address.",

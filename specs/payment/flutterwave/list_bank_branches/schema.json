@@ -70,19 +70,29 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/banks/{id}/branches"
   },
-  "example_prompt": "List a bank's branches to fill bank.branch for a Ghanaian (or RWF, SLL, UGX, XAF, XOF) payout recipient.",
-  "input_schema": {
-    "type": "object",
-    "required": [
-      "id"
-    ],
-    "properties": {
-      "id": {
-        "description": "Path parameter. The Bank's unique ID.",
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
         "type": "string"
-      }
+      },
+      "description": "The Bank's unique ID."
+    },
+    {
+      "name": "X-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to track this operation. It must be between 12 and 255 characters in length."
     }
-  },
+  ],
+  "example_prompt": "List a bank's branches to fill bank.branch for a Ghanaian (or RWF, SLL, UGX, XAF, XOF) payout recipient.",
+  "input_schema": {},
   "response_schema": {
     "type": "object",
     "properties": {

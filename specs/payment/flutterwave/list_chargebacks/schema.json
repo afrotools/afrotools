@@ -70,35 +70,59 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/chargebacks"
   },
-  "example_prompt": "Fetch the chargebacks raised against my Flutterwave account so I can respond before they are lost.",
-  "input_schema": {
-    "type": "object",
-    "properties": {
-      "page": {
+  "parameters": [
+    {
+      "name": "page",
+      "in": "query",
+      "schema": {
         "type": "integer",
         "minimum": 1,
-        "default": 1,
-        "description": "Query parameter. The page of the data to retrieve. The most recent data entry is on page 1."
+        "default": 1
       },
-      "size": {
+      "description": "The page of the data to retrieve. The most recent data entry is on page 1."
+    },
+    {
+      "name": "size",
+      "in": "query",
+      "schema": {
         "type": "integer",
         "minimum": 10,
         "maximum": 50,
-        "default": 10,
-        "description": "Query parameter. Length of data returned. Defaults to 10."
+        "default": 10
       },
-      "from": {
+      "description": "Length of data returned. Defaults to 10."
+    },
+    {
+      "name": "from",
+      "in": "query",
+      "schema": {
         "type": "string",
-        "format": "date-time",
-        "description": "Query parameter. The start date and time for a period. This parameter is used in conjunction with the 'to' parameter to define a time range. The value should be in ISO 8601 format."
+        "format": "date-time"
       },
-      "to": {
+      "description": "The start date and time for a period. This parameter is used in conjunction with the 'to' parameter to define a time range. The value should be in ISO 8601 format."
+    },
+    {
+      "name": "to",
+      "in": "query",
+      "schema": {
         "type": "string",
-        "format": "date-time",
-        "description": "Query parameter. The end date and time for a period. This parameter is used in conjunction with the 'from' parameter to define a time range. The value should be in **ISO 8601 format**."
-      }
+        "format": "date-time"
+      },
+      "description": "The end date and time for a period. This parameter is used in conjunction with the 'from' parameter to define a time range. The value should be in **ISO 8601 format**."
+    },
+    {
+      "name": "X-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to track this operation. It must be between 12 and 255 characters in length."
     }
-  },
+  ],
+  "example_prompt": "Fetch the chargebacks raised against my Flutterwave account so I can respond before they are lost.",
+  "input_schema": {},
   "response_schema": {
     "type": "object",
     "properties": {

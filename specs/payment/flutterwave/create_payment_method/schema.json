@@ -74,6 +74,29 @@
     "method": "POST",
     "url": "https://f4bexperience.flutterwave.com/payment-methods"
   },
+  "parameters": [
+    {
+      "name": "X-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to track this operation. It must be between 12 and 255 characters in length."
+    },
+    {
+      "name": "X-Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to prevent duplicate requests. It must be between 12 and 255 characters in length."
+    }
+  ],
   "example_prompt": "Tokenise a customer's card (encrypted), mobile money wallet, USSD bank or OPay wallet as a Flutterwave payment method.",
   "input_schema": {
     "oneOf": [

@@ -70,27 +70,45 @@
     "method": "GET",
     "url": "https://f4bexperience.flutterwave.com/transfers/recipients"
   },
-  "example_prompt": "List saved Flutterwave payout recipients to reuse one for a recurring payout.",
-  "input_schema": {
-    "type": "object",
-    "properties": {
-      "next": {
-        "type": "string",
-        "description": "Query parameter."
-      },
-      "previous": {
-        "type": "string",
-        "description": "Query parameter."
-      },
-      "size": {
+  "parameters": [
+    {
+      "name": "next",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "previous",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "size",
+      "in": "query",
+      "schema": {
         "type": "integer",
         "minimum": 10,
         "maximum": 50,
-        "default": 10,
-        "description": "Query parameter. Length of data returned. Defaults to 10."
-      }
+        "default": 10
+      },
+      "description": "Length of data returned. Defaults to 10."
+    },
+    {
+      "name": "X-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to track this operation. It must be between 12 and 255 characters in length."
     }
-  },
+  ],
+  "example_prompt": "List saved Flutterwave payout recipients to reuse one for a recurring payout.",
+  "input_schema": {},
   "response_schema": {
     "type": "object",
     "properties": {

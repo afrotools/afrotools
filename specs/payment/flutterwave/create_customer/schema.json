@@ -70,6 +70,29 @@
     "method": "POST",
     "url": "https://f4bexperience.flutterwave.com/customers"
   },
+  "parameters": [
+    {
+      "name": "X-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to track this operation. It must be between 12 and 255 characters in length."
+    },
+    {
+      "name": "X-Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+        "type": "string",
+        "minLength": 12,
+        "maxLength": 255
+      },
+      "description": "A unique identifier to prevent duplicate requests. It must be between 12 and 255 characters in length."
+    }
+  ],
   "example_prompt": "Create a Flutterwave customer from the buyer's email (plus name and phone when available) before charging them.",
   "input_schema": {
     "type": "object",
