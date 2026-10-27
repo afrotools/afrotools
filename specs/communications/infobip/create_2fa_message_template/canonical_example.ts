@@ -19,13 +19,6 @@ export type Create2faMessageTemplateInput = {
   messageText: string;
   pinLength?: number;
   pinType: "NUMERIC" | "ALPHA" | "HEX" | "ALPHANUMERIC";
-  regional?: {
-    indiaDlt?: {
-      contentTemplateId?: string;
-      principalEntityId?: string;
-      teleMarketerId?: string;
-    };
-  };
   repeatDTMF?: string;
   senderId?: string;
   speechRate?: number;
@@ -40,13 +33,6 @@ export type Create2faMessageTemplateResponse = {
   pinLength?: number;
   pinPlaceholder?: string;
   pinType?: "NUMERIC" | "ALPHA" | "HEX" | "ALPHANUMERIC";
-  regional?: {
-    indiaDlt?: {
-      contentTemplateId?: string;
-      principalEntityId?: string;
-      teleMarketerId?: string;
-    };
-  };
   repeatDTMF?: string;
   senderId?: string;
   speechRate?: number;
