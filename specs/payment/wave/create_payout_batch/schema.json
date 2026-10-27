@@ -37,6 +37,18 @@
     "method": "POST",
     "url": "https://api.wave.com/v1/payout-batch"
   },
+  "parameters": [
+    {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "maxLength": 255
+      },
+      "description": "Key you generate (UUID v4 suggested, up to 255 characters). Reuse the same key to retry the same request: requests sharing a key never send money more than once."
+    }
+  ],
   "example_prompt": "Add batch Wave payouts to multiple recipients to my payout workflow.",
   "input_schema": {
     "type": "object",

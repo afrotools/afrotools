@@ -37,27 +37,44 @@
     "method": "GET",
     "url": "https://api.wave.com/v1/transactions"
   },
+  "parameters": [
+    {
+      "name": "date",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Date in YYYY-MM-DD format. If absent, returns the current day's transactions."
+    },
+    {
+      "name": "after",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Opaque pagination cursor. Pass the end_cursor value from the previous response to get the next page."
+    },
+    {
+      "name": "include_subaccounts",
+      "in": "query",
+      "schema": {
+        "type": "boolean"
+      },
+      "description": "If true, includes sub-account transactions."
+    },
+    {
+      "name": "first",
+      "in": "query",
+      "schema": {
+        "type": "integer"
+      },
+      "description": "The maximum number of items to retrieve. The server may respond with fewer items if your limit is too high, or if there aren't enough items remaining to fulfill the request. Optional: without it, the server will choose a sensible default."
+    }
+  ],
   "example_prompt": "Get my recent Wave wallet transactions.",
   "input_schema": {
     "type": "object",
-    "properties": {
-      "date": {
-        "type": "string",
-        "description": "Date in YYYY-MM-DD format. If absent, returns the current day's transactions."
-      },
-      "after": {
-        "type": "string",
-        "description": "Opaque pagination cursor. Pass the end_cursor value from the previous response to get the next page."
-      },
-      "include_subaccounts": {
-        "type": "boolean",
-        "description": "If true, includes sub-account transactions."
-      },
-      "first": {
-        "type": "integer",
-        "description": "Maximum number of transactions to return per page. If absent, Wave returns the full page."
-      }
-    }
+    "properties": {}
   },
   "response_schema": {
     "type": "object",
@@ -255,5 +272,8 @@
     "To fetch all of a day's transactions, loop while page_info.has_next_page === true, passing end_cursor as the after parameter.",
     "If the API key was created with request signing (optional Business Portal setting), every call must carry Wave-Signature: t={timestamp},v1={HMAC-SHA256(timestamp + raw body)} computed with the signing secret (format wave_sn_AKS_…, shown only once) — empty body for a GET. Without it: 401 missing-signature; other codes: invalid-signature, invalid-signature-format, invalid-signature-timestamp, expired-signature-timestamp (timestamp more than 5 minutes in the past or more than 30 seconds in the future). The setting is permanent for a key: to drop it, revoke the key and create another one.",
     "[MUST TELL USER] The API IP whitelist turns on as soon as the first address is added in the Business Portal (Developer section) and can no longer be turned off from the portal — you have to go through your Wave account manager. Calls from an unlisted IP get 403 ip-not-allowed: on hosting without a fixed outbound IP (serverless functions, most PaaS), do not add any IP before you have a fixed egress."
+  ],
+  "open_questions": [
+    "first comes from Wave's general Pagination section (\"The server will choose a sensible default for the collection being retrieved\"); the GET /v1/transactions parameter table lists only date, after and include_subaccounts: does /v1/transactions accept first?"
   ]
 }

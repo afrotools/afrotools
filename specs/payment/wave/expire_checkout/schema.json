@@ -37,18 +37,21 @@
     "method": "POST",
     "url": "https://api.wave.com/v1/checkout/sessions/{id}/expire"
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Identifier of the checkout session to expire (prefix \"cos-\")."
+    }
+  ],
   "example_prompt": "Add cancellation of abandoned Wave checkout sessions to my payment flow.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "id"
-    ],
-    "properties": {
-      "id": {
-        "type": "string",
-        "description": "Identifier of the checkout session to expire (prefix \"cos-\")."
-      }
-    }
+    "properties": {}
   },
   "response_schema": {
     "type": "object",
