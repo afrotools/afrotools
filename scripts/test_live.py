@@ -3,14 +3,15 @@
 Generic live API verification for Afro.tools ATSS specs.
 
 Reads live_test_fixtures.json from the provider directory, authenticates
-using schema.json auth config, calls the actual API, and diffs responses
-against response_schema.
+using schema.json auth config, calls the actual API, and checks each response
+against the spec: HTTP status, the whole response_schema, success_condition.
 
 Usage:
     export PROVIDER_CREDENTIALS="..."
     python3 scripts/test_live.py --provider flutterwave
     python3 scripts/test_live.py --provider flutterwave --capability create_customer
     python3 scripts/test_live.py --provider flutterwave --raw create_customer
+    python3 scripts/test_live.py --provider flutterwave --report live-report.json
 """
 
 import argparse
@@ -21,12 +22,20 @@ import json
 import os
 import re
 import ssl
+import subprocess
 import sys
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
+
+try:
+    from jsonschema import Draft202012Validator
+except ImportError:
+    sys.exit("test_live.py checks responses with jsonschema: pip install jsonschema")
 
 # macOS Python.org builds don't bundle system certs. Prefer certifi's CA bundle
 # when available; otherwise fall back to the OS trust store. Never disable
@@ -214,7 +223,11 @@ def http_call(method, url, auth_headers, body=None, extra_headers=None, content_
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
         with urllib.request.urlopen(req, context=_SSL_CTX) as r:
-            return r.status, json.loads(r.read())
+            raw = r.read()
+        try:
+            return r.status, json.loads(raw) if raw.strip() else None  # e.g. a 204 No Content
+        except ValueError:
+            return r.status, raw.decode(errors="replace")  # not JSON: response_schema says whether that's right
     # HTTPError is a subclass of URLError and must be caught first — urllib
     # wraps every connection-level failure (including a TLS cert failure,
     # itself an OSError subclass) into URLError before it reaches this code,
@@ -276,7 +289,8 @@ def _replace_host(url, sandbox_base_url):
 def build_url(endpoint_url, sandbox_base_url, path_params, query_params, stored, ts):
     url = _replace_host(endpoint_url, sandbox_base_url)
     for key, val in (path_params or {}).items():
-        url = url.replace(f"{{{key}}}", str(resolve(val, stored, ts) or ""))
+        resolved = resolve(val, stored, ts)
+        url = url.replace(f"{{{key}}}", "" if resolved is None else str(resolved))
     if query_params:
         resolved = {k: resolve(v, stored, ts) for k, v in query_params.items()}
         qs = urllib.parse.urlencode({k: v for k, v in resolved.items() if v is not None})
@@ -285,85 +299,132 @@ def build_url(endpoint_url, sandbox_base_url, path_params, query_params, stored,
     return url
 
 
-# ── Schema helpers ────────────────────────────────────────────────────────────
+# ── Response checks ───────────────────────────────────────────────────────────
 
-def get_response_props(schema):
-    """Return (properties_dict, required_set) for the data node in response_schema."""
-    rs = schema.get("response_schema", {})
-    if "oneOf" in rs:
-        merged_props = {}
-        merged_req = set()
-        for variant in rs["oneOf"]:
-            merged_props.update(variant.get("properties", {}))
-            merged_req.update(variant.get("required", []))
-        return merged_props, merged_req
-    data_schema = rs.get("properties", {}).get("data", {})
-    if data_schema:
-        if data_schema.get("type") == "array":
-            items = data_schema.get("items", {})
-            return items.get("properties", {}), set(items.get("required", []))
-        if "oneOf" in data_schema:
-            # Union data node (e.g. one variant per payment-method or recipient type): any variant's key is
-            # expected; only keys required by every variant are required.
-            variants = data_schema["oneOf"]
-            merged_props = {k: v for variant in variants for k, v in variant.get("properties", {}).items()}
-            common_req = set.intersection(*(set(v.get("required", [])) for v in variants)) if variants else set()
-            return merged_props, common_req
-        props = data_schema.get("properties", {})
-        if props:
-            return props, set(data_schema.get("required", []))
-    return rs.get("properties", {}), set(rs.get("required", []))
+def schema_errors(body, response_schema):
+    """Where the live body breaks response_schema: types, nested fields, the oneOf branch it should match.
+    (console message, report message): the report names the rule only, never a response value."""
+    if not response_schema:
+        return []
+    errors = sorted(Draft202012Validator(response_schema).iter_errors(body), key=lambda e: list(map(str, e.path)))
+    out = []
+    for e in errors:
+        where = ".".join(map(str, e.absolute_path)) or "(body)"
+        rule = "/".join(map(str, e.absolute_schema_path))  # schema side: a response key can be a value (a map's key)
+        out.append((f"{where}: {e.message[:200]}", f"{rule}: {json.dumps(e.validator_value)[:100]}"))
+    return out
 
 
-def get_data_node(resp, schema):
-    """Extract the object to compare from a live response."""
-    rs = schema.get("response_schema", {})
-    if "oneOf" in rs:
-        return resp
-    data_schema = rs.get("properties", {}).get("data", {})
-    if not data_schema:
-        return resp
-    raw = resp.get("data")
-    if data_schema.get("type") == "array":
-        return raw[0] if isinstance(raw, list) and raw else None
-    return raw
+MISSING = object()
 
 
-# ── Comparison ────────────────────────────────────────────────────────────────
+def values_at(node, keys):
+    """Values at a dotted path, through array items — how success_condition.field reads.
+    MISSING where an item lacks the field; an empty array has no values."""
+    if isinstance(node, list):
+        return [v for item in node for v in values_at(item, keys)]
+    if not keys:
+        return [node]
+    return values_at(node[keys[0]], keys[1:]) if isinstance(node, dict) and keys[0] in node else [MISSING]
 
-def compare(actual, spec_props, required_keys=None, exclude_keys=None):
-    """
-    Print per-key diff. Returns (required_missing, optional_missing, extra).
-    exclude_keys: set of spec keys to skip (e.g. inactive discriminated-union siblings).
-    """
-    if actual is None:
-        print(f"  {RED}No data returned — cannot compare{RESET}")
-        n = len(required_keys) if required_keys else len(spec_props)
-        return n, 0, 0
 
-    if required_keys is None:
-        required_keys = set()
-    if exclude_keys is None:
-        exclude_keys = set()
+def success_error(body, cond):
+    """A 2xx can still be a failure the provider reports in the body (e.g. {"code": 1})."""
+    if not cond:
+        return None
+    found = values_at(body, cond["field"].split("."))
+    allowed = cond["in"] if "in" in cond else [cond["equals"]]
+    if MISSING in found:
+        return f"success_condition: {cond['field']} absent from the response"
+    # isinstance bool too: in Python True == 1 and 0 == False, in JSON they differ
+    bad = [v for v in found if not any(v == a and isinstance(v, bool) == isinstance(a, bool) for a in allowed)]
+    if bad:
+        return f"success_condition: {cond['field']} is not {json.dumps(allowed)}, got {json.dumps(bad[0])}"
+    return None
 
-    spec_keys   = set(spec_props.keys()) - exclude_keys
-    actual_keys = set(actual.keys()) if isinstance(actual, dict) else set()
-    ok          = actual_keys & spec_keys
-    missing     = spec_keys - actual_keys
-    extra       = actual_keys - spec_keys - exclude_keys
-    req_missing = missing & (required_keys - exclude_keys)
-    opt_missing = missing - required_keys
 
-    for k in sorted(ok):
-        print(f"  {GREEN}✅  {k}{RESET}")
-    for k in sorted(req_missing):
-        print(f"  {RED}❌  {k}  ← required in spec, absent from response{RESET}")
-    for k in sorted(opt_missing):
-        print(f"  {DIM}〰   {k}  ← optional in spec, absent (conditional){RESET}")
-    for k in sorted(extra):
-        print(f"  {YELLOW}⚠️   {k}  ← in response, absent from spec{RESET}")
+def undocumented_keys(body, response_schema):
+    """Keys of the response (its `data` node when the spec describes one) that the spec doesn't document.
+    Informative: worth adding to response_schema, not a failure."""
+    def obj(x):  # a boolean schema (`true`) says nothing to compare to
+        return x if isinstance(x, dict) else {}
+    node, actual = obj(response_schema), body
+    data = obj(obj(node.get("properties")).get("data"))
+    inner = obj(data.get("items")) if data.get("type") == "array" else data
+    if isinstance(body, dict) and (inner.get("properties") or inner.get("oneOf")):
+        node, actual = inner, body.get("data")
+        if isinstance(actual, list):
+            actual = actual[0] if actual else None
+    documented = {k for branch in node.get("oneOf") or [node] for k in obj(obj(branch).get("properties"))}
+    if not documented or not isinstance(actual, dict):  # nothing to compare to (e.g. a $ref): stay quiet
+        return []
+    return sorted(set(actual) - documented)
 
-    return len(req_missing), len(opt_missing), len(extra)
+
+def unresolved_refs(step, stored, ts):
+    """$refs to an earlier step that resolve to nothing: the chain failed, this step can't be tested.
+    An unset $env: stays an empty string — some are optional (e.g. a sandbox sender ID)."""
+    found = []
+
+    def walk(v):
+        if isinstance(v, dict):
+            for x in v.values():
+                walk(x)
+        elif isinstance(v, list):
+            for x in v:
+                walk(x)
+        elif isinstance(v, str) and v.startswith("$") and v != "$ts" \
+                and not v.startswith("$env:") and _resolve_scalar(v, stored, ts) in (None, ""):
+            found.append(v)
+
+    for key in ("path_params", "query_params", "body", "headers"):
+        walk(step.get(key))
+    return found
+
+
+# ── Report ────────────────────────────────────────────────────────────────────
+
+def _js_number(x):
+    """A float the way JavaScript's JSON.stringify writes it (1.0 → 1, 1e-07 → 1e-7, 1e-06 → 0.000001)."""
+    if x == 0:
+        return "0"
+    sign, digits, exp = Decimal(repr(x)).normalize().as_tuple()
+    d, n = "".join(map(str, digits)), len(digits) + exp
+    out = (d + "0" * (n - len(d)) if len(d) <= n <= 21 else
+           d[:n] + "." + d[n:] if 0 < n <= 21 else
+           "0." + "0" * -n + d if -6 < n <= 0 else
+           d[0] + ("." + d[1:] if len(d) > 1 else "") + "e" + ("+" if n > 0 else "-") + str(abs(n - 1)))
+    return "-" + out if sign else out
+
+
+def _js_stringify(v):
+    if isinstance(v, dict):
+        # JavaScript lists integer-like keys ("200", "404") first, ascending, then the others in order
+        index = sorted((k for k in v if k.isdigit() and str(int(k)) == k and int(k) < 2**32 - 1), key=int)
+        keys = index + [k for k in v if k not in index]
+        return "{" + ",".join(json.dumps(k, ensure_ascii=False) + ":" + _js_stringify(v[k]) for k in keys) + "}"
+    if isinstance(v, list):
+        return "[" + ",".join(map(_js_stringify, v)) + "]"
+    if isinstance(v, float) or (isinstance(v, int) and not isinstance(v, bool) and abs(v) > 2**53):
+        return _js_number(float(v))  # JavaScript numbers are doubles
+    return json.dumps(v, ensure_ascii=False)
+
+
+def spec_hash(cap_dir, schema):
+    """Same value as validate.js specHash: what verification.spec_hash records."""
+    rest = {k: v for k, v in schema.items() if k != "verification"}
+    digest = hashlib.sha256(_js_stringify(rest).encode())
+    digest.update(b"\0")
+    digest.update((cap_dir / "canonical_example.ts").read_bytes())
+    return "sha256:" + digest.hexdigest()
+
+
+def registry_sha():
+    try:
+        return subprocess.run(["git", "rev-parse", "HEAD"], cwd=SPECS_DIR, capture_output=True,
+                              text=True, check=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
 
 
 # ── Discovery ─────────────────────────────────────────────────────────────────
@@ -398,7 +459,7 @@ def load_capabilities(provider_dir):
 
 # ── Runner ────────────────────────────────────────────────────────────────────
 
-def run(provider_slug, only_capability=None, raw_capability=None):
+def run(provider_slug, only_capability=None, raw_capability=None, report_path=None):
     provider_dir, provider_json = discover_provider(provider_slug)
 
     # Hard guard: this script only ever runs against a sandbox. A provider
@@ -452,23 +513,30 @@ def run(provider_slug, only_capability=None, raw_capability=None):
         cap_name = step["capability"]
         schema   = capabilities.get(cap_name)
         print(f"\n{BOLD}[{i}/{total}] {cap_name}{RESET}")
+        result = {"capability": cap_name, "spec_hash": None, "http_status": None, "result": "fail", "errors": []}
+        results.append(result)
+
+        # The report can end up public (a CI artifact, a PR): it never carries a response value,
+        # which GitHub's secret masking covers in logs but not in artifacts.
+        def fail(message, for_report=None):
+            print(f"  {RED}{message}{RESET}")
+            result["errors"].append(for_report or message)
 
         if not schema:
-            print(f"  {RED}SKIPPED — schema.json not found{RESET}")
-            results.append((cap_name, 0, 0, 0, "schema.json not found"))
+            fail("SKIPPED — schema.json not found")
             continue
+        result["spec_hash"] = spec_hash(provider_dir / cap_name, schema)
 
         # wait_seconds: give an async job time to become visible before this step reads it.
         if step.get("wait_seconds"):
             time.sleep(step["wait_seconds"])
 
-        # A path param from an earlier step that returned nothing would silently build
-        # `/checkout-sessions//status/` — that is a failed chain, not a test of this step.
-        unresolved = [k for k, v in (step.get("path_params") or {}).items()
-                      if resolve(v, stored, ts) in (None, "")]
+        # A value from an earlier step that returned nothing would silently build
+        # `/checkout-sessions//status/` or send null — that is a failed chain, not a test of this step.
+        unresolved = unresolved_refs(step, stored, ts) + [
+            k for k, v in (step.get("path_params") or {}).items() if resolve(v, stored, ts) in (None, "")]
         if unresolved:
-            print(f"  {RED}SKIPPED — path param(s) {', '.join(unresolved)} resolved to nothing{RESET}")
-            results.append((cap_name, 0, 0, 0, f"path param(s) {', '.join(unresolved)} unresolved"))
+            fail(f"SKIPPED — {', '.join(unresolved)} resolved to nothing")
             continue
 
         endpoint = schema.get("endpoint", {})
@@ -480,6 +548,10 @@ def run(provider_slug, only_capability=None, raw_capability=None):
             step.get("query_params"),
             stored, ts,
         )
+        left = PLACEHOLDER.findall(url.split("?")[0])
+        if left:
+            fail(f"SKIPPED — endpoint.url {', '.join(f'{{{n}}}' for n in left)} not filled: add it to the step's path_params")
+            continue
 
         body = resolve(step.get("body"), stored, ts) if step.get("body") is not None else None
         # skip_auth: the step sends its own credentials in `headers` (e.g. a token-exchange call)
@@ -490,11 +562,6 @@ def run(provider_slug, only_capability=None, raw_capability=None):
             body[body_auth[0]] = body_auth[1]
 
         extra_headers = resolve(step.get("headers", {}), stored, ts)
-        missing = [k for k, v in extra_headers.items() if v is None]
-        if missing:
-            print(f"  {RED}SKIPPED — header(s) {', '.join(missing)} come from an earlier step that returned nothing{RESET}")
-            results.append((cap_name, 0, 0, 0, f"header(s) {', '.join(missing)} unresolved"))
-            continue
         content_type = step.get("content_type", "application/json")
 
         if raw_capability == cap_name:
@@ -504,84 +571,74 @@ def run(provider_slug, only_capability=None, raw_capability=None):
             return
 
         status_code, resp = http_call(method, url, step_auth, body, extra_headers, content_type)
-        if not isinstance(resp, dict):  # a top-level JSON array or scalar
-            resp = {"data": resp}
-
+        result["http_status"] = status_code
+        # later steps read `$name.data...` even when the body is a top-level array or scalar
         store_as = step.get("store_as")
         if store_as:
-            stored[store_as] = resp
+            stored[store_as] = resp if isinstance(resp, dict) else {"data": resp}
 
-        props, req_keys = get_response_props(schema)
-
-        # Discriminated union: exclude inactive sibling keys from comparison.
-        exclude_keys = set()
-        du = step.get("discriminated_union")
-        if du and isinstance(resp.get("data"), dict):
-            active_type  = resp["data"].get(du["type_field"])
-            sibling_keys = set(du.get("sibling_keys", []))
-            if active_type:
-                exclude_keys = sibling_keys - {active_type}
-                print(f"  [type={active_type} — excluding {len(exclude_keys)} inactive sibling(s)]")
-
-        actual = get_data_node(resp, schema)
-
-        acceptable_error_codes = step.get("acceptable_error_codes", [])
-        details = resp.get("details", "")
+        details = resp.get("details", "") if isinstance(resp, dict) else ""
         details = details if isinstance(details, str) else json.dumps(details)
-        is_acceptable_error = any(details.startswith(code) for code in acceptable_error_codes)
+        is_acceptable_error = any(details.startswith(code) for code in step.get("acceptable_error_codes", []))
 
         # The call itself must succeed: comparing keys alone passed a step that got a 401
         # whenever the response schema had no `required` field (most specs).
         expected_status = step.get("expected_status")
         status_ok = status_code in expected_status if expected_status else 200 <= status_code < 300
 
-        error = None
-        if status_ok:
-            rm, om, e = compare(actual, props, req_keys, exclude_keys)
-        elif is_acceptable_error:
-            print(f"  {YELLOW}Expected sandbox error → {details}{RESET}")
-            rm, om, e = 0, 0, 0
-        else:
-            print(f"  {RED}API error (HTTP {status_code}) → {json.dumps(resp)}{RESET}")
-            rm, om, e = len(req_keys - exclude_keys), 0, 0
-            error = f"HTTP {status_code}"
+        if not status_ok:
+            if is_acceptable_error:
+                print(f"  {YELLOW}Expected sandbox error → {details}{RESET}")
+                result["result"] = "expected_error"
+            else:
+                fail(f"HTTP {status_code} → {json.dumps(resp)[:300]}", f"HTTP {status_code}")
+            continue
 
-        results.append((cap_name, rm, om, e, error))
+        # response_schema describes a success: a negative test (expected_status: [404]) only checks the status
+        response_schema = schema.get("response_schema", {}) if 200 <= status_code < 300 else {}
+        for message, for_report in schema_errors(resp, response_schema):
+            fail(f"❌  {message}", for_report)
+        condition = success_error(resp, schema.get("success_condition"))
+        if condition:
+            fail(f"❌  {condition}", condition.split(", got ")[0])
+        for key in undocumented_keys(resp, response_schema):
+            print(f"  {YELLOW}⚠️   {key}  ← in the response, absent from the spec (worth adding, not blocking){RESET}")
+        if not result["errors"]:
+            print(f"  {GREEN}✅  HTTP {status_code}, response matches response_schema{RESET}")
+            result["result"] = "pass"
 
     if raw_capability:
         print(f"{YELLOW}Capability '{raw_capability}' not found in steps{RESET}")
         return
 
-    # Summary
-    total_req_m = sum(r for _, r, _, _, _ in results)
-    total_extra  = sum(e for _, _, _, e, _ in results)
-    failed       = [(cap, err) for cap, _, _, _, err in results if err]
+    passed = all(r["result"] != "fail" for r in results)
+    if report_path:
+        report = {
+            "provider": provider_slug,
+            "environment": "sandbox",
+            "at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "registry_sha": registry_sha(),
+            "run_url": (f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
+                        f"{os.environ['GITHUB_RUN_ID']}" if os.environ.get("GITHUB_RUN_ID") else None),
+            "passed": passed,
+            "steps": results,
+        }
+        Path(report_path).write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
 
     print(f"\n{BOLD}{'━' * 60}{RESET}")
     print(f"{BOLD}SUMMARY — {len(results)} step(s) tested{RESET}")
     print(f"{'━' * 60}")
-    for cap, rm, om, e, err in results:
-        if err:
-            print(f"  {RED}FAIL{RESET}  {cap:<45}  {err}")
-            continue
-        tag = f"{GREEN}OK  {RESET}" if (rm == 0 and e == 0) else f"{RED}DIFF{RESET}"
-        print(f"  {tag}  {cap:<45}  req_missing={rm}  optional_absent={om}  extra={e}")
-    print()
-    if failed:
-        print(f"  {RED}{BOLD}FAIL — {len(failed)} step(s) without a successful response: "
-              f"{', '.join(cap for cap, _ in failed)}.{RESET}")
+    for r in results:
+        tag = {"pass": f"{GREEN}OK  {RESET}", "expected_error": f"{YELLOW}ERR {RESET}"}.get(r["result"], f"{RED}FAIL{RESET}")
+        print(f"  {tag}  {r['capability']:<45}  {len(r['errors'])} error(s)")
+    if report_path:
+        print(f"\n  Report: {report_path} — the spec_hash of each OK step is what its verification block records "
+              f"(an ERR step got an expected sandbox error: its response was not checked)")
+    if not passed:
+        print(f"\n  {RED}{BOLD}FAIL — fix the spec (or the fixture) from the errors above, "
+              f"then: npm run validate{RESET}")
         sys.exit(1)
-    print(f"  Required keys absent from response (spec error or sandbox gap): {total_req_m}")
-    print(f"  Extra keys in response not in spec (spec under-specified):       {total_extra}")
-    if total_req_m == 0:
-        print(f"\n  {GREEN}{BOLD}All required fields present — live responses match the spec ✓{RESET}")
-        if total_extra:
-            print(f"  {YELLOW}({total_extra} extra key(s) in the response are undocumented in "
-                  f"schema.json — worth adding, not blocking){RESET}")
-    else:
-        print(f"\n  {RED}{BOLD}FAIL — {total_req_m} required field(s) missing from live responses.{RESET}")
-        print(f"  {YELLOW}Review diffs above, update schema.json, then: npm run validate{RESET}")
-        sys.exit(1)
+    print(f"\n  {GREEN}{BOLD}Every step succeeded and its response matches the spec ✓{RESET}")
 
 
 def main():
@@ -593,13 +650,15 @@ def main():
             "  npm run test:live -- --provider flutterwave\n"
             "  npm run test:live -- --provider flutterwave --capability create_customer\n"
             "  npm run test:live -- --provider flutterwave --raw create_customer\n"
+            "  npm run test:live -- --provider flutterwave --report live-report.json\n"
         ),
     )
     parser.add_argument("--provider",    required=True, help="Provider slug (e.g. flutterwave)")
     parser.add_argument("--capability",  help="Run only this capability")
     parser.add_argument("--raw", metavar="CAPABILITY", help="Dump raw JSON for one capability")
+    parser.add_argument("--report", metavar="FILE", help="Write a JSON report (spec_hash, HTTP status, errors per step)")
     args = parser.parse_args()
-    run(args.provider, only_capability=args.capability, raw_capability=args.raw)
+    run(args.provider, only_capability=args.capability, raw_capability=args.raw, report_path=args.report)
 
 
 if __name__ == "__main__":

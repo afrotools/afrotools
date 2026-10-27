@@ -51,7 +51,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - run: pip install certifi
+      - run: pip install certifi jsonschema
 
       - name: Resolve which env var name(s) this provider needs
         id: resolve
@@ -91,7 +91,15 @@ jobs:
       - name: Run scripts/test_live.py
         run: |
           if [ -n "$INPUT_CAPABILITY" ]; then
-            python3 scripts/test_live.py --provider "$INPUT_PROVIDER" --capability "$INPUT_CAPABILITY"
+            python3 scripts/test_live.py --provider "$INPUT_PROVIDER" --capability "$INPUT_CAPABILITY" --report live-report.json
           else
-            python3 scripts/test_live.py --provider "$INPUT_PROVIDER"
+            python3 scripts/test_live.py --provider "$INPUT_PROVIDER" --report live-report.json
           fi
+
+      - name: Keep the report (spec_hash per capability, for the verification block)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-report-${{ inputs.provider }}
+          path: live-report.json
+          if-no-files-found: ignore

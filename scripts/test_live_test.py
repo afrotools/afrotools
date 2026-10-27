@@ -30,6 +30,7 @@ def make_provider(root):
             "endpoint": {"method": method, "url": url},
             "response_schema": {"type": "object", "properties": {"id": {"type": "string"}}},
         }))
+        (provider / cap / "canonical_example.ts").write_text("export {}\n")
     (provider / "provider.json").write_text(json.dumps({"name": "FixturePay", "sandbox": True}))
     (provider / "live_test_fixtures.json").write_text(json.dumps({"steps": [
         {"capability": "create_payment", "body": {"amount": 100}, "store_as": "payment"},
@@ -71,7 +72,98 @@ class TestLive(unittest.TestCase):
         self.assertEqual(self.run_with([(201, {"id": "pay_1"}), (200, {"id": "pay_1"})]), 0)
 
     def test_top_level_array_response_does_not_crash(self):
-        self.assertEqual(self.run_with([(201, {"id": "pay_1"}), (200, [{"id": "pay_1"}])]), 0)
+        # An array where response_schema says object is a mismatch to report, not a crash.
+        self.assertEqual(self.run_with([(201, {"id": "pay_1"}), (200, [{"id": "pay_1"}])]), 1)
+
+    def edit(self, name, change):
+        path = Path(self.tmp.name) / "payment" / "fixturepay" / name
+        doc = json.loads(path.read_text())
+        change(doc)
+        path.write_text(json.dumps(doc))
+
+    def test_a_field_of_the_wrong_type_fails(self):
+        self.assertEqual(self.run_with([(201, {"id": 42}), (200, {"id": "42"})]), 1)
+
+    def test_a_nested_required_field_missing_fails(self):
+        # The old check compared top-level keys only.
+        self.edit("get_payment/schema.json", lambda s: s["response_schema"]["properties"].update(
+            {"data": {"type": "object", "required": ["status"], "properties": {"status": {"type": "string"}}}}))
+        self.assertEqual(self.run_with([(201, {"id": "pay_1"}), (200, {"id": "pay_1", "data": {}})]), 1)
+
+    def test_success_condition_turns_a_200_with_an_error_code_into_a_failure(self):
+        def add(s):
+            s["response_schema"]["properties"]["code"] = {"type": "integer"}
+            s["success_condition"] = {"field": "code", "equals": 0}
+        self.edit("create_payment/schema.json", add)
+        self.assertEqual(self.run_with([(200, {"id": "pay_1", "code": 1}), (200, {"id": "pay_1"})]), 1)
+        self.assertEqual(self.run_with([(200, {"id": "pay_1", "code": 0}), (200, {"id": "pay_1"})]), 0)
+        # false is not 0
+        self.assertEqual(self.run_with([(200, {"id": "pay_1", "code": False}), (200, {"id": "pay_1"})]), 1)
+
+    def test_success_condition_reads_through_array_items(self):
+        self.assertEqual(test_live.success_error({"data": [{"s": "OK"}, {"s": "KO"}]}, {"field": "data.s", "in": ["OK"]}),
+                         'success_condition: data.s is not ["OK"], got "KO"')
+        self.assertIsNone(test_live.success_error({"data": [{"s": "OK"}]}, {"field": "data.s", "equals": "OK"}))
+        self.assertIn("absent", test_live.success_error({}, {"field": "data.s", "equals": "OK"}))
+        self.assertIn("absent", test_live.success_error({"data": [{"s": "OK"}, {}]}, {"field": "data.s", "equals": "OK"}))
+        self.assertIsNone(test_live.success_error({"data": []}, {"field": "data.s", "equals": "OK"}))
+        self.assertIsNone(test_live.success_error({"code": 0.0}, {"field": "code", "equals": 0}))
+
+    def test_a_body_value_from_a_failed_step_fails_instead_of_sending_null(self):
+        self.edit("live_test_fixtures.json", lambda f: f["steps"][1].update(
+            {"path_params": {"id": "pay_1"}, "query_params": {"ref": "$payment.reference"}}))
+        self.assertEqual(self.run_with([(201, {"id": "pay_1"}), (200, {"id": "pay_1"})]), 1)
+
+    def test_an_empty_path_param_fails_whatever_its_source(self):
+        # `/payments/` can be a list endpoint answering a 200 that matches: a false proof.
+        self.edit("live_test_fixtures.json", lambda f: f["steps"][1].update({"path_params": {"id": "$env:UNSET_ID"}}))
+        self.assertEqual(self.run_with([(201, {"id": "pay_1"}), (200, {"id": "pay_1"})]), 1)
+
+    def test_a_url_placeholder_no_path_param_fills_fails_before_calling(self):
+        self.edit("live_test_fixtures.json", lambda f: f["steps"][1].pop("path_params"))
+        self.assertEqual(self.run_with([(201, {"id": "pay_1"})]), 1)
+
+    def test_report_records_each_step_with_its_spec_hash(self):
+        report = Path(self.tmp.name) / "report.json"
+        calls = iter([(201, {"id": "pay_1"}), (401, {"detail": "Invalid token."})])
+        with mock.patch.object(test_live, "http_call", side_effect=lambda *a, **k: next(calls)), \
+                contextlib.redirect_stdout(io.StringIO()), self.assertRaises(SystemExit):
+            test_live.run("fixturepay", report_path=report)
+        doc = json.loads(report.read_text())
+        self.assertFalse(doc["passed"])
+        self.assertEqual(doc["environment"], "sandbox")
+        self.assertEqual([(s["capability"], s["result"], s["http_status"]) for s in doc["steps"]],
+                         [("create_payment", "pass", 201), ("get_payment", "fail", 401)])
+        self.assertRegex(doc["steps"][0]["spec_hash"], r"^sha256:[0-9a-f]{64}$")
+
+    def test_report_never_carries_a_response_value(self):
+        report = Path(self.tmp.name) / "report.json"
+        calls = iter([(201, {"id": 42, "token": "sk_live_leak"}), (401, {"echo": "sk_live_leak"})])
+        with mock.patch.object(test_live, "http_call", side_effect=lambda *a, **k: next(calls)), \
+                contextlib.redirect_stdout(io.StringIO()), self.assertRaises(SystemExit):
+            test_live.run("fixturepay", report_path=report)
+        text = report.read_text()
+        self.assertNotIn("sk_live_leak", text)
+        self.assertEqual(json.loads(text)["steps"][0]["errors"], ['properties/id/type: "string"'])
+
+    def test_report_leaves_out_filled_values_and_response_keys(self):
+        self.edit("live_test_fixtures.json", lambda f: f["steps"][1].update(
+            {"path_params": {}, "query_params": {"ref": "$payment.secret"}}))
+        self.edit("create_payment/schema.json", lambda s: s["response_schema"]["properties"].update(
+            {"balances": {"type": "object", "additionalProperties": {"type": "integer"}}}))
+        report = Path(self.tmp.name) / "report.json"
+        calls = iter([(201, {"id": "pay_1", "secret": "sk_leak", "balances": {"+224620000000": "x"}})])
+        with mock.patch.object(test_live, "http_call", side_effect=lambda *a, **k: next(calls)), \
+                contextlib.redirect_stdout(io.StringIO()), self.assertRaises(SystemExit):
+            test_live.run("fixturepay", report_path=report)
+        text = report.read_text()
+        self.assertNotIn("sk_leak", text)
+        self.assertNotIn("224620000000", text)
+
+    def test_a_negative_test_checks_the_status_not_the_success_schema(self):
+        self.edit("live_test_fixtures.json", lambda f: f["steps"][1].update({"expected_status": [404]}))
+        self.assertEqual(self.run_with([(201, {"id": "pay_1"}), (404, {"error": "not found"})]), 0)
+
 
     def test_expected_status_overrides_the_2xx_default(self):
         fixtures = Path(self.tmp.name) / "payment" / "fixturepay" / "live_test_fixtures.json"
@@ -80,6 +172,18 @@ class TestLive(unittest.TestCase):
         fixtures.write_text(json.dumps(doc))
         self.assertEqual(self.run_with([(200, {"id": "pay_1"}), (200, {"id": "pay_1"})]), 1)
 
+
+class TestSpecHash(unittest.TestCase):
+    def test_floats_are_written_as_json_stringify_writes_them(self):
+        # validate.js hashes JSON.stringify(schema): a Python repr would change the hash.
+        cases = {1.0: "1", 1e-07: "1e-7", 1e-06: "0.000001", 1e21: "1e+21", 1e20: "100000000000000000000",
+                 123.45: "123.45", -2.5: "-2.5", 0.0: "0", 3e6: "3000000", 1.5e-10: "1.5e-10"}
+        for value, js in cases.items():
+            self.assertEqual(test_live._js_number(value), js)
+        self.assertEqual(test_live._js_stringify({"a": [1, 1.0, True, None, "é"]}), '{"a":[1,1,true,null,"é"]}')
+        # key order and integers as JavaScript has them
+        self.assertEqual(test_live._js_stringify({"b": 1, "404": 2, "200": 3, "01": 4}), '{"200":3,"404":2,"b":1,"01":4}')
+        self.assertEqual(test_live._js_stringify(9007199254740993), "9007199254740992")
 
 class TestAuthSteps(unittest.TestCase):
     AUTH = {

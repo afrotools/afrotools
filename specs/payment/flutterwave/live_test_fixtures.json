@@ -44,10 +44,6 @@
         "mobile_money": { "network": "MTN", "country_code": "233", "phone_number": "2441234567" }
       },
       "headers": { "X-Idempotency-Key": "afrotoolspm$ts" },
-      "discriminated_union": {
-        "type_field": "type",
-        "sibling_keys": ["card", "bank_account", "mobile_money", "opay", "applepay", "googlepay", "ussd"]
-      },
       "store_as": "payment_method"
     },
     {

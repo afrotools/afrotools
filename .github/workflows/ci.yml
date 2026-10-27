@@ -35,6 +35,10 @@ jobs:
       - run: npm ci
       - name: Validator tests
         run: node --test scripts/validate.test.js
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - run: pip install jsonschema
       - name: test_live.py tests (offline)
         run: python3 -m unittest discover -s scripts -p "test_live_test.py"
       - name: Validate changed specs (PR)

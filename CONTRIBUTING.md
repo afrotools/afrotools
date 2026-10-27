@@ -34,8 +34,9 @@ The agent never submits anything itself.
 ## Prerequisites
 
 - Node.js 20+
-- Python 3.9+ (for live API verification) — `pip install certifi` if you hit a TLS
-  certificate error running `test:live` (common on macOS python.org builds)
+- Python 3.9+ (for live API verification) — `pip install jsonschema` (`test:live` checks responses
+  with it), plus `pip install certifi` if you hit a TLS certificate error (common on macOS
+  python.org builds)
 - `npm install` at the repo root
 
 ---
@@ -160,8 +161,9 @@ catches real discrepancies before they mislead AI agents.
 Create a `live_test_fixtures.json` file in the provider directory
 (`specs/{category}/{provider_slug}/live_test_fixtures.json`) that describes the test steps
 and their payloads. The generic `scripts/test_live.py` script reads this file, authenticates
-using `auth` config from each `schema.json`, calls the actual API, and diffs the response
-against the spec's `response_schema`.
+using `auth` config from each `schema.json`, calls the actual API, and checks each response against
+the spec: the HTTP status, the whole `response_schema` (types, nested fields, the `oneOf` branch the
+response matches) and `success_condition` when the spec has one.
 
 You do not need to write this file by hand — ask an AI agent to generate it. Share the
 `schema.json` files and the list of capability folders, then review the result and commit it.
@@ -208,27 +210,36 @@ Key fixture fields:
 - `wait_seconds` (per step) — pause before the step, e.g. so an async job created by an earlier
   step is visible before its status is read
 - `expected_status` (per step) — HTTP status codes that count as success (default: any 2xx). A step
-  fails when the call doesn't succeed, unless its error is listed in `acceptable_error_codes`
+  fails when the call doesn't succeed, unless its error is listed in `acceptable_error_codes`. A
+  non-2xx expected status (a negative test) checks the status only: `response_schema` describes a success
 - `acceptable_error_codes` (per step) — prefixes of the response's `details` that are an expected
   sandbox error, not a failure
 
-A run fails (exit 1) when any step gets an unexpected HTTP status, is skipped (missing schema, or a
-path param or header from an earlier step that returned nothing), or misses a field the response
-schema marks `required`.
+A run fails (exit 1) when any step gets an unexpected HTTP status, gets a response that breaks
+`response_schema` or `success_condition`, or is skipped: missing schema, a `$name.field` from an
+earlier step that returned nothing (in `path_params`, `query_params`, `body` or `headers`), an empty
+path param, or an `endpoint.url` placeholder no `path_params` fills. Elsewhere, an unset `$env:NAME`
+is sent as an empty string.
 
 **Run it:**
 
 ```bash
 export PROVIDER_CREDENTIALS="..."   # the env var declared in auth.env_var —
                                     # or each one of auth.credentials (ATSS 1.1)
-npm run test:live -- --provider {slug}
+npm run test:live -- --provider {slug} --report live-report.json
 ```
 
 Output:
-- ✅ Field present in spec and response
-- ❌ Required field missing from response → fix the spec or the fixture
-- 〰  Optional field absent from response → likely conditional; add a description to the field
-- ⚠️  Field present in response, absent from spec → add it to `response_schema`
+- ✅ The call succeeded and the response matches the spec
+- ❌ Where the response breaks `response_schema` (path and reason) or `success_condition` → fix the
+  spec or the fixture
+- ⚠️  Field present in the response, absent from the spec → worth adding to `response_schema`, not
+  blocking
+
+`--report` writes a JSON report: per step, the HTTP status, the result, the errors and the
+`spec_hash` that was tested, with the date and the registry commit. The `spec_hash` of a `pass` step
+is the value its `verification` block records; an `expected_error` step proves nothing about the
+response. The report never contains a response value. Attach it to your PR, or link the GitHub Actions run, which keeps it as an artifact.
 
 **Tips:**
 - The script only ever targets a sandbox. If the provider has no sandbox

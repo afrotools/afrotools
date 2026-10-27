@@ -357,7 +357,8 @@ A `ready` spec is visible in the MCP server.
 
 - [ ] All `ready` criteria met
 - [ ] **One of:**
-  - `npm run test:live -- --provider <slug>` passes (exit 0) — `method: "test_live"`
+  - `npm run test:live -- --provider <slug>` passes (exit 0) — `method: "test_live"`; its `--report`
+    gives each capability's `spec_hash`
   - A working integration: `afrotools/examples`, or an app in use — `method: "app"`
   - An integration report a maintainer accepted (see `CONTRIBUTING.md` § Report an integration) — `method: "community_report"`
 - [ ] `verification` block records the method, the environment, the date and `spec_hash`
