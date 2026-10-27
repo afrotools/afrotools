@@ -5,8 +5,9 @@
  * @capability_type synchronous
  */
 
-const BICTORYS_PRIVATE_KEY = process.env.BICTORYS_PRIVATE_KEY;
-if (!BICTORYS_PRIVATE_KEY) throw new Error("Missing env: BICTORYS_PRIVATE_KEY");
+// Public key, as Bictorys' integration guide prescribes for the status check.
+const BICTORYS_API_KEY = process.env.BICTORYS_API_KEY;
+if (!BICTORYS_API_KEY) throw new Error("Missing env: BICTORYS_API_KEY");
 
 interface TransactionResponse {
   // Only id and status are guaranteed. Bictorys sandbox is known to return just
@@ -49,7 +50,7 @@ export async function verifyTransaction(transactionId: string): Promise<Transact
     {
       method: "GET",
       headers: {
-        "X-API-Key": BICTORYS_PRIVATE_KEY!,
+        "X-API-Key": BICTORYS_API_KEY!,
       },
     }
   );
@@ -68,11 +69,11 @@ Usage example:
 // Call after receiving a redirect callback or webhook event.
 const transaction = await verifyTransaction("abd2053b-638d-4133-957e-3caf63e6b79c");
 
-if (transaction.status === "succeeded") {
-  // Safe to fulfill — funds are captured
+// Bictorys' integration guide: "authorized" (card pre-capture) → "Traiter comme succeeded".
+// "authorized" funds are reserved, not yet captured — whether a capture is needed
+// before fulfilling is an open question on this spec.
+if (transaction.status === "succeeded" || transaction.status === "authorized") {
   await fulfillOrder(transaction.paymentReference, transaction.amount, transaction.currency);
-} else if (transaction.status === "authorized") {
-  // Funds reserved but not captured — capture separately if needed
 } else {
   // Payment not complete; log and monitor
   console.warn("Payment not succeeded:", transaction.status, transaction.id);

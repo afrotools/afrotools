@@ -12,18 +12,18 @@
     "location": "header",
     "field": "X-API-Key",
     "format": "{token}",
-    "env_var": "BICTORYS_PRIVATE_KEY",
+    "env_var": "BICTORYS_API_KEY",
     "credentials": [
       {
-        "env_var": "BICTORYS_PRIVATE_KEY",
-        "description": "Bictorys private API key sent as X-API-Key on this endpoint; sandbox and production keys differ"
+        "env_var": "BICTORYS_API_KEY",
+        "description": "Bictorys public API key (Dashboard → Developers → API Keys → Public Key, prefix public-) sent as X-API-Key on this endpoint; sandbox and production keys differ"
       }
     ],
     "apply": [
       {
         "in": "header",
         "name": "X-API-Key",
-        "value": "{BICTORYS_PRIVATE_KEY}"
+        "value": "{BICTORYS_API_KEY}"
       }
     ]
   },
@@ -154,7 +154,7 @@
           "reversed",
           "authorized"
         ],
-        "description": "Transaction status. Only \"succeeded\" means the payment is complete and funds are captured."
+        "description": "Transaction status. Bictorys' integration guide: \"succeeded\" → validate the order; \"authorized\" (card pre-capture) → treat as \"succeeded\"; \"pending\" / \"processing\" → wait, the webhook confirms the final status; \"failed\" / \"cancelled\" / \"reversed\" → mark failed. \"authorized\" means funds are reserved on the card, not yet captured — see gotchas and open_questions."
       },
       "timestamp": {
         "type": "string",
@@ -197,13 +197,16 @@
   },
   "gotchas": [
     "Redirect query parameters are fully spoofable — never fulfill an order from them alone; call this endpoint server-side (or wait for the webhook) before trusting a redirect. A signature-verified webhook_payment_completed event, on the other hand, does not need this endpoint to be trusted — its HMAC/secret verification already proves authenticity, and gating fulfillment on a live call here risks losing an already-successful payment if this endpoint is briefly down (see the 500 gotcha below).",
-    "Use the PRIVATE key here (env BICTORYS_PRIVATE_KEY, same key as create_payout, header X-API-Key). Note that the sandbox currently accepts the PUBLIC key on this endpoint as well — measured 2026-09-14, both keys return 200 — so a sandbox-only test will not catch a wrong key. Do not rely on that permissiveness in production.",
-    "Only status === \"succeeded\" means the payment is fully complete and funds are captured. \"authorized\" means funds are reserved but not yet captured. \"pending\" and \"processing\" mean the payment is still in progress.",
+    "Use the PUBLIC key here (env BICTORYS_API_KEY, same key as create_charge, header X-API-Key). Bictorys' integration guide (docs.bictorys.com/docs/integration) lists \"Status check (GET /pay/v1/transactions/{id}/status) | Clé publique (BICTORYS_API_KEY)\" and \"BICTORYS_API_KEY (publique) — Header X-Api-Key pour créer des charges et vérifier des transactions.\" The sandbox also accepts the PRIVATE key (BICTORYS_PRIVATE_KEY) on this endpoint — a live sandbox call measured 2026-09-14 (afrotools PR #67): both keys return 200 — so a sandbox-only test will not catch a wrong key. Do not rely on that permissiveness in production, and never send the private key from a frontend or mobile app.",
+    "Bictorys' integration guide (\"Statuts possibles\" table) says: `succeeded` — \"Paiement confirmé\" — \"✅ Valider la commande\"; `authorized` — \"Paiement autorisé (pré-capture carte)\" — \"✅ Traiter comme `succeeded`\"; `pending` and `processing` — \"⏳ En attente — le webhook confirmera le statut final\"; `failed`, `cancelled`, `reversed` — \"❌ Marquer FAILED\". \"authorized\" means funds are reserved but not yet captured: the API reference describes create_charge's `authorization: true` as a request to \"reserve an amount on the holder card to pay later the transaction\", and has a separate endpoint to \"capture totally or partially a transaction previously authorized\". Whether fulfilling on \"authorized\" without a capture is safe is not stated — see open_questions.",
     "The transactionId to pass here is the id field from the webhook payload, or the transactionId / chargeId field from the create_charge response — they refer to the same transaction UUID.",
     "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com.",
     "On status 'succeeded', this endpoint returns NO amount and NO timestamp — observed live: {\"id\": \"…\", \"status\": \"succeeded\"} and nothing else. Reading status and amount from the same response therefore yields 0 for the amount ON THE SUCCESS PATH, which in a billing system means crediting nothing while everything reports success. Fall back to GET /pay/v1/transactions and match on paymentReference to obtain amount and timestamp.",
     "The list endpoint GET /pay/v1/transactions (undocumented) only becomes non-empty once a transaction COMPLETES. It stays [] while a charge is merely pending, which makes reference-based lookup look untestable in sandbox until the first successful payment.",
     "In the Bictorys sandbox, GET /pay/v1/transactions/{id}/status is known to return HTTP 500 intermittently. For sandbox testing, rely on webhook events instead of polling this endpoint.",
     "Bictorys recommends polling this endpoint for backend-less apps (e.g. static/mobile-only clients that can't expose a webhook endpoint). Apps with a backend server should treat webhook_payment_completed as the source of truth for fulfillment, and use this endpoint for the redirect-triggered UX check and for reconciliation (e.g. a periodic sweep of orders whose webhook never arrived) — not as a mandatory gate after every webhook."
+  ],
+  "open_questions": [
+    "Bictorys' integration guide says to treat \"authorized\" (\"Paiement autorisé (pré-capture carte)\") as \"succeeded\", while the API reference describes an authorization as an amount reserved on the card \"to pay later the transaction\" and offers a capture endpoint (\"Capture totally or partially a transaction previously authorized\"). Does \"authorized\" only occur for card charges created with authorization: true, and must the merchant capture before the funds are collected — i.e. is fulfilling an order on \"authorized\" safe without a capture?"
   ]
 }
