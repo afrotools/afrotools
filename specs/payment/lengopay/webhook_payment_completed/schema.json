@@ -9,7 +9,7 @@
     "environment": "production",
     "at": "2026-04-07",
     "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:7cf84496cc7339cb9babdc0846ede9779b89e182017a882b8008ab34b3db332d"
+    "spec_hash": "sha256:50d8e3af427c19dc3f300565884587e2e055b943876e80f29d280684e88131d0"
   },
   "currency": [
     "GNF"
@@ -63,7 +63,7 @@
   },
   "error_schema": {},
   "gotchas": [
-    "Never fulfill an order based on the webhook alone. Call verify_payment (GET /api/v1/payments/{payId}) to confirm server-side — the webhook can be forged by anyone who knows your callback_url.",
+    "Never fulfill an order based on the webhook alone. Call verify_payment (POST /api/v1/transaction/status with pay_id and websiteid) to confirm server-side — the webhook can be forged by anyone who knows your callback_url.",
     "Respond HTTP 200 immediately and process the payment asynchronously. LengoPay retries on failure, which can cause duplicates if your handler is slow.",
     "Implement idempotency: LengoPay may send the same webhook multiple times for the same pay_id. Check that the order is not already fulfilled before acting.",
     "The Client field contains the payer's phone number (e.g. '624897845'). It is missing from the payload in some cases — do not rely on it.",
