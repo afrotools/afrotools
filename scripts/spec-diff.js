@@ -10,7 +10,9 @@
  *   - removed capabilities: served at the ref (unverified, ready, verified, deprecated), and now
  *     deleted or set to draft/archived;
  *   - removed or renamed fields of input_schema, response_schema and parameters (a rename is a
- *     removal plus an addition).
+ *     removal plus an addition). A request field whose name is still in input_schema or
+ *     parameters moved (e.g. a body field that became a header parameter, ATSS 1.1): listed as
+ *     moved, not breaking.
  *
  * Usage:
  *   node scripts/spec-diff.js [ref] [--allow-breaking]
@@ -71,14 +73,18 @@ function fields(schema) {
   ]);
 }
 
+/** The name a request field is sent under: last segment of input_schema.a.b / parameters.in.name. */
+const fieldName = (/** @type {string} */ f) => f.slice(f.lastIndexOf(".") + 1).toLowerCase();
+
 /**
  * @param {string} ref
- * @returns {{ capabilities: string[], fields: string[] }} "category/provider/capability" and
- *   "category/provider/capability: input_schema.a.b"
+ * @returns {{ capabilities: string[], fields: string[], moved: string[] }} "category/provider/capability",
+ *   "category/provider/capability: input_schema.a.b" and "…: input_schema.a → parameters.header.a"
  */
 function specDiff(ref) {
   const capabilities = [];
   const removedFields = [];
+  const moved = [];
   const files = git(["ls-tree", "-r", "--name-only", ref, "--", "specs"]).split("\n").filter((f) => SCHEMA_PATH.test(f));
   for (const file of files) {
     const before = parse(git(["show", `${ref}:${file}`]));
@@ -88,9 +94,16 @@ function specDiff(ref) {
     if (after === null) continue;
     if (!after || !SERVED.has(after.status)) { capabilities.push(id); continue; }
     const now = fields(after);
-    for (const f of fields(before)) if (!now.has(f)) removedFields.push(`${id}: ${f}`);
+    // Header names ignore case; body and parameter names are compared the same way.
+    const request = [...now].filter((f) => !f.startsWith("response_schema."));
+    for (const f of fields(before)) {
+      if (now.has(f)) continue;
+      const to = f.startsWith("response_schema.") ? undefined : request.find((r) => fieldName(r) === fieldName(f));
+      if (to) moved.push(`${id}: ${f} → ${to}`);
+      else removedFields.push(`${id}: ${f}`);
+    }
   }
-  return { capabilities, fields: removedFields };
+  return { capabilities, fields: removedFields, moved };
 }
 
 const args = process.argv.slice(2);
@@ -99,6 +112,7 @@ const allowed = args.includes("--allow-breaking");
 const diff = specDiff(ref);
 if (diff.capabilities.length) console.log(`Removed capabilities (${diff.capabilities.length}), against ${ref}:\n${diff.capabilities.map((c) => `  ${c}`).join("\n")}\n`);
 if (diff.fields.length) console.log(`Removed or renamed fields (${diff.fields.length}), against ${ref}:\n${diff.fields.map((f) => `  ${f}`).join("\n")}\n`);
+if (diff.moved.length) console.log(`Moved request fields (${diff.moved.length}, not breaking), against ${ref}:\n${diff.moved.map((m) => `  ${m}`).join("\n")}\n`);
 if (!diff.capabilities.length && !diff.fields.length) {
   console.log(`No capability or field removed against ${ref}.`);
 } else if (allowed) {

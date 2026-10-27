@@ -400,15 +400,20 @@ wrong without telling its agent is **breaking**:
 
 - removing a capability: deleting its folder, or setting a served spec (`unverified`, `ready`,
   `verified`, `deprecated`) back to `draft` or to `archived`, which the MCP does not serve;
-- removing or renaming a field of `input_schema`, `response_schema` or `parameters`.
+- removing or renaming a field of `response_schema`;
+- removing or renaming a request field: its name is in neither `input_schema` nor `parameters`
+  any more. A request field that moves between them under the same name (header names ignore
+  case), e.g. a body field that becomes a header parameter in the ATSS 1.1 migration, is a
+  relocation the agent reads in the new spec, not a break.
 
 Changing a field's type, making an optional input required or narrowing an enum breaks
 integrations too; the reviewer judges these. Adding a capability, an optional field, a gotcha or
 an open question, or fixing a description, is not breaking.
 
 `scripts/spec-diff.js` compares a PR's specs to `main` and lists the removed capabilities and the
-removed or renamed fields (a rename shows as a removal). CI fails when it finds one, unless the PR
-has the `breaking` label: a maintainer sets it once the removal is intended, then re-runs the job.
+removed or renamed fields (a rename shows as a removal), and, for information, the request fields
+that moved. CI fails when it finds a removal, unless the PR has the `breaking` label: a maintainer
+sets it once the removal is intended, then re-runs the job.
 
 **When the provider deprecates a capability** (announces its end, or a replacement):
 
