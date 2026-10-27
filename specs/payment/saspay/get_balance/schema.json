@@ -42,6 +42,17 @@
     "url": "https://api.saspay.me/api/v1/merchant-balances/{id}/",
     "method": "GET"
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
   "example_prompt": "Show my SasPay account balance on my admin dashboard.",
   "input_schema": {},
   "response_schema": {
@@ -89,6 +100,10 @@
         "type": "number"
       }
     }
+  },
+  "success_condition": {
+    "field": "success",
+    "equals": true
   },
   "error_schema": {
     "type": "object",

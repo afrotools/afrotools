@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:35f1418fb435844c9d03cafaf29ada4b3389a4bf8e8a3931bc93b86495148597"
+    "spec_hash": "sha256:49b31b785826b870ab778e07188cbd7a66f736cbba2efbdd328a47171ae10099"
   },
   "currency": [
     "XOF",
@@ -48,6 +48,17 @@
     "url": "https://api.saspay.me/api/v1/payments/{payment_id}/verify/",
     "method": "GET"
   },
+  "parameters": [
+    {
+      "name": "payment_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
   "example_prompt": "Verify a SasPay payment server-side before delivering the order.",
   "input_schema": {},
   "response_schema": {
@@ -193,6 +204,10 @@
       }
     }
   },
+  "success_condition": {
+    "field": "success",
+    "equals": true
+  },
   "error_schema": {
     "type": "object",
     "properties": {
@@ -220,7 +235,8 @@
     "A PENDING payment is re-checked against the gateway on each call, so the status can change between two calls.",
     "Every response is wrapped in the same envelope: read the payload from data, and on failure read error.message and error.code.",
     "Only PENDING, SUCCESS and FAILED occur in practice: CANCELLED exists in the data model but no flow reaches it today, so treat it as a non-successful terminal state without expecting it.",
-    "For accounting, never use the requested amount alone: what left the payer and what you receive depend on fee_charge_mode. Read debited_amount and net_amount, or the amounts object (requested, fee, charged, net)."
+    "For accounting, never use the requested amount alone: what left the payer and what you receive depend on fee_charge_mode. Read debited_amount and net_amount, or the amounts object (requested, fee, charged, net).",
+    "`success: true` only means the call worked; the outcome is in data.status (SUCCESS for a paid payment; transaction statuses PENDING | SUCCESS | FAILED | CANCELLED)."
   ],
   "open_questions": [
     "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."

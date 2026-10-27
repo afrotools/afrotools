@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:92f84b63624fc2c2a42a67b1a80cef12a219b333f3f2c2620d7b0ba14db2a169"
+    "spec_hash": "sha256:11527ed2c5a8d351038dac27cafdec8fa3e0e9b31e05694fcfe06c3cf21e40db"
   },
   "currency": [
     "XOF",
@@ -48,6 +48,17 @@
     "url": "https://api.saspay.me/api/v1/checkout-sessions/{id}/status/",
     "method": "GET"
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
   "example_prompt": "Check whether a SasPay checkout session was paid before fulfilling the order.",
   "input_schema": {},
   "response_schema": {
@@ -84,6 +95,10 @@
       }
     }
   },
+  "success_condition": {
+    "field": "success",
+    "equals": true
+  },
   "error_schema": {
     "type": "object",
     "properties": {
@@ -108,7 +123,8 @@
   },
   "gotchas": [
     "Meant for polling when no webhook is configured: it re-checks the real gateway state on each call.",
-    "Authenticated calls are limited to 300 requests per minute per account; beyond that the API returns 429, so space out polling."
+    "Authenticated calls are limited to 300 requests per minute per account; beyond that the API returns 429, so space out polling.",
+    "`success: true` only means the call worked; the outcome is in data.status (PAID for a paid session; session statuses PENDING | PAID | EXPIRED | CANCELLED) and data.transaction_status (SUCCESS for the payment; transaction statuses PENDING | SUCCESS | FAILED | CANCELLED)."
   ],
   "open_questions": [
     "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."

@@ -42,6 +42,18 @@
     "url": "https://api.saspay.me/api/v1/wallet-transfers/",
     "method": "POST"
   },
+  "parameters": [
+    {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+        "type": "string",
+        "maxLength": 255
+      },
+      "description": "Unique key you generate for this attempt (e.g. a UUID). Optional: without it every call is a new request. Resending the same key (after a timeout or network cut) returns the original response instead of creating a second operation; the same key with a different body, or while the first call is still in progress, returns 409."
+    }
+  ],
   "example_prompt": "Move funds from my SasPay Benin wallet to my Cameroon wallet, with currency conversion.",
   "input_schema": {
     "type": "object",
@@ -145,6 +157,10 @@
         "type": "number"
       }
     }
+  },
+  "success_condition": {
+    "field": "success",
+    "equals": true
   },
   "error_schema": {
     "type": "object",
