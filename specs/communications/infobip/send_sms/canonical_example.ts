@@ -49,11 +49,6 @@ export type SendSmsInput = {
         to?: Record<string, unknown>;
       };
       campaignReferenceId?: string;
-      regional?: {
-        indiaDlt?: Record<string, unknown>;
-        turkeyIys?: Record<string, unknown>;
-        southKorea?: Record<string, unknown>;
-      };
       flash?: boolean;
     };
     webhooks?: {

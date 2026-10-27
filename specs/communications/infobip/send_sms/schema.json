@@ -306,73 +306,6 @@
                   "maxLength": 255,
                   "minLength": 0
                 },
-                "regional": {
-                  "type": "object",
-                  "description": "Region-specific parameters, often imposed by local laws. Use this, if country or region that you are sending an SMS to requires additional information.",
-                  "properties": {
-                    "indiaDlt": {
-                      "type": "object",
-                      "description": "Distributed Ledger Technology (DLT) specific parameters required for sending SMS to phone numbers registered in India.",
-                      "properties": {
-                        "contentTemplateId": {
-                          "type": "string",
-                          "description": "Registered DLT content template ID which matches message you are sending."
-                        },
-                        "principalEntityId": {
-                          "type": "string",
-                          "description": "Your assigned DLT principal entity ID.",
-                          "minLength": 1
-                        },
-                        "telemarketerId": {
-                          "type": "string",
-                          "description": "Your assigned Telemarketer ID. (required for Aggregators)"
-                        }
-                      },
-                      "required": [
-                        "principalEntityId"
-                      ]
-                    },
-                    "turkeyIys": {
-                      "type": "object",
-                      "description": "IYS regulations specific parameters required for sending promotional SMS to phone numbers registered in Turkey.",
-                      "properties": {
-                        "brandCode": {
-                          "type": "integer",
-                          "format": "int32",
-                          "description": "Brand code is an ID of the company based on a company VAT number. If not provided in request, default value is used from your Infobip account."
-                        },
-                        "recipientType": {
-                          "type": "string",
-                          "description": "Recipient Type must be `TACIR` or `BIREYSEL`.",
-                          "enum": [
-                            "BIREYSEL",
-                            "TACIR"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "recipientType"
-                      ]
-                    },
-                    "southKorea": {
-                      "type": "object",
-                      "description": "Use case dependent parameters for sending SMS to phone numbers registered in South Korea.",
-                      "properties": {
-                        "title": {
-                          "type": "string",
-                          "description": "Title of the message.",
-                          "maxLength": 66,
-                          "minLength": 0
-                        },
-                        "resellerCode": {
-                          "type": "integer",
-                          "format": "int32",
-                          "description": "Reseller identification code: 9-digit registration number in the business registration certificate for South Korea. Resellers should submit this when sending."
-                        }
-                      }
-                    }
-                  }
-                },
                 "flash": {
                   "type": "boolean",
                   "description": "Allows for sending a [flash SMS](https://www.infobip.com/docs/sms/message-types#flash-sms) to automatically appear on recipient devices without interaction. Set to `true` to enable flash SMS, or leave the default value, `false` to send a standard SMS."
@@ -676,7 +609,8 @@
     "options.schedule.sendAt schedules the send (format yyyy-MM-dd'T'HH:mm:ss.SSSZ), at most 180 days ahead; keep the bulkId to follow the batch.",
     "Sender rules are per country: an alphanumeric sender is 3-11 characters and can't receive replies. 44 of the 54 African country cards require registering the sender for local traffic and 27 also for international traffic (Nigeria: local '+20' days with documents such as the CAC certificate, international 6 days), and South Africa doesn't support alphanumeric senders at all. Check the country card on Infobip's SMS coverage page before going live.",
     "Infobip's coverage page has a card for every African country, but says it \"covers general market and service provisioning details for the most frequently requested countries and does not reflect full Infobip coverage\": for account-specific coverage, contact your account manager or Support. Some cards set allowed send time windows (e.g. Botswana: never on Sunday).",
-    "A 400 on this endpoint is { errorCode, description, action, violations[] (property + violation), resources[] }. Other statuses have no schema in the OpenAPI; the 401 body shown on the authentication page is { requestError: { serviceException: { messageId: 'UNAUTHORIZED', text } } } — handle both shapes."
+    "A 400 on this endpoint is { errorCode, description, action, violations[] (property + violation), resources[] }. Other statuses have no schema in the OpenAPI; the 401 body shown on the authentication page is { requestError: { serviceException: { messageId: 'UNAUTHORIZED', text } } } — handle both shapes.",
+    "Not described here: options.regional (indiaDlt, turkeyIys, southKorea). Infobip's OpenAPI: «Region-specific parameters, often imposed by local laws. Use this, if country or region that you are sending an SMS to requires additional information.» Its three entries are for numbers registered in India, Turkey and South Korea, outside this registry's African scope; see Infobip's API reference to send there."
   ],
   "evidence": {
     "source_url": "https://api.infobip.com/platform/1/openapi",

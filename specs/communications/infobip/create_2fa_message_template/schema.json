@@ -67,44 +67,6 @@
         ],
         "description": "Type of PIN code that will be generated and sent as part of 2FA message."
       },
-      "regional": {
-        "allOf": [
-          {
-            "type": "object",
-            "properties": {
-              "indiaDlt": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "properties": {
-                      "contentTemplateId": {
-                        "type": "string",
-                        "description": "Registered DLT content template ID which matches message you are sending.",
-                        "maxLength": 30,
-                        "minLength": 0
-                      },
-                      "principalEntityId": {
-                        "type": "string",
-                        "description": "Your assigned DLT principal entity ID.",
-                        "maxLength": 30,
-                        "minLength": 0
-                      },
-                      "teleMarketerId": {
-                        "type": "string",
-                        "description": "Your assigned Telemarketer ID (required for Aggregators).",
-                        "maxLength": 255,
-                        "minLength": 0
-                      }
-                    }
-                  }
-                ],
-                "description": "Distributed Ledger Technology (DLT) specific parameters required for sending SMS to phone numbers registered in India."
-              }
-            }
-          }
-        ],
-        "description": "Region-specific parameters, often imposed by local laws. Use this, if country or region that you are sending a message to requires additional information."
-      },
       "repeatDTMF": {
         "type": "string",
         "description": "If the PIN is sent as a voice message, the DTMF code allows the recipient to replay the message."
@@ -171,44 +133,6 @@
         ],
         "description": "The type of PIN code that will be generated and sent as part of 2FA message. You can set PIN type to numeric, alpha, alphanumeric or hex."
       },
-      "regional": {
-        "allOf": [
-          {
-            "type": "object",
-            "properties": {
-              "indiaDlt": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "properties": {
-                      "contentTemplateId": {
-                        "type": "string",
-                        "description": "Registered DLT content template ID which matches message you are sending.",
-                        "maxLength": 30,
-                        "minLength": 0
-                      },
-                      "principalEntityId": {
-                        "type": "string",
-                        "description": "Your assigned DLT principal entity ID.",
-                        "maxLength": 30,
-                        "minLength": 0
-                      },
-                      "teleMarketerId": {
-                        "type": "string",
-                        "description": "Your assigned Telemarketer ID (required for Aggregators).",
-                        "maxLength": 255,
-                        "minLength": 0
-                      }
-                    }
-                  }
-                ],
-                "description": "Distributed Ledger Technology (DLT) specific parameters required for sending SMS to phone numbers registered in India."
-              }
-            }
-          }
-        ],
-        "description": "Region specific parameters, often specified by local laws. Use this if country or region that you are sending SMS to requires some extra parameters."
-      },
       "repeatDTMF": {
         "type": "string",
         "description": "In case PIN message is sent by Voice, DTMF code will enable replaying the message."
@@ -258,7 +182,8 @@
     "messageText must contain the {{pin}} placeholder; Infobip generates the PIN and inserts it there.",
     "One-time setup after create_2fa_application (appId = its applicationId). Store the returned messageId: send_2fa_pin_sms needs applicationId and messageId.",
     "senderId is the name that appears as the sender of the 2FA message.",
-    "Errors on this endpoint are { requestError: { serviceException: { messageId, text } } } — not the errorCode shape of the SMS v3 endpoints."
+    "Errors on this endpoint are { requestError: { serviceException: { messageId, text } } } — not the errorCode shape of the SMS v3 endpoints.",
+    "Not described here: regional.indiaDlt (in the request and the response). Infobip's OpenAPI: «Distributed Ledger Technology (DLT) specific parameters required for sending SMS to phone numbers registered in India.» That is outside this registry's African scope; see Infobip's API reference to send there."
   ],
   "evidence": {
     "source_url": "https://api.infobip.com/platform/1/openapi",
