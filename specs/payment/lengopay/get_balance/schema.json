@@ -35,19 +35,19 @@
     "method": "GET",
     "url": "https://portal.lengopay.com/api/getbalance/{websiteId}"
   },
-  "example_prompt": "Check my LengoPay account balance.",
-  "input_schema": {
-    "type": "object",
-    "required": [
-      "websiteId"
-    ],
-    "properties": {
-      "websiteId": {
-        "type": "string",
-        "description": "Unique site identifier (Site ID in the LengoPay dashboard). Embedded in the path."
-      }
+  "parameters": [
+    {
+      "name": "websiteId",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string"
+      },
+      "description": "Unique site identifier (Site ID in the LengoPay dashboard). Embedded in the path."
     }
-  },
+  ],
+  "example_prompt": "Check my LengoPay account balance.",
+  "input_schema": {},
   "response_schema": {
     "type": "object",
     "properties": {
@@ -77,5 +77,8 @@
   "gotchas": [
     "balance is returned as a string (e.g. \"7792\"), not a number — use parseFloat(balance) before any calculation.",
     "The URL has no /v1/ prefix, unlike the other LengoPay endpoints (e.g. /api/getbalance/ and not /api/v1/getbalance/)."
+  ],
+  "open_questions": [
+    "LengoPay API docs are not public (lengopay.com and portal.lengopay.com/docs answer 403): the type of the websiteId path segment ({\"type\": \"string\"} here) and whether status \"Success\" is the only value that means the balance request succeeded could not be checked against them."
   ]
 }
