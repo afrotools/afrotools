@@ -51,18 +51,18 @@ export async function createContact(
 /*
 Usage example:
 
-// Contact minimal
+// Minimal contact
 const contact = await createContact({ numero: "224XXXXXXXXX" });
 
-// Contact avec nom et groupes
+// Contact with name and groups
 const contact2 = await createContact({
   numero: "224XXXXXXXXX",
   name: "Mamadou Diallo",
-  groups: ["Clients", "Newsletter"], // groupes doivent exister dans le compte
+  groups: ["Clients", "Newsletter"], // groups must exist in the account
 });
 
 console.log(`Contact créé : ${contact2.numero}`);
 
-// 'numero' doit inclure l'indicatif pays sans '+' (224 pour la Guinée)
-// Utiliser list_groups pour récupérer les noms de groupes exacts
+// 'numero' must include the country code without '+' (224 for Guinea)
+// Use list_groups to retrieve the exact group names
 */

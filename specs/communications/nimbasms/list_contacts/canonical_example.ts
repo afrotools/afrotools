@@ -65,5 +65,5 @@ for (const contact of page.results) {
   console.log(`${contact.numero} — ${contact.name}`);
 }
 
-// Paginer sur toutes les pages en suivant 'next'
+// Paginate through all pages by following 'next'
 */

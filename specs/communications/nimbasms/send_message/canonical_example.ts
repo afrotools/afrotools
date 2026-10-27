@@ -56,17 +56,17 @@ export async function sendMessage(
 /*
 Usage example:
 
-// Retourne HTTP 201 Created
+// Returns HTTP 201 Created
 const result = await sendMessage({
-  to: ["623XXXXXX", "224623XXXXXX", "+224623XXXXXX"], // trois formats acceptés
+  to: ["623XXXXXX", "224623XXXXXX", "+224623XXXXXX"], // three accepted formats
   message: "Votre commande #123 a été confirmée.",
-  sender_name: "MonApp", // case-sensitive, statut 'accepted' requis
+  sender_name: "MonApp", // case-sensitive, status 'accepted' required
 });
 
 console.log(`messageid : ${result.messageid}`);
 console.log(`SMS consommés : ${result.message_cost}`);
 
-// Utiliser result.messageid avec get_message pour suivre le statut par destinataire
-// Maximum 30 destinataires par requête, message max 665 chars (5 SMS)
-// sender_name doit avoir statut 'accepted' dans list_sendernames (pas 'pending' ni 'refused')
+// Use result.messageid with get_message to track the per-recipient status
+// Maximum 30 recipients per request, message max 665 chars (5 SMS)
+// sender_name must have status 'accepted' in list_sendernames (not 'pending' or 'refused')
 */

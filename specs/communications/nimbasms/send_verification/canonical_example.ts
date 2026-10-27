@@ -14,7 +14,7 @@ const credentials = btoa(`${NIMBASMS_SERVICE_ID}:${NIMBASMS_SECRET_TOKEN}`);
 
 interface SendVerificationInput {
   to: string;
-  sender_name: string; // obligatoire
+  sender_name: string; // required
   channel?: "sms" | "whatsapp" | "email";
   message?: string;
   expiry_time?: number | null;
@@ -58,15 +58,15 @@ Usage example:
 
 const verification = await sendVerification({
   to: "+224623XXXXXX",
-  sender_name: "MonApp", // OBLIGATOIRE et case-sensitive (statut 'accepted')
-  message: "Votre code de vérification est : <1234>", // <1234> obligatoire
+  sender_name: "MonApp", // REQUIRED and case-sensitive (status 'accepted')
+  message: "Votre code de vérification est : <1234>", // <1234> required
   expiry_time: 10,  // 10 minutes (5-30)
-  attempts: 3,      // 3 tentatives max (3-10)
-  code_length: 6,   // code à 6 chiffres (4-8)
+  attempts: 3,      // 3 attempts max (3-10)
+  code_length: 6,   // 6-digit code (4-8)
 });
 
 console.log(`verificationid : ${verification.verificationid}`);
-// Stocker verificationid côté serveur pour appeler verify_code
-// Ne jamais exposer verificationid côté client
-// verification.code est retourné dans la réponse — uniquement pour les tests
+// Store verificationid server-side to call verify_code
+// Never expose verificationid client-side
+// verification.code is returned in the response — for testing only
 */

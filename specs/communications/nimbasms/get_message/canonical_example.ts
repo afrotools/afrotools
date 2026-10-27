@@ -23,7 +23,7 @@ interface MessageResponse {
   sender_name: string;
   message: string;
   status: "pending" | "sent" | "failure";
-  sent_at: number; // Unix timestamp en secondes
+  sent_at: number; // Unix timestamp in seconds
   message_cost: number;
   numbers: DeliveryStatus[];
 }
@@ -52,19 +52,19 @@ export async function getMessage(messageId: string): Promise<MessageResponse> {
 /*
 Usage example:
 
-// messageId = messageid retourné par send_message
+// messageId = messageid returned by send_message
 const message = await getMessage("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx");
 
-// sent_at est un Unix timestamp (secondes) — pas une date ISO
+// sent_at is a Unix timestamp (seconds) — not an ISO date
 const sentDate = new Date(message.sent_at * 1000);
 console.log(`Envoyé le : ${sentDate.toISOString()}`);
 
-// Statut par destinataire dans numbers[]
+// Per-recipient status in numbers[]
 for (const delivery of message.numbers) {
   console.log(`${delivery.contact}: ${delivery.status}`);
-  // 'received' = livré, 'sent' = envoyé mais non confirmé, 'failure' = échec
+  // 'received' = delivered, 'sent' = sent but not confirmed, 'failure' = failed
 }
 
-// Le statut global 'sent' ne signifie pas que tous les destinataires ont reçu le SMS
-// Inspecter numbers[] pour le statut individuel
+// The overall 'sent' status does not mean all recipients received the SMS
+// Inspect numbers[] for the individual status
 */

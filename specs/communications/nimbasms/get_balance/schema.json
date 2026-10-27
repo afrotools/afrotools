@@ -38,24 +38,24 @@
     "properties": {
       "sid": {
         "type": "string",
-        "description": "Identifiant unique du compte (SID)."
+        "description": "Unique account identifier (SID)."
       },
       "sms_balance": {
         "type": "integer",
-        "description": "Solde SMS disponible (en nombre de SMS). Utiliser ce champ — 'balance' est deprecated."
+        "description": "Available SMS balance (in number of SMS). Use this field — 'balance' is deprecated."
       },
       "whatsapp_balance": {
         "type": "integer",
-        "description": "Solde WhatsApp disponible."
+        "description": "Available WhatsApp balance."
       },
       "webhook_url": {
         "type": "string",
         "format": "uri",
-        "description": "URL webhook configurée pour les notifications de statut SMS."
+        "description": "Webhook URL configured for SMS status notifications."
       },
       "balance": {
         "type": "integer",
-        "description": "DEPRECATED — Utiliser sms_balance à la place."
+        "description": "DEPRECATED — Use sms_balance instead."
       }
     }
   },
@@ -64,14 +64,14 @@
     "properties": {
       "detail": {
         "type": "string",
-        "description": "Erreur générale (ex: 401 unauthorized)."
+        "description": "General error (e.g. 401 unauthorized)."
       }
     }
   },
   "gotchas": [
-    "Le champ 'balance' est DEPRECATED — utiliser 'sms_balance' pour le solde SMS. Les deux sont retournés mais 'balance' sera supprimé dans une future version.",
-    "sms_balance est en nombre de SMS (unités), pas en GNF. Un solde de 100 signifie 100 SMS disponibles.",
-    "Vérifier le solde avant tout envoi groupé — un solde insuffisant retourne une erreur 400 avec le champ 'solde' dans la réponse d'erreur de send_message."
+    "The 'balance' field is DEPRECATED — use 'sms_balance' for the SMS balance. Both are returned but 'balance' will be removed in a future version.",
+    "sms_balance is in number of SMS (units), not in GNF. A balance of 100 means 100 SMS available.",
+    "Check the balance before any bulk send — an insufficient balance returns a 400 error with the 'solde' field in send_message's error response."
   ],
   "open_questions": [
     "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."

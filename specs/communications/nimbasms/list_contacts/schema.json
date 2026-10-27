@@ -35,12 +35,12 @@
       "limit": {
         "type": "integer",
         "minimum": 1,
-        "description": "Nombre maximum de contacts à retourner."
+        "description": "Maximum number of contacts to return."
       },
       "offset": {
         "type": "integer",
         "minimum": 0,
-        "description": "Décalage pour la pagination."
+        "description": "Pagination offset."
       }
     }
   },
@@ -49,21 +49,21 @@
     "properties": {
       "count": {
         "type": "integer",
-        "description": "Nombre total de contacts."
+        "description": "Total number of contacts."
       },
       "next": {
         "type": [
           "string",
           "null"
         ],
-        "description": "URL de la page suivante ou null."
+        "description": "URL of the next page, or null."
       },
       "previous": {
         "type": [
           "string",
           "null"
         ],
-        "description": "URL de la page précédente ou null."
+        "description": "URL of the previous page, or null."
       },
       "results": {
         "type": "array",
@@ -72,18 +72,18 @@
           "properties": {
             "numero": {
               "type": "string",
-              "description": "Numéro de téléphone du contact."
+              "description": "Contact's phone number."
             },
             "name": {
               "type": "string",
-              "description": "Nom du contact."
+              "description": "Contact name."
             },
             "groups": {
               "type": "array",
               "items": {
                 "type": "string"
               },
-              "description": "Groupes auxquels appartient le contact."
+              "description": "Groups the contact belongs to."
             }
           }
         }
@@ -95,13 +95,13 @@
     "properties": {
       "detail": {
         "type": "string",
-        "description": "Erreur générale (ex: 401 unauthorized)."
+        "description": "General error (e.g. 401 unauthorized)."
       }
     }
   },
   "gotchas": [
-    "La réponse est paginée. Utiliser 'limit' et 'offset' pour naviguer entre les pages — le champ 'next' contient l'URL complète de la page suivante.",
-    "Le SDK NimbaSMS strip les champs 'count', 'next', 'previous' de la réponse et ne retourne que 'results'. En appelant l'API directement, la réponse brute contient tous ces champs."
+    "The response is paginated. Use 'limit' and 'offset' to navigate between pages — the 'next' field contains the full URL of the next page.",
+    "The NimbaSMS SDK strips the 'count', 'next', 'previous' fields from the response and returns only 'results'. When calling the API directly, the raw response contains all of these fields."
   ],
   "open_questions": [
     "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."

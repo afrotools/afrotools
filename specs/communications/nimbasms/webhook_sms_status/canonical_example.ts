@@ -26,18 +26,18 @@ interface WebhookAck {
 export async function handleSmsStatusWebhook(
   payload: SmsStatusWebhookPayload
 ): Promise<WebhookAck> {
-  // Valider que le message existe dans votre système
-  // avant tout traitement (NimbaSMS ne signe pas les requêtes)
+  // Validate that the message exists in your system
+  // before any processing (NimbaSMS does not sign requests)
   const { messageid, status, contact } = payload;
 
-  // Traitement asynchrone recommandé — retourner 200 immédiatement
-  // pour éviter un retry de NimbaSMS (max 3 tentatives)
+  // Asynchronous processing recommended — return 200 immediately
+  // to avoid a retry from NimbaSMS (max 3 attempts)
   setImmediate(async () => {
     if (status === "received") {
-      // Marquer la livraison confirmée pour ce contact
+      // Mark the delivery as confirmed for this contact
       console.log(`SMS ${messageid} livré à ${contact}`);
     } else if (status === "failed") {
-      // Gérer l'échec de livraison
+      // Handle the delivery failure
       console.log(`SMS ${messageid} en échec pour ${contact}`);
     }
   });
@@ -53,14 +53,14 @@ const app = express();
 app.use(express.json());
 
 app.post("/webhooks/sms-status", async (req, res) => {
-  // Retourner 200 immédiatement — NimbaSMS retry jusqu'à 3x si pas de 200
+  // Return 200 immediately — NimbaSMS retries up to 3x if no 200
   res.json({ status: "OK" });
 
   const payload = req.body as SmsStatusWebhookPayload;
 
-  // Valider que le messageid est connu
+  // Validate that the messageid is known
   const message = await db.messages.findOne({ messageid: payload.messageid });
-  if (!message) return; // requête frauduleuse ou doublon
+  if (!message) return; // fraudulent request or duplicate
 
   if (payload.status === "received") {
     await db.messages.updateDeliveryStatus(payload.messageid, payload.contact, "delivered");
@@ -69,8 +69,8 @@ app.post("/webhooks/sms-status", async (req, res) => {
   }
 });
 
-// Configuration : dashboard NimbaSMS > API KEYS > Webhooks
-// Entrer l'URL de votre endpoint (ex: https://votre-app.com/webhooks/sms-status)
-// Un seul webhook URL par compte
-// NimbaSMS envoie un événement par destinataire (contact)
+// Configuration: NimbaSMS dashboard > API KEYS > Webhooks
+// Enter your endpoint URL (e.g. https://votre-app.com/webhooks/sms-status)
+// Only one webhook URL per account
+// NimbaSMS sends one event per recipient (contact)
 */

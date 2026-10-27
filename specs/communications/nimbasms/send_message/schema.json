@@ -45,17 +45,17 @@
         },
         "minItems": 1,
         "maxItems": 30,
-        "description": "Numéros destinataires. Trois formats acceptés : local (623XXXXXX), avec indicatif (224623XXXXXX), ou E.164 (+224623XXXXXX). Maximum 30 contacts par requête."
+        "description": "Recipient numbers. Three accepted formats: local (623XXXXXX), with dialing code (224623XXXXXX), or E.164 (+224623XXXXXX). Maximum 30 contacts per request."
       },
       "message": {
         "type": "string",
         "maxLength": 665,
-        "description": "Contenu du message à envoyer. Maximum 665 caractères (5 SMS). Utiliser le simulateur https://simulator.nimbasms.com/ pour calculer le coût."
+        "description": "Content of the message to send. Maximum 665 characters (5 SMS). Use the simulator https://simulator.nimbasms.com/ to calculate the cost."
       },
       "sender_name": {
         "type": "string",
         "maxLength": 30,
-        "description": "Nom d'expéditeur approuvé (case-sensitive). Doit correspondre exactement à un sender name avec statut 'accepted' dans votre compte."
+        "description": "Approved sender name (case-sensitive). Must exactly match a sender name with status 'accepted' in your account."
       },
       "channel": {
         "type": "string",
@@ -65,7 +65,7 @@
           "email"
         ],
         "default": "sms",
-        "description": "Canal d'envoi. Défaut: 'sms'."
+        "description": "Sending channel. Default: 'sms'."
       }
     }
   },
@@ -80,16 +80,16 @@
       "messageid": {
         "type": "string",
         "format": "uuid",
-        "description": "Identifiant unique du message. Utiliser avec get_message pour suivre le statut de livraison."
+        "description": "Unique message identifier. Use with get_message to track the delivery status."
       },
       "message_cost": {
         "type": "integer",
-        "description": "Nombre de SMS consommés (longueur du message en nombre de SMS × nombre de destinataires)."
+        "description": "Number of SMS consumed (message length in number of SMS × number of recipients)."
       },
       "url": {
         "type": "string",
         "format": "uri",
-        "description": "URL pour récupérer les détails du message (GET /v1/messages/{messageid})."
+        "description": "URL to retrieve the message details (GET /v1/messages/{messageid})."
       }
     }
   },
@@ -98,28 +98,28 @@
     "properties": {
       "detail": {
         "type": "string",
-        "description": "Erreur générale (ex: compte sans privilèges d'envoi, solde insuffisant)."
+        "description": "General error (e.g. account without sending privileges, insufficient balance)."
       },
       "sender_name": {
         "type": "string",
-        "description": "Erreur sur le champ sender_name (ex: 'Sender Name invalide.')."
+        "description": "Error on the sender_name field (e.g. 'Sender Name invalide.')."
       },
       "solde": {
         "type": "string",
-        "description": "Erreur de solde insuffisant (ex: 'Le solde de votre compte est insuffisant.')."
+        "description": "Insufficient balance error (e.g. 'Le solde de votre compte est insuffisant.')."
       },
       "to": {
         "type": "string",
-        "description": "Erreur sur les destinataires (ex: 'Aucun numéro valide fourni.')."
+        "description": "Error on the recipients (e.g. 'Aucun numéro valide fourni.')."
       }
     }
   },
   "gotchas": [
-    "sender_name est case-sensitive et doit correspondre exactement à un nom avec statut 'accepted' retourné par list_sendernames. 'active' n'est pas un statut valide — c'est 'accepted'.",
-    "Le champ 'to' accepte trois formats interchangeables : local (623XXXXXX), avec indicatif pays (224623XXXXXX), ou E.164 (+224623XXXXXX). Maximum 30 destinataires par requête.",
-    "Le message est limité à 665 caractères (5 SMS). Au-delà de 160 caractères, message_cost augmente proportionnellement. Utiliser le simulateur pour estimer avant l'envoi.",
-    "La réponse HTTP est 201 Created (pas 200). La réponse ne contient que messageid, message_cost et url — les détails complets (statut par destinataire) sont dans GET /v1/messages/{messageid}.",
-    "Les erreurs 400 retournent des champs avec des valeurs string (pas tableau) : sender_name, solde, to, detail. Vérifier le solde avec get_balance avant un envoi groupé."
+    "sender_name is case-sensitive and must exactly match a name with status 'accepted' returned by list_sendernames. 'active' is not a valid status — it is 'accepted'.",
+    "The 'to' field accepts three interchangeable formats: local (623XXXXXX), with country code (224623XXXXXX), or E.164 (+224623XXXXXX). Maximum 30 recipients per request.",
+    "The message is limited to 665 characters (5 SMS). Beyond 160 characters, message_cost increases proportionally. Use the simulator to estimate before sending.",
+    "The HTTP response is 201 Created (not 200). The response contains only messageid, message_cost and url — the full details (per-recipient status) are in GET /v1/messages/{messageid}.",
+    "400 errors return fields with string values (not arrays): sender_name, solde, to, detail. Check the balance with get_balance before a bulk send."
   ],
   "open_questions": [
     "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."
