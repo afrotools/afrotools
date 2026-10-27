@@ -130,10 +130,11 @@
     "Use the SECRET key (kdvs_*), not the public key — using the wrong key returns 401.",
     "reference is passed as a path parameter: GET /api/v1/transactions/verify/{reference}, not in the request body.",
     "Check both conditions before fulfilling: top-level status === 'success' AND data.status === 'paid'. Checking only data.status is not sufficient — an invalid reference can return a non-success top-level status.",
-    "Pass the reference directly as a path segment — do not URL-encode it. The format KDV-* contains only safe characters.",
+    "The reference comes from the browser (onSuccess callback or callback_url redirect), so validate it server-side before putting it in the path: a visitor can send \"../…\" and make this call, with your secret key, reach another endpoint. The docs give no format (only the example KDV-1775413916000), so the example rejects an empty value, \".\", \"..\", and any /, \\, ?, #, %, space or control character.",
     "mode: 'test' appears in sandbox responses — check this field to distinguish test vs live transactions."
   ],
   "open_questions": [
+    "Reference format: the docs only show the example \"https://pay.kadev.ci/api/v1/transactions/verify/KDV-1775413916000\" — which characters and length can a reference have (e.g. KDV- followed by digits only)? Until then the example applies only a generic path-segment guard.",
     "Sandbox: provider.json says a sandbox exists and responses carry mode: \"test\", but no sandbox host is documented here — same host with test keys, or another host?"
   ]
 }

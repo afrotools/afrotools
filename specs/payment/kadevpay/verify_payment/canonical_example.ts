@@ -32,7 +32,15 @@ interface KadevPayError {
   message: string;
 }
 
+// The reference comes from the browser (onSuccess, callback_url): a visitor can send "../…" and
+// make this call, with your secret key, hit another endpoint. The docs give no format, so reject
+// anything that could leave the path segment (tab and newline are stripped by URL parsing, "." is dropped).
+function assertPathSegment(value: string): void {
+  if (/^\.?$|\.\.|[\x00-\x20\/\\?#%]/.test(value)) throw new Error(`Invalid KadevPay reference: ${JSON.stringify(value)}`);
+}
+
 export async function verifyPayment(reference: string): Promise<VerifyPaymentResponse> {
+  assertPathSegment(reference);
   const response = await fetch(
     `https://pay.kadev.ci/api/v1/transactions/verify/${reference}`,
     {

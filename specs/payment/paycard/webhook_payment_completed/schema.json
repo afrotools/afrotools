@@ -9,7 +9,7 @@
     "environment": "production",
     "at": "2026-04-06",
     "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:3cb98948b4c498dd530b4615ba27c3ecb3e4bd1d1b499e199ee2dbfec717e66b"
+    "spec_hash": "sha256:36c5e73eaa920ebdb17addab8176120facf2ec41f7a2756221298f6b090daff6"
   },
   "currency": [
     "GNF"
@@ -41,6 +41,10 @@
     "Never fulfill an order based on the webhook payload alone. Always call verify_payment (GET /epay/{c}/{ref}/status) with the operation reference to confirm server-side. Check that status?.toLowerCase() === 'success' — code: 0 alone does not confirm payment.",
     "Return HTTP 200 immediately. Paycard does not retry failed webhook deliveries — if your handler throws or times out, the notification is lost.",
     "Paycard sends no webhook signature. Anyone who knows your callback URL can POST to it. The only safe verification is calling verify_payment with the API key.",
+    "The reference arrives in an unsigned POST body (or the query string with paycard-redirect-with-get), so validate it server-side before putting it in the /epay/{c}/{ref}/status path: a visitor can send \"../…\" and make this call, with your API key, reach another endpoint. No format is documented here, so the example rejects an empty value, \".\", \"..\", and any /, \\, ?, #, %, space or control character.",
     "If create_payment was called with paycard-redirect-with-get: 'on', Paycard sends a browser GET redirect instead of this server-to-server POST. In that case, your callback route must handle GET (not POST) and extract operation_reference from the query string."
+  ],
+  "open_questions": [
+    "Format of operation_reference: Paycard's docs are not public and this spec quotes none (the example shows 2604-PR700IACRG) — which characters and length can it have? Until then the example applies only a generic path-segment guard."
   ]
 }
