@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-24",
-    "spec_hash": "sha256:60730f03ddc7ef05ebdf9b7beab3abedafd2161f61dd5d3e36089ccaa9131556"
+    "spec_hash": "sha256:8b8e42b8adb35dccc31b10b7237e857febd47ced04213fdf48e78d3628fed0fa"
   },
   "auth": {
     "type": "api_key",
@@ -61,6 +61,16 @@
     "method": "POST",
     "url": "https://api.smileidentity.com/v3/aml/sync"
   },
+  "parameters": [
+    {
+      "name": "SmileID-Idempotency-Key",
+      "in": "header",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Opaque key, 16 to 128 characters of `A-Z a-z 0-9 - _`, that makes a submission safe to repeat. The job id is derived from it, so a request carrying a key you have already used resolves to that same job: it returns the original result and screens — and bills — nothing a second time. Send one whenever you might retry, since a retry without a key starts a new, separately billed screening."
+    }
+  ],
   "example_prompt": "Screen a person's full name against sanctions, PEP and adverse-media lists and get the One-Time AML result in the same HTTP response, without hosting a webhook.",
   "input_schema": {
     "type": "object",

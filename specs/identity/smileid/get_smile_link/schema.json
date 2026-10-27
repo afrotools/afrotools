@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-24",
-    "spec_hash": "sha256:974636aa17be2b64bbbbe847a77cc585d0a65a7d45c7d3b331d45878830cb7ec"
+    "spec_hash": "sha256:78686281be46b970e61580ca372f2d656ab608247203131c60f3086ed76394ba"
   },
   "auth": {
     "type": "api_key",
@@ -61,19 +61,22 @@
     "method": "GET",
     "url": "https://api.smileidentity.com/v3/smile_links/{refId}"
   },
+  "parameters": [
+    {
+      "name": "refId",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "The link's id, returned as `ref_id` at creation. Passed as a path parameter."
+    }
+  ],
   "example_prompt": "Fetch a Smile Link by its ref_id to check its configuration, expiry and whether it is disabled.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "refId"
-    ],
-    "properties": {
-      "refId": {
-        "type": "string",
-        "format": "uuid",
-        "description": "The link's id, returned as `ref_id` at creation. Passed as a path parameter."
-      }
-    }
+    "properties": {}
   },
   "response_schema": {
     "type": "object",
