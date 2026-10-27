@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:35f1418fb435844c9d03cafaf29ada4b3389a4bf8e8a3931bc93b86495148597"
+    "spec_hash": "sha256:e261f66e4f60e7ee8f5d9de080b225dae7658c36e580f00fb3a3a5397c1f274c"
   },
   "currency": [
     "XOF",
@@ -48,6 +48,17 @@
     "url": "https://api.saspay.me/api/v1/payments/{payment_id}/verify/",
     "method": "GET"
   },
+  "parameters": [
+    {
+      "name": "payment_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
   "example_prompt": "Verify a SasPay payment server-side before delivering the order.",
   "input_schema": {},
   "response_schema": {
@@ -192,6 +203,10 @@
         "type": "number"
       }
     }
+  },
+  "success_condition": {
+    "field": "success",
+    "equals": true
   },
   "error_schema": {
     "type": "object",

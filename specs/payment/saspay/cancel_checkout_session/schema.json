@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:ff5852e297cbfc87f9d1147c57ae2007b8af6659be9c3867b9282093510216c6"
+    "spec_hash": "sha256:4526516e696cbdd3480014b89f56cdf0ea138af1f16f242914b94f3ee0358d22"
   },
   "currency": [
     "XOF",
@@ -48,6 +48,17 @@
     "method": "POST",
     "url": "https://api.saspay.me/api/v1/checkout-sessions/{id}/cancel/"
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
   "example_prompt": "Cancel the pending SasPay checkout session for order #1042 before the customer pays.",
   "input_schema": {
     "type": "object",
@@ -128,6 +139,10 @@
         "type": "number"
       }
     }
+  },
+  "success_condition": {
+    "field": "success",
+    "equals": true
   },
   "error_schema": {
     "type": "object",

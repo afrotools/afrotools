@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:f30a18bcebecbaa9f42df935205b730e2a16d043f70d177673d2de6a01be1184"
+    "spec_hash": "sha256:3178316a073de56ef6df2dbec7374e567532f097de08dcd637ef3aaf29a9a4c6"
   },
   "currency": [
     "XOF",
@@ -48,6 +48,18 @@
     "url": "https://api.saspay.me/api/v1/payments/softpay/",
     "method": "POST"
   },
+  "parameters": [
+    {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+        "type": "string",
+        "maxLength": 255
+      },
+      "description": "Unique key you generate for this attempt (e.g. a UUID). Optional: without it every call is a new request. Resending the same key (after a timeout or network cut) returns the original response instead of creating a second operation; the same key with a different body returns 409."
+    }
+  ],
   "example_prompt": "Charge my customer by mobile money with SasPay from my checkout.",
   "input_schema": {
     "type": "object",
@@ -174,6 +186,10 @@
         "type": "number"
       }
     }
+  },
+  "success_condition": {
+    "field": "success",
+    "equals": true
   },
   "error_schema": {
     "type": "object",

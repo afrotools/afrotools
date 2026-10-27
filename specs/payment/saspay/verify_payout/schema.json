@@ -42,6 +42,17 @@
     "url": "https://api.saspay.me/api/v1/payouts/{payout_id}/verify/",
     "method": "GET"
   },
+  "parameters": [
+    {
+      "name": "payout_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
   "example_prompt": "Check whether a SasPay payout reached the beneficiary.",
   "input_schema": {},
   "response_schema": {
@@ -133,6 +144,10 @@
         "type": "number"
       }
     }
+  },
+  "success_condition": {
+    "field": "success",
+    "equals": true
   },
   "error_schema": {
     "type": "object",

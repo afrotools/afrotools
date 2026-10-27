@@ -42,6 +42,17 @@
     "url": "https://api.saspay.me/api/v1/payments/{payment_id}/confirm-otp/",
     "method": "POST"
   },
+  "parameters": [
+    {
+      "name": "payment_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
   "example_prompt": "Ask the customer for the SMS code and confirm their pending SasPay payment with it.",
   "input_schema": {
     "type": "object",
@@ -80,6 +91,10 @@
       }
     }
   },
+  "success_condition": {
+    "field": "success",
+    "equals": true
+  },
   "error_schema": {
     "type": "object",
     "properties": {
@@ -108,7 +123,8 @@
     "409 means the transaction cannot be confirmed in its current state (not_pending, no_gateway, no_attempt): check it with verify_payment instead of retrying the OTP."
   ],
   "open_questions": [
-    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
+    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set.",
+    "Is a retried confirm-otp call safe? The OpenAPI declares no Idempotency-Key header on POST /payments/{payment_id}/confirm-otp/, and the Idempotence section of the API reference does not list this route among the money-moving ones."
   ],
   "evidence": {
     "spans": [

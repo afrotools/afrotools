@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:92f84b63624fc2c2a42a67b1a80cef12a219b333f3f2c2620d7b0ba14db2a169"
+    "spec_hash": "sha256:8c0a438ff4943ae5d580f48db2f9f909ff805930c39d1b7391e3b5d67359f955"
   },
   "currency": [
     "XOF",
@@ -48,6 +48,17 @@
     "url": "https://api.saspay.me/api/v1/checkout-sessions/{id}/status/",
     "method": "GET"
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
   "example_prompt": "Check whether a SasPay checkout session was paid before fulfilling the order.",
   "input_schema": {},
   "response_schema": {
@@ -83,6 +94,10 @@
         "type": "number"
       }
     }
+  },
+  "success_condition": {
+    "field": "success",
+    "equals": true
   },
   "error_schema": {
     "type": "object",

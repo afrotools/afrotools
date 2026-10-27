@@ -42,6 +42,18 @@
     "url": "https://api.saspay.me/api/v1/payouts/initialize/",
     "method": "POST"
   },
+  "parameters": [
+    {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+        "type": "string",
+        "maxLength": 255
+      },
+      "description": "Unique key you generate for this attempt (e.g. a UUID). Optional: without it every call is a new request. Resending the same key (after a timeout or network cut) returns the original response instead of creating a second operation; the same key with a different body returns 409."
+    }
+  ],
   "example_prompt": "Pay out a seller's earnings to their mobile money account with SasPay.",
   "input_schema": {
     "type": "object",
@@ -155,6 +167,10 @@
         "type": "number"
       }
     }
+  },
+  "success_condition": {
+    "field": "success",
+    "equals": true
   },
   "error_schema": {
     "type": "object",
