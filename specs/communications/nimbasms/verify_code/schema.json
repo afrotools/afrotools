@@ -28,19 +28,25 @@
     "method": "PATCH",
     "url": "https://api.nimbasms.com/v1/verifications/{id}"
   },
+  "parameters": [
+    {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "Verification identifier returned by send_verification (verificationid field)."
+    }
+  ],
   "example_prompt": "Verify the OTP my user entered during phone verification.",
   "input_schema": {
     "type": "object",
     "required": [
-      "id",
       "code"
     ],
     "properties": {
-      "id": {
-        "type": "string",
-        "format": "uuid",
-        "description": "Verification identifier returned by send_verification (verificationid field)."
-      },
       "code": {
         "type": "integer",
         "minimum": 1000,
@@ -89,7 +95,8 @@
     "The 'id' field in the URL corresponds to the 'verificationid' field (not 'id') returned by send_verification.",
     "The 'too_many_attemps' status (with a single letter 't' in 'attempts') is a typo in the NimbaSMS API — handle this exact value in the code.",
     "Each wrong call decrements the attempt counter. Once exhausted (status: 'too_many_attemps'), the verification expires — create a new one via send_verification.",
-    "Never call this endpoint client-side — call it only server-side with the code entered by the user. An 'approved' status must immediately mark the number as verified in the database."
+    "Never call this endpoint client-side — call it only server-side with the code entered by the user. An 'approved' status must immediately mark the number as verified in the database.",
+    "A 200 response is not an approval: decide on status === \"approved\" (docs: \"approved : Demande de verification approuvée\"). Any other status (pending, expired, too_many_attemps…) means the number is not verified."
   ],
   "open_questions": [
     "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."

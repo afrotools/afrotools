@@ -28,36 +28,60 @@
     "method": "GET",
     "url": "https://api.nimbasms.com/v1/messages"
   },
+  "parameters": [
+    {
+      "name": "limit",
+      "in": "query",
+      "schema": {
+        "type": "integer"
+      },
+      "description": "Maximum number of messages to return."
+    },
+    {
+      "name": "offset",
+      "in": "query",
+      "schema": {
+        "type": "integer"
+      },
+      "description": "Pagination offset."
+    },
+    {
+      "name": "sent_at",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Filter messages sent exactly at this date and time."
+    },
+    {
+      "name": "sent_at__lte",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Filter messages sent before or at this date and time."
+    },
+    {
+      "name": "sent_at__gte",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Filter messages sent after or at this date and time."
+    },
+    {
+      "name": "status",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Filter by message status."
+    }
+  ],
   "example_prompt": "List SMS messages I sent this week via NimbaSMS.",
   "input_schema": {
     "type": "object",
-    "properties": {
-      "limit": {
-        "type": "integer",
-        "minimum": 1,
-        "description": "Maximum number of messages to return."
-      },
-      "offset": {
-        "type": "integer",
-        "minimum": 0,
-        "description": "Pagination offset."
-      },
-      "sent_at": {
-        "type": "string",
-        "format": "date-time",
-        "description": "Filter messages sent exactly at this date and time (ISO 8601)."
-      },
-      "sent_at__lte": {
-        "type": "string",
-        "format": "date-time",
-        "description": "Filter messages sent before or at this date and time (ISO 8601)."
-      },
-      "sent_at__gte": {
-        "type": "string",
-        "format": "date-time",
-        "description": "Filter messages sent after or at this date and time (ISO 8601)."
-      }
-    }
+    "properties": {}
   },
   "response_schema": {
     "type": "object",
@@ -129,10 +153,11 @@
   },
   "gotchas": [
     "The response is paginated — the 'count' field gives the total but 'results' contains only the current page. Use 'next' to iterate over all pages.",
-    "The sent_at__lte and sent_at__gte filters can be combined to define a date range. Dates must be in ISO 8601 format.",
+    "The sent_at__lte and sent_at__gte filters can be combined to define a date range. The accepted date format is not documented — see open_questions.",
     "Each item returned in 'results' includes a message_cost field indicating the number of SMS consumed for that message (length × recipients). Use this field for consumption reports."
   ],
   "open_questions": [
-    "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production."
+    "Sandbox: provider.json declares none and no gotcha documents a test environment — every call reaches production.",
+    "GET /v1/messages is absent from the NimbaSMS OpenAPI (https://developers.nimbasms.com/openapi): its query parameters come from the official SDKs — limit, offset, sent_at, sent_at__lte, sent_at__gte from nimbasms-node (https://github.com/nimbasms/nimbasms-node/blob/main/src/messages.js), which types sent_at* as plain strings, and status from nimbasms-cli (src/core/api.py). The accepted date format is not documented: the CLI test (tests/test_api_v2.py) sends a date only, YYYY-MM-DD (\"sent_at__gte\": \"2025-01-01\") — whether a full date-time is accepted is unknown."
   ]
 }
