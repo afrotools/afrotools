@@ -144,3 +144,44 @@ test("spec-diff: fields under additionalProperties, patternProperties, prefixIte
     "response_schema.pair.first",
   ]);
 });
+
+test("CI step: runs the base's spec-diff.js against the PR's base, not the PR's copy or today's main", () => {
+  const ci = fs.readFileSync(path.resolve(__dirname, "../.github/workflows/ci.yml"), "utf8");
+  const step = ci.split("\n  spec-diff:\n")[1].match(/run: \|\n([\s\S]*?)\n\s+env:/)[1];
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "spec-diff-"));
+  const git = (...args) => execFileSync("git", ["-c", "user.name=t", "-c", "user.email=t@t", ...args], { cwd: dir });
+  fs.mkdirSync(path.join(dir, "scripts"));
+  fs.copyFileSync(path.resolve(__dirname, "spec-diff.js"), path.join(dir, "scripts", "spec-diff.js"));
+  writeSpec(dir, "create_payment", {});
+  writeSpec(dir, "get_payment", {});
+  commitBase(dir);
+  // main moved on since the PR's base: a spec the PR has never seen
+  git("checkout", "-qb", "later");
+  writeSpec(dir, "refund_payment", {});
+  git("add", ".");
+  git("commit", "-qm", "later");
+  git("update-ref", "refs/remotes/origin/main", "HEAD");
+  // the PR (its merge commit, first parent = base): turns the check off, removes get_payment
+  git("checkout", "-q", "HEAD^");
+  fs.writeFileSync(path.join(dir, "scripts", "spec-diff.js"), "process.exit(0);\n");
+  fs.rmSync(path.join(dir, "specs", "payment", "fixtureprovider", "get_payment"), { recursive: true });
+  git("add", "-A");
+  git("commit", "-qm", "pr");
+  // gh: the PR has no label
+  const bin = fs.mkdtempSync(path.join(os.tmpdir(), "spec-diff-bin-"));
+  fs.writeFileSync(path.join(bin, "gh"), "#!/bin/sh\nexit 0\n", { mode: 0o755 });
+  const runStep = () => spawnSync("bash", ["-eo", "pipefail", "-c", step], {
+    cwd: dir, encoding: "utf8",
+    env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, RUNNER_TEMP: fs.mkdtempSync(path.join(os.tmpdir(), "spec-diff-tmp-")) },
+  });
+
+  const removed = runStep();
+  assert.equal(removed.status, 1);
+  assert.match(removed.stdout, /payment\/fixtureprovider\/get_payment/);
+  assert.doesNotMatch(removed.stdout, /refund_payment/);
+
+  writeSpec(dir, "get_payment", {});
+  git("add", "-A");
+  git("commit", "-q", "--amend", "-m", "pr");
+  assert.equal(runStep().status, 0);
+});

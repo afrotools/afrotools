@@ -156,19 +156,24 @@ jobs:
   # A removed capability or field breaks the integrations built on it: the PR needs the "breaking"
   # label (ATSS.md § Compatibility policy). Labels are read when the job runs, so re-running it after
   # setting the label is enough (a re-run keeps the event's original payload).
+  # The checkout is the PR merged into its base: compared with that base (HEAD^1), not with today's
+  # main, so specs merged since do not show up as removed on a re-run. The base's spec-diff.js runs
+  # (built-ins only), so a PR cannot edit the check it is judged by; the PR's own copy only while
+  # the base has none (the PR that adds it).
   spec-diff:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 2
       - name: Removed capabilities and fields need the breaking label
         run: |
+          git show HEAD^1:scripts/spec-diff.js > "$RUNNER_TEMP/spec-diff.js" || cp scripts/spec-diff.js "$RUNNER_TEMP/spec-diff.js"
           if gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json labels --jq '.labels[].name' | grep -qx breaking; then
-            node scripts/spec-diff.js origin/main --allow-breaking
+            node "$RUNNER_TEMP/spec-diff.js" HEAD^1 --allow-breaking
           else
-            node scripts/spec-diff.js origin/main
+            node "$RUNNER_TEMP/spec-diff.js" HEAD^1
           fi
         env:
           GH_TOKEN: ${{ github.token }}
