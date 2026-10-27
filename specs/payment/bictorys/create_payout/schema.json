@@ -31,6 +31,45 @@
     "method": "POST",
     "url": "https://api.bictorys.com/pay/v1/payouts"
   },
+  "parameters": [
+    {
+      "name": "payment_type",
+      "in": "query",
+      "schema": {
+        "type": "string",
+        "enum": [
+          "wave_money",
+          "orange_money",
+          "maxit",
+          "mtn_money",
+          "free_money",
+          "moov",
+          "mobicash",
+          "togocell",
+          "bictorys",
+          "card"
+        ]
+      },
+      "description": "The type parameter allows to select the payout service provider. E.g mtn_money, orange_money, wave_money, move_money"
+    },
+    {
+      "name": "idempotency-key",
+      "in": "header",
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "The value of this query parameter guarantees the idempotence of the operation. Several HTTP requests with the same request identified value are interpreted as the same request to be executed only once. This value may be generated randomly by the caller, but the same value should be used in case of retry."
+    },
+    {
+      "name": "X-Amzn-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string"
+      },
+      "description": "The parameter Identifies this HTTP request across all services. It helps to diagnostic request errors. The parameter is added automatically by the API gateway"
+    }
+  ],
   "example_prompt": "Send money to a mobile money account (Wave, Orange Money, MTN Money, etc.) as a single payout.",
   "input_schema": {
     "type": "object",
@@ -199,7 +238,7 @@
     }
   },
   "gotchas": [
-    "payment_type is a required query parameter. Append it to the URL: POST /pay/v1/payouts?payment_type=wave_money. Supported values: wave_money, orange_money, mtn_money, moov.",
+    "payment_type goes in the query string: POST /pay/v1/payouts?payment_type=wave_money. The API reference does not mark it required, but the integration guide always sends it (POST {BICTORYS_API_URL}/pay/v1/payouts?payment_type={type}). The reference enum has 10 values: wave_money, orange_money, maxit, mtn_money, free_money, moov, mobicash, togocell, bictorys, card.",
     "transactionType is required — omitting it causes a 500. Use \"payment\" for standard disbursements.",
     "idempotency-key header is effectively required — a missing idempotency-key is a known cause of 500 errors. Always send a UUID per request.",
     "merchant.secretCode is the operator-issued merchant PIN (e.g. your Orange Money or MTN merchant code) registered in Bictorys Dashboard → Entreprise → Préférences. Required when configured on your account — omitting it returns E400-37: Secret code is missing.",
@@ -210,5 +249,8 @@
     "A 400 error mentioning \"balance\" means Bictorys' own float is insufficient; a 400 error mentioning \"plafond\" or \"limit\" means the recipient's mobile money account hit its own operator-side ceiling — these are distinct failure modes and neither is retryable without merchant/recipient action.",
     "Set your HTTP client timeout to at least 30 seconds — payout processing is slower than charge creation.",
     "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com. Sandbox payouts do not send real money."
+  ],
+  "open_questions": [
+    "Does the API reject a payout without payment_type? The API reference does not mark it required; the integration guide always sends it."
   ]
 }

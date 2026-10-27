@@ -31,19 +31,22 @@
     "method": "GET",
     "url": "https://api.bictorys.com/pay/v1/transactions/{transactionId}/status"
   },
+  "parameters": [
+    {
+      "name": "transactionId",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "UUID of the transaction to verify. Obtained from create_charge (transactionId or chargeId field) or from the webhook payload (id field)."
+    }
+  ],
   "example_prompt": "Verify the status of a payment transaction to confirm it succeeded before fulfilling an order.",
   "input_schema": {
     "type": "object",
-    "required": [
-      "transactionId"
-    ],
-    "properties": {
-      "transactionId": {
-        "type": "string",
-        "format": "uuid",
-        "description": "UUID of the transaction to verify. Obtained from create_charge (transactionId or chargeId field) or from the webhook payload (id field)."
-      }
-    }
+    "properties": {}
   },
   "response_schema": {
     "type": "object",

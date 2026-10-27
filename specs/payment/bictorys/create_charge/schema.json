@@ -8,7 +8,7 @@
     "method": "app",
     "environment": "production",
     "at": "2026-10-24",
-    "spec_hash": "sha256:8ed788c48fec528f3b4b3ceef5d5cd72bb4ce2a1acaa44c35fe3bb1e15cfd25c"
+    "spec_hash": "sha256:88d608d321d0469d0e503608d7e20432868c98525e7e9f090d28e4c8700ab836"
   },
   "currency": [
     "XOF"
@@ -37,6 +37,44 @@
     "method": "POST",
     "url": "https://api.bictorys.com/pay/v1/charges"
   },
+  "parameters": [
+    {
+      "name": "payment_type",
+      "in": "query",
+      "schema": {
+        "type": "string",
+        "enum": [
+          "wave_money",
+          "orange_money",
+          "maxit",
+          "mtn_money",
+          "free_money",
+          "moov",
+          "mobicash",
+          "togocell",
+          "bictorys",
+          "card"
+        ]
+      },
+      "description": "Optional. The type of payment method to use. E.g card, mtn_money, orange_money, free_money. If the type is not provided, the customer will be redirected to Bictorys checkout page"
+    },
+    {
+      "name": "payment_category",
+      "in": "query",
+      "schema": {
+        "type": "string"
+      },
+      "description": "Only in the integration guide, not in the API reference: \"// Pour les cartes, ajouter payment_category=card\" and \"| Card SN / CI / BF | ✅ | &payment_category=card |\"."
+    },
+    {
+      "name": "X-Amzn-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string"
+      },
+      "description": "HTTP request identifier allow to trace individual request sent from client to service."
+    }
+  ],
   "example_prompt": "Initiate a mobile money or card payment and redirect the customer to complete checkout.",
   "input_schema": {
     "type": "object",
@@ -254,5 +292,8 @@
     "Orange Money Côte d'Ivoire requires an OTP: the customer must dial #144*82# on their phone to generate a 6-8 digit code, then pass it as the 'otp' field in the request body. The OTP expires quickly — if the charge fails with an OTP error, ask the user to redial.",
     "The request body field is 'errorRedirectUrl' (lowercase e) — Bictorys' own documentation example shows 'ErrorRedirectUrl' (capital E), which appears to be a doc typo; lowercase is confirmed working end-to-end in production (charge creation + successful webhook).",
     "HTTP 403 with an HTML body (not JSON) means AWS WAF is rate-limiting your requests. Implement exponential backoff with at least 5-second spacing between retries."
+  ],
+  "open_questions": [
+    "Is payment_category=card required for card charges? Only the integration guide mentions it; the API reference does not list it."
   ]
 }
