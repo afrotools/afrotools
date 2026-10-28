@@ -187,12 +187,12 @@
             "description": "Unique transaction identifier. Store before redirecting — required for verify_transaction."
           },
           "redirectUrl": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uri",
             "description": "URL to redirect the customer (mobile money confirmation page or card 3DS flow)."
           },
           "merchantReference": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "Echo of your merchantReference if provided."
           },
           "type": {
@@ -211,18 +211,19 @@
             "description": "Base64-encoded QR code image for mobile money confirmation."
           },
           "message": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "Optional human-readable instruction sent to the customer (e.g. \"You will receive an SMS with instructions\")."
           },
           "state": {
-            "type": "string",
+            "type": ["string", "null"],
             "enum": [
               "AWAIT_3DS",
               "PURCHASED",
               "CAPTURED",
               "AUTHORIZED",
               "FAILED",
-              "DECLINED"
+              "DECLINED",
+              null
             ],
             "description": "Card payment state. Present only for CardPaymentObject."
           },

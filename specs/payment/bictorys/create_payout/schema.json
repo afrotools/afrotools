@@ -209,8 +209,8 @@
         "type": "string"
       },
       "status": {
-        "type": "integer",
-        "description": "Payout status as an integer. 0 = success. Different from transaction status strings returned by verify_transaction."
+        "type": ["integer", "string"],
+        "description": "Payout status. Described as an integer (0 = success); the sandbox returns the string \"succeeded\" for a completed payout."
       },
       "createdAt": {
         "type": "string",
@@ -244,7 +244,7 @@
     "merchant.secretCode is the operator-issued merchant PIN (e.g. your Orange Money or MTN merchant code) registered in Bictorys Dashboard → Entreprise → Préférences. Required when configured on your account — omitting it returns E400-37: Secret code is missing.",
     "customerObject.phone is a string with a + and country code prefix, no spaces. Example: \"+221771234567\" for Senegal. Using a numeric type causes a 400 phone error.",
     "The response amount is a negative integer — money leaving the merchant account. Use Math.abs() if displaying to the user.",
-    "The response status field is an integer (0 = success), not a string like other Bictorys endpoints.",
+    "The response status field is described as an integer (0 = success), but the sandbox returns the string \"succeeded\" for a completed payout: accept both (status === 0 || status === \"succeeded\").",
     "Money transfer must be explicitly enabled for your merchant account. If not, Bictorys returns E400-28: Money transfer is not authorized for this merchant. Contact Bictorys support.",
     "A 400 error mentioning \"balance\" means Bictorys' own float is insufficient; a 400 error mentioning \"plafond\" or \"limit\" means the recipient's mobile money account hit its own operator-side ceiling — these are distinct failure modes and neither is retryable without merchant/recipient action.",
     "Set your HTTP client timeout to at least 30 seconds — payout processing is slower than charge creation.",
