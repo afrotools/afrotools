@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:8300b8c6b878c09a695806b766573e1594d8c716ef63fc49064a3921222d732e"
+    "spec_hash": "sha256:b5e73488596aed524921c6480f98d58688c88c8a0302c1f4b21101e4b6f04e45"
   },
   "currency": [
     "XOF",
@@ -189,7 +189,7 @@
           },
           "expires_at": {},
           "usage_limit": {
-            "type": "number"
+            "type": ["number", "null"]
           },
           "usage_count": {
             "type": "number"
@@ -227,7 +227,7 @@
             "type": "string"
           },
           "country": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "Preset country, null when none is set."
           },
           "admin_locked": {

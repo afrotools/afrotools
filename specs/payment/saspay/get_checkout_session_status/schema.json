@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:11527ed2c5a8d351038dac27cafdec8fa3e0e9b31e05694fcfe06c3cf21e40db"
+    "spec_hash": "sha256:8c84c1cdcf9eb117ea4fc43fc2ace6754a21e3064e489f1c7959f3bd09158fa5"
   },
   "currency": [
     "XOF",
@@ -80,13 +80,13 @@
             "type": "string"
           },
           "transaction_id": {
-            "type": "string"
+            "type": ["string", "null"]
           },
           "transaction_status": {
-            "type": "string"
+            "type": ["string", "null"]
           },
           "transaction_reference": {
-            "type": "string"
+            "type": ["string", "null"]
           }
         }
       },

@@ -579,6 +579,10 @@ def run(provider_slug, only_capability=None, raw_capability=None, report_path=No
 
         details = resp.get("details", "") if isinstance(resp, dict) else ""
         details = details if isinstance(details, str) else json.dumps(details)
+        # Providers put their error code in `details` (Bictorys) or in `error.code` (SasPay)
+        error = resp.get("error") if isinstance(resp, dict) else None
+        if not details and isinstance(error, dict) and isinstance(error.get("code"), str):
+            details = error["code"]
         is_acceptable_error = any(details.startswith(code) for code in step.get("acceptable_error_codes", []))
 
         # The call itself must succeed: comparing keys alone passed a step that got a 401
