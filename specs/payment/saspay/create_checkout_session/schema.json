@@ -151,7 +151,7 @@
             "type": "string"
           },
           "country": {
-            "type": "string"
+            "type": ["string", "null"]
           },
           "customer_email": {
             "type": "string"

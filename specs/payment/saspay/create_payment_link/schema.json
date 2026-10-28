@@ -189,7 +189,7 @@
           },
           "expires_at": {},
           "usage_limit": {
-            "type": "number"
+            "type": ["number", "null"]
           },
           "usage_count": {
             "type": "number"
@@ -227,7 +227,7 @@
             "type": "string"
           },
           "country": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "Preset country, null when none is set."
           },
           "admin_locked": {

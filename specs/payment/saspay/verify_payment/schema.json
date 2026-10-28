@@ -117,7 +117,7 @@
           },
           "pricing_rule": {},
           "merchant_pricing_rule": {
-            "type": "string"
+            "type": ["string", "null"]
           },
           "debited_amount": {
             "type": "string"

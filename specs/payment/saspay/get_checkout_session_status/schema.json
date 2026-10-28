@@ -80,13 +80,13 @@
             "type": "string"
           },
           "transaction_id": {
-            "type": "string"
+            "type": ["string", "null"]
           },
           "transaction_status": {
-            "type": "string"
+            "type": ["string", "null"]
           },
           "transaction_reference": {
-            "type": "string"
+            "type": ["string", "null"]
           }
         }
       },
