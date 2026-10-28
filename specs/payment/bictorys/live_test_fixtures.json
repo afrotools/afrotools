@@ -26,7 +26,7 @@
     },
     {
       "capability": "create_payout",
-      "query_params": { "payment_type": "maxit" },
+      "query_params": { "payment_type": "orange_money" },
       "body": {
         "amount": 10,
         "currency": "XOF",
@@ -34,7 +34,7 @@
         "customerId": "fbd2053b-638d-4133-957e-3caf63e6b79c",
         "customerObject": {
           "name": "John Dao",
-          "phone": "22177234567890",
+          "phone": "+221771234567",
           "email": "john.dao@example.com",
           "country": "SN",
           "locale": "fr-FR"
@@ -47,7 +47,8 @@
         }
       },
       "headers": {
-        "X-API-Key": "$env:BICTORYS_PRIVATE_KEY"
+        "X-API-Key": "$env:BICTORYS_PRIVATE_KEY",
+        "idempotency-key": "$uuid"
       },
       "acceptable_error_codes": ["E400-38"]
     }

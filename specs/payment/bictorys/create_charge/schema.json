@@ -8,7 +8,7 @@
     "method": "app",
     "environment": "production",
     "at": "2026-10-24",
-    "spec_hash": "sha256:81f3a4b8310197c621927732c33ec68b0c7bfef23b75c010fc7f54937eaf0e5d"
+    "spec_hash": "sha256:acb91e7fe4b7e6d4f915184189ff18ece486ca6864789e946789506afd14f80e"
   },
   "currency": [
     "XOF"
@@ -187,12 +187,12 @@
             "description": "Unique transaction identifier. Store before redirecting — required for verify_transaction."
           },
           "redirectUrl": {
-            "type": "string",
+            "type": ["string", "null"],
             "format": "uri",
             "description": "URL to redirect the customer (mobile money confirmation page or card 3DS flow)."
           },
           "merchantReference": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "Echo of your merchantReference if provided."
           },
           "type": {
@@ -211,18 +211,19 @@
             "description": "Base64-encoded QR code image for mobile money confirmation."
           },
           "message": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "Optional human-readable instruction sent to the customer (e.g. \"You will receive an SMS with instructions\")."
           },
           "state": {
-            "type": "string",
+            "type": ["string", "null"],
             "enum": [
               "AWAIT_3DS",
               "PURCHASED",
               "CAPTURED",
               "AUTHORIZED",
               "FAILED",
-              "DECLINED"
+              "DECLINED",
+              null
             ],
             "description": "Card payment state. Present only for CardPaymentObject."
           },

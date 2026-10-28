@@ -181,6 +181,13 @@ class TestLive(unittest.TestCase):
         self.assertEqual(self.run_with([(200, {"id": "pay_1"}), (200, {"id": "pay_1"})]), 1)
 
 
+class TestResolve(unittest.TestCase):
+    def test_uuid_is_a_fresh_uuid_on_every_call(self):
+        first, second = test_live.resolve("$uuid", {}, 1), test_live.resolve("$uuid", {}, 1)
+        self.assertNotEqual(first, second)
+        self.assertEqual(str(__import__("uuid").UUID(first)), first)
+
+
 class TestSpecHash(unittest.TestCase):
     def test_floats_are_written_as_json_stringify_writes_them(self):
         # validate.js hashes JSON.stringify(schema): a Python repr would change the hash.

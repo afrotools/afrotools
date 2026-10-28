@@ -24,6 +24,7 @@ import re
 import ssl
 import subprocess
 import sys
+import uuid
 import time
 import urllib.error
 import urllib.parse
@@ -256,6 +257,8 @@ def _resolve_scalar(val, stored, ts):
         return val
     if val == "$ts":
         return ts
+    if val == "$uuid":  # a fresh UUID per call, for providers that parse their idempotency key as one
+        return str(uuid.uuid4())
     if val.startswith("$env:"):
         return os.environ.get(val[5:], "")
     if val.startswith("$"):
