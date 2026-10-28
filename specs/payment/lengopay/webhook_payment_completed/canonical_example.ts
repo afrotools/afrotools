@@ -97,11 +97,13 @@ app.post("/api/lengopay/callback", async (req, res) => {
   await handleLengoPayWebhook(
     req.body,
     async (payId, amount) => {
+      const order = await db.orders.findOne({ pay_id: payId });
       // Guard against duplicate delivery
-      const alreadyFulfilled = await db.orders.findOne({ pay_id: payId, status: "paid" });
-      if (alreadyFulfilled) return;
+      if (!order || order.status === "paid") return;
+      // The verified amount must match what this order charged: compare it, never copy it onto the order.
+      if (amount !== order.total) return; // log and alert: paid amount differs from the order
 
-      await db.orders.update({ pay_id: payId }, { status: "paid", amount });
+      await db.orders.update({ pay_id: payId }, { status: "paid" });
     },
     (status) => res.sendStatus(status)
   );

@@ -9,7 +9,7 @@
     "environment": "production",
     "at": "2026-04-07",
     "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:50d8e3af427c19dc3f300565884587e2e055b943876e80f29d280684e88131d0"
+    "spec_hash": "sha256:eeb2b339b8da7b999a406b8d5fa2e257b1b17cad4e0b9ad01660f4e108f64db9"
   },
   "currency": [
     "GNF"
