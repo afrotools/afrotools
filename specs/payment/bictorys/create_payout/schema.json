@@ -162,59 +162,226 @@
   },
   "response_schema": {
     "type": "object",
+    "description": "The createPayout reference documents only id in its 201 response (PayoutObject). The sandbox returns the full transaction object, whose fields, types and status values come from TransactionObjectResponse in the transactions reference (getTransactions).",
     "required": [
       "id"
     ],
     "properties": {
       "id": {
         "type": "string",
-        "description": "Unique identifier of the created payout transaction."
+        "format": "uuid",
+        "description": "Unique identifier of the payout transaction"
       },
       "merchantId": {
         "type": "string",
-        "format": "uuid"
+        "format": "uuid",
+        "description": "Unique Merchant Identifier"
       },
-      "amount": {
-        "type": "number",
-        "description": "Payout amount as a negative integer (money leaving the merchant account). Use Math.abs() to display as positive."
+      "type": {
+        "type": "string",
+        "enum": [
+          "payment",
+          "transfer",
+          "refund",
+          "settlement"
+        ],
+        "description": "type of transaction"
       },
-      "merchantFee": {
-        "type": "number",
-        "description": "Fee charged to the merchant for this payout."
+      "customerId": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "uuid",
+        "description": "Identifier of the customer who paid the transaction"
       },
-      "customerFee": {
-        "type": "number",
-        "description": "Fee charged to the recipient (if any)."
-      },
-      "currency": {
-        "type": "string"
-      },
-      "paymentReference": {
-        "type": "string"
-      },
-      "customerName": {
-        "type": "string"
-      },
-      "customerPhone": {
-        "type": "string"
-      },
-      "customerCountry": {
-        "type": "string"
+      "customerObject": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "unique uuid of the customer"
+          },
+          "name": {
+            "type": "string",
+            "description": "customer's full name"
+          },
+          "phone": {
+            "type": "string",
+            "description": "customer's mobile phone number."
+          },
+          "email": {
+            "type": "string",
+            "description": "the email of the customer"
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Full street address, which MAY include house number, street name, Post Office Box, etc"
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "City or locality component."
+          },
+          "postalCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Zip code or postal code component."
+          },
+          "country": {
+            "type": "string",
+            "description": "ISO3166-1 alpha-2 two letter, uppercase."
+          },
+          "locale": {
+            "type": "string",
+            "description": "User locale, language is lower case. Country in upper case"
+          },
+          "createdAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The date time that record was created in our system."
+          },
+          "updatedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The date time that record was updated in our system."
+          }
+        }
       },
       "pspName": {
         "type": "string",
-        "description": "Payment provider used for the payout (e.g. wave_money, orange_money)."
+        "enum": [
+          "wave_money",
+          "orange_money",
+          "maxit",
+          "mtn_money",
+          "free_money",
+          "moov",
+          "mobicash",
+          "togocell",
+          "bictorys",
+          "card"
+        ],
+        "description": "The PSP, mobile money or card,  used for this transaction"
+      },
+      "paymentMeans": {
+        "type": "string",
+        "description": "means of transaction"
+      },
+      "paymentChannel": {
+        "type": "string",
+        "enum": [
+          "Terminal",
+          "Online"
+        ],
+        "description": "Channel used to make the payment"
+      },
+      "amount": {
+        "type": "number",
+        "format": "double",
+        "description": "This is the amount received or paid by the merchant, net of fees. Negative on a payout: money leaving the merchant account."
+      },
+      "merchantFees": {
+        "type": "number",
+        "format": "double",
+        "description": "The fee paid by the merchant for receiving the payment."
+      },
+      "customerFees": {
+        "type": "number",
+        "format": "double",
+        "description": "The fee paid by the customer for receiving the payment."
+      },
+      "transactionFeeAmountHT": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "format": "double",
+        "description": "Transaction fee amount without tax."
+      },
+      "transactionFeeAmountTax": {
+        "type": "number",
+        "format": "double",
+        "description": "Transaction fee tax. The value is zero if tax is not applicable"
+      },
+      "currency": {
+        "type": "string",
+        "description": "The currency associated to the amount. If you don't specify a value, we'll assume 'XOF'"
+      },
+      "paymentReference": {
+        "type": "string",
+        "description": "payment Reference"
       },
       "merchantReference": {
-        "type": "string"
+        "type": "string",
+        "description": "reference passed by client in the request"
+      },
+      "orderType": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "flat",
+          "order",
+          "invoice",
+          "paymentlink",
+          null
+        ],
+        "description": "Reference to the type of the payment, invoice, paymentlink, order, flat means the merchant did not create an order or an invoice or a paymentlink prior to call charges API."
+      },
+      "orderId": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "unique Id of the order. invoiceId, orderId or paymentlinkId. This value is empty if orderType equals to flat"
       },
       "status": {
-        "type": ["integer", "string"],
-        "description": "Payout status. Described as an integer (0 = success); the sandbox returns the string \"succeeded\" for a completed payout."
-      },
-      "createdAt": {
         "type": "string",
-        "format": "date-time"
+        "enum": [
+          "succeeded",
+          "failed",
+          "cancelled",
+          "pending",
+          "processing",
+          "reversed",
+          "authorized"
+        ],
+        "description": "status of the transaction"
+      },
+      "deviceId": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "The identifier of the device used to make the payment"
+      },
+      "originIp": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "IP address of the device that have sent the request"
+      },
+      "timestamp": {
+        "type": "string",
+        "description": "The time and date that  the the transaction was recorded in our system. Note that this doesn't describe when payments were executed, only when they were submitted"
       }
     }
   },
@@ -244,13 +411,14 @@
     "merchant.secretCode is the operator-issued merchant PIN (e.g. your Orange Money or MTN merchant code) registered in Bictorys Dashboard → Entreprise → Préférences. Required when configured on your account — omitting it returns E400-37: Secret code is missing.",
     "customerObject.phone is a string with a + and country code prefix, no spaces. Example: \"+221771234567\" for Senegal. Using a numeric type causes a 400 phone error.",
     "The response amount is a negative integer — money leaving the merchant account. Use Math.abs() if displaying to the user.",
-    "The response status field is described as an integer (0 = success), but the sandbox returns the string \"succeeded\" for a completed payout: accept both (status === 0 || status === \"succeeded\").",
+    "status is a string, not an integer: one of succeeded, failed, cancelled, pending, processing, reversed or authorized (PaymentStatus in the transactions reference). A completed sandbox payout returns \"succeeded\".",
     "Money transfer must be explicitly enabled for your merchant account. If not, Bictorys returns E400-28: Money transfer is not authorized for this merchant. Contact Bictorys support.",
     "A 400 error mentioning \"balance\" means Bictorys' own float is insufficient; a 400 error mentioning \"plafond\" or \"limit\" means the recipient's mobile money account hit its own operator-side ceiling — these are distinct failure modes and neither is retryable without merchant/recipient action.",
     "Set your HTTP client timeout to at least 30 seconds — payout processing is slower than charge creation.",
     "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com. Sandbox payouts do not send real money."
   ],
   "open_questions": [
-    "Does the API reject a payout without payment_type? The API reference does not mark it required; the integration guide always sends it."
+    "Does the API reject a payout without payment_type? The API reference does not mark it required; the integration guide always sends it.",
+    "Is the production payout response the same transaction object? The createPayout reference documents only id; the other response fields are those the sandbox returned, typed from TransactionObjectResponse in the transactions reference."
   ]
 }
