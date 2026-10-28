@@ -166,6 +166,13 @@ class TestLive(unittest.TestCase):
         self.assertEqual(self.run_with([(201, {"id": "pay_1"}), (404, {"error": "not found"})]), 0)
 
 
+    def test_an_acceptable_error_code_is_read_from_details_or_error_code(self):
+        self.edit("live_test_fixtures.json", lambda f: f["steps"][1].update({"acceptable_error_codes": ["payment_still_pending"]}))
+        pending = {"success": False, "error": {"message": "still pending", "code": "payment_still_pending"}}
+        self.assertEqual(self.run_with([(201, {"id": "pay_1"}), (422, pending)]), 0)
+        self.assertEqual(self.run_with([(201, {"id": "pay_1"}), (422, {"details": "payment_still_pending: retry later"})]), 0)
+        self.assertEqual(self.run_with([(201, {"id": "pay_1"}), (422, {"error": {"code": "invalid_amount"}})]), 1)
+
     def test_expected_status_overrides_the_2xx_default(self):
         fixtures = Path(self.tmp.name) / "payment" / "fixturepay" / "live_test_fixtures.json"
         doc = json.loads(fixtures.read_text())

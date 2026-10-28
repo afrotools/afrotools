@@ -69,6 +69,7 @@
       "headers": {
         "Idempotency-Key": "afrotools-live-$ts-retry"
       },
+      "acceptable_error_codes": ["payment_still_pending"],
       "body": {}
     }
   ]
