@@ -67,8 +67,9 @@ Update the file with your file-editing tool, not with shell commands.
 
 ## Phases
 
-Work through the phases in order. For the current phase, read its file and follow it; do not read the
-others in advance.
+Work through the phases in order. Every time this skill starts, resuming included, read the current
+phase's file before doing anything else, and follow it; do not read the others in advance. The state
+file says where the user is, not what to do: the phase file does.
 
 | Phase | File | Ends when |
 |---|---|---|
