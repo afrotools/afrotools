@@ -21,8 +21,11 @@ Goal: the app works on the user's computer with sandbox keys, every screen of th
 4. **A spec that is not `verified`** may be wrong: say so when you wire it, test it with the user's own
    number or account first, and offer a report (`afrotools.report_integration`) once it works or fails,
    as the `payment` skill says.
-5. **Run the app yourself.** Start the dev server on a free port (check it first: another project may
-   use 3000), give the user the link, and never ask a non-developer to type a command.
+5. **Run the app yourself.** Start the dev server on a port nothing listens on (other projects of the
+   user often use 3000 and nearby ports), give the user the link, and never ask a non-developer to type a
+   command. Before giving a link, check that the page is this app (its title or a text you wrote), not
+   another program. Never stop, restart or reuse a process you did not start in this session: if a port
+   is taken, pick another one.
 6. **Tests**: write tests for what moves money (payment confirmation, amount check, a duplicate webhook)
    and run them. Prove one real sandbox call to the payment provider (creating a payment link) before
    saying payments work: mocked tests alone do not prove it.
