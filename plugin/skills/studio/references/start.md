@@ -11,8 +11,15 @@ Goal: the user knows what the app will do, which African providers it uses, and 
 4. **Find providers in the registry**, for each block and the user's country:
    `afrotools.search_specs({ category: "payment" | "communications" | …, country_code: "<ISO alpha-2>" })`.
    Never rely on memory: the registry changes. Present at most three options per block in plain words
-   (what it covers, whether it was tested against the real API: `verified`), recommend one with one
-   reason, and let the user choose.
+   (what it covers, whether it was tested against the real API: `verified`, whether it has a test
+   mode), recommend one with one reason, and let the user choose.
+   Prefer a provider with a sandbox (`sandbox` in `afrotools.get_spec()`): the same provider then serves
+   for the tests and for production, and the user tries everything without real money or real
+   messages. Recommend one without a sandbox only when no provider covering the need has one, and say
+   that every test will then be real.
+   If the chosen spec is not `verified` (`ready`), say so, and plan to ask the user, once their test
+   worked, for the report that makes it `verified`: the "After the integration" section of the
+   `payment` or `communications` skill (`afrotools.report_integration`).
    If no provider covers the block, call `afrotools.request_spec({ provider, capability })`, tell the
    user the need is logged, and agree on what to do without it.
 5. **Explain how to get access**, for each chosen provider, only from what the registry gives:
