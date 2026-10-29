@@ -3,7 +3,7 @@
   "provider_api_version": "2024-01-01",
   "capability": "send_sms",
   "capability_type": "synchronous",
-  "status": "ready",
+  "status": "verified",
   "auth": {
     "type": "api_key",
     "location": "header",
@@ -163,5 +163,12 @@
     "Which countries and networks deliver the default sender AFRICASTKNG: the docs only say \"defaults to AFRICASTKNG\".",
     "Which hours DoNotDisturbRejection applies to: the docs say \"outside the allowed time window(8pm-8am)\" without saying whether 8pm-8am is the allowed or the forbidden window.",
     "bulkSMSMode: the docs give only the default, 1; they do not list other values or what 0 means."
-  ]
+  ],
+  "verification": {
+    "method": "community_report",
+    "environment": "sandbox",
+    "at": "2026-10-29",
+    "ref": "https://github.com/afrotools/afrotools/issues/168",
+    "spec_hash": "sha256:977d3eb3a869e184ea9198e444c2e025dc302338f79c29ec485223c8c728d0ec"
+  }
 }
