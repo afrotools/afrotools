@@ -5,6 +5,11 @@ Goal: the app works on the user's computer with sandbox keys, every screen of th
 1. **Build in small steps**, one feature at a time, following `docs/plan.md` and `docs/design.md`.
    After each feature, run the app and check it yourself before telling the user it works. With
    `level: explain`, tell the user in one sentence what now works and how to see it.
+
+   **Keep going without waiting for a go.** Once the keys are in, build feature after feature in the
+   same turn. Answer the user's questions briefly, then carry on building; never end a message with
+   "I'll start with…" or "I'll continue with…": do it, then say what works. Stop only to ask for
+   something only they can give (a key, a decision) or when the phase is done.
 2. **African building blocks** go through the afrotools skills, never from memory: for payments, the
    `payment` skill (`afrotools.get_spec()` for the payment, its status and its webhook); for SMS,
    WhatsApp and OTP, the `communications` skill. Apply [rules.md](rules.md) rules 1 to 3. WhatsApp

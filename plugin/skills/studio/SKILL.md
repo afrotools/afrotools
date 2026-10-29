@@ -41,7 +41,11 @@ Update the file with your file-editing tool, not with shell commands.
 
 1. **Level.** Ask once, in plain words, whether they read the code themselves.
    - No → `level: explain`: explain each step's purpose in one sentence, decide technical details
-     yourself and say what you chose.
+     yourself and say what you chose. Talk about what they will see and do, not how it works inside:
+     no word like webhook, notification, https, server, API or tool name unless they must act on it,
+     and then say what it is for them in a few words. Call the Afro.tools registry "the guide to
+     African payment and messaging services" and say before you use it that it is free; a permission
+     prompt may appear the first time, to accept.
    - Yes → `level: quiet`: apply the rules without explaining them; mention only decisions.
 2. **Companions.** Two optional tools make Studio better. Check your list of available skills:
    - superpowers is present if skills named `superpowers:*` are listed;
