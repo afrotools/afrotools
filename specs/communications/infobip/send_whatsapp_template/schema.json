@@ -3,7 +3,7 @@
   "provider_api_version": "3.255.0",
   "capability": "send_whatsapp_template",
   "capability_type": "synchronous",
-  "status": "ready",
+  "status": "verified",
   "auth": {
     "type": "api_key",
     "location": "header",
@@ -18,6 +18,10 @@
       {
         "env_var": "INFOBIP_BASE_URL",
         "description": "your account's base URL, https://xxxxx.api.infobip.com, shown in the Infobip API Resource hub — it identifies the account, the key authenticates it"
+      },
+      {
+        "env_var": "INFOBIP_WHATSAPP_SENDER",
+        "description": "`from` of each message: your registered WhatsApp sender number, in international format"
       }
     ],
     "apply": [
@@ -910,5 +914,12 @@
       "/whatsapp/1/message/template",
       "Send WhatsApp template message"
     ]
+  },
+  "verification": {
+    "method": "community_report",
+    "environment": "production",
+    "at": "2026-10-29",
+    "ref": "https://github.com/afrotools/afrotools/issues/169",
+    "spec_hash": "sha256:e55653c4e2517837c4600268b354c3188e8d271f8ec5ad1c70ed87bdd0383aa6"
   }
 }

@@ -86,7 +86,7 @@ export async function sendWhatsappText(input: SendWhatsappTextInput): Promise<Se
 Usage example:
 
 const sent = await sendWhatsappText({
-  from: "2250700000001", // your registered WhatsApp sender
+  from: process.env.INFOBIP_WHATSAPP_SENDER!, // your registered WhatsApp sender
   to: "2250700000000",
   content: { text: "Hi Awa, your table is ready." },
   notifyUrl: "https://example.com/webhooks/infobip/whatsapp",

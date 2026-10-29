@@ -58,7 +58,7 @@ Usage example:
 
 const verification = await sendVerification({
   to: "+224623XXXXXX",
-  sender_name: "MonApp", // REQUIRED and case-sensitive (status 'accepted')
+  sender_name: process.env.NIMBASMS_SMS_SENDER!, // REQUIRED and case-sensitive (status 'accepted')
   message: "Votre code de vérification est : <1234>", // <1234> required
   expiry_time: 10,  // 10 minutes (5-30)
   attempts: 3,      // 3 attempts max (3-10)

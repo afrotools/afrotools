@@ -18,6 +18,10 @@
       {
         "env_var": "INFOBIP_BASE_URL",
         "description": "your account's base URL, https://xxxxx.api.infobip.com, shown in the Infobip API Resource hub — it identifies the account, the key authenticates it"
+      },
+      {
+        "env_var": "INFOBIP_WHATSAPP_SENDER",
+        "description": "`sender` filter: your registered WhatsApp sender number, in international format"
       }
     ],
     "apply": [
