@@ -105,6 +105,12 @@ claude mcp add --transport http afrotools https://mcp.afro.tools/mcp
 ## Claude Code plugin
 
 ```
+/plugin install afrotools --marketplace afrotools/afrotools
+```
+
+On Claude Code older than 2.1.275, in two steps:
+
+```
 /plugin marketplace add afrotools/afrotools
 /plugin install afrotools
 ```
