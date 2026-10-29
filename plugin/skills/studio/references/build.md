@@ -2,6 +2,9 @@
 
 Goal: the app works on the user's computer with sandbox keys, every screen of the plan included.
 
+First, before building anything: if tools named `mcp__playwright__*` are not available and
+`playwright_offered` is not `true` in the state file, make the browser offer described in step 7.
+
 1. **Build in small steps**, one feature at a time, following `docs/plan.md` and `docs/design.md`.
    After each feature, run the app and check it yourself before telling the user it works. With
    `level: explain`, tell the user in one sentence what now works and how to see it.
