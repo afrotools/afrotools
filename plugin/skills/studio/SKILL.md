@@ -33,6 +33,7 @@ impeccable_offered: true | false
 ```
 
 Below these lines, keep the decisions taken so far (providers, keys needed, stack, hosting), one line each.
+Update the file with your file-editing tool, not with shell commands.
 
 ## First run
 
@@ -49,7 +50,9 @@ Below these lines, keep the decisions taken so far (providers, keys needed, stac
    - superpowers (a method to plan and build step by step): `/plugin install superpowers@claude-plugins-official`
    - Impeccable (design and design critique): `npx impeccable install`
 
-   Studio works without them; say so.
+   Studio works without them; say so. If the user agrees, run `npx impeccable install` yourself rather
+   than asking a non-developer to open a terminal; `/plugin install` is a command only they can type in
+   their agent, so give it to them as is.
 
 ## Phases
 
