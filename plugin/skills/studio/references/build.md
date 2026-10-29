@@ -42,7 +42,7 @@ First, before building anything: if tools named `mcp__playwright__*` are not ava
    `playwright_offered: true`. Without it, check pages with `curl` and describe what the user should see;
    if the project already uses Playwright, follow [vendor/webapp-testing.md](vendor/webapp-testing.md).
 8. **Review, offered once per feature**: when a feature is done, offer a code review in one sentence
-   (what it catches, that it uses tokens). If the user declines twice, stop offering it until the ship
-   phase. The review itself: read [../../review/SKILL.md](../../review/SKILL.md) and follow it.
+   (what it catches, that it uses tokens). Count each refusal in `review_declined` in the state file;
+   at 2, stop offering it until the ship phase, in this session and the next ones. The review itself: read [../../review/SKILL.md](../../review/SKILL.md) and follow it.
 9. **When the plan's screens all work** with sandbox keys, record it in `.afrotools/studio.md`, set
    `phase: ship`, and say in one sentence what the next phase does.

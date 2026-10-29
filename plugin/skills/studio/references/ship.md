@@ -3,11 +3,13 @@
 Goal: the app is in production, with the user's explicit go, after the checks.
 
 1. **Run the check yourself**: read [../../check/SKILL.md](../../check/SKILL.md) and follow its steps
-   (manual skills cannot be invoked by you, so read the file). Its free script is
-   `../../check/scripts/scan-secrets.mjs`, next to that file: run it with `node <that path> .`. Fix the
-   blocking points with the user's agreement.
+   (manual skills cannot be invoked by you, so read the file). Its free script lives in the plugin, at
+   `<this skill's base directory>/../check/scripts/scan-secrets.mjs` (the base directory is the folder
+   of the Studio skill's `SKILL.md`): run `node "<that path>" .` from the project. Ignore the
+   `${CLAUDE_SKILL_DIR}` path written in the check skill: it only works when the user types
+   `/afrotools:check`. Fix the blocking points with the user's agreement.
 2. **Offer the code review and the security audit**, strongly advised: what they catch, that they use
-   tokens. The user decides. With a yes, read [../../review/SKILL.md](../../review/SKILL.md) and follow it
+   tokens. The check's last step is this offer: make it once, not twice. The user decides. With a yes, read [../../review/SKILL.md](../../review/SKILL.md) and follow it
    (a separate reviewer, never your own reading). A blocking point the user
    chooses not to fix goes in `.afrotools/accepted-risks.md`.
 3. **Prepare going live** with [vendor/shipping-and-launch.md](vendor/shipping-and-launch.md), kept to

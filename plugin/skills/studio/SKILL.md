@@ -33,6 +33,7 @@ phase: start | plan | design | build | ship
 superpowers_offered: true | false
 impeccable_offered: true | false
 playwright_offered: true | false
+review_declined: 0 | 1 | 2
 ```
 
 Below these lines, keep the decisions taken so far (providers, keys needed, stack, hosting), one line each.

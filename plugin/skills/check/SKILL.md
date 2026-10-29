@@ -20,9 +20,15 @@ words; report each problem as what could go wrong for them, then what you change
    node "${CLAUDE_SKILL_DIR}/scripts/scan-secrets.mjs" .
    ```
 
-   Exit 0: nothing found. Exit 1: each line is `file:line: reason`; fix each one (move the value to
-   `.env`, read it with `process.env` on the server only, rename a variable a bundler sends to the
-   browser). Exit 2: a file could not be read; say which.
+   Exit 0: nothing found. Exit 1: each line is `file:line: reason`. Exit 2: a file could not be read;
+   say which. If the output is a Node error such as `Cannot find module`, the script did not run: fix
+   the path and run it again; it is not a finding.
+
+   For each finding, never copy or move the key's value yourself. Replace the literal with
+   `process.env.NAME` read on the server only, rename a variable a bundler sends to the browser, and
+   stop tracking a committed `.env` (`git rm --cached`). Then tell the user the key must be treated as
+   leaked: regenerate it at the provider and put the new one in `.env` themselves. Moving it is not
+   enough while the old one is still valid and in the history.
 
 2. **Payments and webhooks** (rules 1 and 2). For each provider the app uses (from
    `.afrotools/studio.md`, or the code), fetch its specs: `afrotools.get_spec()` for the payment, its

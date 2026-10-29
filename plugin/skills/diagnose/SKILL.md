@@ -28,10 +28,15 @@ Speak to the user in their language; the report itself is written in English.
    numbers, bearer tokens, secret-named values and long tokens, and keeps the URL under GitHub's limit:
 
    ```bash
-   echo '<report as JSON>' | node "${CLAUDE_SKILL_DIR}/scripts/issue-url.mjs"
+   node "${CLAUDE_SKILL_DIR}/scripts/issue-url.mjs" <<'EOF'
+   <report as JSON>
+   EOF
    ```
 
-3. **Show the user** the cleaned text and the link. Tell them to read it, remove anything private the
+   It prints the cleaned `title`, `what_happened` and `steps`, then the link.
+
+3. **Show the user** the cleaned text exactly as the script printed it (not your own summary) and the
+   link. Tell them to read it, remove anything private the
    masking missed, tick the privacy box and submit it themselves.
 
 4. **Never say the report was sent.** Only the user submits it; you have no way to know whether they did.

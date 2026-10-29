@@ -47,7 +47,7 @@ test("placeholders and examples are not findings", () => {
     // references to a variable defined elsewhere (Supabase config.toml, GitHub Actions)
     "supabase/config.toml": 'openai_api_key = "env(OPENAI_API_KEY)"\nauth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"\n',
     "ci.yml": 'api_key: "${{ secrets.WAVE_API_KEY }}"\n',
-    ".env.example": "NEXT_PUBLIC_API_KEY=a1b2c3d4e5f6g7h8i9\nAPI_KEY=a1b2c3d4e5f6g7h8i9\n",
+    ".env.example": "NEXT_PUBLIC_API_KEY=your_public_key\nAPI_KEY=xxxxxxxxxxxxxxxx\nSECRET_KEY=<secret>\n",
   });
   assert.deepEqual(scan(dir), []);
 });
@@ -79,4 +79,55 @@ test("not a git repository", () => {
   assert.equal(r.status, 1);
   assert.equal(r.stdout, "src/pay.ts:1: secret value in code: API_KEY\n");
   assert.match(r.stderr, /^not a git repository: the tracked \.env check was skipped$/m);
+});
+
+// Every secret the registry asks for (auth.env_var / auth.credentials), not just the common shapes.
+test("every secret credential name of the registry is caught", () => {
+  const specs = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../specs");
+  const names = new Set();
+  for (const cat of fs.readdirSync(specs, { withFileTypes: true }).filter((d) => d.isDirectory()))
+    for (const prov of fs.readdirSync(path.join(specs, cat.name), { withFileTypes: true }).filter((d) => d.isDirectory()))
+      for (const cap of fs.readdirSync(path.join(specs, cat.name, prov.name), { withFileTypes: true }).filter((d) => d.isDirectory())) {
+        const auth = JSON.parse(fs.readFileSync(path.join(specs, cat.name, prov.name, cap.name, "schema.json"), "utf8")).auth ?? {};
+        for (const n of [auth.env_var, ...(auth.credentials ?? []).map((c) => c?.env_var)]) if (n) names.add(n);
+      }
+  const secrets = [...names].filter((n) => /KEY|SECRET|TOKEN/.test(n) && !/PUBLIC_KEY/.test(n));
+  assert.ok(secrets.length > 10, "registry names found");
+  const dir = project({ "src/keys.ts": secrets.map((n) => `const ${n} = "a1b2c3d4e5f6g7h8";`).join("\n") });
+  const found = new Set(scan(dir).map((f) => f.reason.replace("secret value in code: ", "")));
+  assert.deepEqual(secrets.filter((n) => !found.has(n)), []);
+});
+
+test("public keys and identifiers are not secrets", () => {
+  const dir = project({
+    "src/c.ts": 'const NOTCHPAY_PUBLIC_KEY = "pk_a1b2c3d4e5f6g7h8";\nconst DJOMY_CLIENT_ID = "a1b2c3d4e5f6g7h8";\nconst STORAGE_KEY = "afrotools-cart-v1";\n',
+    ".env.local": "NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiJ9\n", // the anon key is public by design
+    "vercel.json": '{ "env": { "PAYCARD_API_KEY": "@paycard-api-key" } }\n', // a reference to a Vercel secret
+  });
+  assert.deepEqual(scan(dir), []);
+});
+
+test("keys in JSON, YAML and hard-coded Authorization headers", () => {
+  const dir = project({
+    "config.json": '{ "apiKey": "sk_live_a1b2c3d4e5f6" }\n',
+    "deploy.yml": "api_key: sk_live_a1b2c3d4e5f6\n",
+    "src/h.ts": 'fetch(url, { headers: { Authorization: "Bearer a1b2c3d4e5f6g7h8" } });\n',
+  });
+  assert.deepEqual(scan(dir).map((f) => `${f.file}:${f.line}: ${f.reason}`), [
+    "config.json:1: secret value in code: apiKey",
+    "deploy.yml:1: secret value in code: api_key",
+    "src/h.ts:1: secret value in code: Authorization header",
+  ]);
+});
+
+test("a real-looking key in .env.example is a finding, placeholders are not", () => {
+  const dir = project({ ".env.example": "WAVE_API_KEY=wave_sn_prod_a1b2c3d4e5f6\nBICTORYS_API_KEY=your_key_here\nSESSION_SECRET=\n" });
+  assert.deepEqual(scan(dir), [{ file: ".env.example", line: 1, reason: "secret value in an example file: WAVE_API_KEY" }]);
+});
+
+test("a tracked .env.example is expected, not a tracked .env", () => {
+  const dir = project({ ".env.example": "API_KEY=your_key\n" });
+  spawnSync("git", ["init", "-q"], { cwd: dir });
+  spawnSync("git", ["add", ".env.example"], { cwd: dir });
+  assert.deepEqual(scan(dir), []);
 });

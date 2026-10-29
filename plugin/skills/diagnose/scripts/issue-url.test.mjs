@@ -41,3 +41,20 @@ test("long fields are cut to the URL budgets", () => {
     assert.doesNotThrow(() => decodeURIComponent(value), field); // no %XX sequence split
   }
 });
+
+test("redact also masks quoted JSON keys, keys in URLs, token headers and paired local numbers", () => {
+  assert.equal(redact('{"apiKey": "sk_live_x"}'), '{"apiKey": "[secret]"}');
+  assert.equal(redact("GET /pay?key=abc123&token=xyz&amount=500"), "GET /pay?key=[secret]&token=[secret]&amount=500");
+  assert.equal(redact("Authorization: Token abc123"), "Authorization: Token [secret]");
+  assert.equal(redact("appelez le 70 12 34 56 avant le 2026-10-29"), "appelez le [phone] avant le 2026-10-29");
+});
+
+test("the CLI prints the cleaned fields the user must read, then the link", async () => {
+  const { spawnSync } = await import("node:child_process");
+  const { fileURLToPath } = await import("node:url");
+  const cli = fileURLToPath(new URL("./issue-url.mjs", import.meta.url));
+  const r = spawnSync("node", [cli], { input: JSON.stringify(report({ what_happened: "the customer's number +221 77 123 45 67" })), encoding: "utf8" });
+  const lines = r.stdout.trimEnd().split("\n");
+  assert.match(r.stdout, /^what_happened: the customer's number \[phone\]$/m);
+  assert.ok(lines.at(-1).startsWith("https://github.com/afrotools/afrotools/issues/new?"), lines.at(-1));
+});

@@ -9,17 +9,21 @@ const FORM = "https://github.com/afrotools/afrotools/issues/new?template=studio-
 const BUDGETS = { what_happened: 5000, steps: 1500 };
 const CUT = "\n[cut]";
 // Same names as scan-secrets (check skill)
-const SECRET_NAME = String.raw`[A-Za-z0-9_]*(?:secret|api[_-]?key|private[_-]?key|access[_-]?token|auth[_-]?token|license[_-]?key|password|client[_-]?secret)[A-Za-z0-9_]*`;
+const SECRET_NAME = String.raw`[A-Za-z0-9_]*(?:secret|api[_-]?key|private[_-]?key|merchant[_-]?key|license[_-]?key|token|password|encryption)[A-Za-z0-9_]*`;
 
 export function redact(text) {
   return String(text)
     .replace(/[\w.+-]+@[\w-]+(\.[\w-]+)+/g, "[email]")
-    .replace(/\b(Bearer|Basic)\s+[\w.~+/=-]+/gi, "$1 [secret]")
-    .replace(new RegExp(`\\b(${SECRET_NAME})(\\s*[=:]\\s*)("?)[^\\s"]+\\3`, "gi"), "$1$2[secret]")
+    .replace(/\b(Bearer|Basic|Token)\s+[\w.~+/=-]+/gi, "$1 [secret]")
+    .replace(/([?&](?:key|api_?key|access_token|token|secret)=)[^&\s#]+/gi, "$1[secret]")
+    // NAME=value, NAME: value, "NAME": "value" (JSON)
+    .replace(new RegExp(`\\b(${SECRET_NAME})("?\\s*[=:]\\s*)("?)[^\\s"&,}]+\\3`, "gi"), "$1$2$3[secret]$3")
     // long tokens: 24+ characters with both letters and digits (capability names have no digit)
     .replace(/[A-Za-z0-9_-]{24,}/g, (m) => (/\d/.test(m) && /[A-Za-z]/.test(m) ? "[secret]" : m))
     // phone numbers: a leading + or at least 9 digits, so dates (8 digits) stay
-    .replace(/(?<!\w)\+?\d[\d .-]{7,}\d(?!\w)/g, (m) => (m.startsWith("+") || m.replace(/\D/g, "").length >= 9 ? "[phone]" : m));
+    .replace(/(?<!\w)\+?\d[\d .-]{7,}\d(?!\w)/g, (m) => (m.startsWith("+") || m.replace(/\D/g, "").length >= 9 ? "[phone]" : m))
+    // 8-digit numbers written in pairs (BF, ML, NE, TG): never a date
+    .replace(/(?<!\w)\d{2}(?:[ .]\d{2}){3}(?!\w)/g, "[phone]");
 }
 
 // Encoded value no longer than budget, cut on a whole character so no %XX sequence is split.
@@ -44,5 +48,10 @@ export function buildIssueUrl(r) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   let input = "";
   process.stdin.on("data", (d) => (input += d));
-  process.stdin.on("end", () => console.log(buildIssueUrl(JSON.parse(input))));
+  process.stdin.on("end", () => {
+    const r = JSON.parse(input);
+    // what the user must read before submitting: the cleaned text, then the link
+    for (const f of ["title", "what_happened", "steps"]) console.log(`${f}: ${redact(r[f] ?? "")}`);
+    console.log(buildIssueUrl(r));
+  });
 }
