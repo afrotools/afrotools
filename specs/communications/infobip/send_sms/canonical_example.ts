@@ -146,7 +146,7 @@ Usage example:
 const result = await sendSms({
   messages: [
     {
-      sender: "MyShop", // registered alphanumeric sender (ServiceSMS on a free trial)
+      sender: process.env.INFOBIP_SMS_SENDER, // registered alphanumeric sender (ServiceSMS on a free trial)
       destinations: [{ to: "2250700000000" }],
       content: { text: "Your order #1042 has shipped." },
       webhooks: { delivery: { url: "https://example.com/webhooks/infobip/sms" } },

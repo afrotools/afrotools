@@ -18,6 +18,10 @@
       {
         "env_var": "AFRICASTALKING_USERNAME",
         "description": "application username — always \"sandbox\" in the sandbox; sent as the username form field, not as a header"
+      },
+      {
+        "env_var": "AFRICASTALKING_SMS_SENDER",
+        "description": "`from` (optional): your registered short code or alphanumeric; defaults to AFRICASTKNG"
       }
     ],
     "apply": [

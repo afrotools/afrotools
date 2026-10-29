@@ -105,7 +105,7 @@ Usage example:
 const result = await sendWhatsappTemplate({
   messages: [
     {
-      from: "2250700000001",
+      from: process.env.INFOBIP_WHATSAPP_SENDER!, // your registered WhatsApp sender
       to: "2250700000000",
       content: {
         templateName: "order_shipped",

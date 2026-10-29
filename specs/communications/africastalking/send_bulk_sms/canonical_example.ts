@@ -76,7 +76,7 @@ Usage example:
 const result = await sendBulkSms({
   phoneNumbers: ["+254711XXXYYY", "+254733YYYZZZ"],
   message: "Your order has shipped!",
-  senderId: "MyBrand",
+  senderId: process.env.AFRICASTALKING_SMS_SENDER!,
 });
 console.log(result.SMSMessageData.Message); // "Sent to 2/2 Total Cost: KES 1.6000"
 */
