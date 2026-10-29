@@ -32,6 +32,7 @@ level: explain | quiet
 phase: start | plan | design | build | ship
 superpowers_offered: true | false
 impeccable_offered: true | false
+playwright_offered: true | false
 ```
 
 Below these lines, keep the decisions taken so far (providers, keys needed, stack, hosting), one line each.
@@ -56,6 +57,9 @@ Update the file with your file-editing tool, not with shell commands.
    - superpowers (a method to plan and build step by step): `/plugin install superpowers@claude-plugins-official`
    - Impeccable (design and design critique): `npx impeccable install`. Say before running it that it
      installs Impeccable for every project on this computer, for several agents, not just this one.
+
+   A third one, a browser the agent can drive to check the screens (Playwright MCP), is offered at the
+   start of the build phase, not here (see `references/build.md`).
 
    Studio works without them; say so. If the user agrees, run `npx impeccable install` yourself rather
    than asking a non-developer to open a terminal; `/plugin install` is a command only they can type in
