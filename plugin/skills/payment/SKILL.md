@@ -92,7 +92,9 @@ afrotools.report_integration({ provider: "<slug>", capabilities: [{ capability: 
 List every capability the flow used (e.g. payment init, status, webhook), each with its own
 result — one report per provider. Give the user the returned link: they choose the environment and
 the outcome, check the text, and submit it themselves. Never put API keys, tokens, phone numbers
-or personal data in `details`.
+or personal data in `details`. Call something a difference from the spec only when the spec says
+otherwise; what the spec does not say (a status code, a field it does not list) is an observation:
+write it as one, so nobody "fixes" a spec that was right.
 
 ## Important
 
