@@ -34,7 +34,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Validator and spec-diff tests
-        run: node --test scripts/validate.test.js scripts/spec-diff.test.js scripts/third-party.test.js
+        run: node --test scripts/validate.test.js scripts/spec-diff.test.js scripts/third-party.test.js plugin/skills/check/scripts/scan-secrets.test.mjs
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
