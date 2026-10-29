@@ -2,10 +2,13 @@
 
 Goal: the app is in production, with the user's explicit go, after the checks.
 
-1. **Run `/afrotools:check`** (its steps are in the `check` skill). Fix the blocking points with the
-   user's agreement.
-2. **Offer the code review and the security audit** (`/afrotools:review`, `/afrotools:review audit`),
-   strongly advised: what they catch, that they use tokens. The user decides. A blocking point the user
+1. **Run the check yourself**: read [../../check/SKILL.md](../../check/SKILL.md) and follow its steps
+   (manual skills cannot be invoked by you, so read the file). Its free script is
+   `../../check/scripts/scan-secrets.mjs`, next to that file: run it with `node <that path> .`. Fix the
+   blocking points with the user's agreement.
+2. **Offer the code review and the security audit**, strongly advised: what they catch, that they use
+   tokens. The user decides. With a yes, read [../../review/SKILL.md](../../review/SKILL.md) and follow it
+   (a separate reviewer, never your own reading). A blocking point the user
    chooses not to fix goes in `.afrotools/accepted-risks.md`.
 3. **Prepare going live** with [vendor/shipping-and-launch.md](vendor/shipping-and-launch.md), kept to
    what this app needs: the production keys (the user puts them in the host's settings themselves),
