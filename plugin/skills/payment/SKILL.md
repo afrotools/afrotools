@@ -86,14 +86,15 @@ them to say it worked:
 When they come back with a result:
 
 ```
-afrotools.report_integration({ provider: "<slug>", capabilities: [{ capability: "<capability>", result: "worked" }, …], summary: "<one line>", details: "<what was called, what came back, what differed>" })
+afrotools.report_integration({ provider: "<slug>", capabilities: [{ capability: "<capability>", result: "worked" }, …], summary: "<one line>", details: "<what was called, what came back, what differed>", tested_on: "<YYYY-MM-DD>" })
 ```
 
 List every capability the flow used (e.g. payment init, status, webhook), each with its own result —
 one report per provider. Paste the whole returned link in your reply, even a long one: the user does
-not see tool results, and a shortened link loses the text it carries and tell them what to pick in
-the two lists it cannot fill: the environment (`production` when the provider's `sandbox` is
-`false`, even on a trial account) and the outcome. They check the text and submit it themselves.
+not see tool results, and a shortened link loses the text it carries. Tell them what to pick in the
+two lists it cannot fill: the environment (`production` when the provider's `sandbox` is `false`,
+even on a trial account) and the outcome, each quoted as the form shows it, in English (add a
+translation if the user speaks another language). They check the text and submit it themselves.
 Never put API keys, tokens, phone numbers or personal data in `details`. Write only what this test
 showed, nothing taken from the rest of the project (a country, a name). Call something a difference
 from the spec only when the spec says otherwise; what the spec does not say (a status code, a field
