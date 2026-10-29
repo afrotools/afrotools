@@ -60,7 +60,7 @@ Usage example:
 const result = await sendMessage({
   to: ["623XXXXXX", "224623XXXXXX", "+224623XXXXXX"], // three accepted formats
   message: "Votre commande #123 a été confirmée.",
-  sender_name: "MonApp", // case-sensitive, status 'accepted' required
+  sender_name: process.env.NIMBASMS_SMS_SENDER!, // case-sensitive, status 'accepted' required
 });
 
 console.log(`messageid : ${result.messageid}`);

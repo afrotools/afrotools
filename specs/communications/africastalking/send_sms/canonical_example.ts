@@ -89,11 +89,12 @@ Usage example:
 // Set env vars:
 //   AFRICASTALKING_API_KEY=your_key
 //   AFRICASTALKING_USERNAME=your_username   ("sandbox" for the sandbox)
+//   AFRICASTALKING_SMS_SENDER=MyApp         (optional)
 
 const result = await sendSms({
   to: ["+254711XXXYYY", "+254733YYYZZZ"],
   message: "Your order #123 has been confirmed.",
-  from: "MyApp",      // optional registered shortcode
+  from: process.env.AFRICASTALKING_SMS_SENDER, // optional registered short code or alphanumeric
   bulkSMSMode: 1,     // required for bulk sends
   enqueue: 1,         // queue without waiting for telco ACK
 });

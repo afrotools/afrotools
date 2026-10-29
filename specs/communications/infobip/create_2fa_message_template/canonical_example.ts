@@ -78,7 +78,7 @@ const template = await create2faMessageTemplate({
   messageText: "Your MyShop code is {{pin}}",
   pinLength: 6,
   pinType: "NUMERIC",
-  senderId: "MyShop",
+  senderId: process.env.INFOBIP_SMS_SENDER,
 });
 console.log(template.messageId);
 */

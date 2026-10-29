@@ -112,6 +112,6 @@ export async function listWhatsappTemplates(input: ListWhatsappTemplatesInput): 
 /*
 Usage example:
 
-const { results, paging } = await listWhatsappTemplates({ sender: ["2250700000001"], status: ["APPROVED"], size: 50 });
+const { results, paging } = await listWhatsappTemplates({ sender: [process.env.INFOBIP_WHATSAPP_SENDER!], status: ["APPROVED"], size: 50 });
 console.log(paging.totalResults, results?.map((t) => `${t.name} (${t.language})`));
 */

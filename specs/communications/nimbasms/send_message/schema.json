@@ -21,6 +21,10 @@
       {
         "env_var": "NIMBASMS_SECRET_TOKEN",
         "description": "secret token — the password part of HTTP Basic auth"
+      },
+      {
+        "env_var": "NIMBASMS_SMS_SENDER",
+        "description": "`sender_name`: an approved sender name of your account (status 'accepted'), case-sensitive"
       }
     ]
   },

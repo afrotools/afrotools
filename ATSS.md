@@ -269,6 +269,9 @@ payment), the response field that says the call succeeded:
 5. Export the main function
 6. Include a usage example in a comment block at the bottom
 7. JSDoc header: provider, capability, ATSS version, capability_type
+8. The sender of a message (number, sender ID, sender name) comes from `process.env.{PROVIDER}_{CHANNEL}_SENDER`
+   in the usage example (e.g. `INFOBIP_WHATSAPP_SENDER`), declared in `auth.credentials`, never a literal: it
+   changes between a test sender and the account's own
 
 ### Template
 
