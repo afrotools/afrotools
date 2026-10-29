@@ -1,0 +1,50 @@
+name: Studio diagnostic
+description: afro.tools Studio or an afrotools skill did not work as expected — the report your agent prepared
+title: "[studio] "
+labels: ["studio", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Your agent prepared this report with `/afrotools:diagnose` and masked what it recognised as private.
+        **Read it before submitting**: remove any API key, token, phone number or personal data it missed.
+
+  - type: input
+    id: agent
+    attributes:
+      label: Agent
+      placeholder: e.g. claude-code
+    validations:
+      required: true
+
+  - type: input
+    id: plugin_version
+    attributes:
+      label: afrotools plugin version
+      placeholder: e.g. 1.8.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened
+      description: What you expected, and what Studio or the skill did instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps
+      description: What was asked or run, in order.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy
+      options:
+        - label: I removed keys, tokens, phone numbers and personal data
+          required: true
