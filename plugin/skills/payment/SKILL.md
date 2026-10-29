@@ -64,7 +64,12 @@ for the target provider and capability before writing any implementation code.
 4. Implement using the `canonical_example.ts` pattern:
    - Native fetch only — no axios, no node-fetch
    - Credentials from `process.env`
-   - Always verify payment status server-side before fulfilling an order
+   - Confirm every payment server-side with the provider's status capability before fulfilling an
+     order: neither the return page nor a webhook alone proves a payment
+   - Compare the verified amount with the order's total; never copy the provider's amount onto the order
+   - Send the idempotency key the spec declares (a header or a field) on every payment and payout
+   - Make fulfilment idempotent: the same webhook can arrive several times, and must not deliver twice
+   - Before going live, `/afrotools:check` checks these rules and looks for keys in the code
 
 ## After the integration
 
