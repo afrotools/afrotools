@@ -58,3 +58,11 @@ test("the CLI prints the cleaned fields the user must read, then the link", asyn
   assert.match(r.stdout, /^what_happened: the customer's number \[phone\]$/m);
   assert.ok(lines.at(-1).startsWith("https://github.com/afrotools/afrotools/issues/new?"), lines.at(-1));
 });
+
+// GitHub refuses an issue title over 256 characters; a short one also reads better in the list.
+test("a long title is cut to 120 characters", () => {
+  const url = buildIssueUrl(report({ title: "Studio ".repeat(40) }));
+  const title = decodeURIComponent(raw(url, "title"));
+  assert.ok(title.length <= 120, `${title.length}`);
+  assert.ok(title.endsWith("…"), title);
+});

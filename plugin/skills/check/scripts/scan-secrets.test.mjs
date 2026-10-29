@@ -78,7 +78,7 @@ test("not a git repository", () => {
   const r = spawnSync("node", [CLI, dir], { encoding: "utf8" });
   assert.equal(r.status, 1);
   assert.equal(r.stdout, "src/pay.ts:1: secret value in code: API_KEY\n");
-  assert.match(r.stderr, /^not a git repository: the tracked \.env check was skipped$/m);
+  assert.match(r.stderr, /^no git repository here, so \.env files tracked by git were not checked$/m);
 });
 
 // Every secret the registry asks for (auth.env_var / auth.credentials), not just the common shapes.
@@ -130,4 +130,31 @@ test("a tracked .env.example is expected, not a tracked .env", () => {
   spawnSync("git", ["init", "-q"], { cwd: dir });
   spawnSync("git", ["add", ".env.example"], { cwd: dir });
   assert.deepEqual(scan(dir), []);
+});
+
+test("Python virtualenvs and vendored code are skipped", () => {
+  const leak = 'API_KEY = "a1b2c3d4e5f6g7h8"\n';
+  const dir = project({ ".venv/lib/x.py": leak, "venv/lib/x.py": leak, "vendor/x/y.php": `<?php $API_KEY = "a1b2c3d4e5f6g7h8";\n` });
+  assert.deepEqual(scan(dir), []);
+});
+
+// Google says Firebase web config keys and browser Maps keys are public; a Gemini key (same AIza shape) is not.
+test("Firebase and Maps browser keys are public, a Google API key elsewhere is not", () => {
+  const dir = project({
+    ".env.local": "NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyA1b2c3d4e5f6g7h8i9\nNEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyA1b2c3d4e5f6g7h8i9\n",
+    "src/firebase.ts": 'const firebaseConfig = {\n  apiKey: "AIzaSyA1b2c3d4e5f6g7h8i9",\n  authDomain: "atelier.firebaseapp.com",\n};\n',
+    "src/ai.ts": 'const GEMINI_API_KEY = "AIzaSyA1b2c3d4e5f6g7h8i9";\n',
+  });
+  assert.deepEqual(scan(dir), [{ file: "src/ai.ts", line: 1, reason: "secret value in code: GEMINI_API_KEY" }]);
+});
+
+test("an unreadable file is reported and the scan goes on", (t) => {
+  if (process.getuid?.() === 0) return t.skip("root reads every file");
+  const dir = project({ "src/locked.ts": "x\n", "src/pay.ts": 'const API_KEY = "a1b2c3d4e5f6g7h8";\n' });
+  fs.chmodSync(path.join(dir, "src/locked.ts"), 0o000);
+  const r = spawnSync("node", [CLI, dir], { encoding: "utf8" });
+  fs.chmodSync(path.join(dir, "src/locked.ts"), 0o644);
+  assert.equal(r.status, 2);
+  assert.equal(r.stdout, "src/pay.ts:1: secret value in code: API_KEY\n");
+  assert.match(r.stderr, /^could not read src\/locked\.ts: not checked$/m);
 });

@@ -8,6 +8,7 @@ const FORM = "https://github.com/afrotools/afrotools/issues/new?template=studio-
 // GitHub answers 414 to long URLs: the same budgets as report_integration (encoded characters)
 const BUDGETS = { what_happened: 5000, steps: 1500 };
 const CUT = "\n[cut]";
+const TITLE_MAX = 120; // characters; GitHub refuses more than 256
 // Same names as scan-secrets (check skill)
 const SECRET_NAME = String.raw`[A-Za-z0-9_]*(?:secret|api[_-]?key|private[_-]?key|merchant[_-]?key|license[_-]?key|token|password|encryption)[A-Za-z0-9_]*`;
 
@@ -40,9 +41,14 @@ function encodeWithin(value, budget) {
   return out + encodeURIComponent(CUT);
 }
 
+const cleaned = (r, f) => {
+  const text = redact(r[f] ?? "");
+  return f === "title" && [...text].length > TITLE_MAX ? [...text].slice(0, TITLE_MAX - 1).join("").trimEnd() + "…" : text;
+};
+
 export function buildIssueUrl(r) {
   const fields = ["title", "agent", "plugin_version", "what_happened", "steps"];
-  return FORM + fields.map((f) => `&${f}=${encodeWithin(redact(r[f] ?? ""), BUDGETS[f])}`).join("");
+  return FORM + fields.map((f) => `&${f}=${encodeWithin(cleaned(r, f), BUDGETS[f])}`).join("");
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -51,7 +57,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   process.stdin.on("end", () => {
     const r = JSON.parse(input);
     // what the user must read before submitting: the cleaned text, then the link
-    for (const f of ["title", "what_happened", "steps"]) console.log(`${f}: ${redact(r[f] ?? "")}`);
+    for (const f of ["title", "what_happened", "steps"]) console.log(`${f}: ${cleaned(r, f)}`);
     console.log(buildIssueUrl(r));
   });
 }

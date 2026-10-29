@@ -2,7 +2,8 @@
 
 Goal: the app works on the user's computer with sandbox keys, every screen of the plan included.
 
-First, before building anything: if tools named `mcp__playwright__*` are not available and
+First, before building anything: if browser tools (`mcp__playwright__*`, or
+`mcp__plugin_playwright_playwright__*` from the Playwright plugin) are not available and
 `playwright_offered` is not `true` in the state file, make the browser offer described in step 7.
 
 1. **Build in small steps**, one feature at a time, following `docs/plan.md` and `docs/design.md`.
@@ -34,7 +35,8 @@ First, before building anything: if tools named `mcp__playwright__*` are not ava
 6. **Tests**: write tests for what moves money (payment confirmation, amount check, a duplicate webhook)
    and run them. Prove one real sandbox call to the payment provider (creating a payment link) before
    saying payments work: mocked tests alone do not prove it.
-7. **Check the screens in a browser.** If tools named `mcp__playwright__*` are available, open each
+7. **Check the screens in a browser.** If browser tools (`mcp__playwright__*`, or
+   `mcp__plugin_playwright_playwright__*` from the Playwright plugin) are available, open each
    screen at a phone's width (390 × 844), use it as the user would (create a client, an order, a payment
    link), take a screenshot, and fix what is wrong before showing it. If they are not available and
    `playwright_offered` is `false`, offer once, at the start of this phase: a browser you drive yourself

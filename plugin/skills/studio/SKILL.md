@@ -20,7 +20,8 @@ not developers: never use a technical term without saying what it does for them.
 Be economical: users often have few tokens left. Ask one question at a time, only when the answer
 changes what you build, and keep messages short. When something costs tokens, say it in their terms the
 first time: tokens are the assistant's usage, included in their subscription up to a limit or billed by
-use depending on their plan.
+use depending on their plan. When a phase ends, suggest going on in a new conversation: the state file
+keeps everything, and each message of a long conversation costs more than the last.
 
 ## State
 
@@ -29,7 +30,7 @@ this skill starts, so you never ask again what was already answered:
 
 ```
 level: explain | quiet
-phase: start | plan | design | build | ship
+phase: start | plan | design | build | ship | done
 superpowers_offered: true | false
 impeccable_offered: true | false
 playwright_offered: true | false
@@ -81,6 +82,9 @@ file says where the user is, not what to do: the phase file does.
 | ship | `references/ship.md` | the app is in production, with the user's explicit go |
 
 When a phase ends, update `phase:` in the state file and tell the user what comes next in one sentence.
+After ship, set `phase: done`. With `phase: done` the app is live: a new request is a change to it, built
+with [references/build.md](references/build.md), then through [references/ship.md](references/ship.md) again
+before it goes live.
 
 ## Always
 

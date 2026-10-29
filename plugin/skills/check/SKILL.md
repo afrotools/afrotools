@@ -20,9 +20,10 @@ words; report each problem as what could go wrong for them, then what you change
    node "${CLAUDE_SKILL_DIR}/scripts/scan-secrets.mjs" .
    ```
 
-   Exit 0: nothing found. Exit 1: each line is `file:line: reason`. Exit 2: a file could not be read;
-   say which. If the output is a Node error such as `Cannot find module`, the script did not run: fix
-   the path and run it again; it is not a finding.
+   Exit 0: nothing found. Exit 1: each line is `file:line: reason`. Exit 2: a file or folder could not
+   be read (it is named on a `could not read` line, the rest was scanned and its findings are printed):
+   say which, as not checked. If the output is a Node error such as `Cannot find module`, the script
+   did not run: fix the path and run it again; it is not a finding.
 
    For each finding, never copy or move the key's value yourself. Replace the literal with
    `process.env.NAME` read on the server only, rename a variable a bundler sends to the browser, and

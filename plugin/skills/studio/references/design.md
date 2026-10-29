@@ -21,7 +21,8 @@ Goal: the user has seen and agreed how the app will look on their phone, before 
    - states designed, not left to chance: empty lists, errors, payment pending, payment failed.
 5. **Impeccable**: if the `impeccable` skill is available, ask once whether to use it on the preview,
    saying what it does for them (a design review by a specialist tool) and that it uses some tokens.
-   Only after a yes, run `/impeccable critique docs/preview.html` and fix what it finds. If Impeccable is
+   Only after a yes, run its critique on `docs/preview.html` (`/impeccable critique docs/preview.html`;
+   `/impeccable:impeccable critique docs/preview.html` when it is installed as a plugin) and fix what it finds. If Impeccable is
    not installed and `impeccable_offered` is already `true`, do not offer it again unless the user asks. Without a yes,
    or without Impeccable, review the preview yourself against the rules above. In both cases,
    `npx impeccable detect docs/preview.html` costs no tokens when Impeccable is installed: run it, it

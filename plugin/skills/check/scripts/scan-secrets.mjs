@@ -2,7 +2,7 @@
 // Free pre-production check for rule 3 (no key in the code or in the browser), no dependency and
 // no AI: keys written as literals in code, secret-named variables a bundler sends to the browser,
 // and .env files tracked by git. Usage: node scan-secrets.mjs [dir=.]
-// Exit: 0 no finding, 1 findings, 2 a file or folder could not be read.
+// Exit: 0 no finding, 1 findings, 2 a file or folder could not be read (the rest is still scanned).
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -10,7 +10,8 @@ import { fileURLToPath } from "node:url";
 
 // The registry's own credential names included (MERCHANT_KEY, ENCRYPTION_KEY, BASIC_TOKEN…); public keys are not secrets
 const SENSITIVE = /(secret|api[_-]?key|private[_-]?key|merchant[_-]?key|license[_-]?key|token|password|encryption)/i;
-const PUBLIC_NAME = /public[_-]?key|publishable|anon[_-]?key/i;
+// Firebase web config and browser Maps keys are public by Google's design (restricted by app or referrer)
+const PUBLIC_NAME = /public[_-]?key|publishable|anon[_-]?key|firebase|maps[_-]?api[_-]?key/i;
 // env(X) is a Supabase config reference, @name a Vercel secret reference; ${{ secrets.X }} is caught by ${
 const PLACEHOLDER = /xxx|your|changeme|example|<|\.\.\.|process\.env|\$\{|\benv\(|^@/i;
 // Prefixes that Next.js, Vite, Expo, Create React App and SvelteKit/Astro inline into client bundles
@@ -20,7 +21,7 @@ const ASSIGNED = /(["']?)\b([A-Za-z_][A-Za-z0-9_]*)\1\s*[:=]\s*(["'`])([^"'`\n]*
 const YAML_LINE = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*([^\s#"'][^\s#]*)\s*$/;
 const AUTH_HEADER = /["'`](?:Bearer|Basic)\s+([A-Za-z0-9._~+/=-]{12,})/;
 const ENV_LINE = /^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/;
-const SKIP_DIRS = new Set([".git", "node_modules", "dist", "build", ".next", "coverage"]);
+const SKIP_DIRS = new Set([".git", "node_modules", "dist", "build", ".next", "coverage", ".venv", "venv", "vendor"]);
 const SKIP_FILES = new Set(["package-lock.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb"]);
 const EXAMPLE_ENV = new Set([".env.example", ".env.sample", ".env.template"]);
 const MAX_BYTES = 1_000_000;
@@ -30,12 +31,19 @@ const isSecretName = (name) => SENSITIVE.test(name) && !PUBLIC_NAME.test(name);
 const isBrowserSecret = (name) => isSecretName(name.replace(/^(NEXT_PUBLIC_|VITE_|EXPO_PUBLIC_|REACT_APP_|PUBLIC_)/, ""));
 const unquote = (v) => v.trim().replace(/^(["'])(.*)\1$/, "$2");
 
-function walk(dir, rel = "") {
+function walk(dir, unreadable, rel = "") {
   const files = [];
-  for (const entry of fs.readdirSync(path.join(dir, rel), { withFileTypes: true })) {
+  let entries;
+  try {
+    entries = fs.readdirSync(path.join(dir, rel), { withFileTypes: true });
+  } catch {
+    unreadable.push(rel);
+    return files;
+  }
+  for (const entry of entries) {
     const name = path.join(rel, entry.name);
     if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) files.push(...walk(dir, name));
+      if (!SKIP_DIRS.has(entry.name)) files.push(...walk(dir, unreadable, name));
     } else if (entry.isFile() && !SKIP_FILES.has(entry.name) && !entry.name.endsWith(".min.js")) {
       files.push(name);
     }
@@ -44,6 +52,8 @@ function walk(dir, rel = "") {
 }
 
 function scanFile(file, text) {
+  // a Firebase web config: its apiKey (AIza…) identifies the project, it is not a secret
+  const firebaseConfig = text.includes("authDomain");
   const findings = [];
   text.split("\n").forEach((line, i) => {
     const at = (reason) => findings.push({ file, line: i + 1, reason });
@@ -70,6 +80,7 @@ function scanFile(file, text) {
     const yaml = /\.ya?ml$/.test(file) && line.match(YAML_LINE);
     if (yaml) named.push([yaml[1], yaml[2]]);
     for (const [name, value] of named) {
+      if (firebaseConfig && name === "apiKey" && value.startsWith("AIza")) continue;
       if (!exposed.has(name) && isSecretName(name) && literal(value)) at(`secret value in code: ${name}`);
     }
     const header = line.match(AUTH_HEADER);
@@ -86,12 +97,19 @@ function trackedEnvFiles(dir) {
 
 export const isGitRepo = (dir) => trackedEnvFiles(dir) !== null;
 
-export function scan(dir) {
+// Files and folders that could not be read are added to `unreadable`.
+export function scan(dir, unreadable = []) {
   const findings = [];
-  for (const file of walk(dir)) {
+  for (const file of walk(dir, unreadable)) {
     const full = path.join(dir, file);
-    if (fs.statSync(full).size > MAX_BYTES) continue;
-    const text = fs.readFileSync(full, "utf8");
+    let text;
+    try {
+      if (fs.statSync(full).size > MAX_BYTES) continue;
+      text = fs.readFileSync(full, "utf8");
+    } catch {
+      unreadable.push(file);
+      continue;
+    }
     if (text.includes("\0")) continue; // binary
     findings.push(...scanFile(file, text));
   }
@@ -102,10 +120,12 @@ export function scan(dir) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const dir = process.argv[2] ?? ".";
   try {
-    const findings = scan(dir);
+    const unreadable = [];
+    const findings = scan(dir, unreadable);
     for (const f of findings) console.log(`${f.file}:${f.line}: ${f.reason}`);
-    if (!isGitRepo(dir)) console.error("not a git repository: the tracked .env check was skipped");
-    process.exit(findings.length ? 1 : 0);
+    for (const f of unreadable) console.error(`could not read ${f || dir}: not checked`);
+    if (!isGitRepo(dir)) console.error("no git repository here, so .env files tracked by git were not checked");
+    process.exit(unreadable.length ? 2 : findings.length ? 1 : 0);
   } catch (err) {
     console.error(`scan-secrets: ${err.message}`);
     process.exit(2);
