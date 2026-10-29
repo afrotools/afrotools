@@ -39,7 +39,10 @@ words; report each problem as what could go wrong for them, then what you change
    A spec's gotcha may make a rule hard (for example a status call that fails in the sandbox): say so,
    and keep the payment pending rather than confirming it on a weaker proof.
 
-3. **Report** in two groups: **blocking** (money or customer data at risk) and **can wait**. Fix what
+3. **Report** in two groups: **blocking** (money or customer data at risk) and **can wait**. A way for
+   a customer to pay twice, or for an order to be marked paid without a verified payment, is always
+   blocking. If the user goes live without fixing a blocking point, add it to
+   `.afrotools/accepted-risks.md` in the format given in `../review/SKILL.md`. Fix what
    you can with the user's agreement, then run the check again.
 
 4. **Offer the deeper checks**, strongly advised, never forced: a code review and a security audit by a
