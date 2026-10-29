@@ -90,12 +90,15 @@ When they come back with a result:
 afrotools.report_integration({ provider: "<slug>", capabilities: [{ capability: "<capability>", result: "worked" }, …], summary: "<one line>", details: "<what was called, what came back, what differed>" })
 ```
 
-List every capability the flow used (e.g. payment init, status, webhook), each with its own
-result — one report per provider. Give the user the returned link: they choose the environment and
-the outcome, check the text, and submit it themselves. Never put API keys, tokens, phone numbers
-or personal data in `details`. Call something a difference from the spec only when the spec says
-otherwise; what the spec does not say (a status code, a field it does not list) is an observation:
-write it as one, so nobody "fixes" a spec that was right.
+List every capability the flow used (e.g. payment init, status, webhook), each with its own result —
+one report per provider. Paste the whole returned link in your reply (the user does not see tool
+results) and tell them what to pick in the two lists it cannot fill: the environment (`production`
+when the provider's `sandbox` is `false`, even on a trial account) and the outcome. They check the
+text and submit it themselves. Never put API keys, tokens, phone numbers or personal data in
+`details`. Write only what this test showed, nothing taken from the rest of the project (a country,
+a name). Call something a difference from the spec only when the spec says otherwise; what the spec
+does not say (a status code, a field it does not list) is an observation: write it as one, so nobody
+"fixes" a spec that was right.
 
 ## Important
 

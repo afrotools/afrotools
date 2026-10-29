@@ -23,7 +23,9 @@ First, before building anything: if tools named `mcp__playwright__*` are not ava
    Never ask for the values. Start with the sandbox keys; the app shows clearly that it runs in test mode.
 4. **A spec that is not `verified`** may be wrong: say so when you wire it, test it with the user's own
    number or account first, and offer a report (`afrotools.report_integration`) once it works or fails,
-   as the `payment` skill says.
+   as the `payment` skill says. Offer only checks a spec allows: when no spec reads the delivery status
+   (only a webhook, which needs a public address), the user's phone is the proof; never promise to "look
+   at the delivery report".
 5. **Run the app yourself.** Start the dev server on a port nothing listens on (other projects of the
    user often use 3000 and nearby ports), give the user the link, and never ask a non-developer to type a
    command. Before giving a link, check that the page is this app (its title or a text you wrote), not
