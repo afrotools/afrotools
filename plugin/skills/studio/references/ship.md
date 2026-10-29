@@ -20,5 +20,6 @@ Goal: the app is in production, with the user's explicit go, after the checks.
 4. **Go live only after the user's explicit go**, and only with an account they created themselves.
    Without an account, stop and tell them what to create.
 5. **After going live**: for each spec that is not `verified`, offer a report
-   (`afrotools.report_integration`) once the user has tried it, as the `payment` skill says. Set
-   `phase: ship` done in `.afrotools/studio.md` and tell the user how to come back for changes.
+   (`afrotools.report_integration`) once the user has tried it, as the `payment` skill says: paste the
+   whole link it returns, even a long one, and name what to pick in its two lists. Set `phase: done` in
+   `.afrotools/studio.md` and tell the user how to come back for changes.

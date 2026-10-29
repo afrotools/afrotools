@@ -24,7 +24,8 @@ First, before building anything: if browser tools (`mcp__playwright__*`, or
    Never ask for the values. Start with the sandbox keys; the app shows clearly that it runs in test mode.
 4. **A spec that is not `verified`** may be wrong: say so when you wire it, test it with the user's own
    number or account first, and offer a report (`afrotools.report_integration`) once it works or fails,
-   as the `payment` skill says. Offer only checks a spec allows: when no spec reads the delivery status
+   as the `payment` skill says: paste the whole link it returns, even a long one (it carries the text), and
+   name what to pick in its two lists (environment, outcome). Offer only checks a spec allows: when no spec reads the delivery status
    (only a webhook, which needs a public address), the user's phone is the proof; never promise to "look
    at the delivery report".
 5. **Run the app yourself.** Start the dev server on a port nothing listens on (other projects of the
