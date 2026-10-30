@@ -132,7 +132,7 @@ On Claude Code older than 2.1.275, in two steps:
 - `/afrotools:review [audit]` — a code review or security audit by a separate reviewer
 - `/afrotools:diagnose` — something went wrong with Studio or a skill: a cleaned bug report you submit yourself
 
-Studio offers three optional companions once, never required: [superpowers](https://github.com/obra/superpowers) (planning method), [Impeccable](https://github.com/pbakaus/impeccable) (design critique) and [Playwright MCP](https://github.com/microsoft/playwright-mcp) (checking screens in a browser).
+Studio offers three optional companions once, never required: [superpowers](https://github.com/obra/superpowers) (planning method), [Impeccable](https://github.com/pbakaus/impeccable) (designs the screens and critiques them before any code) and [Playwright MCP](https://github.com/microsoft/playwright-mcp) (checking screens in a browser).
 
 ---
 

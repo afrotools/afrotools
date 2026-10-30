@@ -5,7 +5,9 @@ Goal: a short plan the user agrees with, and the stack and the hosting chosen.
 1. **Write the plan** in `docs/plan.md` in the project, one to two pages, following
    [vendor/create-prd.md](vendor/create-prd.md) in its lean form. Cover: who uses the app, what each
    screen does, the African building blocks and their providers (from `.afrotools/studio.md`), what the
-   first version leaves out. Apply [rules.md](rules.md): say in the plan how payments are confirmed
+   first version leaves out, and the **manual tests**: for each screen that moves money or sends a
+   message, what the user will do by hand and what they should see (pay a test order, receive the SMS on
+   their phone). The agent never does these in their place. Apply [rules.md](rules.md): say in the plan how payments are confirmed
    and how double payment is avoided, in plain words.
    With `level: explain`, show the user a summary of five to eight lines, not the whole document; tell
    them where it is if they want to read it.

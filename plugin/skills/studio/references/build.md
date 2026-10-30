@@ -4,10 +4,15 @@ Goal: the app works on the user's computer with sandbox keys, every screen of th
 
 First, before building anything: if browser tools (`mcp__playwright__*`, or
 `mcp__plugin_playwright_playwright__*` from the Playwright plugin) are not available and
-`playwright_offered` is not `true` in the state file, make the browser offer described in step 7.
+`playwright_offered` is not `true`, offer once a browser you drive yourself to check every screen, free,
+using the Chrome already installed. With a yes, run `claude mcp add playwright -- npx @playwright/mcp@latest --browser chrome --headless` (it is added to
+this project only), set `playwright_offered: true`, then tell the user to reopen their agent here and type
+`/afrotools:studio` again. Without a yes, set `playwright_offered: true` too.
 
-1. **Build in small steps**, one feature at a time, following `docs/plan.md` and `docs/design.md`.
-   After each feature, run the app and check it yourself before telling the user it works. With
+1. **Build in small steps**, one feature at a time, following `docs/plan.md`, the direction recorded
+   in `.afrotools/studio.md` (`docs/design.md`, or `DESIGN.md` written by Impeccable) and
+   `docs/preview.html`: reuse the preview's colours, text sizes and spacing as they are, and compare each
+   built screen with it. After each feature, run the app and check it yourself before telling the user it works. With
    `level: explain`, tell the user in one sentence what now works and how to see it.
 
    **Keep going without waiting for a go.** Once the keys are in, build feature after feature in the
@@ -34,20 +39,31 @@ First, before building anything: if browser tools (`mcp__playwright__*`, or
    another program. Never stop, restart or reuse a process you did not start in this session: if a port
    is taken, pick another one.
 6. **Tests**: write tests for what moves money (payment confirmation, amount check, a duplicate webhook)
-   and run them. Prove one real sandbox call to the payment provider (creating a payment link) before
-   saying payments work: mocked tests alone do not prove it.
-7. **Check the screens in a browser.** If browser tools (`mcp__playwright__*`, or
+   and run them. Mocked tests alone do not prove the payment: prove it through the app, not beside it.
+   Use the app's own payment action (the button that starts a payment or makes a payment link, in the
+   browser or by calling the app's route) until the provider's payment page opens: that proves the app talks to the provider with the sandbox keys. Stop there.
+7. **Manual tests stay the user's.** Never fill in a provider's payment page yourself (card, phone
+   number, code, QR code) and never confirm a payment in the user's place: paying, and receiving an SMS
+   or a WhatsApp message on their phone, are tests the user does by hand, always. When such a screen
+   works, give them the steps in a few lines: what to tap in the app, which test method to choose on the
+   provider's page, what they should then see in the app. The test method (test card, test wallet, test
+   number) comes only from the spec or the provider's documentation; if neither gives one, say so and
+   tell them to ask the provider: never invent one. On their computer, the provider's confirmation
+   (webhook) cannot reach the app without a public address: so the app asks the provider for the status
+   itself (rule 1), when the customer comes back and with a "check the payment" button on a pending
+   order. Ask what they saw, and use it in the report (step 4).
+8. **Check the screens in a browser.** If browser tools (`mcp__playwright__*`, or
    `mcp__plugin_playwright_playwright__*` from the Playwright plugin) are available, open each
    screen at a phone's width (390 × 844), use it as the user would (create a client, an order, a payment
-   link), take a screenshot, and fix what is wrong before showing it. If they are not available and
-   `playwright_offered` is `false`, offer once, at the start of this phase: a browser you drive yourself
-   to check every screen, free, using the Chrome already installed (no big download). With a yes, run
-   `claude mcp add playwright -- npx @playwright/mcp@latest --browser chrome --headless` (it is added to
-   this project only), tell the user to reopen the session for it to load, and set
-   `playwright_offered: true`. Without it, check pages with `curl` and describe what the user should see;
+   link, stopping at the provider's page: never fill it in), take a screenshot, compare it with
+   `docs/preview.html`, and fix what is wrong before showing it. Without them, check pages with `curl` and describe what the user should see;
    if the project already uses Playwright, follow [vendor/webapp-testing.md](vendor/webapp-testing.md).
-8. **Review, offered once per feature**: when a feature is done, offer a code review in one sentence
+9. **Review, offered once per feature**: when a feature is done, offer a code review in one sentence
    (what it catches, that it uses tokens). Count each refusal in `review_declined` in the state file;
    at 2, stop offering it until the ship phase, in this session and the next ones. The review itself: read [../../review/SKILL.md](../../review/SKILL.md) and follow it.
-9. **When the plan's screens all work** with sandbox keys, record it in `.afrotools/studio.md`, set
-   `phase: ship`, and say in one sentence what the next phase does.
+10. **When the plan's screens all work** with sandbox keys: give the user the list of manual tests from
+   `docs/plan.md`, one line each, marked done or still to do. If the `impeccable` skill is available,
+   `impeccable_use` is not `no` and `polish_offered` is not `true`, offer its polish pass on the main screens (`/impeccable polish <screen>`, or
+   `/impeccable:impeccable polish <screen>`), saying it uses tokens, and set
+   `polish_offered: true`. Then record it in
+   `.afrotools/studio.md`, set `phase: ship`, and say in one sentence what the next phase does.

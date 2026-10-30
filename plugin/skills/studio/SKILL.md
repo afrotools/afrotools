@@ -33,6 +33,8 @@ level: explain | quiet
 phase: start | plan | design | build | ship | done
 superpowers_offered: true | false
 impeccable_offered: true | false
+impeccable_use: unasked | yes | no
+polish_offered: true | false
 playwright_offered: true | false
 review_declined: 0 | 1 | 2
 ```
@@ -50,22 +52,14 @@ Update the file with your file-editing tool, not with shell commands.
      African payment and messaging services" and say before you use it that it is free; a permission
      prompt may appear the first time, to accept.
    - Yes → `level: quiet`: apply the rules without explaining them; mention only decisions.
-2. **Companions.** Two optional tools make Studio better. Check your list of available skills:
-   - superpowers is present if skills named `superpowers:*` are listed;
-   - Impeccable is present if a skill named `impeccable` is listed.
+2. **Companions.** superpowers (a method to plan and build step by step) makes Studio better; it is
+   present if skills named `superpowers:*` are listed. If it is missing and `superpowers_offered` is not
+   `true`, offer it once, with what it brings, then set `superpowers_offered: true`. Its install command,
+   `/plugin install superpowers@claude-plugins-official`, is one only the user can type in their agent:
+   give it to them as is. Studio works without it; say so.
 
-   If one is missing, offer it once, with what it brings and its exact install command, then set its
-   `*_offered` field to `true` and never offer it again:
-   - superpowers (a method to plan and build step by step): `/plugin install superpowers@claude-plugins-official`
-   - Impeccable (design and design critique): `npx impeccable install`. Say before running it that it
-     installs Impeccable for every project on this computer, for several agents, not just this one.
-
-   A third one, a browser the agent can drive to check the screens (Playwright MCP), is offered at the
-   start of the build phase, not here (see `references/build.md`).
-
-   Studio works without them; say so. If the user agrees, run `npx impeccable install` yourself rather
-   than asking a non-developer to open a terminal; `/plugin install` is a command only they can type in
-   their agent, so give it to them as is.
+   Two other tools are offered at the start of the design phase, where they serve: Impeccable (design and
+   design critique) and a browser the agent can drive to see the screens (Playwright MCP).
 
 ## Phases
 
@@ -77,7 +71,7 @@ file says where the user is, not what to do: the phase file does.
 |---|---|---|
 | start | [references/start.md](references/start.md) | the user knows which providers the app uses and which keys to get |
 | plan | `references/plan.md` | a short plan is agreed, with the stack and the hosting |
-| design | `references/design.md` | the screens' direction is agreed |
+| design | `references/design.md` | the user chose a critiqued preview of the main screen |
 | build | `references/build.md` | the app works locally with sandbox keys |
 | ship | `references/ship.md` | the app is in production, with the user's explicit go |
 

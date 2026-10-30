@@ -14,11 +14,14 @@ Goal: the app is in production, with the user's explicit go, after the checks.
    chooses not to fix goes in `.afrotools/accepted-risks.md`.
 3. **Prepare going live** with [vendor/shipping-and-launch.md](vendor/shipping-and-launch.md), kept to
    what this app needs: the production keys (the user puts them in the host's settings themselves),
-   the provider's production address, the webhook address registered with the provider, a first real
-   payment of a small amount by the user.
+   the provider's production address, the webhook address registered with the provider.
    Never state a price or a free-tier limit from memory: send the user to the host's pricing page.
 4. **Go live only after the user's explicit go**, and only with an account they created themselves.
-   Without an account, stop and tell them what to create.
+   Without an account, stop and tell them what to create. Once it is deployed, the user does the manual
+   tests of `docs/plan.md` again, in production, by hand: a first real payment of a small amount through
+   the app itself, a real message to their own phone. Never fill in the provider's payment page or
+   confirm a payment yourself; give them the steps and ask what they saw. Tell them to announce the app
+   only once these pass.
 5. **After going live**: for each spec that is not `verified`, offer a report
    (`afrotools.report_integration`) once the user has tried it, as the `payment` skill says: paste the
    whole link it returns, even a long one, and name what to pick in its two lists. Set `phase: done` in
