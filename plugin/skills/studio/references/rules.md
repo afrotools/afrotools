@@ -1,7 +1,7 @@
 # The rules Studio applies
 
-Five rules, from real failures. Rules 1 to 3 are how the app is built; Studio applies them without
-asking. Rules 4 and 5 are strongly advised, never forced: say what they catch and roughly what they
+Six rules. Rules 1 to 4 are how the app is built; Studio applies them without asking. Rules 5 and 6
+are strongly advised, never forced: say what they catch and roughly what they
 cost, and the user decides.
 
 1. **A payment is confirmed only by the server, and its amount is checked.** Neither the return page
@@ -18,8 +18,14 @@ cost, and the user decides.
    (`NEXT_PUBLIC_`, `VITE_`, `EXPO_PUBLIC_`, `REACT_APP_`, `PUBLIC_`) never hold a secret. The app always
    knows whether it runs against the sandbox or production. Why: a key in the code or in the page is
    public the day the code or the site is.
-4. **A security audit before going live, strongly advised.** A separate reviewer looks for what the
+4. **Every message costs money, so a stranger cannot make the app send many.** Anything that sends an
+   SMS, a WhatsApp message or a one-time code without someone logged in (sign-up, "send me a code",
+   "resend the link") is limited per phone number and per hour, counted on the server in the database
+   (not in memory, which a restart or a second server forgets), and refuses numbers outside the countries
+   the app serves. Why: messages are billed one by one; a public form without a limit lets anyone send
+   thousands at the user's expense, a fraud known as SMS pumping.
+5. **A security audit before going live, strongly advised.** A separate reviewer looks for what the
    author missed. If it finds something serious, warn, let the user choose, and if they go live anyway,
    record it in `.afrotools/accepted-risks.md`.
-5. **A code review, strongly advised**, at the end of each feature and before going live, by a separate
+6. **A code review, strongly advised**, at the end of each feature and before going live, by a separate
    reviewer that gets the code, not the author's conclusions.

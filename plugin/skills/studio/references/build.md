@@ -15,13 +15,23 @@ this project only), set `playwright_offered: true`, then tell the user to reopen
    built screen with it. After each feature, run the app and check it yourself before telling the user it works. With
    `level: explain`, tell the user in one sentence what now works and how to see it.
 
+   **Save points.** Before the first feature, if the project has no git repository, create one
+   (`git init`), after checking that `.gitignore` covers `.env` and the dependencies folder. After each
+   feature that works, save it: `git add -A` then `git commit -m "<what now works, in plain words>"`. If git
+   has no name set, set one for this project only (`git config user.name` and `user.email`), with the
+   user's name and email if they give them, otherwise the app's name and `studio@localhost`. The first
+   time, tell the user in one sentence: it is a save point on their computer, nothing is published, and
+   you can bring the app back to any of them if a change breaks it. Going back is done only with their go,
+   saying what would be lost. Never push to a remote unless they ask. Without git on the computer, skip
+   save points and say so once.
+
    **Keep going without waiting for a go.** Once the keys are in, build feature after feature in the
    same turn. Answer the user's questions briefly, then carry on building; never end a message with
    "I'll start with…" or "I'll continue with…": do it, then say what works. Stop only to ask for
    something only they can give (a key, a decision) or when the phase is done.
 2. **African building blocks** go through the afrotools skills, never from memory: for payments, the
    `payment` skill (`afrotools.get_spec()` for the payment, its status and its webhook); for SMS,
-   WhatsApp and OTP, the `communications` skill. Apply [rules.md](rules.md) rules 1 to 3. WhatsApp
+   WhatsApp and OTP, the `communications` skill. Apply [rules.md](rules.md) rules 1 to 4. WhatsApp
    webhooks follow [vendor/whatsapp-webhooks.md](vendor/whatsapp-webhooks.md); any webhook follows
    [vendor/webhook-handler-patterns.md](vendor/webhook-handler-patterns.md).
 3. **Keys**: when a feature needs them, list the variable names and where to put them (`.env` at the
@@ -39,7 +49,7 @@ this project only), set `playwright_offered: true`, then tell the user to reopen
    another program. Never stop, restart or reuse a process you did not start in this session: if a port
    is taken, pick another one.
 6. **Tests**: write tests for what moves money (payment confirmation, amount check, a duplicate webhook)
-   and run them. Mocked tests alone do not prove the payment: prove it through the app, not beside it.
+   and for the message limit of rule 4, and run them. Mocked tests alone do not prove the payment: prove it through the app, not beside it.
    Use the app's own payment action (the button that starts a payment or makes a payment link, in the
    browser or by calling the app's route) until the provider's payment page opens: that proves the app talks to the provider with the sandbox keys. Stop there.
 7. **Manual tests stay the user's.** Never fill in a provider's payment page yourself (card, phone
