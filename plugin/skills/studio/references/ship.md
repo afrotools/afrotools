@@ -13,7 +13,8 @@ Goal: the app is in production, with the user's explicit go, after the checks.
    (a separate reviewer, never your own reading). A blocking point the user
    chooses not to fix goes in `.afrotools/accepted-risks.md`.
 3. **Prepare going live** with [vendor/shipping-and-launch.md](vendor/shipping-and-launch.md), kept to
-   what this app needs: the production keys (the user puts them in the host's settings themselves),
+   what this app needs: production access granted by each provider (`.afrotools/studio.md` says whether
+   it was asked for; if not, the user asks now, and going live waits for it), the production keys (the user puts them in the host's settings themselves),
    the provider's production address, the webhook address registered with the provider.
    Never state a price or a free-tier limit from memory: send the user to the host's pricing page.
 4. **Go live only after the user's explicit go**, and only with an account they created themselves.

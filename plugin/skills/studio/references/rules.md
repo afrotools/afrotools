@@ -21,9 +21,9 @@ cost, and the user decides.
 4. **Every message costs money, so a stranger cannot make the app send many.** Anything that sends an
    SMS, a WhatsApp message or a one-time code without someone logged in (sign-up, "send me a code",
    "resend the link") is limited per phone number and per hour, counted on the server in the database
-   (not in memory, which a restart or a second server forgets), and refuses numbers outside the countries
-   the app serves. Why: messages are billed one by one; a public form without a limit lets anyone send
-   thousands at the user's expense, a fraud known as SMS pumping.
+   (not in memory, which a restart or a second server forgets). Why: messages are billed one by one; a
+   public form without a limit lets anyone send thousands at the user's expense, a fraud known as SMS
+   pumping.
 5. **A security audit before going live, strongly advised.** A separate reviewer looks for what the
    author missed. If it finds something serious, warn, let the user choose, and if they go live anyway,
    record it in `.afrotools/accepted-risks.md`.

@@ -28,9 +28,13 @@ Goal: the user knows what the app will do, which African providers it uses, and 
    - whether a test environment exists: `sandbox` and `environments` in `afrotools.get_spec()` for one of
      its capabilities. With a sandbox, the user starts there; real money comes later;
    - which keys the app will need: `auth.credentials` (or `auth.env_var`) in that spec, as the names of
-     the environment variables to fill.
+     the environment variables to fill;
+   - production access: a provider may review the account or ask for documents before real payments
+     or messages, and the registry does not say what or how long. Suggest asking the provider now how
+     to get production access, so it is ready when the app is; meanwhile the tests go on in the
+     sandbox, when there is one.
 
    Tell the user to put the keys in a `.env` file at the project root themselves, and never to paste
    them in the chat. Do not describe sign-up steps, documents or delays the registry does not give.
-6. **Record** the providers and the key names in `.afrotools/studio.md`, set `phase: plan`, and say in
-   one sentence what the next phase does.
+6. **Record** the providers, the key names and, for each provider, whether production access was asked
+   for in `.afrotools/studio.md`, set `phase: plan`, and say in one sentence what the next phase does.
