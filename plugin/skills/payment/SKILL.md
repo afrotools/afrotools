@@ -64,7 +64,12 @@ for the target provider and capability before writing any implementation code.
 4. Implement using the `canonical_example.ts` pattern:
    - Native fetch only — no axios, no node-fetch
    - Credentials from `process.env`
-   - Always verify payment status server-side before fulfilling an order
+   - Confirm every payment server-side with the provider's status capability before fulfilling an
+     order: neither the return page nor a webhook alone proves a payment
+   - Compare the verified amount with the order's total; never copy the provider's amount onto the order
+   - Send the idempotency key the spec declares (a header or a field) on every payment and payout
+   - Make fulfilment idempotent: the same webhook can arrive several times, and must not deliver twice
+   - Before going live, `/afrotools:check` checks these rules and looks for keys in the code
 
 ## After the integration
 
@@ -81,13 +86,19 @@ them to say it worked:
 When they come back with a result:
 
 ```
-afrotools.report_integration({ provider: "<slug>", capabilities: [{ capability: "<capability>", result: "worked" }, …], summary: "<one line>", details: "<what was called, what came back, what differed>" })
+afrotools.report_integration({ provider: "<slug>", capabilities: [{ capability: "<capability>", result: "worked" }, …], summary: "<one line>", details: "<what was called, what came back, what differed>", tested_on: "<YYYY-MM-DD>" })
 ```
 
-List every capability the flow used (e.g. payment init, status, webhook), each with its own
-result — one report per provider. Give the user the returned link: they choose the environment and
-the outcome, check the text, and submit it themselves. Never put API keys, tokens, phone numbers
-or personal data in `details`.
+List every capability the flow used (e.g. payment init, status, webhook), each with its own result —
+one report per provider. Paste the whole returned link in your reply, even a long one: the user does
+not see tool results, and a shortened link loses the text it carries. Tell them what to pick in the
+two lists it cannot fill: the environment (`production` when the provider's `sandbox` is `false`,
+even on a trial account) and the outcome, each quoted as the form shows it, in English (add a
+translation if the user speaks another language). They check the text and submit it themselves.
+Never put API keys, tokens, phone numbers or personal data in `details`. Write only what this test
+showed, nothing taken from the rest of the project (a country, a name). Call something a difference
+from the spec only when the spec says otherwise; what the spec does not say (a status code, a field
+it does not list) is an observation: write it as one, so nobody "fixes" a spec that was right.
 
 ## Important
 

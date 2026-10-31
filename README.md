@@ -105,6 +105,12 @@ claude mcp add --transport http afrotools https://mcp.afro.tools/mcp
 ## Claude Code plugin
 
 ```
+/plugin install afrotools --marketplace afrotools/afrotools
+```
+
+On Claude Code older than 2.1.275, in two steps:
+
+```
 /plugin marketplace add afrotools/afrotools
 /plugin install afrotools
 ```
@@ -121,6 +127,12 @@ claude mcp add --transport http afrotools https://mcp.afro.tools/mcp
 - `/afrotools:spec <provider> <capability>` — inspect a full spec
 - `/afrotools:list` — list all available specs
 - `/afrotools:new <category> <provider> <capability>` — scaffold a new spec
+- `/afrotools:studio` — **afro.tools Studio**: from an idea to an app in production for African markets (a short plan, a clean design, mobile money, SMS and WhatsApp wired from the registry, checks before going live). Works for non-developers too: it explains in plain words and asks only what it must
+- `/afrotools:check` — before going live: keys in the code or the browser, payments confirmed server-side, nothing paid twice, webhooks verified
+- `/afrotools:review [audit]` — a code review or security audit by a separate reviewer
+- `/afrotools:diagnose` — something went wrong with Studio or a skill: a cleaned bug report you submit yourself
+
+Studio offers three optional companions once, never required: [superpowers](https://github.com/obra/superpowers) (planning method), [Impeccable](https://github.com/pbakaus/impeccable) (designs the screens and critiques them before any code) and [Playwright MCP](https://github.com/microsoft/playwright-mcp) (checking screens in a browser).
 
 ---
 
