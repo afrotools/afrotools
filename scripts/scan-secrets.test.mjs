@@ -34,6 +34,19 @@ test("secret exposed to the browser", () => {
   ]);
 });
 
+// Windows editors and git's autocrlf write \r\n: the \r must not hide a line from the scan
+test("the same findings with Windows line endings", () => {
+  const lf = {
+    ".env.local": "NEXT_PUBLIC_WAVE_API_KEY=abc\nWAVE_API_KEY=a1b2c3d4e5f6g7h8i9\n",
+    "src/pay.ts": 'const API_KEY = "a1b2c3d4e5f6g7h8";\n',
+    "deploy.yml": "api_key: sk_live_a1b2c3d4e5f6\n",
+  };
+  const crlf = Object.fromEntries(Object.entries(lf).map(([name, text]) => [name, text.replace(/\n/g, "\r\n")]));
+  const expected = scan(project(lf));
+  assert.ok(expected.some((f) => f.reason.startsWith("secret exposed to the browser")));
+  assert.deepEqual(scan(project(crlf)), expected);
+});
+
 test("placeholders and examples are not findings", () => {
   const dir = project({
     "src/config.ts": [

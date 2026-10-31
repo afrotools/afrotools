@@ -55,7 +55,8 @@ function scanFile(file, text) {
   // a Firebase web config: its apiKey (AIza…) identifies the project, it is not a secret
   const firebaseConfig = text.includes("authDomain");
   const findings = [];
-  text.split("\n").forEach((line, i) => {
+  // \r?\n: a file saved on Windows ends its lines with \r\n, and the \r stops `.` and `$` from matching
+  text.split(/\r?\n/).forEach((line, i) => {
     const at = (reason) => findings.push({ file, line: i + 1, reason });
     if (EXAMPLE_ENV.has(path.basename(file))) {
       // committed with the code: a real-looking value here is a leaked key
@@ -92,7 +93,7 @@ function scanFile(file, text) {
 function trackedEnvFiles(dir) {
   const r = spawnSync("git", ["-C", dir, "ls-files"], { encoding: "utf8" });
   if (r.status !== 0) return null;
-  return r.stdout.split("\n").filter((f) => isEnvFile(f) && !EXAMPLE_ENV.has(path.basename(f)));
+  return r.stdout.split(/\r?\n/).filter((f) => isEnvFile(f) && !EXAMPLE_ENV.has(path.basename(f)));
 }
 
 export const isGitRepo = (dir) => trackedEnvFiles(dir) !== null;
