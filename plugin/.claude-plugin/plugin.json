@@ -7,6 +7,7 @@
     "url": "https://afro.tools"
   },
   "homepage": "https://afro.tools",
+  "privacyPolicyUrl": "https://afro.tools/privacy",
   "repository": "https://github.com/afrotools/afrotools",
   "license": "Apache-2.0",
   "keywords": [
