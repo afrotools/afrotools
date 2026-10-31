@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { redact, buildIssueUrl } from "./issue-url.mjs";
+import { redact, buildIssueUrl } from "../plugin/skills/diagnose/scripts/issue-url.mjs";
 
 const report = (over = {}) => ({
   title: "Studio asked twice for the level",
@@ -52,7 +52,7 @@ test("redact also masks quoted JSON keys, keys in URLs, token headers and paired
 test("the CLI prints the cleaned fields the user must read, then the link", async () => {
   const { spawnSync } = await import("node:child_process");
   const { fileURLToPath } = await import("node:url");
-  const cli = fileURLToPath(new URL("./issue-url.mjs", import.meta.url));
+  const cli = fileURLToPath(new URL("../plugin/skills/diagnose/scripts/issue-url.mjs", import.meta.url));
   const r = spawnSync("node", [cli], { input: JSON.stringify(report({ what_happened: "the customer's number +221 77 123 45 67" })), encoding: "utf8" });
   const lines = r.stdout.trimEnd().split("\n");
   assert.match(r.stdout, /^what_happened: the customer's number \[phone\]$/m);

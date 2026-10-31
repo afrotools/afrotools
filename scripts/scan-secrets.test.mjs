@@ -5,9 +5,9 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { scan } from "./scan-secrets.mjs";
+import { scan } from "../plugin/skills/check/scripts/scan-secrets.mjs";
 
-const CLI = path.join(path.dirname(fileURLToPath(import.meta.url)), "scan-secrets.mjs");
+const CLI = path.join(path.dirname(fileURLToPath(import.meta.url)), "../plugin/skills/check/scripts/scan-secrets.mjs");
 
 function project(files) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "scan-secrets-"));
@@ -83,7 +83,7 @@ test("not a git repository", () => {
 
 // Every secret the registry asks for (auth.env_var / auth.credentials), not just the common shapes.
 test("every secret credential name of the registry is caught", () => {
-  const specs = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../specs");
+  const specs = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../specs");
   const names = new Set();
   for (const cat of fs.readdirSync(specs, { withFileTypes: true }).filter((d) => d.isDirectory()))
     for (const prov of fs.readdirSync(path.join(specs, cat.name), { withFileTypes: true }).filter((d) => d.isDirectory()))
