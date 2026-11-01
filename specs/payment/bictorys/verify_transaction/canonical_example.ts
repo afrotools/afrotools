@@ -79,7 +79,11 @@ const transactionId = "abd2053b-638d-4133-957e-3caf63e6b79c";
 const transaction = await verifyTransaction(transactionId);
 
 if (transaction.status === "succeeded") {
-  await fulfillOrder(transaction.paymentReference, transaction.amount, transaction.currency);
+  // On success this response carries no amount and no timestamp (see the "succeeded" gotcha), so
+  // there is nothing to read them from here: find the order in your own records by the id you
+  // stored, and if you must check the amount paid, read it from GET /pay/v1/transactions
+  // (match on paymentReference).
+  await fulfillOrder(transactionId);
 } else if (transaction.status === "authorized") {
   // Funds only reserved, not captured — do not fulfil until the spec's open question
   // (is a capture needed?) is resolved. See the "authorized" gotcha.
