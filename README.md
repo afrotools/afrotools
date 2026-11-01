@@ -1,5 +1,7 @@
 # Afro.tools — AI-ready infrastructure for African APIs
 
+[![mcptry](https://mcptry.com/badge/io.github.afrotools/afrotools)](https://mcptry.com/servers/io.github.afrotools/afrotools)
+
 > Integrate Wave, Paycard, and any African API in a single prompt.
 
 African APIs are production-grade. What's been missing is a standard,
