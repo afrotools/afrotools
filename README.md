@@ -83,23 +83,75 @@ See [ATSS.md](./ATSS.md) for the full specification.
 
 ## Use with an MCP client
 
-### Claude Code
+The server answers at `https://mcp.afro.tools/mcp` (Streamable HTTP, no key). In Claude Code, prefer the [plugin](#claude-code-plugin): it adds the skills too.
+
+### Claude (claude.ai and Claude Desktop)
+
+afro.tools is in the Claude connector directory: [claude.ai/directory/afrotools](https://claude.ai/directory/afrotools). In Claude, go to Customize → Connectors → Discover, search for afro.tools, then Connect to Claude. On Team and Enterprise plans, an Owner adds it for the organization first.
+
+### Claude Code (MCP server only)
 
 ```bash
 claude mcp add --transport http afrotools https://mcp.afro.tools/mcp
 ```
 
-### Cursor / Windsurf / VS Code Copilot
+### ChatGPT
+
+On the web: Plugins → + → Add custom MCP server, paste `https://mcp.afro.tools/mcp` with authentication None, then Create as a plugin and install it. OpenAI offers it on the Business, Enterprise and Edu plans; on Business, only admins and owners can add it.
+
+### Codex
+
+```bash
+codex mcp add afrotools --url https://mcp.afro.tools/mcp
+```
+
+### Cursor
+
+In `.cursor/mcp.json` (one project) or `~/.cursor/mcp.json` (all projects):
 
 ```json
 {
   "mcpServers": {
+    "afrotools": {
+      "url": "https://mcp.afro.tools/mcp"
+    }
+  }
+}
+```
+
+### VS Code (Copilot agent mode)
+
+In `.vscode/mcp.json` (the top-level key is `servers`):
+
+```json
+{
+  "servers": {
     "afrotools": {
       "type": "http",
       "url": "https://mcp.afro.tools/mcp"
     }
   }
 }
+```
+
+### Windsurf and Antigravity
+
+Windsurf: `mcp_config.json`, opened from Cascade (… → Open MCP config file). Antigravity: `~/.gemini/config/mcp_config.json`. Both use the `serverUrl` key:
+
+```json
+{
+  "mcpServers": {
+    "afrotools": {
+      "serverUrl": "https://mcp.afro.tools/mcp"
+    }
+  }
+}
+```
+
+### Gemini CLI
+
+```bash
+gemini mcp add --transport http -s user afrotools https://mcp.afro.tools/mcp
 ```
 
 ---
