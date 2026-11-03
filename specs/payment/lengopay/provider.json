@@ -14,6 +14,34 @@
       "base_url": "https://portal.lengopay.com"
     }
   },
+  "account": {
+    "documents": [
+      "RCCM",
+      "NIF",
+      "Statuts"
+    ],
+    "sources": [
+      {
+        "source_url": "https://lengopay.com/guinee",
+        "country_code": [
+          "GN"
+        ],
+        "spans": [
+          "Créez votre compte en ligne et soumettez vos documents d'enregistrement (RCCM, NIF, Statuts). Vérification de conformité avec l'APIP en 24h."
+        ]
+      },
+      {
+        "source_url": "https://lengopay.com/onboarding",
+        "spans": [
+          "L'équipe conformité Lengo Pay vérifie l'existence de l'entreprise et la cohérence des informations."
+        ]
+      }
+    ],
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "LengoPay asks for registration documents (RCCM, NIF, Statuts) and checks that the business exists, and its sign-up form (https://portal.lengopay.com/register) offers a 'Freelance' service type, but no page says whether a freelancer or an individual without an RCCM can open an account."
+    ]
+  },
   "description": "LengoPay is a Guinean mobile money platform supporting multi-operator cashin and cashout via a REST API.",
   "example_prompt": "Add LengoPay mobile money payments to my app."
 }

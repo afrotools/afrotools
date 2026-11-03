@@ -15,6 +15,12 @@
       "base_url": "https://api.nimbasms.com"
     }
   },
+  "account": {
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "NimbaSMS's pages (https://www.nimbasms.com, /conditions-generales-d-utilisation, /nos-tarifs, https://developers.nimbasms.com) do not say whether an individual without a registered business can open an account, nor which documents are required to open it or to have a sender name validated."
+    ]
+  },
   "description": "NimbaSMS is a Guinean professional messaging platform supporting SMS, WhatsApp, and email delivery from a single API with contact and group management.",
   "example_prompt": "Add SMS verification to my app using NimbaSMS."
 }
