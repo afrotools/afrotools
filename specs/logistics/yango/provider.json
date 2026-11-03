@@ -10,6 +10,51 @@
   "environments": {
     "production": { "base_url": "https://b2b.delivery.yango.tech" }
   },
+  "account": {
+    "holder": "business_only",
+    "sources": [
+      {
+        "source_url": "https://delivery.yango.com",
+        "spans": ["Yango Delivery provides services for legal entities"]
+      },
+      {
+        "source_url": "https://delivery.yango.com/ci-fr",
+        "country_code": ["CI"],
+        "spans": [
+          "Yango Delivery fournit des services pour des personnes morales",
+          "Yango propose un éventail de produits, allant du compte web prépayé aux intégrations API, en fonction de vos besoins professionnels spécifiques.",
+          "Pour les PME et les grandes entreprises",
+          "Pour les particuliers et les petits entrepreneurs",
+          "Avec l’application Yango, la livraison express devient aussi simple qu’appeler un taxi."
+        ]
+      },
+      {
+        "source_url": "https://delivery.yango.com/sn-fr",
+        "country_code": ["SN"],
+        "spans": ["Yango Delivery fournit des services pour des personnes morales"]
+      },
+      {
+        "source_url": "https://delivery.yango.com/gh-en",
+        "country_code": ["GH"],
+        "spans": ["Yango Delivery provides services for legal entities"]
+      },
+      {
+        "source_url": "https://delivery.yango.com/zm-en",
+        "country_code": ["ZM"],
+        "spans": ["Yango Delivery provides services for legal entities"]
+      },
+      {
+        "source_url": "https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/quickstart",
+        "spans": ["Log in to your personal account using the username and password that you received from your Yango Delivery manager."]
+      }
+    ],
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "Neither delivery.yango.com (its Côte d'Ivoire, Ghana, Senegal and Zambia pages) nor the Express Delivery API docs (overview, quickstart, FAQ, troubleshooting) list the documents a legal entity must provide, nor how the business account is opened: the docs give API access through a personal account whose username and password come from a Yango Delivery manager, and the country pages end on a contact form ('notre responsable vous contactera' on the Côte d'Ivoire and Senegal pages, 'our manager will reach out with the details' on the Ghana and Zambia pages). The form opens in a pop-up whose fields could not be read.",
+      "Whether a sole proprietor (a registered business that is not a legal entity) can get the account is not said: the pages offer the service to legal entities ('personnes morales') and send 'Pour les particuliers et les petits entrepreneurs' to the Yango app, while API integrations are offered under 'Pour les PME et les grandes entreprises'.",
+      "Yango Delivery's terms of use (https://yango.com/legal/yango_termsofuse_delivery/en/) are an offer 'to an Internet user' and say 'The Service is provided to the User for personal non-commercial use' (the Ghana version adds that the Service is 'the Delivery functionality' 'in the Yango App'); they mention 'a separate contract Yango signed with such third party' (3.16, 3.17 in the Ghana version) without saying who can sign one, and say nothing about legal entities, business accounts or the API."
+    ]
+  },
   "description": "Yango Delivery is an on-demand courier and cargo delivery service; its Express Delivery API prices, books, tracks and cancels deliveries (claims) between addresses.",
   "example_prompt": "Book a Yango Delivery courier to take an order from my shop in Abidjan to a customer, confirm the price and send the customer the tracking link."
 }
