@@ -14,7 +14,8 @@
     "CDF"
   ],
   "auth": {
-    "type": "none"
+    "type": "none",
+    "env_var": "WAVE_WEBHOOK_SECRET"
   },
   "endpoint": {
     "method": "POST",
@@ -90,12 +91,27 @@
   "error_schema": {},
   "gotchas": [
     "Wave also sends the checkout.session.payment_failed event when a payment fails. Implement a handler for this event to notify the user or release the reserved stock.",
-    "Never fulfill an order based on the webhook alone. Call verify_payment (GET /v1/checkout/sessions/{id}) to confirm server-side — the webhook payload can be forged.",
+    "Never fulfill an order based on the webhook alone. Call verify_payment (GET /v1/checkout/sessions/{id}) to confirm server-side — the webhook payload can be forged. That call uses WAVE_API_KEY (declared by verify_payment); checking the webhook itself only needs WAVE_WEBHOOK_SECRET, the webhook secret Wave gives when the webhook URL is registered — Wave says it is different from the API key.",
     "Respond 2xx immediately, then process asynchronously: Wave retries only if your endpoint does not respond with 2xx (for 3 days, 5-second timeout). Once the 200 is sent, Wave will not retry: record the event (at least data.id) BEFORE responding, and respond 5xx if that write fails. Wave also warns that events can be lost, duplicated or arrive out of order: set up a catch-up job that queries verify_payment (or search_checkouts by client_reference) for orders still pending.",
     "Wave offers two security modes, chosen when the webhook is registered: Shared Secret (the secret in plain text in Authorization: Bearer <secret>) and Signing Secret (Wave-Signature header, recommended for production). With a Shared Secret webhook there is no Wave-Signature header: a handler that only checks the signature rejects every event. This example accepts both modes.",
     "Implement idempotency via event.id — Wave can deliver the same event several times. Check that the order is not already fulfilled before acting.",
     "Verify the Wave-Signature signature in production: HMAC-SHA256 of timestamp + raw body. Use the raw body, not the parsed JSON — some frameworks modify the body between receipt and parsing.",
     "[MUST TELL USER] Wave sends webhooks from 15 IP ranges. If your server filters incoming traffic, add these IPs to your firewall or the webhooks will fail silently. The list is public at https://docs.wave.com/webhook (IP Whitelisting section): you must allow all of them, otherwise some webhooks can be rejected at random.",
     "[MUST TELL USER] In local development, Wave cannot reach localhost. Use an HTTPS tunnel (e.g. `ngrok http 3000`) and configure the ngrok URL in the Business Portal before testing."
-  ]
+  ],
+  "evidence": {
+    "source_url": "https://docs.wave.com/webhook",
+    "source_reference": "Webhook Security (Shared Secret, Signing Secret) and 'Help, the signature validation fails'",
+    "extracted_at": "2026-11-03T12:00:00.000Z",
+    "snapshot_hash": "23fbc7d3306fa58243394ed411c25cd009cb86a1f1e7dcf6be60ba4238165db5",
+    "spans": [
+      "Wave includes your secret in every webhook request: Authorization: Bearer YOUR_SECRET",
+      "Wave signs the webhook payload with your secret and includes the signature in the Wave-Signature header.",
+      "Wave-Signature: t=1639081943,v1=942119aedf9fa377844cf010785fe14ef8478c72af0b73d62ea3941335b526a8",
+      "Create the payload by combining timestamp + request body",
+      "Check timestamp to prevent replay attacks (reject requests older than 5 minutes)",
+      "The webhook secret (given to you by wave when your webhook URL is registered)",
+      "(This is different from the API key)"
+    ]
+  }
 }
