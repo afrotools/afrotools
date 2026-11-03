@@ -11,6 +11,121 @@
     "sandbox": { "base_url": "https://developersandbox-api.flutterwave.com" },
     "production": { "base_url": "https://f4bexperience.flutterwave.com" }
   },
+  "account": {
+    "sources": [
+      {
+        "source_url": "https://flutterwave.com/us/support/my-account/selecting-the-correct-flutterwave-business-account",
+        "spans": [
+          "Starter Account (Not available in all countries): This is suitable for a freelancer or a new business without business registration documents."
+        ]
+      },
+      {
+        "source_url": "https://flutterwave.com/us/support/onboarding/onboarding-requirements-for-using-flutterwave-in-nigeria",
+        "country_code": [
+          "NG"
+        ],
+        "spans": [
+          "You can create Starter accounts (unregistered business), Registered Business accounts, or Other Entity accounts."
+        ]
+      },
+      {
+        "source_url": "https://flutterwave.com/us/support/onboarding/onboarding-requirements-for-using-flutterwave-in-south-africa",
+        "country_code": [
+          "ZA"
+        ],
+        "spans": [
+          "Requirements for unregistered businesses"
+        ]
+      },
+      {
+        "source_url": "https://flutterwave.com/us/support/onboarding/onboarding-requirements-for-using-flutterwave-in-kenya",
+        "country_code": [
+          "KE"
+        ],
+        "spans": [
+          "For Unregistered Businesses:"
+        ]
+      },
+      {
+        "source_url": "https://flutterwave.com/us/support/onboarding/onboarding-requirements-for-using-flutterwave-in-ghana",
+        "country_code": [
+          "GH"
+        ],
+        "spans": [
+          "Individual account"
+        ]
+      },
+      {
+        "source_url": "https://flutterwave.com/us/support/onboarding/onboarding-requirements-for-using-flutterwave-in-ivory-coast",
+        "country_code": [
+          "CI"
+        ],
+        "spans": [
+          "Individual account"
+        ]
+      },
+      {
+        "source_url": "https://flutterwave.com/us/support/onboarding/onboarding-requirements-for-using-flutterwave-in-uganda",
+        "country_code": [
+          "UG"
+        ],
+        "spans": [
+          "Individual account"
+        ]
+      },
+      {
+        "source_url": "https://flutterwave.com/us/support/onboarding/onboarding-requirements-for-using-flutterwave-in-tanzania",
+        "country_code": [
+          "TZ"
+        ],
+        "spans": [
+          "Individual account"
+        ]
+      },
+      {
+        "source_url": "https://flutterwave.com/us/support/onboarding/onboarding-requirements-for-using-flutterwave-in-zambia",
+        "country_code": [
+          "ZM"
+        ],
+        "spans": [
+          "Individual account"
+        ]
+      },
+      {
+        "source_url": "https://flutterwave.com/us/support/onboarding/onboarding-requirements-for-using-flutterwave-in-cameroon",
+        "country_code": [
+          "CM"
+        ],
+        "spans": [
+          "The requirements for using Flutterwave in Cameroon are listed below:"
+        ]
+      },
+      {
+        "source_url": "https://flutterwave.com/us/support/onboarding/onboarding-requirements-for-using-flutterwave-in-the-rest-of-the-world",
+        "spans": [
+          "The requirements for using Flutterwave in other parts of the world not listed depends on the category of account you are signing up for."
+        ]
+      },
+      {
+        "source_url": "https://flutterwave.com/us/support/my-account/how-to-create-a-flutterwave-account",
+        "spans": [
+          "Choose how you would like to operate your Flutterwave account: either as a registered business account or a non-profit entity.",
+          "Your business registration type - Sole Proprietorship, Limited Liability Company, Non-Profit entity, etc."
+        ]
+      }
+    ],
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "Outside Nigeria, whether an individual without a registered business can still open a Flutterwave account is unclear: the 'How to create a Flutterwave account' page offers only 'a registered business account or a non-profit entity' and asks for 'Your business registration type - Sole Proprietorship, Limited Liability Company, Non-Profit entity, etc.', while older country pages list an 'Individual account' (Ghana, Côte d'Ivoire, Uganda, Tanzania, Zambia) or requirements for unregistered businesses (South Africa, Kenya).",
+      "Which page reflects the current rules is unclear: on 3 November 2026 the 'How to create a Flutterwave account' page showed 'Updated 11 months ago', the Ghana, Côte d'Ivoire, Uganda, Tanzania, South Africa and Kenya pages 'Updated 30 months ago', and the Zambia page 'Updated 20 months ago'.",
+      "Cameroon: Flutterwave's Cameroon onboarding page lists only 'Business (Limited Entities)' requirements (certificate of incorporation, articles of association, business license…); it does not say whether an individual or an unregistered business can open an account.",
+      "Rwanda: Flutterwave's Rwanda page lists sole proprietorship, limited liability company and other entity requirements only; it does not say whether an individual can open an account.",
+      "Senegal, Gabon, Sierra Leone, the Republic of the Congo, Egypt, Ethiopia, Malawi and Chad have no Flutterwave country onboarding page; the 'rest of the world' page has an 'Individual account' category but does not name the countries it covers."
+    ],
+    "country_exceptions": {
+      "NG": "business_or_individual"
+    }
+  },
   "description": "Flutterwave (API v4) collects payments by card, mobile money, USSD, OPay, Pay with Bank and bank transfer to virtual accounts, and pays out to bank accounts, mobile money wallets and Flutterwave wallets; the countries are those its bank and mobile-network endpoints list in Africa.",
   "example_prompt": "Integrate Flutterwave v4: create a customer and payment method, charge it and handle next_action, verify the charge via webhook, then pay sellers out to their bank or mobile money accounts."
 }
