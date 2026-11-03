@@ -1,0 +1,55 @@
+name: Integration need
+description: A capability you need in a country, with or without a provider in mind — often pre-filled by your agent
+title: "[need] "
+labels: ["new-spec", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Your agent may have pre-filled this form after the registry had no spec for what you need: review
+        it and submit. Follow this issue to know when the spec arrives.
+        **Do not add API keys, tokens, phone numbers or personal data.**
+
+  - type: input
+    id: capability
+    attributes:
+      label: Capability
+      description: What the app needs to do.
+      placeholder: e.g. ussd, collect_payment, send_whatsapp
+    validations:
+      required: true
+
+  - type: input
+    id: provider
+    attributes:
+      label: Provider
+      description: Optional — leave empty if you have no provider in mind.
+      placeholder: e.g. Wave
+    validations:
+      required: false
+
+  - type: input
+    id: country
+    attributes:
+      label: Country
+      description: Optional — ISO 3166-1 alpha-2 code of the country where it is needed.
+      placeholder: e.g. SN
+    validations:
+      required: false
+
+  - type: input
+    id: docs_url
+    attributes:
+      label: Provider docs URL
+      description: Optional.
+      placeholder: https://...
+    validations:
+      required: false
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Optional — what the app does with it, in a few words.
+    validations:
+      required: false
