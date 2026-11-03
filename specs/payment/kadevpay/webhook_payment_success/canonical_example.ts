@@ -1,7 +1,7 @@
 /**
  * @provider KadevPay
  * @capability webhook_payment_success
- * @atss 1.0
+ * @atss 1.1
  * @capability_type webhook
  */
 
@@ -31,6 +31,9 @@ interface KadevPayWebhookPayload {
   data: WebhookData;
 }
 
+// Open question: KadevPay's examples disagree on what is signed. This follows its Node.js example
+// (HMAC-SHA512 of JSON.stringify(req.body)); its PHP and Python examples hash the raw request body
+// (php://input, request.get_data()). If valid webhooks fail this check, compare with the raw body.
 export function verifyWebhookSignature(
   body: KadevPayWebhookPayload,
   signature: string
