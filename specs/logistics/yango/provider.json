@@ -10,6 +10,38 @@
   "environments": {
     "production": { "base_url": "https://b2b.delivery.yango.tech" }
   },
+  "account": {
+    "holder": "business_only",
+    "sources": [
+      {
+        "source_url": "https://delivery.yango.com",
+        "spans": ["Yango Delivery provides services for legal entities"]
+      },
+      {
+        "source_url": "https://delivery.yango.com/ci-fr",
+        "country_code": ["CI"],
+        "spans": [
+          "Yango Delivery fournit des services pour des personnes morales",
+          "Yango propose un éventail de produits, allant du compte web prépayé aux intégrations API, en fonction de vos besoins professionnels spécifiques.",
+          "Pour les particuliers et les petits entrepreneurs"
+        ]
+      },
+      {
+        "source_url": "https://delivery.yango.com/sn-fr",
+        "country_code": ["SN"],
+        "spans": ["Yango Delivery fournit des services pour des personnes morales"]
+      },
+      {
+        "source_url": "https://yango-delivery.viewer.diplodoc.yandex.ru/en/api/express/quickstart",
+        "spans": ["Log in to your personal account using the username and password that you received from your Yango Delivery manager."]
+      }
+    ],
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "Neither delivery.yango.com (its Côte d'Ivoire, Ghana, Senegal and Zambia pages) nor the Express Delivery API docs (quickstart, FAQ, support service) list the documents a legal entity must provide, nor how the business account is opened: the docs give API access through a personal account whose username and password come from a Yango Delivery manager, and the country pages end on a contact form ('notre responsable vous contactera').",
+      "Whether a sole proprietor (a registered business that is not a legal entity) can get the account is not said: the pages offer the service to legal entities ('personnes morales') and send 'particuliers et petits entrepreneurs' to the Yango app, which is not the Express Delivery API. Yango Delivery's terms of use (https://yango.com/legal/yango_termsofuse_delivery/en/) cover users of the app and say nothing about business accounts."
+    ]
+  },
   "description": "Yango Delivery is an on-demand courier and cargo delivery service; its Express Delivery API prices, books, tracks and cancels deliveries (claims) between addresses.",
   "example_prompt": "Book a Yango Delivery courier to take an order from my shop in Abidjan to a customer, confirm the price and send the customer the tracking link."
 }

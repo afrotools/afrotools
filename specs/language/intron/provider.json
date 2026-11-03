@@ -67,6 +67,12 @@
       "base_url": "https://infer.voice.intron.io"
     }
   },
+  "account": {
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "Intron's API docs (https://docs.voice.intron.io/docs/index/introduction) take the API key from an account at voice.intron.io; its sign-up page (https://voice.intron.io/users/user_signup) asks for a name, an email, a phone number, an 'Organization', a gender, a native dialect and a country, without saying whether the organization must be a registered business. Neither those pages, intron.io nor the terms the sign-up page links to (https://www.intron.io/wp-content/uploads/2023/12/Intron-Transcribe-App.pdf, the 'Transcribe App' terms, which only require users 'at least 18 years of age') say whether an individual without a registered business can use the API, nor which documents are required."
+    ]
+  },
   "description": "Intron is a speech API tuned for African accents: speech-to-text in 36 African input languages — several, such as Wolof, Swahili, Hausa and Yoruba, as models code-switched with English — with optional LLM post-processing, and text-to-speech in 12 African languages plus English with African accents.",
   "example_prompt": "Transcribe Wolof and Swahili voice notes sent by my users, and read replies back to them aloud in their language, with Intron."
 }
