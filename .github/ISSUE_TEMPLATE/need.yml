@@ -22,7 +22,7 @@ body:
   - type: input
     id: provider
     attributes:
-      label: Provider
+      label: Provider name
       description: Optional — leave empty if you have no provider in mind.
       placeholder: e.g. Wave
     validations:
