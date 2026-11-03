@@ -12,8 +12,9 @@ Goal: the user knows what the app will do, which African providers it uses, and 
    yes; propose providers only after that. A misunderstanding here costs everything that follows.
 3. **List the African building blocks it needs**: receiving payments (mobile money, cards), paying out,
    SMS, WhatsApp, one-time codes (OTP)… Name each in plain words.
-   If the app takes payments, ask whether they have a registered business or a merchant account (an
-   informal workshop may have neither): some providers only open accounts for registered businesses.
+   Then always ask, whatever the blocks, whether they have a registered business or a merchant account
+   (an informal workshop may have neither): some payment and messaging providers only open accounts for
+   registered businesses.
 4. **Find providers in the registry**, for each block and the user's country:
    `afrotools.search_specs({ category: "payment" | "communications" | …, country_code: "<ISO alpha-2>" })`.
    Never rely on memory: the registry changes. Present at most three options per block in plain words
@@ -55,13 +56,14 @@ Goal: the user knows what the app will do, which African providers it uses, and 
    - production access: a provider may review the account or ask for documents before real payments
      or messages, and the registry does not say what or how long. Suggest asking the provider now how
      to get production access, so it is ready when the app is; meanwhile the tests go on in the
-     sandbox, when there is one.
-
+     sandbox, when there is one;
    - who can open an account: the registry does not say yet whether a provider accepts an individual
      or requires a registered business. Tell the user to check this with the provider before signing
-     up, all the more if they have no registered business. Never state such a requirement yourself.
+     up, for every provider (payment, SMS, WhatsApp…), all the more if they have no registered business.
+     Never state a requirement the registry does not give.
 
    Tell the user to put the keys in a `.env` file at the project root themselves, and never to paste
    them in the chat. Do not describe sign-up steps, documents or delays the registry does not give.
 6. **Record** the providers, the key names, whether there is a registered business or a merchant
-   account, and, for each provider, whether production access was asked for in `.afrotools/studio.md`, set `phase: plan`, and say in one sentence what the next phase does.
+   account, and, for each provider, whether production access was asked for in `.afrotools/studio.md`,
+   set `phase: plan`, and say in one sentence what the next phase does.
