@@ -17,7 +17,7 @@ const QOSIC_BASE_URL = "https://api.qosic.net";
 type QosicNetwork = "TOGOCEL" | "MOOV";
 
 const DEPOSIT_PATH: Record<QosicNetwork, string> = {
-  TOGOCEL: "/QosicBridge/tm/v1/deposit",
+  TOGOCEL: "/QosicBridge/tm/v2/deposit",
   MOOV: "/QosicBridge/tg/v1/deposit",
 };
 
