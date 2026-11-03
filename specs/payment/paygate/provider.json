@@ -14,6 +14,33 @@
       "base_url": "https://paygateglobal.com"
     }
   },
+  "account": {
+    "holder": "business_only",
+    "documents": [
+      "RCCM"
+    ],
+    "sources": [
+      {
+        "source_url": "https://paygateglobal.com/cgu",
+        "spans": [
+          "Pour les personnes physiques ou morales  sur le territoire Togolais, ils doivent:",
+          "Avoir un numéro RCCM ;",
+          "Fournir le numéro d’enregistrement de l’entreprise RCCM dans le Pays Concerné",
+          "Les API de collecte (cash in) sont accessibles à tout le monde c’est-à-dire particulier et entreprise,"
+        ]
+      },
+      {
+        "source_url": "https://paygateglobal.com",
+        "spans": [
+          "Carte Formalités des Entreprises ou Carte d'Immatriculation Fiscale, Carte d'Identité du Promoteur, Descriptif du Projet, Contact, Lien de retour"
+        ]
+      }
+    ],
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "PayGate's FAQ (https://paygateglobal.com) activates an account with a 'Carte Formalités des Entreprises ou Carte d'Immatriculation Fiscale', and its terms (§ B.1.2) open the collection APIs to 'particulier et entreprise', while the eligibility section (§ B.2) requires an RCCM number: whether a tax registration card without an RCCM is accepted is unclear."
+    ]
+  },
   "description": "PayGate is a Togolese payment gateway for collecting mobile money payments and disbursing funds via Mixx Togo (T-Money) and Moov (Flooz). API documentation is private and only accessible to authenticated merchants from their PayGate dashboard.",
   "example_prompt": "Add PayGate to my Togolese app so I can collect mobile money payments via T-Money and Flooz, and disburse funds to mobile money numbers."
 }

@@ -14,6 +14,12 @@
       "base_url": "https://mapaycard.com"
     }
   },
+  "account": {
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "Paycard's pages (https://mapaycard.com, /payment-distribution/, /solutions/, /terms, /frais, /support, /about) do not say who can open a merchant account: whether a registered business (RCCM) is required or an individual is accepted, nor which documents are asked for. Its terms cover the consumer account and company cards only."
+    ]
+  },
   "description": "Paycard is a Guinean mobile money payment gateway that lets you accept payments via MTN, Orange, and Cellcom mobile wallets. No sandbox — all requests hit production.",
   "example_prompt": "Add Paycard mobile money payments to my app."
 }

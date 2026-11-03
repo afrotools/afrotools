@@ -9,6 +9,26 @@
   "docs_url": "https://docs.qosic.com",
   "docs_public": true,
   "sandbox": true,
+  "account": {
+    "sources": [
+      {
+        "source_url": "https://qosic.com/shareLink-payment",
+        "spans": [
+          "Our payment link allows individuals or businesses to easily receive payments from people anywhere."
+        ]
+      },
+      {
+        "source_url": "https://docs.qosic.com/apercu/creation-compte",
+        "spans": [
+          "Nom de votre application ou entreprise"
+        ]
+      }
+    ],
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "qosic.com says individuals can receive payments with its payment link, but neither qosic.com (home, /pricing, /terms-and-conditions, /merchant-service-agreement, /support) nor docs.qosic.com (account creation, go-live checklist, go-live) says whether an individual without a registered business can get API access, nor which documents the merchant onboarding asks for."
+    ]
+  },
   "description": "Qosic (QOSPAY) is a West African payment aggregator for mobile money collection, disbursement and card checkout. This spec set covers Togo (Togocel / Yas and Moov Togo). Qosic also supports Benin (MTN, Moov, Celtiis) and card payments via a separate Checkout product not covered here.",
   "example_prompt": "Add Qosic / QOSPAY to my Togolese app so I can collect mobile money payments from Togocel and Moov customers and disburse payouts to mobile money numbers."
 }

@@ -14,6 +14,12 @@
       "base_url": "https://sandbox-api.djomy.africa"
     }
   },
+  "account": {
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "Djomy's sign-up page (https://djomy.africa/register) asks for 'Nom de votre organisation', but neither djomy.africa nor developers.djomy.africa says whether an individual without a registered business can open a merchant account, nor which documents are required (developers.djomy.africa/legal answered 403)."
+    ]
+  },
   "description": "Djomy is a Guinean payment solution offering payment links, QR code payments, and mobile money integrations via a unified API.",
   "example_prompt": "Add Djomy mobile money payments to my app."
 }
