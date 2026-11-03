@@ -301,16 +301,23 @@ function validateSchema(specPath) {
     const spans = account.sources?.flatMap((/** @type {any} */ s) => s.spans.map((/** @type {string} */ q) => q.toLowerCase())) ?? [];
     const unquoted = (account.documents ?? []).filter((/** @type {string} */ d) => !spans.some((/** @type {string} */ q) => q.includes(d.toLowerCase())));
     if (unquoted.length) return fail(specPath, `provider.json account documents ${unquoted.map((/** @type {string} */ d) => `"${d}"`).join(", ")}: in none of the sources' spans`);
-    // Countries are the provider's; a per-country answer needs a source for that country.
+    // Lookup: country_exceptions[country], else holder, else open_questions.
     const served = providerManifest.country_code;
     const sourced = account.sources?.flatMap((/** @type {any} */ s) => s.country_code ?? []) ?? [];
-    const countries = Object.keys(account.countries ?? {});
+    const exceptions = Object.entries(account.country_exceptions ?? {});
+    const countries = exceptions.map(([c]) => c);
     const foreign = [...new Set([...countries, ...sourced])].filter((c) => !served.includes(c));
     if (foreign.length) return fail(specPath, `provider.json account countries ${foreign.join(", ")}: not in the provider's country_code`);
     const unsourced = countries.filter((c) => !sourced.includes(c));
-    if (unsourced.length) return fail(specPath, `provider.json account countries ${unsourced.join(", ")}: no source with that country_code`);
-    if (countries.length && countries.length < served.length && !account.open_questions) {
-      return fail(specPath, `provider.json account countries answers ${countries.length} of ${served.length} countries: say what is unknown for the others in open_questions`);
+    if (unsourced.length) return fail(specPath, `provider.json account country_exceptions ${unsourced.join(", ")}: no source with that country_code`);
+    if (account.holder) {
+      if (!account.sources.some((/** @type {any} */ s) => !s.country_code)) {
+        return fail(specPath, `provider.json account holder needs a source without country_code (a statement for all the provider's countries)`);
+      }
+      const same = exceptions.filter(([, h]) => h === account.holder).map(([c]) => c);
+      if (same.length) return fail(specPath, `provider.json account country_exceptions ${same.join(", ")}: same value as holder, not an exception`);
+    } else if (countries.length && countries.length < served.length && !account.open_questions) {
+      return fail(specPath, `provider.json account country_exceptions answers ${countries.length} of ${served.length} countries and there is no holder: say what is unknown for the others in open_questions`);
     }
   }
   const baseUrls = Object.values(providerManifest.environments ?? {}).map((/** @type {any} */ e) => e.base_url);

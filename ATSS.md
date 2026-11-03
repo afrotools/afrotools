@@ -66,15 +66,15 @@ whether the provider fits them — e.g. a seller without a registered business.
 
 ```jsonc
 "account": {
-  "holder": "business_only",             // business_only | business_or_individual — omitted when the pages don't say
-                                         // or "countries": { "GN": "business_only" } when the answer differs by country
+  "holder": "business_only",             // business_only | business_or_individual, for all the provider's countries — omitted when the pages don't say
+  "country_exceptions": { "SN": "business_or_individual" },  // optional: countries whose answer differs from holder
   "documents": ["RCCM"],                 // optional: documents the pages list, as a span quotes them
-  "sources": [                           // required with holder, countries or documents
-    { "source_url": "https://provider.example/faq", "spans": ["Pour ouvrir un compte marchand, fournissez votre RCCM."] }
-                                         // + "country_code": ["GN"] when the page is about some countries only
+  "sources": [                           // required with holder, country_exceptions or documents
+    { "source_url": "https://provider.example/faq", "spans": ["Pour ouvrir un compte marchand, fournissez votre RCCM."] },
+    { "source_url": "https://provider.example/sn", "country_code": ["SN"], "spans": ["Au Sénégal, les particuliers peuvent ouvrir un compte."] }
   ],
   "checked_at": "2026-11-03",            // when the sources were read
-  "open_questions": [                    // what the pages don't answer — required without holder or countries
+  "open_questions": [                    // what the pages don't answer — required without holder or country_exceptions
     "The FAQ (https://provider.example/faq) does not say whether an individual can open an account."
   ]
 }
@@ -83,12 +83,12 @@ whether the provider fits them — e.g. a seller without a registered business.
 | Field | Rule |
 |---|---|
 | `holder` | `business_only` — the pages require a registered business (company or business registration); `business_or_individual` — the pages state a person without a registered business can open one. Anything else is an `open_questions` entry, never a guess |
-| `countries` | Instead of `holder`, when the provider's pages answer per country: a `country_code` of the provider → `business_only` or `business_or_individual`, each with a source whose `country_code` lists it. When it answers for fewer countries than the provider's `country_code`, `open_questions` is required (`validate` checks it) and says what is unknown for the others |
+| `country_exceptions` | A `country_code` of the provider → `business_only` or `business_or_individual`, for a country whose pages answer differently from `holder` — never the same value as `holder`. Each one has a source whose `country_code` lists it. Without `holder`, it is the only answer the pages give: when it covers fewer countries than the provider's `country_code`, `open_questions` is required and says what is unknown for the others |
 | `documents` | The documents for the account `holder` refers to, each one appearing in a span (`validate` checks it, ignoring case), in the provider's own wording. Tiers, caps and the KYC of a third party (an aggregator or PSP behind the provider) go in spans and open questions, not here |
-| `sources` | The provider's own pages (docs, FAQ, sign-up page, terms) — never a blog, an article or a third party. `source_url` and `spans` mean what they mean in `evidence`: every span is copied literally from the page, in its language. `country_code`, when present, lists countries of the provider's `country_code`. No `snapshot_hash`: these are marketing and help pages that change without notice — `checked_at` dates the reading instead. A source without `holder` or `countries` is allowed: it backs an open question (e.g. two pages that contradict each other) |
+| `sources` | The provider's own pages (docs, FAQ, sign-up page, terms) — never a blog, an article or a third party. `source_url` and `spans` mean what they mean in `evidence`: every span is copied literally from the page, in its language. `country_code`, when present, lists countries of the provider's `country_code`. No `snapshot_hash`: these are marketing and help pages that change without notice — `checked_at` dates the reading instead. `holder` needs at least one source without `country_code` — a statement for all the provider's countries. A source that backs neither is allowed: it backs an open question (e.g. two pages that contradict each other) |
 | `open_questions` | Non-empty strings naming the pages checked. An agent must tell the user about them before recommending the provider |
 
-Requirements that differ by step (sign-up vs. going live, a sender ID) go in the spans and open questions.
+For a user in a given country, an agent reads `country_exceptions[country]`, else `holder`, else the open questions. Requirements that differ by step (sign-up vs. going live, a sender ID) go in the spans and open questions.
 
 ---
 

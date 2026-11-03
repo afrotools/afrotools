@@ -164,13 +164,12 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["checked_at"],
-      "anyOf": [{ "required": ["holder"] }, { "required": ["countries"] }, { "required": ["open_questions"] }],
-      "not": { "required": ["holder", "countries"] },
-      "dependentRequired": { "holder": ["sources"], "countries": ["sources"], "documents": ["sources"] },
+      "anyOf": [{ "required": ["holder"] }, { "required": ["country_exceptions"] }, { "required": ["open_questions"] }],
+      "dependentRequired": { "holder": ["sources"], "country_exceptions": ["sources"], "documents": ["sources"] },
       "properties": {
         "holder": { "$ref": "#/$defs/holder" },
-        "countries": {
-          "description": "When the answer differs by country: the holder for each country the pages answer for.",
+        "country_exceptions": {
+          "description": "Countries whose answer differs from holder (or, without holder, the only countries the pages answer for).",
           "type": "object",
           "minProperties": 1,
           "propertyNames": { "pattern": "^[A-Z]{2}$" },

@@ -720,12 +720,17 @@ test("account: who can open one, from a quoted source, or an open question", () 
   assert.match(run({ holder: "business_only", sources: [{ url: source.source_url, quote: source.spans[0] }], ...at }).stderr, /account invalid/);
   assert.match(run({ holder: "business_only", documents: ["NINEA"], sources: [source], ...at }).stderr, /"NINEA": in none of the sources' spans/);
   const gn = { ...source, country_code: ["GN"] };
-  assert.equal(run({ countries: { GN: "business_only" }, sources: [gn], ...at }).code, 0);
-  assert.match(run({ countries: { GN: "business_only" }, sources: [source], ...at }).stderr, /countries GN: no source with that country_code/);
-  assert.match(run({ countries: { SN: "business_only" }, sources: [{ ...source, country_code: ["SN"] }], ...at }).stderr, /countries SN: not in the provider's country_code/);
-  assert.match(run({ holder: "business_only", sources: [{ ...source, country_code: ["SN"] }], ...at }).stderr, /countries SN: not in the provider's country_code/);
-  assert.match(run({ holder: "business_only", countries: { GN: "business_only" }, sources: [gn], ...at }).stderr, /account invalid/);
-  const twoCountries = { country_code: ["GN", "SN"] };
-  assert.match(run({ countries: { GN: "business_only" }, sources: [gn], ...at }, twoCountries).stderr, /answers 1 of 2 countries/);
-  assert.equal(run({ countries: { GN: "business_only" }, sources: [gn], open_questions: ["Senegal: the pages do not say."], ...at }, twoCountries).code, 0);
+  const ex = (c, h = "business_or_individual") => ({ [c]: h });
+  assert.equal(run({ country_exceptions: ex("GN"), sources: [gn], ...at }).code, 0);
+  assert.match(run({ country_exceptions: ex("GN"), sources: [source], ...at }).stderr, /country_exceptions GN: no source with that country_code/);
+  assert.match(run({ country_exceptions: ex("SN"), sources: [{ ...source, country_code: ["SN"] }], ...at }).stderr, /countries SN: not in the provider's country_code/);
+  assert.match(run({ holder: "business_only", sources: [source, { ...source, country_code: ["SN"] }], ...at }).stderr, /countries SN: not in the provider's country_code/);
+  // holder is the default, country_exceptions the countries that differ from it
+  const two = { country_code: ["GN", "SN"] };
+  const sn = { ...source, country_code: ["SN"] };
+  assert.equal(run({ holder: "business_only", country_exceptions: ex("SN"), sources: [source, sn], ...at }, two).code, 0);
+  assert.match(run({ holder: "business_only", sources: [gn], ...at }).stderr, /holder needs a source without country_code/);
+  assert.match(run({ holder: "business_only", country_exceptions: ex("SN", "business_only"), sources: [source, sn], ...at }, two).stderr, /SN: same value as holder/);
+  assert.match(run({ country_exceptions: ex("GN"), sources: [gn], ...at }, two).stderr, /answers 1 of 2 countries and there is no holder/);
+  assert.equal(run({ country_exceptions: ex("GN"), sources: [gn], open_questions: ["Senegal: the pages do not say."], ...at }, two).code, 0);
 });

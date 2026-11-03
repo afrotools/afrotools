@@ -12,9 +12,6 @@
     "production": { "base_url": "https://f4bexperience.flutterwave.com" }
   },
   "account": {
-    "countries": {
-      "NG": "business_or_individual"
-    },
     "sources": [
       {
         "source_url": "https://flutterwave.com/us/support/my-account/selecting-the-correct-flutterwave-business-account",
@@ -123,7 +120,10 @@
       "Cameroon: Flutterwave's Cameroon onboarding page lists only 'Business (Limited Entities)' requirements (certificate of incorporation, articles of association, business license…); it does not say whether an individual or an unregistered business can open an account.",
       "Rwanda: Flutterwave's Rwanda page lists sole proprietorship, limited liability company and other entity requirements only; it does not say whether an individual can open an account.",
       "SN, GA, SL, CG, EG, ET, MW, TD have no Flutterwave country onboarding page; the 'rest of the world' page has an 'Individual account' category but does not name the countries it covers."
-    ]
+    ],
+    "country_exceptions": {
+      "NG": "business_or_individual"
+    }
   },
   "description": "Flutterwave (API v4) collects payments by card, mobile money, USSD, OPay, Pay with Bank and bank transfer to virtual accounts, and pays out to bank accounts, mobile money wallets and Flutterwave wallets; the countries are those its bank and mobile-network endpoints list in Africa.",
   "example_prompt": "Integrate Flutterwave v4: create a customer and payment method, charge it and handle next_action, verify the charge via webhook, then pay sellers out to their bank or mobile money accounts."

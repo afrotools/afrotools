@@ -22,17 +22,9 @@
     "sources": [
       {
         "source_url": "https://paygateglobal.com/cgu",
-        "country_code": [
-          "TG"
-        ],
         "spans": [
           "Pour les personnes physiques ou morales  sur le territoire Togolais, ils doivent:",
-          "Avoir un numéro RCCM ;"
-        ]
-      },
-      {
-        "source_url": "https://paygateglobal.com/cgu",
-        "spans": [
+          "Avoir un numéro RCCM ;",
           "Fournir le numéro d’enregistrement de l’entreprise RCCM dans le Pays Concerné",
           "Les API de collecte (cash in) sont accessibles à tout le monde c’est-à-dire particulier et entreprise,"
         ]
