@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "2024-03-29",
   "capability": "webhook_payment_completed",
   "capability_type": "webhook",
@@ -96,9 +96,12 @@
     "Wave offers two security modes, chosen when the webhook is registered: Shared Secret (the secret in plain text in Authorization: Bearer <secret>) and Signing Secret (Wave-Signature header, recommended for production). With a Shared Secret webhook there is no Wave-Signature header: a handler that only checks the signature rejects every event. This example accepts both modes.",
     "Implement idempotency via event.id — Wave can deliver the same event several times. Check that the order is not already fulfilled before acting.",
     "Verify the Wave-Signature signature in production: HMAC-SHA256 of timestamp + raw body. Use the raw body, not the parsed JSON — some frameworks modify the body between receipt and parsing.",
-    "Rotating the webhook secret means duplicating the webhook in the Business Portal (Developers -> Webhooks), then deleting the old one. While both exist, Wave sends two notifications per event, one secured with the old secret and one with the new: until you switch WAVE_WEBHOOK_SECRET, the new webhook's notifications fail validation, and after the switch the old one's do. Delete the old webhook only once a test event from the new one validates. Keep fulfillment idempotent on data.id (the checkout session) during the overlap.",
-    "[MUST TELL USER] If your server filters incoming traffic, allow every address of the IP Whitelisting list at https://docs.wave.com/webhook — Wave says that otherwise some webhooks may be randomly rejected. The list changes: since October 2026 it includes a new range, 87.192.0.0/19, that Wave asks you to whitelist in addition to the existing /32 addresses. Copy the list from the docs, not from this spec.",
+    "Rotating the webhook secret means recreating the webhook — most simply with Duplicate in the Business Portal (Developers -> Webhooks) — then deleting the old one. While both exist, Wave sends two notifications per event, one secured with the old secret and one with the new: until you switch WAVE_WEBHOOK_SECRET, the new webhook's notifications fail validation, and after the switch the old one's do. Delete the old webhook only once a test event from the new one validates. Our advice, not Wave's: Wave does not say whether the two notifications carry the same event id. A notification rejected before the switch is retried (Wave retries for up to 3 days) and validates after it, so make fulfillment idempotent on data.id (the checkout session), not only on event.id.",
+    "[MUST TELL USER] If your server filters incoming traffic, allow every address of the IP Whitelisting list at https://docs.wave.com/webhook — Wave says that otherwise some webhooks may be randomly rejected. The list changes: Wave announces 'October 2026: New IP range: 87.192.0.0/19' — webhooks 'will move' to it — and asks you to whitelist it in addition to the /32 addresses listed. Copy the list from the docs, not from this spec.",
     "[MUST TELL USER] In local development, Wave cannot reach localhost. Use an HTTPS tunnel (e.g. `ngrok http 3000`) and configure the ngrok URL in the Business Portal before testing."
+  ],
+  "open_questions": [
+    "Secret rotation: while the old and the duplicated webhook both exist, Wave says \"your system will receive two notifications per event, one secured with the old secret and one with the new one\" (https://docs.wave.com/webhook, Secret Rotation) — it does not say whether the two notifications carry the same event id, so whether event.id alone deduplicates them is unknown."
   ],
   "evidence": {
     "source_url": "https://docs.wave.com/webhook",
@@ -119,7 +122,13 @@
       "Until you exchange these secrets in your system, the notifications related to the new webhook will be rejected by the validation logic.",
       "October 2026: New IP range: 87.192.0.0/19",
       "Please whitelist it in addition to the addresses below.",
-      "You need to whitelist all the IPs in the list, otherwise some webhooks may be randomly rejected."
+      "You need to whitelist all the IPs in the list, otherwise some webhooks may be randomly rejected.",
+      "The simplest way to do this is using the duplicate option from the webhook list.",
+      "Go to Developers -> Webhooks",
+      "After changing the old secret for the new one, then the notifications related to the old secret will start being rejected by the validation",
+      "Send a test event from the new webhook and confirm on your server that you can receive and validate its header correctly",
+      "Wave webhooks will move to a new IP range",
+      "Wave will retry sending the notification for up to 3 days"
     ]
   }
 }
