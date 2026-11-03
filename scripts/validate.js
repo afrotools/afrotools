@@ -291,6 +291,17 @@ function validateSchema(specPath) {
     const missing = removed.flatMap((/** @type {any} */ r) => r.alternatives ?? []).filter((/** @type {string} */ a) => !fs.existsSync(path.join(providerDir, a)));
     if (missing.length) return fail(specPath, `provider.json removed_capabilities alternatives ${[...new Set(missing)].join(", ")}: no such capability of this provider`);
   }
+  if ("account" in providerManifest) {
+    const account = providerManifest.account;
+    if (!validateAccount(account)) {
+      const errors = (validateAccount.errors ?? []).map((e) => `${e.instancePath || "/"} ${e.message}`);
+      return fail(specPath, `provider.json account invalid (atss.schema.json $defs/account): ${errors.join("; ")}`);
+    }
+    // A document is named as a source quotes it, so it cannot be added without a quote.
+    const quotes = account.sources?.map((/** @type {any} */ s) => s.quote.toLowerCase()) ?? [];
+    const unquoted = (account.documents ?? []).filter((/** @type {string} */ d) => !quotes.some((/** @type {string} */ q) => q.includes(d.toLowerCase())));
+    if (unquoted.length) return fail(specPath, `provider.json account documents ${unquoted.map((/** @type {string} */ d) => `"${d}"`).join(", ")}: in none of the sources' quotes`);
+  }
   const baseUrls = Object.values(providerManifest.environments ?? {}).map((/** @type {any} */ e) => e.base_url);
   if (baseUrls.length > 0 && !["webhook", "sdk"].includes(schema.capability_type) &&
       !baseUrls.some((/** @type {string} */ b) => String(schema.endpoint?.url).startsWith(`${b}/`))) {
@@ -419,6 +430,7 @@ const atssSchema = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../atss.s
 const validateAtss11Blocks = ajv.compile(atssSchema);
 const validateEnvironments = ajv.getSchema(`${atssSchema.$id}#/$defs/environments`);
 const validateRemovedCapabilities = ajv.getSchema(`${atssSchema.$id}#/$defs/removed_capabilities`);
+const validateAccount = ajv.getSchema(`${atssSchema.$id}#/$defs/account`);
 
 /**
  * The JSON Schemas a spec carries must compile: a $ref to a missing $def, or a keyword with a

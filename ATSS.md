@@ -60,6 +60,33 @@ One `provider.json` per provider directory. Carries provider-level metadata migr
 | description | string | One-sentence description of the provider for display and MCP context |
 | example_prompt | string | Full-flow usage prompt for AI agents — describes a complete integration scenario |
 
+**Account** — optional: who can open the account the API needs (merchant, business or developer account —
+not a consumer wallet), as the provider's own pages say it. An agent uses it to tell a user, before any code,
+whether the provider fits them — e.g. a seller without a registered business.
+
+```jsonc
+"account": {
+  "holder": "business_only",             // business_only | business_or_individual — omitted when the pages don't say
+  "documents": ["RCCM"],                 // optional: documents the pages list, as a source quotes them
+  "sources": [                           // required with holder or documents
+    { "url": "https://provider.example/faq", "quote": "Pour ouvrir un compte marchand, fournissez votre RCCM." }
+  ],
+  "checked_at": "2026-11-03",            // when the sources were read
+  "open_questions": [                    // what the pages don't answer — required when holder is omitted
+    "The FAQ (https://provider.example/faq) does not say whether an individual can open an account."
+  ]
+}
+```
+
+| Field | Rule |
+|---|---|
+| `holder` | `business_only` — the pages require a registered business (company or business registration); `business_or_individual` — the pages state a person without a registered business can open one. Anything else is an `open_questions` entry, never a guess |
+| `documents` | Each one appears in a `sources` quote (`validate` checks it, ignoring case), in the provider's own wording |
+| `sources` | The provider's own pages (docs, FAQ, sign-up page, terms) — never a blog, an article or a third party. `quote` is copied literally, in the page's language |
+| `open_questions` | Non-empty strings naming the pages checked. An agent must tell the user about them before recommending the provider |
+
+Requirements that differ by country or by step (sign-up vs. going live, a sender ID) go in the quotes and open questions.
+
 ---
 
 ## schema.json — required fields

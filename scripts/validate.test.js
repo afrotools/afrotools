@@ -701,3 +701,19 @@ test("removed_capabilities: tombstones of capabilities that have no folder left"
   assert.match(run([tombstone, tombstone]).stderr, /more than once/);
   assert.match(run([{ capability: "create_bill", removed_in: "2027-02-03" }]).stderr, /removed_capabilities invalid/);
 });
+
+test("account: who can open one, from a quoted source, or an open question", () => {
+  const run = (account) => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
+    writeFixtureSpec(dir, { status: "ready", extraProvider: { account } });
+    return runValidate(dir);
+  };
+  const source = { url: "https://fixture.example/faq", quote: "Pour ouvrir un compte marchand, fournissez votre RCCM et une pièce d'identité." };
+  assert.equal(run({ holder: "business_only", documents: ["RCCM"], sources: [source], checked_at: "2026-11-03" }).code, 0);
+  assert.equal(run({ open_questions: ["The FAQ does not say whether an individual can open an account."], checked_at: "2026-11-03" }).code, 0);
+  assert.match(run({ holder: "business_only", checked_at: "2026-11-03" }).stderr, /account invalid/);
+  assert.match(run({ sources: [source], checked_at: "2026-11-03" }).stderr, /account invalid/);
+  assert.match(run({ holder: "individual", sources: [source], checked_at: "2026-11-03" }).stderr, /account invalid/);
+  assert.match(run({ holder: "business_only", sources: [source] }).stderr, /account invalid/);
+  assert.match(run({ holder: "business_only", documents: ["NINEA"], sources: [source], checked_at: "2026-11-03" }).stderr, /"NINEA": in none of the sources' quotes/);
+});

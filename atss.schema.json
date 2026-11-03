@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/afrotools/afrotools/blob/main/atss.schema.json",
   "title": "ATSS 1.1 — capability blocks added in 1.1",
-  "description": "Validated by scripts/validate.js on every schema.json ($defs/environments and $defs/removed_capabilities on provider.json). The 1.0 fields are checked by validate.js itself; see ATSS.md for every rule.",
+  "description": "Validated by scripts/validate.js on every schema.json ($defs/environments, $defs/removed_capabilities and $defs/account on provider.json). The 1.0 fields are checked by validate.js itself; see ATSS.md for every rule.",
   "type": "object",
   "properties": {
     "verification": { "$ref": "#/$defs/verification" },
@@ -157,6 +157,33 @@
           "reason": { "type": "string", "pattern": "\\S" },
           "alternatives": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z0-9_]+$" } }
         }
+      }
+    },
+    "account": {
+      "description": "provider.json: who can open the account the API needs, from the provider's own pages; what they do not say is an open question.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checked_at"],
+      "anyOf": [{ "required": ["holder"] }, { "required": ["open_questions"] }],
+      "dependentRequired": { "holder": ["sources"], "documents": ["sources"] },
+      "properties": {
+        "holder": { "enum": ["business_only", "business_or_individual"] },
+        "documents": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "\\S" } },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["url", "quote"],
+            "properties": {
+              "url": { "type": "string", "pattern": "^https://" },
+              "quote": { "type": "string", "pattern": "\\S" }
+            }
+          }
+        },
+        "checked_at": { "type": "string", "format": "date" },
+        "open_questions": { "$ref": "#/properties/open_questions" }
       }
     },
     "env_var": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
