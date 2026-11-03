@@ -75,7 +75,7 @@ whether the provider fits them — e.g. a seller without a registered business.
   ],
   "checked_at": "2026-11-03",            // when the sources were read
   "open_questions": [                    // what the pages don't answer — required without holder or country_exceptions
-    "The FAQ (https://provider.example/faq) does not say whether an individual can open an account."
+    "The Senegal page (https://provider.example/sn) does not say which documents an individual needs."
   ]
 }
 ```
