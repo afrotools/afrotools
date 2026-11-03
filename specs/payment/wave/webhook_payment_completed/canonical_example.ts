@@ -51,8 +51,10 @@ function verifyWaveSignature(
   secret: string
 ): boolean {
   // Format: "t=1234567890,v1=abc123..."
-  // During a secret rotation, Wave sends several v1= values in the same header.
-  // Use an array to capture all of them — do not overwrite with a simple map.
+  // Wave's docs say the header may carry several v1= values during key rotation: use an array to
+  // capture all of them — do not overwrite with a simple map. A rotation done by duplicating the
+  // webhook (Business Portal) instead sends two separate notifications per event, one signed with
+  // the old secret and one with the new: only the one matching WAVE_WEBHOOK_SECRET validates.
   let timestamp: string | undefined;
   const signatures: string[] = [];
 

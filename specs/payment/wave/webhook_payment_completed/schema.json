@@ -96,12 +96,13 @@
     "Wave offers two security modes, chosen when the webhook is registered: Shared Secret (the secret in plain text in Authorization: Bearer <secret>) and Signing Secret (Wave-Signature header, recommended for production). With a Shared Secret webhook there is no Wave-Signature header: a handler that only checks the signature rejects every event. This example accepts both modes.",
     "Implement idempotency via event.id — Wave can deliver the same event several times. Check that the order is not already fulfilled before acting.",
     "Verify the Wave-Signature signature in production: HMAC-SHA256 of timestamp + raw body. Use the raw body, not the parsed JSON — some frameworks modify the body between receipt and parsing.",
-    "[MUST TELL USER] Wave sends webhooks from 15 IP ranges. If your server filters incoming traffic, add these IPs to your firewall or the webhooks will fail silently. The list is public at https://docs.wave.com/webhook (IP Whitelisting section): you must allow all of them, otherwise some webhooks can be rejected at random.",
+    "Rotating the webhook secret means duplicating the webhook in the Business Portal (Developers -> Webhooks), then deleting the old one. While both exist, Wave sends two notifications per event, one secured with the old secret and one with the new: until you switch WAVE_WEBHOOK_SECRET, the new webhook's notifications fail validation, and after the switch the old one's do. Delete the old webhook only once a test event from the new one validates. Keep fulfillment idempotent on data.id (the checkout session) during the overlap.",
+    "[MUST TELL USER] If your server filters incoming traffic, allow every address of the IP Whitelisting list at https://docs.wave.com/webhook — Wave says that otherwise some webhooks may be randomly rejected. The list changes: since October 2026 it includes a new range, 87.192.0.0/19, that Wave asks you to whitelist in addition to the existing /32 addresses. Copy the list from the docs, not from this spec.",
     "[MUST TELL USER] In local development, Wave cannot reach localhost. Use an HTTPS tunnel (e.g. `ngrok http 3000`) and configure the ngrok URL in the Business Portal before testing."
   ],
   "evidence": {
     "source_url": "https://docs.wave.com/webhook",
-    "source_reference": "Webhook Security (Shared Secret, Signing Secret) and 'Help, the signature validation fails'",
+    "source_reference": "Webhook Security (Shared Secret, Signing Secret), 'Help, the signature validation fails', IP Whitelisting and Secret Rotation",
     "extracted_at": "2026-11-03T12:00:00.000Z",
     "snapshot_hash": "23fbc7d3306fa58243394ed411c25cd009cb86a1f1e7dcf6be60ba4238165db5",
     "spans": [
@@ -111,7 +112,14 @@
       "Create the payload by combining timestamp + request body",
       "Check timestamp to prevent replay attacks (reject requests older than 5 minutes)",
       "The webhook secret (given to you by wave when your webhook URL is registered)",
-      "(This is different from the API key)"
+      "(This is different from the API key)",
+      "v1= - HMAC-SHA256 signature (there may be multiple signatures during key rotation)",
+      "Rotating a secret requires recreating a webhook to obtain a new secret and then removing the old webhook.",
+      "While these two webhooks are configured at the same time, your system will receive two notifications per event, one secured with the old secret and one with the new one.",
+      "Until you exchange these secrets in your system, the notifications related to the new webhook will be rejected by the validation logic.",
+      "October 2026: New IP range: 87.192.0.0/19",
+      "Please whitelist it in addition to the addresses below.",
+      "You need to whitelist all the IPs in the list, otherwise some webhooks may be randomly rejected."
     ]
   }
 }
