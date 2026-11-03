@@ -86,7 +86,7 @@ if (transaction.status === "succeeded") {
   await fulfillOrder(transactionId);
 } else if (transaction.status === "authorized") {
   // Funds only reserved, not captured — do not fulfil until the spec's open question
-  // (is a capture needed?) is resolved. See the "authorized" gotcha.
+  // (is a capture needed?) is resolved. See the "authorized" gotcha; capture with capture_charge.
 } else {
   // Payment not complete; log and monitor
   console.warn("Payment not succeeded:", transaction.status, transactionId);
