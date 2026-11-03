@@ -12,6 +12,32 @@
     "sandbox": { "base_url": "https://api.sandbox.africastalking.com" },
     "production": { "base_url": "https://api.africastalking.com" }
   },
+  "account": {
+    "sources": [
+      {
+        "url": "https://help.africastalking.com/en/articles/11401519-how-do-i-verify-my-account",
+        "quote": "Please note that if you choose to send an SMS, you will need to acquire a Sender ID before sending a message."
+      },
+      {
+        "url": "https://help.africastalking.com/en/articles/2257657-how-do-i-get-a-sender-id-in-nigeria",
+        "country_code": [
+          "NG"
+        ],
+        "quote": "A certificate of incorporation"
+      },
+      {
+        "url": "https://help.africastalking.com/en/articles/11581484-rwanda-sender-id-requirements",
+        "country_code": [
+          "RW"
+        ],
+        "quote": "Please attach the certificate of registration for your company."
+      }
+    ],
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "Africa's Talking's sign-up (https://help.africastalking.com/en/articles/1036078-how-do-i-register-an-account) asks for a name, an email, a password and a country, but no page says whether an individual without a registered business can use the account in production. Registering an SMS sender ID asks for company documents in several countries (a certificate of incorporation in Nigeria, a certificate of registration in Rwanda, a letter on company letterhead in Côte d'Ivoire, Zambia and Tanzania); the help center does not say what an individual can do there. africastalking.com/terms could not be read (Cloudflare challenge)."
+    ]
+  },
   "description": "Africa's Talking is a pan-African communications platform offering SMS, USSD, voice, WhatsApp and airtime APIs (this registry covers SMS and USSD) across multiple African countries.",
   "example_prompt": "Send an SMS notification to a Kenyan phone number using Africa's Talking."
 }

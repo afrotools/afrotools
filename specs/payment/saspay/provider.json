@@ -34,6 +34,24 @@
       "base_url": "https://api.saspay.me"
     }
   },
+  "account": {
+    "holder": "business_or_individual",
+    "documents": [
+      "pièce d'identité",
+      "selfie",
+      "documents d'entreprise"
+    ],
+    "sources": [
+      {
+        "url": "https://saspay.me/conditions-utilisation",
+        "quote": "Selon le type de compte (particulier ou entreprise), le Marchand doit soumettre les pièces justificatives demandées (pièce d'identité, selfie, documents d'entreprise le cas échéant) dans le cadre de la procédure de vérification d'identité."
+      }
+    ],
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "SasPay's pages do not say whether the account requirements differ by country."
+    ]
+  },
   "description": "SasPay is a single REST API to collect payments (mobile money, card) and pay out beneficiaries by mobile money across West, Central and East Africa, with hosted checkout, payment links, per-country wallets and signed webhooks.",
   "example_prompt": "Use SasPay to process a payment for a customer."
 }

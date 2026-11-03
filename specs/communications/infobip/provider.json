@@ -8,6 +8,36 @@
   "docs_url": "https://www.infobip.com/docs/api",
   "docs_public": true,
   "sandbox": false,
+  "account": {
+    "sources": [
+      {
+        "url": "https://www.infobip.com/docs/get-started/build-and-go-live/create-an-account",
+        "quote": "Sign up using the online form. You do not need to provide payment details."
+      },
+      {
+        "url": "https://www.infobip.com/docs/essentials/africa-registration/kenya-letter-of-authorization-loa-guidelines",
+        "country_code": [
+          "KE"
+        ],
+        "quote": "The sender's name must be linked to the company or individual and should match the initials from the person's ID card. If it doesn't, a trademark certificate is required."
+      },
+      {
+        "url": "https://www.infobip.com/docs/essentials/africa-registration/nigeria-letter-of-authorization-loa-guidelines",
+        "country_code": [
+          "NG"
+        ],
+        "quote": "CAC certificate (certificate of Incorporation)"
+      },
+      {
+        "url": "https://www.infobip.com/docs/whatsapp/get-started/sender-registration",
+        "quote": "To create and manage a WABA, businesses must have a Meta business portfolio"
+      }
+    ],
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "Infobip's sign-up is an online form and its service terms (https://www.infobip.com/policies/service-terms-conditions) exclude only people under legal age or barred by law, but no Infobip page says whether an individual without a registered business can send in production. Sender registration differs by country: Kenya accepts a sender name linked to 'the company or individual', Nigeria asks for a CAC certificate; WhatsApp needs a Meta business portfolio."
+    ]
+  },
   "description": "Infobip is a global cloud communications platform with country-by-country SMS coverage across Africa, plus WhatsApp, voice and email APIs and a 2FA (OTP) service. Each account has its own base URL.",
   "example_prompt": "Send an OTP by SMS to a user in Côte d'Ivoire with Infobip 2FA and verify the code they type."
 }

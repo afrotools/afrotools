@@ -24,6 +24,12 @@
       "base_url": "https://api.wave.com"
     }
   },
+  "account": {
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "Wave's API docs (https://docs.wave.com/business) say a Wave Business Account is needed, but neither the docs nor wave.com (/fr/business, /en/business, the terms of each country) say whether an individual without a registered business can open one, nor which documents are required."
+    ]
+  },
   "description": "Wave is a mobile money operator active in 11 African countries offering checkout sessions for e-commerce payments and batch payouts via a REST API.",
   "example_prompt": "Add Wave checkout to my e-commerce app."
 }

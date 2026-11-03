@@ -14,6 +14,29 @@
       "base_url": "https://api.orange.com"
     }
   },
+  "account": {
+    "documents": [
+      "Trade and Personal Property Credit Register"
+    ],
+    "sources": [
+      {
+        "url": "https://developer.orange.com/apis/om-webpay",
+        "quote": "These merchants just have to sign up for our solution in an Orange store in their country of business. They must be officially registered retailers (Orange Money merchants - fully KYA compliant)*."
+      },
+      {
+        "url": "https://developer.orange.com/apis/om-webpay",
+        "quote": "Don't forget to provide full documentation i.e. Trade and Personal Property Credit Register or other documents as per local legislation."
+      },
+      {
+        "url": "https://developer.orange.com/apis/om-webpay/faq",
+        "quote": "Companies that hold the Orange Money merchant status can access this service."
+      }
+    ],
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "Orange's developer pages (all countries) require the Orange Money merchant status, obtained in an Orange store, and refer to the local operator for its rules; Orange Mali's site (orangemali.com) has no page saying whether an individual without a registered business can become an Orange Money merchant in Mali."
+    ]
+  },
   "description": "Orange Money is the leading mobile money operator in West and Central Africa. The Orange Money Web Payment API lets merchants generate hosted payment pages from a server-side Bearer token obtained via OAuth2 client_credentials. This spec covers the Mali (ML) endpoint; the same API shape is exposed per country under /orange-money-webpay/{country}/v1/webpayment.",
   "example_prompt": "Add Orange Money Mali web payment to my checkout: obtain a Bearer token via OAuth2, create a hosted payment session, redirect the user to the returned payment_url, then verify the payment server-side from the notif_url callback before fulfilling the order."
 }

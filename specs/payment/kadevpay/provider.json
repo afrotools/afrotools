@@ -12,6 +12,29 @@
       "base_url": "https://pay.kadev.ci"
     }
   },
+  "account": {
+    "holder": "business_or_individual",
+    "documents": [
+      "pièce d'identité",
+      "RCCM",
+      "DFE"
+    ],
+    "sources": [
+      {
+        "url": "https://pay.kadev.ci/",
+        "quote": "Juste une pièce d'identité requise"
+      },
+      {
+        "url": "https://pay.kadev.ci/",
+        "quote": "Encaissement jusqu'à 200 000 FCFA / mois"
+      },
+      {
+        "url": "https://pay.kadev.ci/",
+        "quote": "Documents d'entreprise requis (RCCM, DFE)"
+      }
+    ],
+    "checked_at": "2026-11-03"
+  },
   "description": "KadevPay is an Ivorian payment gateway supporting mobile money (Orange Money, MTN MoMo) and card payments via a client-side JavaScript SDK.",
   "example_prompt": "Add KadevPay checkout to my app to accept mobile money and card payments in Côte d'Ivoire."
 }

@@ -301,6 +301,13 @@ function validateSchema(specPath) {
     const quotes = account.sources?.map((/** @type {any} */ s) => s.quote.toLowerCase()) ?? [];
     const unquoted = (account.documents ?? []).filter((/** @type {string} */ d) => !quotes.some((/** @type {string} */ q) => q.includes(d.toLowerCase())));
     if (unquoted.length) return fail(specPath, `provider.json account documents ${unquoted.map((/** @type {string} */ d) => `"${d}"`).join(", ")}: in none of the sources' quotes`);
+    // A per-country answer needs a source for that country, and a country the provider serves.
+    const sourced = new Set(account.sources?.flatMap((/** @type {any} */ s) => s.country_code ?? []) ?? []);
+    const countries = Object.keys(account.countries ?? {});
+    const foreign = countries.filter((c) => !providerManifest.country_code.includes(c));
+    if (foreign.length) return fail(specPath, `provider.json account countries ${foreign.join(", ")}: not in the provider's country_code`);
+    const unsourced = countries.filter((c) => !sourced.has(c));
+    if (unsourced.length) return fail(specPath, `provider.json account countries ${unsourced.join(", ")}: no source with that country_code`);
   }
   const baseUrls = Object.values(providerManifest.environments ?? {}).map((/** @type {any} */ e) => e.base_url);
   if (baseUrls.length > 0 && !["webhook", "sdk"].includes(schema.capability_type) &&

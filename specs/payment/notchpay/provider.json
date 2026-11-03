@@ -15,6 +15,30 @@
       "base_url": "https://api.notchpay.co"
     }
   },
+  "account": {
+    "sources": [
+      {
+        "url": "https://notchpay.co/policies/merchant-agreement",
+        "country_code": [
+          "CM"
+        ],
+        "quote": "The services are for businesses, associations and sole traders established in Cameroon, represented by an adult with authority to bind them."
+      },
+      {
+        "url": "https://developer.notchpay.co/security/compliance",
+        "quote": "Depending on account type and transaction volumes, we may require:"
+      },
+      {
+        "url": "https://developer.notchpay.co/get-started",
+        "quote": "Make sure to have your business registration documents ready before starting the registration process."
+      }
+    ],
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "Notch Pay's merchant agreement (https://notchpay.co/policies/merchant-agreement, last updated 1 November 2026) reserves the services to businesses, associations and sole traders established in Cameroon, while its compliance page (https://developer.notchpay.co/security/compliance) lists KYC for 'Individual Accounts'. Neither says whether a sole trader must be registered, nor whether an individual without a registered business can open a merchant account.",
+      "The merchant agreement covers Cameroon only; no Notch Pay page found says who can open an account in CI, SN, KE, UG or GH."
+    ]
+  },
   "description": "Notch Pay is a payment gateway enabling businesses to accept and send money via mobile money (MTN MoMo, Orange Money, M-Pesa, Wave, Airtel) across Cameroon, Côte d'Ivoire, Senegal, Kenya, Uganda and Ghana. Each market settles in its local currency (XAF in CM; XOF in CI/SN; KES, UGX, GHS).",
   "example_prompt": "Add Notch Pay checkout to accept MTN MoMo and Orange Money payments in Cameroon."
 }

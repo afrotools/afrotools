@@ -15,6 +15,18 @@
       "base_url": "https://api.bictorys.com"
     }
   },
+  "account": {
+    "sources": [
+      {
+        "url": "https://docs.bictorys.com/docs/aperçu-2",
+        "quote": "Veuillez noter que la validation de votre compte dépend de la vérification des documents obligatoires requis."
+      }
+    ],
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "Bictorys says account validation depends on mandatory documents, but neither docs.bictorys.com, bictorys.com, its terms (https://infos.bictorys.com/termes-conditions/) nor the sign-up form (https://register.bictorys.com) lists them or says whether an individual without a registered business can open an account."
+    ]
+  },
   "description": "Bictorys is a payment infrastructure provider serving West and Central Africa, supporting mobile money and card payments across multiple countries through a unified API.",
   "example_prompt": "Accept mobile money and card payments across West and Central Africa using a single unified API — covering checkout flows, disbursements, invoicing, and recurring billing."
 }

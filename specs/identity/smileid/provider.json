@@ -18,6 +18,29 @@
     "sandbox": { "base_url": "https://testapi.smileidentity.com" },
     "production": { "base_url": "https://api.smileidentity.com" }
   },
+  "account": {
+    "documents": [
+      "Incorporation Document"
+    ],
+    "sources": [
+      {
+        "url": "https://cdn.prod.website-files.com/69cecfcd51ce55fce000c092/6a22ad243daf956fd3483f9b_47562d1fb0f68898c66e71ba9eabc4c7_Smile%20ID%20Terms%20and%20Conditions_05062026.pdf",
+        "quote": "“Customer” means a corporate entity, company, or other legal entity with whom Smile ID enters into the Agreement and for whom Smile ID has agreed to provide the Services in accordance with these Terms."
+      },
+      {
+        "url": "https://legacy-docs.usesmileid.com/getting-started/complete-your-kyc.md",
+        "quote": "Your Incorporation Document (a record of your place and date of incorporation)"
+      },
+      {
+        "url": "https://legacy-docs.usesmileid.com/getting-started/complete-your-kyc.md",
+        "quote": "Any Additional Documents (if you are not yet incorporated, some record of your tax-paying status and domicile)"
+      }
+    ],
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "Smile ID's terms (linked from https://smile.id/terms-and-conditions, version 05062026) define the Customer as a corporate entity, company or other legal entity, while its partner KYC page (legacy docs) accepts, from a partner 'not yet incorporated', a record of its tax-paying status and domicile. Whether an individual without a registered business can become a customer is unclear; the current docs page (https://docs.usesmileid.com/start-building/create-an-account) is empty."
+    ]
+  },
   "description": "Smile ID is an identity verification provider whose V3 API checks ID numbers against ID authorities, verifies ID documents with a selfie, and screens people against AML lists.",
   "example_prompt": "Add Smile ID KYC to my onboarding: verify Côte d'Ivoire users by national ID number with Enhanced KYC, verify Senegalese and Guinean users with Document Verification (ID document photo + selfie), Nigerian users with Biometric KYC, and update their status from the signed result webhook."
 }

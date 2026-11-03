@@ -164,10 +164,18 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["checked_at"],
-      "anyOf": [{ "required": ["holder"] }, { "required": ["open_questions"] }],
-      "dependentRequired": { "holder": ["sources"], "documents": ["sources"] },
+      "anyOf": [{ "required": ["holder"] }, { "required": ["countries"] }, { "required": ["open_questions"] }],
+      "not": { "required": ["holder", "countries"] },
+      "dependentRequired": { "holder": ["sources"], "countries": ["sources"], "documents": ["sources"] },
       "properties": {
-        "holder": { "enum": ["business_only", "business_or_individual"] },
+        "holder": { "$ref": "#/$defs/holder" },
+        "countries": {
+          "description": "When the answer differs by country: the holder for each country the pages answer for.",
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "pattern": "^[A-Z]{2}$" },
+          "additionalProperties": { "$ref": "#/$defs/holder" }
+        },
         "documents": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "\\S" } },
         "sources": {
           "type": "array",
@@ -178,6 +186,7 @@
             "required": ["url", "quote"],
             "properties": {
               "url": { "type": "string", "pattern": "^https://" },
+              "country_code": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[A-Z]{2}$" } },
               "quote": { "type": "string", "pattern": "\\S" }
             }
           }
@@ -186,6 +195,7 @@
         "open_questions": { "$ref": "#/properties/open_questions" }
       }
     },
+    "holder": { "enum": ["business_only", "business_or_individual"] },
     "env_var": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
     "template": {
       "description": "Text with {placeholders}: a credential's env var, {signature}, {access_token}; in webhook.signature.message also {raw_body}, {header:Name} and an env var the example reads.",

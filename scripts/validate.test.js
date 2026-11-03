@@ -716,4 +716,9 @@ test("account: who can open one, from a quoted source, or an open question", () 
   assert.match(run({ holder: "individual", sources: [source], checked_at: "2026-11-03" }).stderr, /account invalid/);
   assert.match(run({ holder: "business_only", sources: [source] }).stderr, /account invalid/);
   assert.match(run({ holder: "business_only", documents: ["NINEA"], sources: [source], checked_at: "2026-11-03" }).stderr, /"NINEA": in none of the sources' quotes/);
+  const gn = { ...source, country_code: ["GN"] };
+  assert.equal(run({ countries: { GN: "business_only" }, sources: [gn], checked_at: "2026-11-03" }).code, 0);
+  assert.match(run({ countries: { GN: "business_only" }, sources: [source], checked_at: "2026-11-03" }).stderr, /countries GN: no source with that country_code/);
+  assert.match(run({ countries: { SN: "business_only" }, sources: [{ ...source, country_code: ["SN"] }], checked_at: "2026-11-03" }).stderr, /countries SN: not in the provider's country_code/);
+  assert.match(run({ holder: "business_only", countries: { GN: "business_only" }, sources: [gn], checked_at: "2026-11-03" }).stderr, /account invalid/);
 });
