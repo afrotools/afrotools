@@ -8,7 +8,7 @@
     "method": "app",
     "environment": "production",
     "at": "2026-10-24",
-    "spec_hash": "sha256:acb91e7fe4b7e6d4f915184189ff18ece486ca6864789e946789506afd14f80e"
+    "spec_hash": "sha256:e0d7d9b4074e14cd0d392d4173a352f463bfb5734b77674226af1f5f0c27fda2"
   },
   "currency": [
     "XOF"
@@ -157,7 +157,7 @@
       },
       "authorization": {
         "type": "boolean",
-        "description": "Set true to reserve (authorize) funds without immediate capture. Requires a separate capture call."
+        "description": "Card payments. Bictorys: \"request approval from card issuer to reserve an amount on the holder card to pay later the transaction. When set to true, an authorization request will be send to card issuer. If ignored or set to false, holder card will be charged immediately\". An authorized transaction can be captured, totally or partially, with capture_charge (POST /pay/v1/captures); whether it must be captured before the funds are collected is not documented — see capture_charge open_questions."
       },
       "allowUpdateCustomer": {
         "type": "boolean",
