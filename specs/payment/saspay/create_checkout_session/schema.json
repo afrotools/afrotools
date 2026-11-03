@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:67205ea32cf678783423e93f628a29e3b63bbaa9656a2bddb692e1b96e343868"
+    "spec_hash": "sha256:7550596bf2b776c35884d9d4a210d4c6f7c7408aadabd830999ad3a716c8d5be"
   },
   "currency": [
     "XOF",
@@ -222,11 +222,17 @@
     "Idempotency-Key is not supported here: calling twice creates two separate sessions (nothing is charged until one is paid).",
     "fee_charge_mode is silently ignored unless the merchant account has ALLOW_CLIENT_OVERRIDE enabled.",
     "The API key needs the PAYIN or BOTH scope, otherwise the call returns 403.",
-    "return_url only brings the customer back after a successful payment: after a failed or cancelled one it is not used, the customer sees a Retry button and must close the tab, so don't depend on a redirect to your site for failures.",
+    "return_url is used at most after a successful payment (and see the card observation below): after a failed or cancelled one it is not used, the customer sees a Retry button and must close the tab, so don't depend on a redirect to your site for failures.",
+    "A successful card payment may not redirect to return_url either. SasPay's docs (docs.saspay.me/api-reference/payments/checkout-create) say the hosted page \"redirige automatiquement le navigateur du client vers cette URL 3 secondes après confirmation d'un paiement **réussi**\", but on 2026-11-01 (maintainer's integration test, Senegal, XOF, sk_test_ key, return_url set) a successful card payment (card issued in France) ended on a FeexPay receipt page (\"Paiement réussi\", \"Propulsé par FeexPay\") and the customer was not redirected to return_url. The webhook transaction.success still arrived, and get_checkout_session_status returned status PAID and transaction_status SUCCESS: confirm the order from those, never from the customer coming back.",
+    "An sk_test_ key did not prevent a real card charge. SasPay's docs say the key prefix sets the environment (docs.saspay.me/account-setup): \"`environment` : `\"LIVE\"` (préfixe `sk_live_`, argent réel) ou `\"SANDBOX\"` (préfixe `sk_test_`, tests sans argent réel)\", yet in the same test the payer reports that the card was really debited (session amount 500 XOF; the FeexPay receipt showed \"Montant autorisé 1240 FCFA\"). Until SasPay explains it, test card payments only with an amount you accept to pay, and don't tell testers that an sk_test_ key means no money moves.",
+    "In the same test, choosing Orange Money on the hosted checkout (Senegal) showed a QR code (\"Scannez le QR Code avec votre application mobile Orange Money ou Max it pour finaliser le paiement.\"): it must be scanned from the Orange Money or Max it app on the phone that holds the account, so a tester without that phone at hand cannot finish the payment.",
     "Amounts are decimal strings (\"5000.00\"), never floats."
   ],
   "open_questions": [
-    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
+    "SasPay's docs say an sk_test_ key is SANDBOX, \"tests sans argent réel\", yet a card payment made with one was reported as really charged (2026-11-01). Is that intended for card, does it also happen with mobile money, and are there test cards or a simulator? Not documented.",
+    "Which processor and currency apply to a card payment on the hosted checkout? The formats page (docs.saspay.me/api-reference/reference/formats) says \"`card` | Carte bancaire (Visa/Mastercard, via Stripe) | USD uniquement\", but the 2026-11-01 card payment ended on a FeexPay receipt in FCFA, and authorized 1240 FCFA for a 500 XOF session: what makes up the difference (card fees, conversion) is not documented.",
+    "Is the missing redirect after a card payment (the customer stays on the FeexPay receipt) a known limitation, and does it also happen with mobile money operators? Only one card payment has been observed.",
+    "Besides Orange Money in Senegal, which mobile money operators on the hosted checkout ask the payer to scan a QR code rather than confirm on their phone? Not documented."
   ],
   "evidence": {
     "spans": [
