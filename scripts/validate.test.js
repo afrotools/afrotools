@@ -703,22 +703,29 @@ test("removed_capabilities: tombstones of capabilities that have no folder left"
 });
 
 test("account: who can open one, from a quoted source, or an open question", () => {
-  const run = (account) => {
+  const run = (account, extraProvider = {}) => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "atss-"));
-    writeFixtureSpec(dir, { status: "ready", extraProvider: { account } });
+    const currency = extraProvider.country_code?.includes("SN") ? { currency: ["GNF", "XOF"] } : {};
+    writeFixtureSpec(dir, { status: "ready", extraSchema: currency, extraProvider: { account, ...extraProvider } });
     return runValidate(dir);
   };
-  const source = { url: "https://fixture.example/faq", quote: "Pour ouvrir un compte marchand, fournissez votre RCCM et une pièce d'identité." };
-  assert.equal(run({ holder: "business_only", documents: ["RCCM"], sources: [source], checked_at: "2026-11-03" }).code, 0);
-  assert.equal(run({ open_questions: ["The FAQ does not say whether an individual can open an account."], checked_at: "2026-11-03" }).code, 0);
-  assert.match(run({ holder: "business_only", checked_at: "2026-11-03" }).stderr, /account invalid/);
-  assert.match(run({ sources: [source], checked_at: "2026-11-03" }).stderr, /account invalid/);
-  assert.match(run({ holder: "individual", sources: [source], checked_at: "2026-11-03" }).stderr, /account invalid/);
+  const source = { source_url: "https://fixture.example/faq", spans: ["Pour ouvrir un compte marchand, fournissez votre RCCM et une pièce d'identité."] };
+  const at = { checked_at: "2026-11-03" };
+  assert.equal(run({ holder: "business_only", documents: ["RCCM"], sources: [source], ...at }).code, 0);
+  assert.equal(run({ open_questions: ["The FAQ does not say whether an individual can open an account."], ...at }).code, 0);
+  assert.match(run({ holder: "business_only", ...at }).stderr, /account invalid/);
+  assert.match(run({ sources: [source], ...at }).stderr, /account invalid/);
+  assert.match(run({ holder: "individual", sources: [source], ...at }).stderr, /account invalid/);
   assert.match(run({ holder: "business_only", sources: [source] }).stderr, /account invalid/);
-  assert.match(run({ holder: "business_only", documents: ["NINEA"], sources: [source], checked_at: "2026-11-03" }).stderr, /"NINEA": in none of the sources' quotes/);
+  assert.match(run({ holder: "business_only", sources: [{ url: source.source_url, quote: source.spans[0] }], ...at }).stderr, /account invalid/);
+  assert.match(run({ holder: "business_only", documents: ["NINEA"], sources: [source], ...at }).stderr, /"NINEA": in none of the sources' spans/);
   const gn = { ...source, country_code: ["GN"] };
-  assert.equal(run({ countries: { GN: "business_only" }, sources: [gn], checked_at: "2026-11-03" }).code, 0);
-  assert.match(run({ countries: { GN: "business_only" }, sources: [source], checked_at: "2026-11-03" }).stderr, /countries GN: no source with that country_code/);
-  assert.match(run({ countries: { SN: "business_only" }, sources: [{ ...source, country_code: ["SN"] }], checked_at: "2026-11-03" }).stderr, /countries SN: not in the provider's country_code/);
-  assert.match(run({ holder: "business_only", countries: { GN: "business_only" }, sources: [gn], checked_at: "2026-11-03" }).stderr, /account invalid/);
+  assert.equal(run({ countries: { GN: "business_only" }, sources: [gn], ...at }).code, 0);
+  assert.match(run({ countries: { GN: "business_only" }, sources: [source], ...at }).stderr, /countries GN: no source with that country_code/);
+  assert.match(run({ countries: { SN: "business_only" }, sources: [{ ...source, country_code: ["SN"] }], ...at }).stderr, /countries SN: not in the provider's country_code/);
+  assert.match(run({ holder: "business_only", sources: [{ ...source, country_code: ["SN"] }], ...at }).stderr, /countries SN: not in the provider's country_code/);
+  assert.match(run({ holder: "business_only", countries: { GN: "business_only" }, sources: [gn], ...at }).stderr, /account invalid/);
+  const twoCountries = { country_code: ["GN", "SN"] };
+  assert.match(run({ countries: { GN: "business_only" }, sources: [gn], ...at }, twoCountries).stderr, /answers 1 of 2 countries/);
+  assert.equal(run({ countries: { GN: "business_only" }, sources: [gn], open_questions: ["Senegal: the pages do not say."], ...at }, twoCountries).code, 0);
 });

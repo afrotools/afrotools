@@ -15,25 +15,31 @@
   "account": {
     "holder": "business_or_individual",
     "documents": [
-      "pièce d'identité",
-      "RCCM",
-      "DFE"
+      "pièce d'identité"
     ],
     "sources": [
       {
-        "url": "https://pay.kadev.ci/",
-        "quote": "Juste une pièce d'identité requise"
+        "source_url": "https://pay.kadev.ci/",
+        "spans": [
+          "Juste une pièce d'identité requise",
+          "Encaissement jusqu'à 200 000 FCFA / mois",
+          "Documents d'entreprise requis (RCCM, DFE)"
+        ]
       },
       {
-        "url": "https://pay.kadev.ci/",
-        "quote": "Encaissement jusqu'à 200 000 FCFA / mois"
-      },
-      {
-        "url": "https://pay.kadev.ci/",
-        "quote": "Documents d'entreprise requis (RCCM, DFE)"
+        "source_url": "https://pay.kadev.ci/terms-of-service/",
+        "spans": [
+          "En utilisant nos services, le Marchand accepte également les conditions générales d'utilisation de Paystack.",
+          "Retard dans les délais de reversement imputable aux institutions bancaires ou aux vérifications de conformité (KYC) de l'agrégateur."
+        ]
       }
     ],
-    "checked_at": "2026-11-03"
+    "checked_at": "2026-11-03",
+    "open_questions": [
+      "The Starter account needs only an ID and caps collections at 200 000 FCFA a month; the Business account, without a cap, requires company documents (RCCM, DFE).",
+      "KadevPay's terms say payments go through Paystack, whose terms the merchant also accepts, and mention 'vérifications de conformité (KYC) de l'agrégateur': whether Paystack's own KYC applies on top of KadevPay's is not said.",
+      "KadevPay's pages do not say whether a Starter account gets live API keys."
+    ]
   },
   "description": "KadevPay is an Ivorian payment gateway supporting mobile money (Orange Money, MTN MoMo) and card payments via a client-side JavaScript SDK.",
   "example_prompt": "Add KadevPay checkout to my app to accept mobile money and card payments in Côte d'Ivoire."

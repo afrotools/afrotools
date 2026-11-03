@@ -183,11 +183,11 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["url", "quote"],
+            "required": ["source_url", "spans"],
             "properties": {
-              "url": { "type": "string", "pattern": "^https://" },
+              "source_url": { "type": "string", "pattern": "^https://" },
               "country_code": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[A-Z]{2}$" } },
-              "quote": { "type": "string", "pattern": "\\S" }
+              "spans": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "\\S" } }
             }
           }
         },

@@ -19,21 +19,19 @@
     "production": { "base_url": "https://api.smileidentity.com" }
   },
   "account": {
-    "documents": [
-      "Incorporation Document"
-    ],
     "sources": [
       {
-        "url": "https://cdn.prod.website-files.com/69cecfcd51ce55fce000c092/6a22ad243daf956fd3483f9b_47562d1fb0f68898c66e71ba9eabc4c7_Smile%20ID%20Terms%20and%20Conditions_05062026.pdf",
-        "quote": "“Customer” means a corporate entity, company, or other legal entity with whom Smile ID enters into the Agreement and for whom Smile ID has agreed to provide the Services in accordance with these Terms."
+        "source_url": "https://cdn.prod.website-files.com/69cecfcd51ce55fce000c092/6a22ad243daf956fd3483f9b_47562d1fb0f68898c66e71ba9eabc4c7_Smile%20ID%20Terms%20and%20Conditions_05062026.pdf",
+        "spans": [
+          "“Customer” means a corporate entity, company, or other legal entity with whom Smile ID enters into the Agreement and for whom Smile ID has agreed to provide the Services in accordance with these Terms."
+        ]
       },
       {
-        "url": "https://legacy-docs.usesmileid.com/getting-started/complete-your-kyc.md",
-        "quote": "Your Incorporation Document (a record of your place and date of incorporation)"
-      },
-      {
-        "url": "https://legacy-docs.usesmileid.com/getting-started/complete-your-kyc.md",
-        "quote": "Any Additional Documents (if you are not yet incorporated, some record of your tax-paying status and domicile)"
+        "source_url": "https://legacy-docs.usesmileid.com/getting-started/complete-your-kyc.md",
+        "spans": [
+          "Your Incorporation Document (a record of your place and date of incorporation)",
+          "Any Additional Documents (if you are not yet incorporated, some record of your tax-paying status and domicile)"
+        ]
       }
     ],
     "checked_at": "2026-11-03",

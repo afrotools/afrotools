@@ -15,22 +15,28 @@
   "account": {
     "sources": [
       {
-        "url": "https://help.africastalking.com/en/articles/11401519-how-do-i-verify-my-account",
-        "quote": "Please note that if you choose to send an SMS, you will need to acquire a Sender ID before sending a message."
+        "source_url": "https://help.africastalking.com/en/articles/11401519-how-do-i-verify-my-account",
+        "spans": [
+          "Please note that if you choose to send an SMS, you will need to acquire a Sender ID before sending a message."
+        ]
       },
       {
-        "url": "https://help.africastalking.com/en/articles/2257657-how-do-i-get-a-sender-id-in-nigeria",
+        "source_url": "https://help.africastalking.com/en/articles/2257657-how-do-i-get-a-sender-id-in-nigeria",
         "country_code": [
           "NG"
         ],
-        "quote": "A certificate of incorporation"
+        "spans": [
+          "A certificate of incorporation"
+        ]
       },
       {
-        "url": "https://help.africastalking.com/en/articles/11581484-rwanda-sender-id-requirements",
+        "source_url": "https://help.africastalking.com/en/articles/11581484-rwanda-sender-id-requirements",
         "country_code": [
           "RW"
         ],
-        "quote": "Please attach the certificate of registration for your company."
+        "spans": [
+          "Please attach the certificate of registration for your company."
+        ]
       }
     ],
     "checked_at": "2026-11-03",

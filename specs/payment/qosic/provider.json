@@ -12,12 +12,16 @@
   "account": {
     "sources": [
       {
-        "url": "https://qosic.com/shareLink-payment",
-        "quote": "Our payment link allows individuals or businesses to easily receive payments from people anywhere."
+        "source_url": "https://qosic.com/shareLink-payment",
+        "spans": [
+          "Our payment link allows individuals or businesses to easily receive payments from people anywhere."
+        ]
       },
       {
-        "url": "https://docs.qosic.com/apercu/creation-compte",
-        "quote": "Nom de votre application ou entreprise"
+        "source_url": "https://docs.qosic.com/apercu/creation-compte",
+        "spans": [
+          "Nom de votre application ou entreprise"
+        ]
       }
     ],
     "checked_at": "2026-11-03",

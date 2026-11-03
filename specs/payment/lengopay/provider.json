@@ -22,15 +22,19 @@
     ],
     "sources": [
       {
-        "url": "https://lengopay.com/guinee",
+        "source_url": "https://lengopay.com/guinee",
         "country_code": [
           "GN"
         ],
-        "quote": "Créez votre compte en ligne et soumettez vos documents d'enregistrement (RCCM, NIF, Statuts). Vérification de conformité avec l'APIP en 24h."
+        "spans": [
+          "Créez votre compte en ligne et soumettez vos documents d'enregistrement (RCCM, NIF, Statuts). Vérification de conformité avec l'APIP en 24h."
+        ]
       },
       {
-        "url": "https://lengopay.com/onboarding",
-        "quote": "L'équipe conformité Lengo Pay vérifie l'existence de l'entreprise et la cohérence des informations."
+        "source_url": "https://lengopay.com/onboarding",
+        "spans": [
+          "L'équipe conformité Lengo Pay vérifie l'existence de l'entreprise et la cohérence des informations."
+        ]
       }
     ],
     "checked_at": "2026-11-03",

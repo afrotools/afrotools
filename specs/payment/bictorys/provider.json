@@ -18,8 +18,10 @@
   "account": {
     "sources": [
       {
-        "url": "https://docs.bictorys.com/docs/aperçu-2",
-        "quote": "Veuillez noter que la validation de votre compte dépend de la vérification des documents obligatoires requis."
+        "source_url": "https://docs.bictorys.com/docs/aperçu-2",
+        "spans": [
+          "Veuillez noter que la validation de votre compte dépend de la vérification des documents obligatoires requis."
+        ]
       }
     ],
     "checked_at": "2026-11-03",

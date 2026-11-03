@@ -36,19 +36,27 @@
   },
   "account": {
     "holder": "business_or_individual",
-    "documents": [
-      "pièce d'identité",
-      "selfie",
-      "documents d'entreprise"
-    ],
     "sources": [
       {
-        "url": "https://saspay.me/conditions-utilisation",
-        "quote": "Selon le type de compte (particulier ou entreprise), le Marchand doit soumettre les pièces justificatives demandées (pièce d'identité, selfie, documents d'entreprise le cas échéant) dans le cadre de la procédure de vérification d'identité."
+        "source_url": "https://saspay.me/conditions-utilisation",
+        "spans": [
+          "Selon le type de compte (particulier ou entreprise), le Marchand doit soumettre les pièces justificatives demandées (pièce d'identité, selfie, documents d'entreprise le cas échéant) dans le cadre de la procédure de vérification d'identité.",
+          "qui permet à des éditeurs de logiciels SaaS (« le Marchand », « vous ») de connecter leurs produits à des solutions de paiement tierces afin d'encaisser des paiements auprès de leurs propres clients (« les Utilisateurs finaux »).",
+          "n'intervient pas dans la relation contractuelle entre le Marchand et les prestataires de paiement tiers, dont les propres conditions générales s'appliquent en complément des présentes."
+        ]
+      },
+      {
+        "source_url": "https://docs.saspay.me/account-setup.md",
+        "spans": [
+          "\"kyc_type\": \"BUSINESS\","
+        ]
       }
     ],
     "checked_at": "2026-11-03",
     "open_questions": [
+      "SasPay's terms (§ 1) describe the merchant as a SaaS software publisher ('éditeurs de logiciels SaaS'); whether a seller who does not publish software can open an account is not said.",
+      "The terms say the third-party payment providers' own terms apply too; their requirements for the merchant are not stated.",
+      "The KYC docs (https://docs.saspay.me/account-setup.md) document only kyc_type BUSINESS (with rccm_number and ifu_number); the individual ('particulier') KYC type and its fields are not documented.",
       "SasPay's pages do not say whether the account requirements differ by country."
     ]
   },

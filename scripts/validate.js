@@ -297,17 +297,21 @@ function validateSchema(specPath) {
       const errors = (validateAccount.errors ?? []).map((e) => `${e.instancePath || "/"} ${e.message}`);
       return fail(specPath, `provider.json account invalid (atss.schema.json $defs/account): ${errors.join("; ")}`);
     }
-    // A document is named as a source quotes it, so it cannot be added without a quote.
-    const quotes = account.sources?.map((/** @type {any} */ s) => s.quote.toLowerCase()) ?? [];
-    const unquoted = (account.documents ?? []).filter((/** @type {string} */ d) => !quotes.some((/** @type {string} */ q) => q.includes(d.toLowerCase())));
-    if (unquoted.length) return fail(specPath, `provider.json account documents ${unquoted.map((/** @type {string} */ d) => `"${d}"`).join(", ")}: in none of the sources' quotes`);
-    // A per-country answer needs a source for that country, and a country the provider serves.
-    const sourced = new Set(account.sources?.flatMap((/** @type {any} */ s) => s.country_code ?? []) ?? []);
+    // A document is named as a span quotes it, so it cannot be added without a quote.
+    const spans = account.sources?.flatMap((/** @type {any} */ s) => s.spans.map((/** @type {string} */ q) => q.toLowerCase())) ?? [];
+    const unquoted = (account.documents ?? []).filter((/** @type {string} */ d) => !spans.some((/** @type {string} */ q) => q.includes(d.toLowerCase())));
+    if (unquoted.length) return fail(specPath, `provider.json account documents ${unquoted.map((/** @type {string} */ d) => `"${d}"`).join(", ")}: in none of the sources' spans`);
+    // Countries are the provider's; a per-country answer needs a source for that country.
+    const served = providerManifest.country_code;
+    const sourced = account.sources?.flatMap((/** @type {any} */ s) => s.country_code ?? []) ?? [];
     const countries = Object.keys(account.countries ?? {});
-    const foreign = countries.filter((c) => !providerManifest.country_code.includes(c));
+    const foreign = [...new Set([...countries, ...sourced])].filter((c) => !served.includes(c));
     if (foreign.length) return fail(specPath, `provider.json account countries ${foreign.join(", ")}: not in the provider's country_code`);
-    const unsourced = countries.filter((c) => !sourced.has(c));
+    const unsourced = countries.filter((c) => !sourced.includes(c));
     if (unsourced.length) return fail(specPath, `provider.json account countries ${unsourced.join(", ")}: no source with that country_code`);
+    if (countries.length && countries.length < served.length && !account.open_questions) {
+      return fail(specPath, `provider.json account countries answers ${countries.length} of ${served.length} countries: say what is unknown for the others in open_questions`);
+    }
   }
   const baseUrls = Object.values(providerManifest.environments ?? {}).map((/** @type {any} */ e) => e.base_url);
   if (baseUrls.length > 0 && !["webhook", "sdk"].includes(schema.capability_type) &&

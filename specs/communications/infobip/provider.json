@@ -11,26 +11,34 @@
   "account": {
     "sources": [
       {
-        "url": "https://www.infobip.com/docs/get-started/build-and-go-live/create-an-account",
-        "quote": "Sign up using the online form. You do not need to provide payment details."
+        "source_url": "https://www.infobip.com/docs/get-started/build-and-go-live/create-an-account",
+        "spans": [
+          "Sign up using the online form. You do not need to provide payment details."
+        ]
       },
       {
-        "url": "https://www.infobip.com/docs/essentials/africa-registration/kenya-letter-of-authorization-loa-guidelines",
+        "source_url": "https://www.infobip.com/docs/essentials/africa-registration/kenya-letter-of-authorization-loa-guidelines",
         "country_code": [
           "KE"
         ],
-        "quote": "The sender's name must be linked to the company or individual and should match the initials from the person's ID card. If it doesn't, a trademark certificate is required."
+        "spans": [
+          "The sender's name must be linked to the company or individual and should match the initials from the person's ID card. If it doesn't, a trademark certificate is required."
+        ]
       },
       {
-        "url": "https://www.infobip.com/docs/essentials/africa-registration/nigeria-letter-of-authorization-loa-guidelines",
+        "source_url": "https://www.infobip.com/docs/essentials/africa-registration/nigeria-letter-of-authorization-loa-guidelines",
         "country_code": [
           "NG"
         ],
-        "quote": "CAC certificate (certificate of Incorporation)"
+        "spans": [
+          "CAC certificate (certificate of Incorporation)"
+        ]
       },
       {
-        "url": "https://www.infobip.com/docs/whatsapp/get-started/sender-registration",
-        "quote": "To create and manage a WABA, businesses must have a Meta business portfolio"
+        "source_url": "https://www.infobip.com/docs/whatsapp/get-started/sender-registration",
+        "spans": [
+          "To create and manage a WABA, businesses must have a Meta business portfolio"
+        ]
       }
     ],
     "checked_at": "2026-11-03",

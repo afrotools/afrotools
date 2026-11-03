@@ -15,21 +15,19 @@
     }
   },
   "account": {
-    "documents": [
-      "Trade and Personal Property Credit Register"
-    ],
     "sources": [
       {
-        "url": "https://developer.orange.com/apis/om-webpay",
-        "quote": "These merchants just have to sign up for our solution in an Orange store in their country of business. They must be officially registered retailers (Orange Money merchants - fully KYA compliant)*."
+        "source_url": "https://developer.orange.com/apis/om-webpay",
+        "spans": [
+          "These merchants just have to sign up for our solution in an Orange store in their country of business. They must be officially registered retailers (Orange Money merchants - fully KYA compliant)*.",
+          "Don't forget to provide full documentation i.e. Trade and Personal Property Credit Register or other documents as per local legislation."
+        ]
       },
       {
-        "url": "https://developer.orange.com/apis/om-webpay",
-        "quote": "Don't forget to provide full documentation i.e. Trade and Personal Property Credit Register or other documents as per local legislation."
-      },
-      {
-        "url": "https://developer.orange.com/apis/om-webpay/faq",
-        "quote": "Companies that hold the Orange Money merchant status can access this service."
+        "source_url": "https://developer.orange.com/apis/om-webpay/faq",
+        "spans": [
+          "Companies that hold the Orange Money merchant status can access this service."
+        ]
       }
     ],
     "checked_at": "2026-11-03",

@@ -18,19 +18,25 @@
   "account": {
     "sources": [
       {
-        "url": "https://notchpay.co/policies/merchant-agreement",
+        "source_url": "https://notchpay.co/policies/merchant-agreement",
         "country_code": [
           "CM"
         ],
-        "quote": "The services are for businesses, associations and sole traders established in Cameroon, represented by an adult with authority to bind them."
+        "spans": [
+          "The services are for businesses, associations and sole traders established in Cameroon, represented by an adult with authority to bind them."
+        ]
       },
       {
-        "url": "https://developer.notchpay.co/security/compliance",
-        "quote": "Depending on account type and transaction volumes, we may require:"
+        "source_url": "https://developer.notchpay.co/security/compliance",
+        "spans": [
+          "Depending on account type and transaction volumes, we may require:"
+        ]
       },
       {
-        "url": "https://developer.notchpay.co/get-started",
-        "quote": "Make sure to have your business registration documents ready before starting the registration process."
+        "source_url": "https://developer.notchpay.co/get-started",
+        "spans": [
+          "Make sure to have your business registration documents ready before starting the registration process."
+        ]
       }
     ],
     "checked_at": "2026-11-03",
