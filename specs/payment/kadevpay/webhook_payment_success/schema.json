@@ -84,7 +84,9 @@
       "$payload = file_get_contents('php://input');",
       "$computed_signature = hash_hmac('sha512', $payload, $webhook_secret);",
       "# On récupère le payload brut",
-      "payload = request.get_data()"
+      "payload = request.get_data()",
+      ".digest('hex');",
+      "const signature = req.headers['x-kadevpay-signature'];"
     ]
   }
 }
