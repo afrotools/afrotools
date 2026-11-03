@@ -43,7 +43,7 @@ for the target provider and capability before writing any implementation code.
      Exception: a provider the user explicitly chose outside the registry (afro.tools Studio's
      "outside the registry" choice, recorded in `.afrotools/studio.md`) is implemented from its own
      documentation, read now, with a warning that it has no afro.tools spec (no recorded gotchas, no
-     tested status). Its request was already made: no second `request_spec`.
+     tested status). No `request_spec` from this skill (Studio already offered it).
 
 2. Call the MCP tool to fetch the spec:
    ```
