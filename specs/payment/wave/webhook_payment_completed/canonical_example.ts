@@ -1,7 +1,7 @@
 /**
  * @provider Wave
  * @capability webhook_payment_completed
- * @atss 1.0
+ * @atss 1.1
  * @capability_type webhook
  */
 
@@ -51,8 +51,10 @@ function verifyWaveSignature(
   secret: string
 ): boolean {
   // Format: "t=1234567890,v1=abc123..."
-  // During a secret rotation, Wave sends several v1= values in the same header.
-  // Use an array to capture all of them — do not overwrite with a simple map.
+  // Wave's docs say the header may carry several v1= values during key rotation, without saying when:
+  // use an array to capture all of them — do not overwrite with a simple map. The rotation Wave
+  // documents (duplicating the webhook) sends two separate notifications per event, one secured with
+  // the old secret and one with the new: only the one matching WAVE_WEBHOOK_SECRET validates.
   let timestamp: string | undefined;
   const signatures: string[] = [];
 
