@@ -7,8 +7,9 @@ description: >
   app, a website or a service from an idea, for customers in an African country ("I want an app for my
   sewing workshop in Dakar where clients book and pay a deposit by mobile money"), even if they never
   name Studio or afro.tools, and even when the folder already holds notes, specs or mockups. Do NOT use
-  it to add a provider or an API to an app whose code already exists ("integrate Paycard in my Next.js
-  app"): that is the category skill (payment, communications, ...). Also typed as /afrotools:studio.
+  it for a change to an app whose code already exists (a new page, a feature, a provider: "integrate
+  Paycard in my Next.js app" goes to the category skill such as payment), unless .afrotools/studio.md
+  exists in the project: then Studio resumes. Also typed as /afrotools:studio.
 ---
 
 # /afrotools:studio
@@ -32,7 +33,9 @@ If the user did not type `/afrotools:studio` and `.afrotools/studio.md` does not
 message is one sentence on what Studio brings them (for example: "I can build this app with you, from a
 short plan to going live, with payment and messages connected without the usual errors"), then one
 question: shall we go? ("on y va ?" in French). With a yes, go on below. With a no, help them without
-Studio, write nothing in `.afrotools/`, and do not offer it again in this conversation.
+Studio, write nothing in `.afrotools/`, and do not offer it again in this conversation. If the folder
+holds an app's code and the request is a change to it, Studio started by mistake: help without it and
+do not mention it.
 
 ## State
 
@@ -102,6 +105,8 @@ before it goes live.
 
 - Follow the rules in [references/rules.md](references/rules.md) in everything you build.
 - Never ask the user to paste an API key in the chat: they put keys in `.env` themselves.
+- A need the registry does not cover, in any phase (build included), is handled as
+  [references/start.md](references/start.md) step 4 says, and gets its `pending:` line.
 - Never invent a fact about a provider (sign-up steps, fees, delays, documents to provide): use the
   registry, the provider's documentation, or say you don't know.
 - If Studio or an afrotools skill does not behave as it should, offer `/afrotools:diagnose`.

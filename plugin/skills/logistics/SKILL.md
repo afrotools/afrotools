@@ -8,6 +8,7 @@ description: >
   Activate even if the user only says "add delivery to checkout", "book a
   courier for this order" or "send the customer a tracking link" — always fetch
   the exact spec before writing any code.
+  If the user is creating a new app or service from an idea, use the `studio` skill instead.
 ---
 
 # Afro.tools — Logistics skill
@@ -36,6 +37,11 @@ for the target provider and capability before writing any implementation code.
      2. Tell the user: "The spec for {provider} isn't available yet — I've logged
         your request. You can track available specs with `/afrotools:list`."
      3. Stop — don't attempt to implement without a spec.
+
+     Exception: a provider the user explicitly chose outside the registry (afro.tools Studio's
+     "outside the registry" choice, recorded in `.afrotools/studio.md`) is implemented from its own
+     documentation, read now, with a warning that it has no afro.tools spec (no recorded gotchas, no
+     tested status). Its request was already made: no second `request_spec`.
 
 2. Call the MCP tool to fetch the spec:
    ```

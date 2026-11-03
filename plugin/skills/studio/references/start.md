@@ -39,11 +39,14 @@ Goal: the user knows what the app will do, which African providers it uses, and 
    `{ capability: "ussd", country_code: "SN" }`.
    - anonymous (`follow_up: "none"`, the default): the request is recorded, and they will not be told
      what happens next;
-   - with a GitHub issue to follow it (`follow_up: "github_issue"`): the result's `issue_url` is a
-     pre-filled link they open and submit themselves; nothing about them is kept. Paste the whole link.
+   - with a GitHub issue to follow it (`follow_up: "github_issue"`): the result's `issue_url` opens the
+     registry's "Integration need" form, already filled in: they only review it and submit it
+     themselves; nothing about them is kept. Paste the whole link.
 
    `count`, when present, is how many times this need was requested in all: never "you are the Nth
-   person". If `logged` is false, say the request was not recorded and give its `reason`. Record the
+   person". If `logged` is false because the spec already exists (`reason`), tell the user and use that
+   spec (back to the start of this step); with another `reason`, or if the call fails, say the request
+   was not recorded. Record the
    need in `.afrotools/studio.md` as `pending: <need> (<provider or country>)`, adding
    `, for now: <provider> (outside the registry)` if one stands in.
 5. **Explain how to get access**, for each chosen provider, only from what the registry gives:
@@ -57,10 +60,10 @@ Goal: the user knows what the app will do, which African providers it uses, and 
      or messages, and the registry does not say what or how long. Suggest asking the provider now how
      to get production access, so it is ready when the app is; meanwhile the tests go on in the
      sandbox, when there is one;
-   - who can open an account: the registry does not say yet whether a provider accepts an individual
-     or requires a registered business. Tell the user to check this with the provider before signing
-     up, for every provider (payment, SMS, WhatsApp…), all the more if they have no registered business.
-     Never state a requirement the registry does not give.
+   - who can open an account (an individual, or only a registered business): if `list_providers()` or
+     `get_spec()` says, use it and give its source; otherwise tell the user to check it with the
+     provider before signing up, for every provider (payment, SMS, WhatsApp…), all the more if they have
+     no registered business. Never state a requirement the registry does not give.
 
    Tell the user to put the keys in a `.env` file at the project root themselves, and never to paste
    them in the chat. Do not describe sign-up steps, documents or delays the registry does not give.
