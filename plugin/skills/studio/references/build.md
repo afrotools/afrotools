@@ -31,7 +31,9 @@ this project only), set `playwright_offered: true`, then tell the user to reopen
    something only they can give (a key, a decision) or when the phase is done.
 2. **African building blocks** go through the afrotools skills, never from memory: for payments, the
    `payment` skill (`afrotools.get_spec()` for the payment, its status and its webhook); for SMS,
-   WhatsApp and OTP, the `communications` skill. Apply [rules.md](rules.md) rules 1 to 4. WhatsApp
+   WhatsApp and OTP, the `communications` skill. A provider outside the registry (`.afrotools/studio.md`
+   says so) is wired from its own documentation, read now, not from memory; say again that it has no
+   afro.tools spec. Apply [rules.md](rules.md) rules 1 to 4. WhatsApp
    webhooks follow [vendor/whatsapp-webhooks.md](vendor/whatsapp-webhooks.md); any webhook follows
    [vendor/webhook-handler-patterns.md](vendor/webhook-handler-patterns.md).
 3. **Keys**: when a feature needs them, list the variable names and where to put them (`.env` at the

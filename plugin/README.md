@@ -21,7 +21,7 @@ That is one step on Claude Code 2.1.275 or later. On an older version:
 
 | Command | What it does |
 |---|---|
-| `/afrotools:studio` | Plans, designs, builds and checks an app, one phase at a time, at an explain or a quiet level. |
+| `/afrotools:studio` | Plans, designs, builds and checks an app, one phase at a time, at an explain or a quiet level. It also offers itself when you describe an app to create, and asks before starting. |
 | `/afrotools:payment`, `communications`, `identity`, `logistics`, `language` | Integrate a provider from its spec (they also start on their own when you ask for a payment, an SMS, a KYC check, and so on). |
 | `/afrotools:check` | A pre-production check: a local script looks for keys in the code or sent to the browser, then payments, webhooks and messages are checked against the specs. |
 | `/afrotools:review` | A code review or a security audit by a separate reviewer. |

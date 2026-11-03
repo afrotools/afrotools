@@ -15,7 +15,9 @@ Goal: the app is in production, with the user's explicit go, after the checks.
 3. **Prepare going live** with [vendor/shipping-and-launch.md](vendor/shipping-and-launch.md), kept to
    what this app needs: production access granted by each provider (`.afrotools/studio.md` says whether
    it was asked for; if not, the user asks now, and going live waits for it), the production keys (the user puts them in the host's settings themselves),
-   the provider's production address, the webhook address registered with the provider.
+   the provider's production address, the webhook address registered with the provider. Before going
+   live, turn on the host's data backups and make sure the previous version can be put back in one
+   step; tell the user where both are. If the host offers neither, say so.
    Never state a price or a free-tier limit from memory: send the user to the host's pricing page.
 4. **Go live only after the user's explicit go**, and only with an account they created themselves.
    Without an account, stop and tell them what to create. Once it is deployed, the user does the manual
