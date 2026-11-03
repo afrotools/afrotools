@@ -13,9 +13,7 @@
   },
   "account": {
     "countries": {
-      "NG": "business_or_individual",
-      "ZA": "business_or_individual",
-      "KE": "business_or_individual"
+      "NG": "business_or_individual"
     },
     "sources": [
       {
@@ -121,7 +119,7 @@
     ],
     "checked_at": "2026-11-03",
     "open_questions": [
-      "Flutterwave's 'How to create a Flutterwave account' page (updated 11 months ago) offers only 'a registered business account or a non-profit entity' and asks for 'Your business registration type - Sole Proprietorship, Limited Liability Company, Non-Profit entity, etc.', while the older country pages (updated about 29 months ago) of Ghana, Côte d'Ivoire, Uganda, Tanzania and Zambia list an 'Individual account'. Whether an individual without a registered business can still open an account in GH, CI, UG, TZ and ZM is unclear.",
+      "Flutterwave's 'How to create a Flutterwave account' page (updated 11 months ago) offers only 'a registered business account or a non-profit entity' and asks for 'Your business registration type - Sole Proprietorship, Limited Liability Company, Non-Profit entity, etc.', while the older country pages (updated about 29 months ago) list an 'Individual account' (Ghana, Côte d'Ivoire, Uganda, Tanzania, Zambia) or requirements for unregistered businesses (South Africa, Kenya). Whether an individual without a registered business can still open an account in ZA, KE, GH, CI, UG, TZ and ZM is unclear.",
       "Cameroon: Flutterwave's Cameroon onboarding page lists only 'Business (Limited Entities)' requirements (certificate of incorporation, articles of association, business license…); it does not say whether an individual or an unregistered business can open an account.",
       "Rwanda: Flutterwave's Rwanda page lists sole proprietorship, limited liability company and other entity requirements only; it does not say whether an individual can open an account.",
       "SN, GA, SL, CG, EG, ET, MW, TD have no Flutterwave country onboarding page; the 'rest of the world' page has an 'Individual account' category but does not name the countries it covers."
