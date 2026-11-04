@@ -9,7 +9,7 @@
     "environment": "sandbox",
     "at": "2026-04-30",
     "ref": "https://github.com/afrotools/examples/tree/b6b43121481b066c81791417ca0057b4e1685e36/shop",
-    "spec_hash": "sha256:4ac9698e935b471f2775f2ca2bafa826cf15a624a8b621ebe1707e3ab186ae7c"
+    "spec_hash": "sha256:e9b99e427cade0e509c3252f1cab709f847d435b21502158f94bc5dc41e4a737"
   },
   "currency": [
     "GNF"
@@ -149,9 +149,7 @@
               "FAILED",
               "SUCCESS",
               "CAPTURED",
-              "CANCELLED",
-              "TIMEOUT",
-              "REFUNDED"
+              "CANCELLED"
             ],
             "description": "REDIRECTED means the payer has been sent to the Djomy portal. Wait for webhook to know the final status."
           },

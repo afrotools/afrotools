@@ -28,7 +28,7 @@ interface CreatePaymentGatewayInput {
 
 interface CreatedPaymentGatewayData {
   transactionId: string;
-  status: "CREATED" | "PENDING" | "REDIRECTED" | "FAILED" | "SUCCESS" | "CAPTURED" | "CANCELLED" | "TIMEOUT" | "REFUNDED";
+  status: "CREATED" | "PENDING" | "REDIRECTED" | "FAILED" | "SUCCESS" | "CAPTURED" | "CANCELLED";
   paidAmount: number;
   paymentMethod: string;
   merchantPaymentReference?: string;
