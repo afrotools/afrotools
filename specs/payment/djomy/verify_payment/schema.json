@@ -9,7 +9,7 @@
     "environment": "sandbox",
     "at": "2026-04-30",
     "ref": "https://github.com/afrotools/examples/tree/b6b43121481b066c81791417ca0057b4e1685e36/shop",
-    "spec_hash": "sha256:ebfd06478d2e3937d0b1390148ef3d12672bd083a5eee3b511ecbde4dba29309"
+    "spec_hash": "sha256:4babda740d8b62a29e6d0d15b3dca5ded006717ef92a8a8f76e0aa6279dcb302"
   },
   "currency": [
     "GNF"
@@ -226,7 +226,7 @@
   },
   "gotchas": [
     "Never fulfill an order until data.status === 'SUCCESS'. PENDING means the payer has not confirmed yet. Djomy's docs list AUTHORIZED and CAPTURED for create_payment and create_payment_gateway (AUTHORIZED marked « A ignorer pour le moment »), for payment links (both marked « à ignorer pour le moment ») and in the V2 webhook's data.payment.status, not for this endpoint: treat any status other than SUCCESS as unpaid, and don't reject a value outside the enum.",
-    "The transactionId comes from your create_payment / create_payment_gateway record or from the signed webhook (check X-Webhook-Signature first). If you ever take it from a request (a return URL, a form), validate it before building the path: a visitor can send \"../…\" and make this call, with your access token and X-API-KEY, reach another endpoint. The docs type it as a uuid (CreatedPaymentDto.transactionId: \"format\": \"uuid\") and document a 400 \"Format de référence de transaction invalide\", so the example rejects anything that is not a UUID.",
+    "The transactionId comes from your create_payment / create_payment_gateway record, from the signed webhook (check X-Webhook-Signature first), or from a request: after a payment link, Djomy adds transactionId to the returnUrl (CreatePaymentLinkRequest.returnUrl: « Djomy rajoutera en paramètre d'url … transactionId et le status »). Validate a value taken from a request before building the path: a visitor can send \"../…\" and make this call, with your access token and X-API-KEY, reach another endpoint. The path parameter is typed only as a string, but the transactionId Djomy returns is a uuid (CreatedPaymentDto and GetPaymentDto: \"format\": \"uuid\") and the endpoint documents a 400 \"Format de référence de transaction invalide\", so the example rejects anything that is not a UUID.",
     "receivedAmount is what you actually receive after Djomy deducts fees. Use this for your accounting, not paidAmount.",
     "The currency field returns non-ISO strings: 'GNF', 'FCFA', 'Dollar', 'Leones'. Map these to ISO 4217 codes (GNF, XOF, USD, SLE) in your system.",
     "A missing or invalid X-API-KEY returns HTTP 401 (documented as \"Clé API manquante ou invalide\")."

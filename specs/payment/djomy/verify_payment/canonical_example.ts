@@ -77,8 +77,8 @@ async function getAccessToken(): Promise<string> {
   return result.data.accessToken;
 }
 
-// transactionId can come from a request (a return URL, a form): a visitor can send "../…" and make this
-// call, with your token and X-API-KEY, reach another endpoint. Djomy types it as a uuid — reject anything else.
+// transactionId can come from a request (a payment link's returnUrl, a form): a visitor can send "../…" and make
+// this call, with your token and X-API-KEY, reach another endpoint. The ids Djomy returns are uuids — reject anything else.
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function verifyPayment(transactionId: string): Promise<PaymentStatusData> {
