@@ -9,7 +9,7 @@
     "environment": "sandbox",
     "at": "2026-04-30",
     "ref": "https://github.com/afrotools/examples/tree/b6b43121481b066c81791417ca0057b4e1685e36/shop",
-    "spec_hash": "sha256:e9b99e427cade0e509c3252f1cab709f847d435b21502158f94bc5dc41e4a737"
+    "spec_hash": "sha256:e7827116ef8956d554b455609867d61000c271cb80418d958990a30b77f82271"
   },
   "currency": [
     "GNF"
@@ -145,13 +145,12 @@
             "enum": [
               "CREATED",
               "PENDING",
-              "REDIRECTED",
               "FAILED",
               "SUCCESS",
-              "CAPTURED",
-              "CANCELLED"
+              "AUTHORIZED",
+              "CAPTURED"
             ],
-            "description": "REDIRECTED means the payer has been sent to the Djomy portal. Wait for webhook to know the final status."
+            "description": "The statuses Djomy's docs list for this response (AUTHORIZED marked « A ignorer pour le moment »). The payer still has to pay on the Djomy portal: get the final status from verify_payment or the webhook."
           },
           "paidAmount": {
             "type": "number"

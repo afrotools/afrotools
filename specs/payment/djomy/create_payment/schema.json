@@ -146,8 +146,8 @@
               "PENDING",
               "FAILED",
               "SUCCESS",
-              "CAPTURED",
-              "CANCELLED"
+              "AUTHORIZED",
+              "CAPTURED"
             ],
             "description": "PENDING means the payer is being prompted by the operator to validate. For OM/MOMO direct flow, call confirm_otp next."
           },
