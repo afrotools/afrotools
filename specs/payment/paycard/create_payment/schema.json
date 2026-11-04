@@ -9,7 +9,7 @@
     "environment": "production",
     "at": "2026-04-06",
     "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:b2a8bf8743a62131f0f0319447c912a17f4bb1001b087325345701f73c38efc5"
+    "spec_hash": "sha256:afa48b830c17d2171dc4ce907e6e4a8b9e6f823ae3e749c2f9731e9fb9d7efc8"
   },
   "currency": [
     "GNF"
@@ -47,7 +47,7 @@
     "properties": {
       "paycard-amount": {
         "type": "string",
-        "description": "Amount in GNF, as a string of digits (e.g. \"1500\"). Must be greater than 0."
+        "description": "Amount in GNF, as a string of digits (e.g. \"1500\")."
       },
       "paycard-description": {
         "type": "string",
@@ -159,10 +159,11 @@
     "Always verify payment status server-side by calling verify_payment before fulfilling an order. The callback URL alone is not sufficient — it can be spoofed by anyone who knows your endpoint.",
     "Store operation_reference from the response immediately. It is the only way to call verify_payment later. If you passed your own paycard-operation-reference in the request, that same value is echoed back.",
     "Auth is the field 'c' sent in the POST body, not an HTTP header. Do not confuse it with a Bearer token or X-Api-Key pattern.",
-    "There is no sandbox environment. All requests hit production. Use minimal amounts (e.g. 100 GNF) when testing.",
+    "There is no sandbox environment. All requests hit production. Test with small amounts: the minimum amount Paycard accepts is not documented in this spec set (see open_questions).",
     "paycard-redirect-with-get: 'on' redirects the user's browser to paycard-callback-url with the reference appended as the query param 'paycard-operation-reference' (e.g. ?paycard-operation-reference=2604-XXX&c=...&transaction-reference=...). No server-to-server POST is sent. Read 'paycard-operation-reference' from the query string and pass it to verify_payment server-side before fulfilling the order."
   ],
   "open_questions": [
+    "What is the minimum amount Paycard accepts for a payment? Paycard's docs are not public and no source in hand states it.",
     "Is a retried create_payment safe? Paycard's docs are not public and document no idempotency key or duplicate handling that could be checked; whether Paycard rejects a reused paycard-operation-reference is unknown."
   ]
 }
