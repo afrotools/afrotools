@@ -9,7 +9,7 @@
     "environment": "production",
     "at": "2026-04-10",
     "ref": "https://github.com/afrotools/examples/tree/006e78dddd86af17b715a354b09e88299643d0b2/shop",
-    "spec_hash": "sha256:09fc4297d7e16a9dcb26470f3ca760247e08f1533494bf3eaab7c6fa343ddd6a"
+    "spec_hash": "sha256:4624626c6a8c61e0e8a38e922e7b7cdb4d3714ae23cd3f3e72a50aa39491aa5b"
   },
   "currency": [
     "GNF"
@@ -75,7 +75,7 @@
       },
       "metadata": {
         "type": "object",
-        "description": "Arbitrary data passed at creation, returned unchanged in verify_payment and the webhook. Useful for storing an internal order ID.",
+        "description": "Arbitrary data passed at creation, e.g. an internal order ID. verify_payment does not return it; see webhook_payment_completed for the callback.",
         "additionalProperties": true
       }
     }

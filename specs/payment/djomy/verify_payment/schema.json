@@ -7,8 +7,8 @@
   "verification": {
     "method": "app",
     "environment": "sandbox",
-    "at": "2026-04-10",
-    "ref": "https://github.com/afrotools/examples/tree/main/shop",
+    "at": "2026-04-30",
+    "ref": "https://github.com/afrotools/examples/tree/b6b43121481b066c81791417ca0057b4e1685e36/shop",
     "spec_hash": "sha256:e87e8568c0d175324b0fa405bb0aa431a8debc9356314d75d78b27db2b7024a4"
   },
   "currency": [
