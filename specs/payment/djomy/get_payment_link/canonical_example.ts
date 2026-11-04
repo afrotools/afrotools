@@ -78,9 +78,17 @@ async function getAccessToken(): Promise<string> {
   return result.data.accessToken;
 }
 
+// The reference may come from a request (a page URL, a form): a visitor can send "../…" and make this
+// call, with your API key, hit another endpoint. The docs give no format, so reject anything that could
+// leave the path segment (tab and newline are stripped by URL parsing, "." is dropped).
+function assertPathSegment(value: string): void {
+  if (/^\.?$|\.\.|[\x00-\x20\/\\?#%]/.test(value)) throw new Error(`Invalid Djomy payment link reference: ${JSON.stringify(value)}`);
+}
+
 export async function getPaymentLink(
   paymentLinkReference: string
 ): Promise<PaymentLinkData> {
+  assertPathSegment(paymentLinkReference);
   const accessToken = await getAccessToken();
 
   const response = await fetch(
