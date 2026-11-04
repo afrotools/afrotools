@@ -90,6 +90,7 @@ afrotools/afrotools/
 - Every spec folder contains exactly two files: `schema.json` + `canonical_example.ts`
 - `package.json` installs validation deps only: `typescript`, `ajv`, `ajv-formats`
 - Never add application code, MCP code, or Node.js scripts to `specs/`
+- Gotchas and open questions are sourced (see ATSS.md § Gotchas — writing guide)
 
 ## Core rules — plugin/
 
@@ -132,6 +133,7 @@ Validation checks:
 - Commits: Conventional Commits — `feat(paycard): add create_payment spec`
 - Everything via PR — never push directly to main
 - Squash merge only
+- An agent opening a PR that changes `specs/`, `plugin/`, `scripts/`, `.github/`, `ATSS.md` or `atss.schema.json` first has it reviewed by a subagent that did not write it (or by a new session if it cannot start one): give it the diff, the changed files and the provider docs used, not your conclusions. Check each finding yourself and fix the ones that hold. If no review was possible, say so in the PR description
 
 ## Dependency graph
 

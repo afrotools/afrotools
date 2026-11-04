@@ -9,11 +9,15 @@
 - [ ] Folder: `specs/{category}/{provider_slug}/{capability}/`
 - [ ] Contains exactly `schema.json` + `canonical_example.ts` — nothing else
 - [ ] All required ATSS fields present in `schema.json`
-- [ ] `gotchas[]` has at least 1 specific, actionable entry
+- [ ] `gotchas[]` has at least 1 specific, actionable and sourced entry (ATSS.md § Gotchas — writing guide)
 - [ ] `canonical_example.ts` uses native fetch only (no npm imports)
 - [ ] `canonical_example.ts` reads credentials from `process.env`
 - [ ] `npm run validate` passes with zero errors
-- [ ] `status` set to `draft` or `compliant` (never `verified`)
+- [ ] `status` set to `draft` or `ready` (never `verified`)
+
+## Sources
+
+<!-- For each gotcha or open question added or changed: the docs URL and section (for private docs, the file and where in it), the test run, the integration or the report. -->
 
 ## Type of change
 
