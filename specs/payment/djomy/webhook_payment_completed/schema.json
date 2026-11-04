@@ -3,14 +3,7 @@
   "provider_api_version": "v1.0",
   "capability": "webhook_payment_completed",
   "capability_type": "webhook",
-  "status": "verified",
-  "verification": {
-    "method": "app",
-    "environment": "sandbox",
-    "at": "2026-04-10",
-    "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:3212dde6ee2e6964c2bd1b4632aef948a466b59fd7ff00e2e994e3873686edce"
-  },
+  "status": "ready",
   "currency": [
     "GNF"
   ],
@@ -163,6 +156,7 @@
     "You receive every event listed in eventType (payout.* only with a V2 configuration). Only act on payment.success for order fulfillment."
   ],
   "open_questions": [
-    "The V2 payload (data.payment, data.payout) comes from Djomy's docs and has not been tested yet; this spec's verification covered a V1 configuration."
+    "The V2 payload (data.payment, data.payout) comes from Djomy's docs and has not been tested yet; the example app's webhook route (afrotools/examples shop) reads the V1 shape (data.transactionId).",
+    "Does the signature check pass on a real webhook? One was received (issue #44, 2026-05-13) and showed the v1:<hex> header, but its signature never matched: the example app compared the whole header until examples commit 763ab77 (2026-10-25), and that fix was checked against a computed HMAC, not a received webhook. Djomy's docs (developers.djomy.africa, X-Webhook-Signature) give HMAC-SHA256 of « le payload » with the clientSecret, hex, as v1:<signature>, without saying whether that is the raw body as webhook.signature assumes."
   ]
 }
