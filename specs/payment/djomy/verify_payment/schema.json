@@ -9,7 +9,7 @@
     "environment": "sandbox",
     "at": "2026-04-30",
     "ref": "https://github.com/afrotools/examples/tree/b6b43121481b066c81791417ca0057b4e1685e36/shop",
-    "spec_hash": "sha256:7e4912d43f6076599fe52648a3ae19312119c7584618808605550490b2080bf9"
+    "spec_hash": "sha256:6dfe3019231acba0aed31145a6bdbdd636f4139c1a8d145ac74c2a269894cda3"
   },
   "currency": [
     "GNF"
@@ -225,7 +225,7 @@
     }
   },
   "gotchas": [
-    "Never fulfill an order until data.status === 'SUCCESS'. PENDING means the payer has not confirmed yet. Djomy's docs list AUTHORIZED and CAPTURED for the payment objects of create_payment, create_payment_gateway and payment links (marked « à ignorer pour le moment » on links), not for this endpoint: treat any status other than SUCCESS as unpaid.",
+    "Never fulfill an order until data.status === 'SUCCESS'. PENDING means the payer has not confirmed yet. Djomy's docs list AUTHORIZED and CAPTURED for create_payment and create_payment_gateway (AUTHORIZED marked « A ignorer pour le moment »), for payment links (both marked « à ignorer pour le moment ») and in the V2 webhook's data.payment.status, not for this endpoint: treat any status other than SUCCESS as unpaid, and don't reject a value outside the enum.",
     "receivedAmount is what you actually receive after Djomy deducts fees. Use this for your accounting, not paidAmount.",
     "The currency field returns non-ISO strings: 'GNF', 'FCFA', 'Dollar', 'Leones'. Map these to ISO 4217 codes (GNF, XOF, USD, SLE) in your system.",
     "A missing or invalid X-API-KEY returns HTTP 401 (documented as \"Clé API manquante ou invalide\")."
