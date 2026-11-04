@@ -232,13 +232,13 @@
   },
   "gotchas": [
     "Fill the {reference} path parameter with paymentLinkReference from create_payment_link, not its deprecated `reference` field (\"Merci de considérer le champs paymentLinkReference\").",
-    "A 404 is returned if the reference does not exist or belongs to a different merchant account. Check that you are using the correct credentials and the correct reference.",
+    "Error codes are distinct (OpenAPI): 404 \"Lien de paiement introuvable\" (no such link), 403 \"Accès non autorisé à ce lien\" (a link your credentials may not read), 400 \"Format de référence invalide\" (a malformed reference). Check the credentials on a 403 and the reference on a 404 or 400.",
     "For UNIQUE links, data.status becomes REVOKED after one successful payment — not PAID. PAID is only set in specific conditions. Use data.numberOfUsage > 0 as the reliable indicator that a UNIQUE link has been used.",
-    "Validate the reference before putting it in the path when it comes from a request (a page URL, a form) rather than from your own records: a visitor can send \"../…\" and make this call, with your API key, reach another endpoint. The docs give no format (type string; examples A1B2C3, B2C3D4, LINK-REF), so the example rejects an empty value, \".\", \"..\", and any /, \\, ?, #, %, space or control character.",
+    "The reference comes from your create_payment_link record or from the signed webhook (check X-Webhook-Signature first). If you ever take it from a request (a page URL, a form), validate it before building the path: a visitor can send \"../…\" and make this call, with your access token, reach another endpoint. The OpenAPI types it as a string with no pattern (its only example is \"LINK-REF\", in the webhook examples) and documents a 400 \"Format de référence invalide\" without saying the format, so the example rejects an empty value, \".\", any \"..\", and any /, \\, ?, #, %, space or ASCII control character.",
     "A missing or invalid X-API-KEY returns HTTP 401 (documented as \"Clé API manquante ou invalide\")."
   ],
   "open_questions": [
-    "paymentLinkReference format: the OpenAPI gives only type string and the examples A1B2C3, B2C3D4 and LINK-REF — which characters and length can a reference have? Until then the example applies only a generic path-segment guard.",
-    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it."
+    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it.",
+    "paymentLinkReference format: the OpenAPI types it as a string with no pattern, gives no example on the field (only \"LINK-REF\" in the webhook examples) and documents a 400 \"Format de référence invalide\" — which characters and length can a reference have? Until then the example applies only a generic path-segment guard."
   ]
 }

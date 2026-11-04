@@ -78,11 +78,14 @@ async function getAccessToken(): Promise<string> {
   return result.data.accessToken;
 }
 
-// The reference may come from a request (a page URL, a form): a visitor can send "../…" and make this
-// call, with your API key, hit another endpoint. The docs give no format, so reject anything that could
-// leave the path segment (tab and newline are stripped by URL parsing, "." is dropped).
+// The reference comes from your create_payment_link record or the signed webhook. If you take it from a
+// request (a page URL, a form), a visitor can send "../…" and make this call, with your access token, hit
+// another endpoint. The docs give no format, so reject anything that could leave the path segment (tab
+// and newline are stripped by URL parsing, "." is dropped).
 function assertPathSegment(value: string): void {
-  if (/^\.?$|\.\.|[\x00-\x20\/\\?#%]/.test(value)) throw new Error(`Invalid Djomy payment link reference: ${JSON.stringify(value)}`);
+  if (/^\.?$|\.\.|[\x00-\x20\/\\?#%]/.test(value)) {
+    throw new Error(`Invalid Djomy payment link reference: ${JSON.stringify(value)}`);
+  }
 }
 
 export async function getPaymentLink(
@@ -115,8 +118,9 @@ export async function getPaymentLink(
 /*
 Usage example:
 
-// Retrieve a link created earlier to check its status
-const link = await getPaymentLink("lnk_abc123xyz");
+// Retrieve a link created earlier to check its status: pass the paymentLinkReference that
+// create_payment_link returned ("LINK-REF" is the value in Djomy's webhook examples)
+const link = await getPaymentLink("LINK-REF");
 
 if (link.status === "ACTIVE") {
   console.log(`Link is active. Payment page: ${link.paymentPageUrl}`);
