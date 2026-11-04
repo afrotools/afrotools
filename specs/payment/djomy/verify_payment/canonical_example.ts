@@ -77,7 +77,12 @@ async function getAccessToken(): Promise<string> {
   return result.data.accessToken;
 }
 
+// transactionId can come from a request (a return URL, a form): a visitor can send "../…" and make this
+// call, with your token and X-API-KEY, reach another endpoint. Djomy types it as a uuid — reject anything else.
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function verifyPayment(transactionId: string): Promise<PaymentStatusData> {
+  if (!UUID.test(transactionId)) throw new Error("Invalid Djomy transactionId: " + JSON.stringify(transactionId));
   const accessToken = await getAccessToken();
   const signature = await computeHmacHex(DJOMY_CLIENT_ID!, DJOMY_CLIENT_SECRET!);
 
@@ -113,10 +118,10 @@ if (payment.status === "SUCCESS") {
   // Use payment.receivedAmount for accounting (after Djomy fees)
   // Use payment.merchantPaymentReference to match against your order
   console.log(`Received: ${payment.receivedAmount} ${payment.currency}`);
-} else if (payment.status === "PENDING") {
-  // Payment still in progress — poll again or wait for webhook
+} else if (["CREATED", "PENDING", "REDIRECTED"].includes(payment.status)) {
+  // Not final yet (not submitted, awaiting the payer, or on the Djomy portal) — poll again or wait for the webhook
 } else {
-  // Any other status (FAILED, CANCELLED, …) — do not fulfill
+  // FAILED, CANCELLED, or a status this spec does not list — do not fulfill
   console.log(`Payment ${payment.status}: ${payment.transactionId}`);
 }
 */
