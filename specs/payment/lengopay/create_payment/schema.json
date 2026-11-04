@@ -7,9 +7,9 @@
   "verification": {
     "method": "app",
     "environment": "production",
-    "at": "2026-04-07",
-    "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:72bd3a740f57f674f2943817688b9aa54f851505c93f4c4a21f0231236333cad"
+    "at": "2026-04-10",
+    "ref": "https://github.com/afrotools/examples/tree/006e78dddd86af17b715a354b09e88299643d0b2/shop",
+    "spec_hash": "sha256:09fc4297d7e16a9dcb26470f3ca760247e08f1533494bf3eaab7c6fa343ddd6a"
   },
   "currency": [
     "GNF"
@@ -114,6 +114,7 @@
     "There is no sandbox. All calls hit production — use small amounts for testing."
   ],
   "open_questions": [
-    "Is a retried create_payment safe? LengoPay's docs are not public (lengopay.com answers 403 to non-browser requests) and no idempotency key or duplicate handling is documented for this call."
+    "Is a retried create_payment safe? LengoPay's docs are not public (lengopay.com answers 403 to non-browser requests) and no idempotency key or duplicate handling is documented for this call.",
+    "Is currency still required? The docs list it in the body without marking it optional (only return_url and callback_url are), and the verification ref sends it. examples/shop has not sent it since 2026-04-11 (a commit it describes as the v1.2.0 API migration), and no production run without it is recorded."
   ]
 }

@@ -69,7 +69,7 @@ export async function handlePaycardWebhook(
   fulfillOrder: (reference: string, amount: string) => Promise<void>,
   sendResponse: (status: number) => void
 ): Promise<void> {
-  // Always respond 200 immediately — Paycard does not retry on failure.
+  // Respond 200 right away; whether Paycard retries a failed delivery is not documented (open question).
   sendResponse(200);
 
   const reference = body["paycard-operation-reference"];
