@@ -3,14 +3,7 @@
   "provider_api_version": "2024-01-01",
   "capability": "webhook_payment_completed",
   "capability_type": "webhook",
-  "status": "verified",
-  "verification": {
-    "method": "app",
-    "environment": "production",
-    "at": "2026-04-06",
-    "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:36c5e73eaa920ebdb17addab8176120facf2ec41f7a2756221298f6b090daff6"
-  },
+  "status": "ready",
   "currency": [
     "GNF"
   ],
@@ -45,6 +38,7 @@
     "If create_payment was called with paycard-redirect-with-get: 'on', Paycard sends a browser GET redirect instead of this server-to-server POST. In that case, your callback route must handle GET (not POST) and extract operation_reference from the query string."
   ],
   "open_questions": [
-    "Format of operation_reference: Paycard's docs are not public and this spec quotes none (the example shows 2604-PR700IACRG) — which characters and length can it have? Until then the example applies only a generic path-segment guard."
+    "Format of operation_reference: Paycard's docs are not public and this spec quotes none (the example shows 2604-PR700IACRG) — which characters and length can it have? Until then the example applies only a generic path-segment guard.",
+    "Which field carries the reference in this POST: paycard-operation-reference or operation_reference? examples/shop (6eca79b), the app that verified create_payment and verify_payment, creates payments with paycard-redirect-with-get on, so it never received this POST; its webhook route reads operation_reference first, with a comment that the API uses underscores, citing no source."
   ]
 }
