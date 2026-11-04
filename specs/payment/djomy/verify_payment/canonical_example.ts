@@ -20,9 +20,7 @@ interface PaymentStatusData {
     | "FAILED"
     | "SUCCESS"
     | "REDIRECTED"
-    | "CANCELLED"
-    | "TIMEOUT"
-    | "REFUNDED";
+    | "CANCELLED";
   paidAmount: number;
   receivedAmount: number;
   fees: number;
@@ -118,7 +116,7 @@ if (payment.status === "SUCCESS") {
 } else if (payment.status === "PENDING") {
   // Payment still in progress — poll again or wait for webhook
 } else {
-  // FAILED, CANCELLED, TIMEOUT — do not fulfill
+  // Any other status (FAILED, CANCELLED, …) — do not fulfill
   console.log(`Payment ${payment.status}: ${payment.transactionId}`);
 }
 */

@@ -9,7 +9,7 @@
     "environment": "sandbox",
     "at": "2026-04-30",
     "ref": "https://github.com/afrotools/examples/tree/b6b43121481b066c81791417ca0057b4e1685e36/shop",
-    "spec_hash": "sha256:e87e8568c0d175324b0fa405bb0aa431a8debc9356314d75d78b27db2b7024a4"
+    "spec_hash": "sha256:7e4912d43f6076599fe52648a3ae19312119c7584618808605550490b2080bf9"
   },
   "currency": [
     "GNF"
@@ -105,9 +105,7 @@
               "FAILED",
               "SUCCESS",
               "REDIRECTED",
-              "CANCELLED",
-              "TIMEOUT",
-              "REFUNDED"
+              "CANCELLED"
             ],
             "description": "Use status === 'SUCCESS' as the only safe condition to fulfill an order."
           },
@@ -227,12 +225,13 @@
     }
   },
   "gotchas": [
-    "Never fulfill an order until data.status === 'SUCCESS'. PENDING means payment is still in progress. CAPTURED means the amount has been collected but may differ from SUCCESS depending on the flow.",
+    "Never fulfill an order until data.status === 'SUCCESS'. PENDING means the payer has not confirmed yet. Djomy's docs list AUTHORIZED and CAPTURED for the payment objects of create_payment, create_payment_gateway and payment links (marked « à ignorer pour le moment » on links), not for this endpoint: treat any status other than SUCCESS as unpaid.",
     "receivedAmount is what you actually receive after Djomy deducts fees. Use this for your accounting, not paidAmount.",
     "The currency field returns non-ISO strings: 'GNF', 'FCFA', 'Dollar', 'Leones'. Map these to ISO 4217 codes (GNF, XOF, USD, SLE) in your system.",
     "A missing or invalid X-API-KEY returns HTTP 401 (documented as \"Clé API manquante ou invalide\")."
   ],
   "open_questions": [
-    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it."
+    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it.",
+    "Which status does a timed-out or refunded payment return here? The webhook has payment.timeout and payment.refunded events, but this endpoint's docs (GetPaymentDto.status) list only CREATED, PENDING, FAILED, SUCCESS, REDIRECTED and CANCELLED; the TIMEOUT and REFUNDED values this spec listed until now had no source."
   ]
 }
