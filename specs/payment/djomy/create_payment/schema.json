@@ -170,7 +170,7 @@
           },
           "paymentUrl": {
             "type": "string",
-            "description": "URL for the payer to complete the payment (present when using redirect flow)."
+            "description": "« URL pour effectuer le paiement de la transaction. » (components.schemas.CreatedPaymentDto.properties.paymentUrl.description)."
           },
           "allowedPaymentMethods": {
             "type": "array",
@@ -251,8 +251,8 @@
   },
   "gotchas": [
     "For Orange Money (OM) and MTN MoMo (MOMO), « Le payeur est notifié par SMS ou via l’application Orange Money / MTN MoMo, afin de confirmer le paiement directement depuis son téléphone » (create_payment's description). Whether and when confirm_otp is also needed is not documented (see confirm_otp's open questions); its example passes the transactionId as transactionReference, which the docs don't state either.",
-    "Always verify payment status server-side via verify_payment before fulfilling an order. Never trust only the callback or paymentUrl redirect.",
-    "metadata must be a flat object — no arrays or nested structures. Values can be strings, numbers, or booleans.",
+    "A redirect is not a proof of payment. Fulfil from the signed webhook once its amount, currency and merchantPaymentReference match your order (see webhook_payment_completed), or from verify_payment with the same check.",
+    "metadata must be flat: « Il doit être au format JSON et ne contenir ni de list, ni de structure imbriquée » (components.schemas.InitiatePaymentCommand.properties.metadata.description); the docs' example, { \"order_id\": \"ORD-456\", \"vip\": true, \"referrer\": \"campaign-2026\" }, has strings and a boolean.",
     "[VERY IMPORTANT] Unless the user explicitly requests the direct flow (no redirect), always use create_payment_gateway instead. create_payment requires you to know the payment method and payer identifier upfront. create_payment_gateway delegates everything to the Djomy portal.",
     "A missing or invalid X-API-KEY returns HTTP 401 (documented as \"Clé API manquante ou invalide\")."
   ],

@@ -138,5 +138,6 @@ const payment = await createPayment({
 // For OM/MOMO: the payer is notified by SMS or in the app and confirms on their phone.
 // If a PIN is asked (not documented: see confirm_otp's open questions), confirm_otp(payment.transactionId, pin)
 // (transactionId as transactionReference is assumed).
-// Always verify server-side with verify_payment before fulfilling the order.
+// Fulfil from the signed webhook (webhook_payment_completed) or verify_payment, the amount and
+// currency checked against this order.
 */
