@@ -9,7 +9,7 @@
     "environment": "production",
     "at": "2026-04-09",
     "ref": "https://github.com/afrotools/examples/tree/6eca79b1e7b58efaaff2544736d18d0d1468c417/shop",
-    "spec_hash": "sha256:bddef722b47102bbb3a41fcf0e5d924cb45247bcae7414c535f5e2fcaa4f864e"
+    "spec_hash": "sha256:cf96bbb426cb8900df7fae5be140cabdd34640083d80d44be7c0efed309b343d"
   },
   "currency": [
     "GNF"
@@ -146,7 +146,7 @@
     "code: 0 means the transaction was found, NOT that it was paid. Always check status: treat status?.toLowerCase() === 'success' as confirmed. status: 'new' means pending — do not fulfill.",
     "Always call this endpoint server-side before fulfilling an order. Never trust the redirect URL or callback payload alone.",
     "The ref path parameter is the operation_reference returned by create_payment, not your own internal order ID.",
-    "A reference taken from the redirect or the callback comes from the browser or an unsigned POST and goes in the /epay/{c}/{ref}/status path: prefer the operation_reference you stored, since unencoded, a visitor's \"../…\" would send this call, with your API key, to another endpoint. No format is documented here. The example passes it through encodeURIComponent: an empty value, \".\" or \"..\" still changes the path, and the value must be the decoded one (URLSearchParams.get decodes it), or it is encoded twice.",
+    "A reference taken from the redirect or the callback comes from the browser or an unsigned POST and goes in the /epay/{c}/{ref}/status path: prefer the operation_reference you stored, since unencoded, a \"/\" or \"?\" in it would send this call, with your API key, to another endpoint. No format is documented here. The example passes it through encodeURIComponent: an empty value, \".\" or \"..\" still changes the path, and the value must be the decoded one (URLSearchParams.get decodes it), or it is encoded twice.",
     "The API key (c) is a path segment in the URL, not a query parameter: GET /epay/{c}/{ref}/status."
   ],
   "open_questions": [
