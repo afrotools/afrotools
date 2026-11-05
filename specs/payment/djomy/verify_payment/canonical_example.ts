@@ -82,7 +82,7 @@ export async function verifyPayment(transactionId: string): Promise<PaymentStatu
   const signature = await computeHmacHex(DJOMY_CLIENT_ID!, DJOMY_CLIENT_SECRET!);
 
   const response = await fetch(
-    `${DJOMY_BASE_URL}/v1/payments/${transactionId}/status`,
+    `${DJOMY_BASE_URL}/v1/payments/${encodeURIComponent(transactionId)}/status`,
     {
       method: "GET",
       headers: {
@@ -113,10 +113,10 @@ if (payment.status === "SUCCESS") {
   // Use payment.receivedAmount for accounting (after Djomy fees)
   // Use payment.merchantPaymentReference to match against your order
   console.log(`Received: ${payment.receivedAmount} ${payment.currency}`);
-} else if (payment.status === "PENDING") {
-  // Payment still in progress — poll again or wait for webhook
+} else if (["CREATED", "PENDING", "REDIRECTED"].includes(payment.status)) {
+  // Not final yet (not submitted, awaiting the payer, or on the Djomy portal) — poll again or wait for the webhook
 } else {
-  // Any other status (FAILED, CANCELLED, …) — do not fulfill
+  // FAILED, CANCELLED, or a status this spec does not list — do not fulfill
   console.log(`Payment ${payment.status}: ${payment.transactionId}`);
 }
 */

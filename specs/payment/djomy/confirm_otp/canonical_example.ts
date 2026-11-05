@@ -67,7 +67,7 @@ export async function confirmOtp(
   const signature = await computeHmacHex(DJOMY_CLIENT_ID!, DJOMY_CLIENT_SECRET!);
 
   const response = await fetch(
-    `${DJOMY_BASE_URL}/v1/payments/${transactionReference}/confirmOTP`,
+    `${DJOMY_BASE_URL}/v1/payments/${encodeURIComponent(transactionReference)}/confirmOTP`,
     {
       method: "POST",
       headers: {
