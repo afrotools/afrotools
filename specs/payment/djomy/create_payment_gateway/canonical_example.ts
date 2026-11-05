@@ -138,7 +138,7 @@ const payment = await createPaymentGateway({
 // Redirect the payer to the Djomy portal:
 // window.location.href = payment.redirectUrl;
 
-// Djomy handles the OTP flow internally.
+// The payer chooses a payment method and pays on the Djomy portal.
 // Set up a webhook endpoint (webhook_payment_completed) to receive the final status.
 // Always verify via verify_payment before fulfilling the order.
 */
