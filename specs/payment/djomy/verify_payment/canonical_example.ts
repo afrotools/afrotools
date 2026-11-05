@@ -82,7 +82,7 @@ export async function verifyPayment(transactionId: string): Promise<PaymentStatu
   const signature = await computeHmacHex(DJOMY_CLIENT_ID!, DJOMY_CLIENT_SECRET!);
 
   const response = await fetch(
-    `${DJOMY_BASE_URL}/v1/payments/${transactionId}/status`,
+    `${DJOMY_BASE_URL}/v1/payments/${encodeURIComponent(transactionId)}/status`,
     {
       method: "GET",
       headers: {
