@@ -36,7 +36,7 @@ async function readBody<T>(response: Response): Promise<T | undefined> {
 }
 
 export async function getSpeechSynthesisStatus(textId: string): Promise<SpeechStatus> {
-  const response = await fetch(`https://infer.voice.intron.io/tts/v1/status/${textId}`, {
+  const response = await fetch(`https://infer.voice.intron.io/tts/v1/status/${encodeURIComponent(textId)}`, {
     method: "GET",
     headers: { Authorization: `Bearer ${INTRON_API_KEY}` },
   });

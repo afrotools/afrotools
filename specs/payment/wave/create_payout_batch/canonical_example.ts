@@ -71,7 +71,7 @@ export async function createPayoutBatch(
 
 export async function getPayoutBatch(batchId: string): Promise<PayoutBatchStatus> {
   const response = await fetch(
-    `https://api.wave.com/v1/payout-batch/${batchId}`,
+    `https://api.wave.com/v1/payout-batch/${encodeURIComponent(batchId)}`,
     {
       method: "GET",
       headers: {

@@ -55,7 +55,7 @@ interface VerificationStatus {
 
 // 200 = terminal (clear | block | attention | error), 202 = processing, 404 = not_found.
 export async function getVerificationStatus(jobId: string): Promise<VerificationStatus> {
-  const response = await fetch(`${SMILEID_BASE_URL}/v3/status/${jobId}`, {
+  const response = await fetch(`${SMILEID_BASE_URL}/v3/status/${encodeURIComponent(jobId)}`, {
     method: "GET",
     headers: await authHeaders(),
   });

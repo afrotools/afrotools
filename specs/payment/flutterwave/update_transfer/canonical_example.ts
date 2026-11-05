@@ -103,7 +103,7 @@ export async function updateTransfer(
   id: string,
   input: UpdateTransferInput,
 ): Promise<{ status: "success"; message: string; data: { id: string; action: string; status: string } }> {
-  return flutterwave("PUT", "/transfers/" + id, { body: input });
+  return flutterwave("PUT", "/transfers/" + encodeURIComponent(id), { body: input });
 }
 
 /*

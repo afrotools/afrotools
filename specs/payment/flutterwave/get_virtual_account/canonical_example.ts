@@ -104,7 +104,7 @@ export interface VirtualAccount {
 }
 
 export async function getVirtualAccount(id: string): Promise<{ status: "success"; message: string; data: VirtualAccount }> {
-  return flutterwave("GET", "/virtual-accounts/" + id);
+  return flutterwave("GET", "/virtual-accounts/" + encodeURIComponent(id));
 }
 
 /*

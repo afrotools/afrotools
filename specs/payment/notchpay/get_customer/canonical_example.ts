@@ -32,7 +32,7 @@ interface NotchPayError {
 }
 
 export async function getCustomer(id: string): Promise<GetCustomerResponse> {
-  const response = await fetch(`https://api.notchpay.co/customers/${id}`, {
+  const response = await fetch(`https://api.notchpay.co/customers/${encodeURIComponent(id)}`, {
     method: "GET",
     headers: {
       Authorization: NOTCHPAY_PUBLIC_KEY!,

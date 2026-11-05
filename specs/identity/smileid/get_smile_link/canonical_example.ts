@@ -72,7 +72,7 @@ interface SmileLink {
 }
 
 export async function getSmileLink(refId: string): Promise<SmileLink> {
-  const response = await fetch(`${SMILEID_BASE_URL}/v3/smile_links/${refId}`, {
+  const response = await fetch(`${SMILEID_BASE_URL}/v3/smile_links/${encodeURIComponent(refId)}`, {
     method: "GET",
     headers: await authHeaders(),
   });

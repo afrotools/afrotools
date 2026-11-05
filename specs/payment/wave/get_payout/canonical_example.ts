@@ -31,7 +31,7 @@ interface WaveError {
 
 export async function getPayout(payoutId: string): Promise<PayoutResponse> {
   const response = await fetch(
-    `https://api.wave.com/v1/payout/${payoutId}`,
+    `https://api.wave.com/v1/payout/${encodeURIComponent(payoutId)}`,
     {
       method: "GET",
       headers: {

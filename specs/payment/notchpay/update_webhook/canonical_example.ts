@@ -57,7 +57,7 @@ export async function updateWebhook(
 ): Promise<UpdateWebhookResponse> {
   const { endpoint, ...body } = input;
 
-  const response = await fetch(`https://api.notchpay.co/webhooks/${endpoint}`, {
+  const response = await fetch(`https://api.notchpay.co/webhooks/${encodeURIComponent(endpoint)}`, {
     method: "PUT",
     headers: {
       Authorization: NOTCHPAY_PUBLIC_KEY!,

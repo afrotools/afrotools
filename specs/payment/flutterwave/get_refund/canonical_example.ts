@@ -99,7 +99,7 @@ export interface Refund {
 }
 
 export async function getRefund(id: string): Promise<{ status: "success"; message: string; data: Refund }> {
-  return flutterwave("GET", "/refunds/" + id);
+  return flutterwave("GET", "/refunds/" + encodeURIComponent(id));
 }
 
 /*
