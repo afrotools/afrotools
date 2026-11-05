@@ -139,6 +139,6 @@ const payment = await createPaymentGateway({
 // window.location.href = payment.redirectUrl;
 
 // The payer chooses a payment method and pays on the Djomy portal.
-// Set up a webhook endpoint (webhook_payment_completed) to receive the final status.
-// Always verify via verify_payment before fulfilling the order.
+// Fulfil from the signed webhook (webhook_payment_completed), its amount and currency checked
+// against this order; on the return to returnUrl, check with verify_payment the same way.
 */
