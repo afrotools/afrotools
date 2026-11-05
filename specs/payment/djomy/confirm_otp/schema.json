@@ -214,7 +214,7 @@
     "This capability is only used for the direct payment flow (create_payment). Do NOT call it after create_payment_gateway — that flow handles OTP on the Djomy portal itself.",
     "The OTP is sent by the mobile operator (Orange Money, MTN MoMo) to the payer's phone. Djomy does not send the OTP — you must collect it from the payer in your UI.",
     "The path parameter is called transactionReference in the URL but corresponds to the transactionId returned by create_payment. They refer to the same value.",
-    "transactionReference goes in the URL path. Take it from your own records rather than from the form where the payer types the OTP: the example encodes it with encodeURIComponent, so a visitor's \"../…\" stays in this endpoint's path instead of sending your X-API-KEY to another endpoint, but a value of exactly \"..\" still climbs one level. The docs type it as a string with no pattern.",
+    "transactionReference goes in the URL path. Take it from your own records rather than from the form where the payer types the OTP, since unencoded, a visitor's \"../…\" would send this call, with your X-API-KEY, to another endpoint. The docs type it as a string with no pattern. The example passes it through encodeURIComponent: an empty value, \".\" or \"..\" still changes the path, and the value must be the decoded one (URLSearchParams.get decodes it), or it is encoded twice.",
     "Even after a successful OTP confirmation, call verify_payment to confirm status === 'SUCCESS' before fulfilling the order.",
     "HTTP 403 \"Accès non autorisé à cette transaction\" when the transaction does not belong to your account.",
     "Only the X-API-KEY header is documented for this endpoint (no Bearer token, unlike create_payment and verify_payment)."
