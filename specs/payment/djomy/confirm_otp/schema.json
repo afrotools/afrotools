@@ -215,7 +215,7 @@
     "The PIN goes in the body as oneTimePin (OTPRequest: a string matching \\d{4,6}); who sends it to the payer is not documented.",
     "The docs don't say which value fills transactionReference: the parameter is a plain string with no description. create_payment returns two candidates: transactionId (CreatedPaymentDto: « Id du paiement générer par notre plateforme. A utiliser ulterieurement pour récupérer le détail de paiement ») and merchantPaymentReference, your own reference (« Indique la reference fournie par le marchand »). The example passes transactionId, which two descriptions favour without settling it (see open_questions); no test has confirmed it.",
     "transactionReference goes in the URL path. Take it from your own records rather than from the form where the payer types the OTP, since unencoded, a visitor's \"../…\" would send this call, with your X-API-KEY, to another endpoint. The docs type it as a string with no pattern. The example passes it through encodeURIComponent: an empty value, \".\" or \"..\" still changes the path, and the value must be the decoded one (URLSearchParams.get decodes it), or it is encoded twice.",
-    "Even after a successful OTP confirmation, call verify_payment to confirm status === 'SUCCESS' before fulfilling the order.",
+    "A successful OTP confirmation is not the payment (its status can still be PENDING): fulfil from the signed webhook or verify_payment, the amount and currency checked against your order (see webhook_payment_completed).",
     "HTTP 403 \"Accès non autorisé à cette transaction\" when the transaction does not belong to your account.",
     "Only the X-API-KEY header is documented for this endpoint (no Bearer token, unlike create_payment and verify_payment)."
   ],

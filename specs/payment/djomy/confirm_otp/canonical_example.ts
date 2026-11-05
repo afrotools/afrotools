@@ -103,8 +103,8 @@ const result = await confirmOtp(
 );
 
 if (result.status === "SUCCESS") {
-  // OTP accepted — but still verify server-side before fulfilling
-  // Call verifyPayment(result.transactionId) to confirm
+  // OTP accepted — fulfil from the signed webhook or verifyPayment(result.transactionId),
+  // checked against the order (see webhook_payment_completed)
 } else if (result.status === "FAILED") {
   // Payment failed — ask the payer to retry or restart
 }
