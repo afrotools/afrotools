@@ -194,7 +194,7 @@
   "gotchas": [
     "At least one of email or phone is required. Submitting only name returns a 422 validation error — the Notch Pay docs make 'name' look mandatory but the API really enforces 'one of email/phone'.",
     "The Authorization header must contain the public key directly as the token value — not prefixed with 'Bearer'. The format is exactly the key string.",
-    "Customer IDs returned by Notch Pay are opaque strings. Do not apply encodeURIComponent to these IDs when constructing path-based URLs — pass them as-is.",
+    "Customer IDs returned by Notch Pay are opaque strings: store them exactly as returned, not URL-encoded.",
     "The address object uses 'address_line1' / 'address_line2' (and optional 'state'), not 'street'. Sending 'street' silently drops the field."
   ]
 }

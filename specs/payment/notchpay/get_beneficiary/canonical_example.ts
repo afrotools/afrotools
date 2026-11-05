@@ -32,7 +32,7 @@ interface NotchPayError {
 }
 
 export async function getBeneficiary(id: string): Promise<GetBeneficiaryResponse> {
-  const response = await fetch(`https://api.notchpay.co/beneficiaries/${id}`, {
+  const response = await fetch(`https://api.notchpay.co/beneficiaries/${encodeURIComponent(id)}`, {
     method: "GET",
     headers: {
       Authorization: NOTCHPAY_PUBLIC_KEY!,

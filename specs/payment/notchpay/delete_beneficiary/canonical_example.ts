@@ -22,7 +22,7 @@ interface NotchPayError {
 }
 
 export async function deleteBeneficiary(id: string): Promise<DeleteBeneficiaryResponse> {
-  const response = await fetch(`https://api.notchpay.co/beneficiaries/${id}`, {
+  const response = await fetch(`https://api.notchpay.co/beneficiaries/${encodeURIComponent(id)}`, {
     method: "DELETE",
     headers: {
       Authorization: NOTCHPAY_PUBLIC_KEY!,
