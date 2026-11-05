@@ -93,12 +93,12 @@ export async function confirmOtp(
 Usage example:
 
 // Step 1: create_payment returns a transactionId with status PENDING
-// Step 2: collect the OTP from the payer in your UI (sent by Orange Money / MTN MoMo)
-// Step 3: confirm the OTP
+// Step 2: if a PIN is asked (when, and by whom, is not documented: see open_questions), collect it in your UI
+// Step 3: confirm it
 
 const otpFromPayer = "123456"; // collected from payer's input
 const result = await confirmOtp(
-  "a1b2c3d4-e5f6-7890-abcd-ef1234567890", // transactionId from create_payment
+  "a1b2c3d4-e5f6-7890-abcd-ef1234567890", // transactionId from create_payment (assumed: see open_questions)
   otpFromPayer
 );
 
@@ -109,6 +109,4 @@ if (result.status === "SUCCESS") {
   // Payment failed — ask the payer to retry or restart
 }
 
-// Note: confirm_otp is only for the direct flow (create_payment).
-// If you used create_payment_gateway, Djomy handles OTP on its portal.
 */

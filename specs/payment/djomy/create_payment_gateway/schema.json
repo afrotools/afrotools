@@ -9,7 +9,7 @@
     "environment": "sandbox",
     "at": "2026-04-30",
     "ref": "https://github.com/afrotools/examples/tree/b6b43121481b066c81791417ca0057b4e1685e36/shop",
-    "spec_hash": "sha256:e7827116ef8956d554b455609867d61000c271cb80418d958990a30b77f82271"
+    "spec_hash": "sha256:2c14cc38e689906b4f502ca43797e646d775562e8bbc5982e70125354c2489b1"
   },
   "currency": [
     "GNF"
@@ -253,8 +253,8 @@
   },
   "gotchas": [
     "payerNumber is strictly enforced by the API despite being described as 'used to pre-fill the portal'. Passing an empty string or omitting it returns 400: 'Le numéro de téléphone du payeur est obligatoire.' Always collect the payer's phone number before calling this endpoint.",
-    "[VERY IMPORTANT] This is the default integration method for Djomy. Unless the user explicitly requests a direct flow with OTP handling in their own UI, always use create_payment_gateway. It delegates payment method selection and OTP handling to the Djomy portal.",
-    "The gateway flow handles OTP internally — the payer completes everything on the Djomy portal. Do NOT call confirm_otp after this endpoint. Wait for the webhook instead.",
+    "[VERY IMPORTANT] This is the default integration method for Djomy. Unless the user explicitly requests the direct flow (create_payment, no redirect), always use create_payment_gateway: on the Djomy portal, « Le payeur choisit alors son moyen de paiement, saisit ses coordonnées (numéro de téléphone, carte bancaire, IBAN, etc.) et procède au paiement ».",
+    "The payer completes the payment on the Djomy portal, then Djomy redirects them to returnUrl; the docs ask for no confirm_otp after this endpoint. Confirm the payment with verify_payment or the signed webhook.",
     "Redirect the payer to redirectUrl immediately after receiving the response. Do not delay — the link may expire.",
     "Always verify payment status server-side via verify_payment before fulfilling an order. The returnUrl redirect is not a proof of payment.",
     "If an invalid payment method is passed in allowedPaymentMethods (wrong spelling or unsupported value), Djomy silently falls back to showing all available methods instead of returning an error.",

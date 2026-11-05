@@ -49,7 +49,7 @@
       "schema": {
         "type": "string"
       },
-      "description": "The transactionId returned by create_payment. Passed as a path parameter."
+      "description": "The payment's reference, passed as a path parameter. The docs don't say which value it is; the example passes create_payment's transactionId (see open_questions)."
     }
   ],
   "example_prompt": "Add OTP confirmation to my Djomy payment flow.",
@@ -62,7 +62,7 @@
       "oneTimePin": {
         "type": "string",
         "pattern": "\\d{4,6}",
-        "description": "The OTP code sent by the mobile operator (Orange Money, MTN MoMo, etc.) to the payer. Djomy's pattern: \\d{4,6}."
+        "description": "The one-time PIN the payer was given. Djomy's pattern: \\d{4,6}. Who sends it is not documented (see open_questions)."
       }
     }
   },
@@ -211,9 +211,9 @@
     }
   },
   "gotchas": [
-    "This capability is only used for the direct payment flow (create_payment). Do NOT call it after create_payment_gateway — that flow handles OTP on the Djomy portal itself.",
-    "The OTP is sent by the mobile operator (Orange Money, MTN MoMo) to the payer's phone. Djomy does not send the OTP — you must collect it from the payer in your UI.",
-    "The path parameter is called transactionReference in the URL but corresponds to the transactionId returned by create_payment. They refer to the same value.",
+    "The docs don't say when confirmOTP is needed. For Orange Money (OM) and MTN MoMo (MOMO), create_payment's description says « Le payeur est notifié par SMS ou via l’application Orange Money / MTN MoMo, afin de confirmer le paiement directement depuis son téléphone », and mentions no PIN; create_payment_gateway sends the payer to Djomy's portal. Call it only if a PIN is asked (see open_questions).",
+    "The PIN goes in the body as oneTimePin (OTPRequest: a string matching \\d{4,6}); who sends it to the payer is not documented.",
+    "The docs don't say which value fills transactionReference: the parameter is a plain string with no description. create_payment returns two candidates: transactionId (CreatedPaymentDto: « Id du paiement générer par notre plateforme. A utiliser ulterieurement pour récupérer le détail de paiement ») and merchantPaymentReference, your own reference (« Indique la reference fournie par le marchand »). The example passes transactionId, which two descriptions favour without settling it (see open_questions); no test has confirmed it.",
     "transactionReference goes in the URL path. Take it from your own records rather than from the form where the payer types the OTP, since unencoded, a visitor's \"../…\" would send this call, with your X-API-KEY, to another endpoint. The docs type it as a string with no pattern. The example passes it through encodeURIComponent: an empty value, \".\" or \"..\" still changes the path, and the value must be the decoded one (URLSearchParams.get decodes it), or it is encoded twice.",
     "Even after a successful OTP confirmation, call verify_payment to confirm status === 'SUCCESS' before fulfilling the order.",
     "HTTP 403 \"Accès non autorisé à cette transaction\" when the transaction does not belong to your account.",
@@ -221,6 +221,8 @@
   ],
   "open_questions": [
     "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it.",
-    "Is a retried confirmOTP call safe? Djomy's API reference (openapi-partner.json) documents no idempotency header or behaviour for POST /v1/payments/{transactionReference}/confirmOTP."
+    "Is a retried confirmOTP call safe? Djomy's API reference (openapi-partner.json) documents no idempotency header or behaviour for POST /v1/payments/{transactionReference}/confirmOTP.",
+    "Which value fills transactionReference: create_payment's transactionId or merchantPaymentReference? Djomy's API reference types the path parameter as a plain string and names neither (paths['/v1/payments/{transactionReference}/confirmOTP'].post.parameters). Two descriptions favour transactionId without settling it: confirmOTP's 200 response describes GetPaymentDto.transactionId as « Référence de paiement dans notre système », and the status endpoint's 400 for its {transactionId} reads « Format de référence de transaction invalide ».",
+    "When is confirmOTP needed, and who sends the PIN? Djomy's API reference has the endpoint and its body (OTPRequest.oneTimePin, pattern \\d{4,6}) but no flow that uses it: create_payment's description has Orange Money and MTN MoMo payers confirm on their phone, and mentions no PIN (paths['/v1/payments'].post.description)."
   ]
 }
