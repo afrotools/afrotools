@@ -22,14 +22,10 @@ interface BictorysError {
   details?: string;
 }
 
-// Bictorys types transactionId as a uuid; it goes in the query string.
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 /** Resolves on HTTP 202 ("The amount has been captured successfully"), which has no documented body. */
 export async function captureCharge(transactionId: string, input: CaptureChargeInput): Promise<void> {
-  if (!UUID.test(transactionId)) throw new Error("Invalid Bictorys transactionId: " + JSON.stringify(transactionId));
   const response = await fetch(
-    "https://api.bictorys.com/pay/v1/captures?transactionId=" + transactionId,
+    "https://api.bictorys.com/pay/v1/captures?transactionId=" + encodeURIComponent(transactionId),
     {
       method: "POST",
       headers: {

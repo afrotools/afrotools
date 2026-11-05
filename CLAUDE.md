@@ -163,4 +163,4 @@ It is a fully standalone static registry.
 - Never add MCP server code to this repo
 - Never put real API keys or secrets in `plugin/.mcp.json`
 - Never push directly to main — always use a branch and PR
-- Never apply `encodeURIComponent` to path parameters in `canonical_example.ts` unless the provider documentation explicitly requires it — API references (transaction IDs, payment link references, etc.) use safe characters by design; encoding them silently breaks the request
+- In a new or edited `canonical_example.ts`, put an id in a URL through `encodeURIComponent`, as the decoded value (`URLSearchParams.get` already decodes it: never encode a value read raw from a URL, or it is encoded twice). Exception: an id that can hold `+`, `/` or `=` (base64, like LengoPay's `pay_id`): do not encode it unless a test shows the provider decodes `%2B`, `%2F` and `%3D`. No format check or validation helper in the example — the format is the provider's to check; where the id comes from goes in a gotcha. Older examples that interpolate ids raw are aligned in their own PR, not in an unrelated one

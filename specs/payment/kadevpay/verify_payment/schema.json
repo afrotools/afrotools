@@ -130,7 +130,7 @@
     "Use the SECRET key (kdvs_*), not the public key — using the wrong key returns 401.",
     "reference is passed as a path parameter: GET /api/v1/transactions/verify/{reference}, not in the request body.",
     "Check both conditions before fulfilling: top-level status === 'success' AND data.status === 'paid'. Checking only data.status is not sufficient — an invalid reference can return a non-success top-level status.",
-    "The reference comes from the browser (onSuccess callback or callback_url redirect), so validate it server-side before putting it in the path: a visitor can send \"../…\" and make this call, with your secret key, reach another endpoint. The docs give no format (only the example KDV-1775413916000), so the example rejects an empty value, \".\", \"..\", and any /, \\, ?, #, %, space or control character.",
+    "The reference comes from the browser (onSuccess callback or callback_url redirect): unencoded, a visitor's \"../…\" would send this call, with your secret key, to another endpoint. The docs give no format (only the example KDV-1775413916000). The example passes it through encodeURIComponent: an empty value, \".\" or \"..\" still changes the path, and the value must be the decoded one (URLSearchParams.get decodes it), or it is encoded twice.",
     "mode: 'test' appears in sandbox responses — check this field to distinguish test vs live transactions."
   ],
   "open_questions": [
