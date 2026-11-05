@@ -108,7 +108,7 @@ export async function updateChargeback(
   id: string,
   input: UpdateChargebackInput,
 ): Promise<{ status: "success"; message: string; data: Chargeback }> {
-  return flutterwave("PUT", "/chargebacks/" + id, { body: input });
+  return flutterwave("PUT", "/chargebacks/" + encodeURIComponent(id), { body: input });
 }
 
 /*

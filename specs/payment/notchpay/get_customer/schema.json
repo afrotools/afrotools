@@ -127,7 +127,7 @@
   },
   "gotchas": [
     "A 404 is returned when the customer ID does not exist or does not belong to your account. Always handle 404 explicitly rather than treating it as a generic error.",
-    "Customer IDs are opaque strings — pass them as-is into the URL path. Do not apply any encoding transformation to the ID.",
+    "Customer IDs are opaque strings: store them exactly as returned. The example passes the ID through encodeURIComponent; never pass an already-encoded value, or it is encoded twice.",
     "The customer object does not include a 'blocked' or 'address' field — these are not returned by the API. Use block_customer / unblock_customer endpoints to manage block status."
   ]
 }

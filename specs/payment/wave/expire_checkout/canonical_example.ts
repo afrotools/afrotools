@@ -15,7 +15,7 @@ interface WaveError {
 
 export async function expireCheckout(sessionId: string): Promise<void> {
   const response = await fetch(
-    `https://api.wave.com/v1/checkout/sessions/${sessionId}/expire`,
+    `https://api.wave.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}/expire`,
     {
       method: "POST",
       headers: {

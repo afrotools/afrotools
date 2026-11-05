@@ -37,7 +37,7 @@ export async function verifyTransfer(
   reference: string
 ): Promise<VerifyTransferResponse> {
   const response = await fetch(
-    `https://api.notchpay.co/transfers/${reference}`,
+    `https://api.notchpay.co/transfers/${encodeURIComponent(reference)}`,
     {
       method: "GET",
       headers: {

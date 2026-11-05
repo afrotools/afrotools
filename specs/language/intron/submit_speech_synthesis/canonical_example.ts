@@ -64,7 +64,7 @@ export async function submitSpeechSynthesis(input: SubmitSpeechInput): Promise<s
 }
 
 export async function pollSpeechSynthesis(textId: string): Promise<SpeechStatus> {
-  const response = await fetch(`${BASE_URL}/tts/v1/status/${textId}`, {
+  const response = await fetch(`${BASE_URL}/tts/v1/status/${encodeURIComponent(textId)}`, {
     method: "GET",
     headers: { Authorization: `Bearer ${INTRON_API_KEY}` },
   });

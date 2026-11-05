@@ -50,7 +50,7 @@ export async function listCustomerPayments(
   if (input.page !== undefined) params.set("page", String(input.page));
 
   const qs = params.size > 0 ? `?${params.toString()}` : "";
-  const url = `https://api.notchpay.co/customers/${customerId}/payments${qs}`;
+  const url = `https://api.notchpay.co/customers/${encodeURIComponent(customerId)}/payments${qs}`;
 
   const response = await fetch(url, {
     method: "GET",

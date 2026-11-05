@@ -30,7 +30,7 @@ interface WaveError {
 
 export async function verifyPayment(sessionId: string): Promise<CheckoutSession> {
   const response = await fetch(
-    `https://api.wave.com/v1/checkout/sessions/${sessionId}`,
+    `https://api.wave.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}`,
     {
       method: "GET",
       headers: {

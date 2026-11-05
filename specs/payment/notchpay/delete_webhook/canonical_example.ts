@@ -29,7 +29,7 @@ export async function deleteWebhook(
   input: DeleteWebhookInput
 ): Promise<DeleteWebhookResponse> {
   const response = await fetch(
-    `https://api.notchpay.co/webhooks/${input.endpoint}`,
+    `https://api.notchpay.co/webhooks/${encodeURIComponent(input.endpoint)}`,
     {
       method: "DELETE",
       headers: {
