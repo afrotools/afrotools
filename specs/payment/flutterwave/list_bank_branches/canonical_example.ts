@@ -99,7 +99,7 @@ export interface BankBranch {
 
 /** bankId is list_banks' data[].id (bnk_…), not the bank code. */
 export async function listBankBranches(bankId: string): Promise<{ status: "success"; message: string; data: BankBranch[] }> {
-  return flutterwave("GET", "/banks/" + bankId + "/branches");
+  return flutterwave("GET", "/banks/" + encodeURIComponent(bankId) + "/branches");
 }
 
 /*

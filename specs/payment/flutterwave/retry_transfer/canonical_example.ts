@@ -118,7 +118,7 @@ export async function retryTransfer(
   input: RetryTransferInput,
   idempotencyKey: string = newKey(),
 ): Promise<{ status: "success"; message: string; data: Transfer }> {
-  return flutterwave("POST", "/transfers/" + id + "/retries", { body: input, idempotencyKey });
+  return flutterwave("POST", "/transfers/" + encodeURIComponent(id) + "/retries", { body: input, idempotencyKey });
 }
 
 /*

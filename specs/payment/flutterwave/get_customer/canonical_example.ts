@@ -100,7 +100,7 @@ export interface Customer {
 }
 
 export async function getCustomer(id: string): Promise<{ status: "success"; message: string; data: Customer }> {
-  return flutterwave("GET", "/customers/" + id);
+  return flutterwave("GET", "/customers/" + encodeURIComponent(id));
 }
 
 /*

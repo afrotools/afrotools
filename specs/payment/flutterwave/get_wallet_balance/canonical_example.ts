@@ -92,7 +92,7 @@ async function flutterwave<T>(method: string, path: string, opts: RequestOptions
 export async function getWalletBalance(
   currency: string,
 ): Promise<{ status: "success"; message: string; data: { currency: string; available_balance: number } }> {
-  return flutterwave("GET", "/wallets/balances/" + currency);
+  return flutterwave("GET", "/wallets/balances/" + encodeURIComponent(currency));
 }
 
 /*

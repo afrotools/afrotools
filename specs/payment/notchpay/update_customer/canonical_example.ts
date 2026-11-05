@@ -54,7 +54,7 @@ export async function updateCustomer(
   id: string,
   input: UpdateCustomerInput
 ): Promise<UpdateCustomerResponse> {
-  const response = await fetch(`https://api.notchpay.co/customers/${id}`, {
+  const response = await fetch(`https://api.notchpay.co/customers/${encodeURIComponent(id)}`, {
     method: "POST",
     headers: {
       Authorization: NOTCHPAY_PUBLIC_KEY!,

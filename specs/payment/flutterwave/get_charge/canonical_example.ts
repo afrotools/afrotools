@@ -155,7 +155,7 @@ export function describeNextAction(charge: Charge): string {
 }
 
 export async function getCharge(id: string): Promise<{ status: string; message: string; data: Charge }> {
-  return flutterwave("GET", "/charges/" + id);
+  return flutterwave("GET", "/charges/" + encodeURIComponent(id));
 }
 
 /** True only when the charge succeeded with exactly what you expected. Not for pay-with-bank-transfer charges: Flutterwave

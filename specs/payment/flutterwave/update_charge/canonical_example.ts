@@ -208,7 +208,7 @@ export async function updateCharge(
   authorization: Authorization,
   scenarioKey?: string,
 ): Promise<{ status: string; message: string; data: Charge }> {
-  return flutterwave("PUT", "/charges/" + id, { body: { authorization }, scenarioKey });
+  return flutterwave("PUT", "/charges/" + encodeURIComponent(id), { body: { authorization }, scenarioKey });
 }
 
 /** Builds the PIN authorization: the PIN is encrypted with a fresh nonce. */

@@ -15,7 +15,7 @@ interface WaveError {
 
 export async function refundCheckout(sessionId: string): Promise<void> {
   const response = await fetch(
-    `https://api.wave.com/v1/checkout/sessions/${sessionId}/refund`,
+    `https://api.wave.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}/refund`,
     {
       method: "POST",
       headers: {

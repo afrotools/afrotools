@@ -37,7 +37,7 @@ export async function getWebhook(
   input: GetWebhookInput
 ): Promise<GetWebhookResponse> {
   const response = await fetch(
-    `https://api.notchpay.co/webhooks/${input.endpoint}`,
+    `https://api.notchpay.co/webhooks/${encodeURIComponent(input.endpoint)}`,
     {
       method: "GET",
       headers: {

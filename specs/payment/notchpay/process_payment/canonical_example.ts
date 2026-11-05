@@ -47,7 +47,7 @@ export async function processPayment(
   const { reference, channel, data, client_ip } = input;
 
   const response = await fetch(
-    `https://api.notchpay.co/payments/${reference}`,
+    `https://api.notchpay.co/payments/${encodeURIComponent(reference)}`,
     {
       method: "POST",
       headers: {

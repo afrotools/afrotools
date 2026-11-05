@@ -39,7 +39,7 @@ type InfobipError = {
 
 export async function resend2faPinSms(input: Resend2faPinSmsInput): Promise<Resend2faPinSmsResponse> {
   const { pinId, ...body } = input;
-  const url = `${INFOBIP_BASE_URL}/2fa/2/pin/${pinId}/resend`;
+  const url = `${INFOBIP_BASE_URL}/2fa/2/pin/${encodeURIComponent(pinId)}/resend`;
   const response = await fetch(url, {
     method: "POST",
     headers: {

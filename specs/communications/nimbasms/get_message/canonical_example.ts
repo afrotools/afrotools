@@ -33,7 +33,7 @@ interface NimbaSMSError {
 }
 
 export async function getMessage(messageId: string): Promise<MessageResponse> {
-  const endpoint = `https://api.nimbasms.com/v1/messages/${messageId}`;
+  const endpoint = `https://api.nimbasms.com/v1/messages/${encodeURIComponent(messageId)}`;
   const response = await fetch(endpoint, {
     method: "GET",
     headers: {

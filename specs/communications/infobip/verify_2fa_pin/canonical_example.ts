@@ -37,7 +37,7 @@ type InfobipError = {
 
 export async function verify2faPin(input: Verify2faPinInput): Promise<Verify2faPinResponse> {
   const { pinId, ...body } = input;
-  const url = `${INFOBIP_BASE_URL}/2fa/2/pin/${pinId}/verify`;
+  const url = `${INFOBIP_BASE_URL}/2fa/2/pin/${encodeURIComponent(pinId)}/verify`;
   const response = await fetch(url, {
     method: "POST",
     headers: {

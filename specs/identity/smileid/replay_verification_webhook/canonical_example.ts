@@ -65,7 +65,7 @@ interface ReplayAccepted {
 }
 
 export async function replayVerificationWebhook(jobId: string, callbackUrl?: string): Promise<ReplayAccepted> {
-  const response = await fetch(`${SMILEID_BASE_URL}/v3/replay/${jobId}`, {
+  const response = await fetch(`${SMILEID_BASE_URL}/v3/replay/${encodeURIComponent(jobId)}`, {
     method: "POST",
     headers: await authHeaders(),
     ...(callbackUrl && { body: toForm({ callback_url: callbackUrl }) }),

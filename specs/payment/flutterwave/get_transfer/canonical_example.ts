@@ -107,7 +107,7 @@ export interface Transfer {
 }
 
 export async function getTransfer(id: string): Promise<{ status: "success"; message: string; data: Transfer }> {
-  return flutterwave("GET", "/transfers/" + id);
+  return flutterwave("GET", "/transfers/" + encodeURIComponent(id));
 }
 
 /*
