@@ -59,19 +59,10 @@ async function computeHmacHex(message: string, secret: string): Promise<string> 
     .join("");
 }
 
-// transactionReference can come from the form where the payer types the OTP: a visitor can send "../…"
-// and make this call, with your X-API-KEY, reach another endpoint. The docs give no format for it.
-function assertPathSegment(value: string): void {
-  if (/^\.?$|\.\.|[\x00-\x20\/\\?#%]/.test(value)) {
-    throw new Error(`Invalid Djomy transactionReference: ${JSON.stringify(value)}`);
-  }
-}
-
 export async function confirmOtp(
   transactionReference: string,
   oneTimePin: string
 ): Promise<PaymentStatusData> {
-  assertPathSegment(transactionReference);
   // Only X-API-KEY is documented for confirmOTP: no Bearer token.
   const signature = await computeHmacHex(DJOMY_CLIENT_ID!, DJOMY_CLIENT_SECRET!);
 
