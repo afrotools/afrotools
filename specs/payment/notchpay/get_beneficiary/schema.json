@@ -118,7 +118,7 @@
     "Authorization takes your public key as is, with no 'Bearer ' prefix, and X-Grant your private key (Notch Pay's Authentication page: `-H \"Authorization: YOUR_PUBLIC_KEY\"` `-H \"X-Grant: YOUR_PRIVATE_KEY\"`).",
     "The id path parameter must be the Notch Pay beneficiary ID (from create_beneficiary response), not the account_number or phone number.",
     "A 404 response means the beneficiary does not exist under the authenticated account — beneficiaries are scoped to the API key used to create them.",
-    "Do not URL-encode the beneficiary ID when inserting it into the path — pass it as-is.",
+    "The example passes the beneficiary ID through encodeURIComponent: pass the ID as create_beneficiary returned it, never an already-encoded value, or it is encoded twice.",
     "This endpoint also requires the `X-Grant` header carrying your private key (`X-Grant: YOUR_PRIVATE_KEY`). Without it Notch Pay returns 403 \"This endpoint requires additional authentication\"; a wrong value returns 403 \"Invalid grant key\"."
   ]
 }
