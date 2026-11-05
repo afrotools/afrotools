@@ -57,13 +57,13 @@ See [ATSS.md](./ATSS.md) for the full specification.
 <!-- tableau généré automatiquement par le pipeline — ne pas éditer manuellement -->
 | Provider | Category | Country | Capabilities | Status |
 |----------|----------|---------|--------------|--------|
-| Paycard | payment | 🇬🇳 | 3 | ✅ All verified |
 | SasPay | payment | 🇧🇫 🇧🇯 🇨🇩 +15 | 13 | 7 verified · 6 ready |
 | Smile ID | identity | 🇨🇮 🇸🇳 🇬🇳 +3 | 11 | 7 verified · 4 ready |
 | Bictorys | payment | 🇸🇳 🇨🇮 🇲🇱 +3 | 5 | 3 verified · 2 ready |
-| Djomy | payment | 🇬🇳 | 7 | 3 verified · 4 ready |
+| Djomy | payment | 🇬🇳 | 7 | 2 verified · 5 ready |
 | Infobip | communications | 🇦🇴 🇧🇫 🇧🇮 +51 | 13 | 2 verified · 11 ready |
 | LengoPay | payment | 🇬🇳 | 8 | 2 verified · 6 ready |
+| Paycard | payment | 🇬🇳 | 3 | 2 verified · 1 ready |
 | Africa's Talking | communications | 🇧🇫 🇧🇯 🇨🇮 +17 | 7 | 1 verified · 6 ready |
 | Flutterwave | payment | 🇳🇬 🇬🇭 🇰🇪 +15 | 33 | 📋 Ready |
 | Intron | language | 🇦🇴 🇧🇫 🇧🇮 +51 | 7 | 📋 Ready |
