@@ -16,6 +16,28 @@ SKILL.md's first-run step 2 for it now, flags included.
    built screen with it. After each feature, run the app and check it yourself before telling the user it works. With
    `level: explain`, tell the user in one sentence what now works and how to see it.
 
+   **Each screen ships with its states**, built with the screen, not after; a screen "works" only when
+   they are there, in the customer's language, concrete, with one next step each:
+   - **empty**: why it is empty, and the one thing to do next;
+   - **loading**: the shape of what is coming (with Next.js, a `loading.tsx` next to the page), never an
+     endless spinner;
+   - **error**: what happened, whose fault, what to do; never a blank page (an `error.tsx` next to the
+     page);
+   - **offline or slow network**: keep what is on screen, say the network is gone, disable what needs it;
+     no offline mode in a first version, light pages instead (small images, self-hosted fonts);
+   - **form**: the exact field, inline, with how to fix it; the server's validation errors come back to
+     the field;
+   - **session expired**: what the user was doing (a cart, an order being entered) survives signing in
+     again;
+   - **payment**, three states, worded by rules 1 and 2: *pending* (the customer confirms on their
+     phone; the app says what to do if nothing comes, "check again" is a button, the order stays pending
+     until the server has the provider's confirmation), *not confirmed* ("the payment was not confirmed",
+     check again or try again; never "you have not been charged" before the server knows), *confirmed*
+     (the reference, the confirmed amount, what happens next: a call, an SMS, a date);
+   - **test mode** and **keys missing** (step 3) are states too, shown the same way;
+   - permission denied (camera) and no search results only if the screen exists.
+   Step 8 checks the empty and the error states as well as the filled screen.
+
    **Order.** Build first every screen that needs no provider (clients, orders, lists, the owner's pages);
    wire the providers (payment, messages) last: keys often take days to obtain, and nothing else waits
    for them.
@@ -88,7 +110,8 @@ SKILL.md's first-run step 2 for it now, flags included.
 8. **Check the screens in a browser.** If browser tools (`mcp__playwright__*`, or
    `mcp__plugin_playwright_playwright__*` from the Playwright plugin) are available, open each
    screen at a phone's width (390 × 844), use it as the user would (create a client, an order, a payment
-   link, stopping at the provider's page: never fill it in), take a screenshot, compare it with
+   link, stopping at the provider's page: never fill it in), look at it empty and after a failed action
+   as well as filled, take a screenshot, compare it with
    `docs/preview.html`, and fix what is wrong before showing it. Without them, check pages with `curl` and describe what the user should see;
    if the project already uses Playwright, follow [vendor/webapp-testing.md](vendor/webapp-testing.md).
 9. **Review, offered once per feature**: when a feature is done, offer a code review in one sentence
