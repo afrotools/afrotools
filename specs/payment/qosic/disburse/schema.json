@@ -16,7 +16,7 @@
   },
   "endpoint": {
     "method": "POST",
-    "url": "https://api.qosic.net/QosicBridge/tm/v1/deposit"
+    "url": "https://api.qosic.net/QosicBridge/tm/v2/deposit"
   },
   "example_prompt": "Use Qosic to credit a customer's Togocel or Moov Togo mobile money wallet (payout / refund / seller payout).",
   "input_schema": {
@@ -51,7 +51,7 @@
           "TOGOCEL",
           "MOOV"
         ],
-        "description": "Mobile money network of the recipient. Determines URL: TOGOCEL -> /tm/v1/deposit, MOOV -> /tg/v1/deposit."
+        "description": "Mobile money network of the recipient. Determines URL: TOGOCEL -> /tm/v2/deposit, MOOV -> /tg/v1/deposit."
       }
     }
   },
@@ -73,7 +73,7 @@
           "string",
           "null"
         ],
-        "description": "Qosic-side reference. May be null/'0' on Togo and at initial response."
+        "description": "Operator-side reference. Togocel (tm/v2) returns it when responsecode is '00'. Moov (tg/v1) returns null."
       },
       "comment": {
         "type": [
@@ -106,7 +106,8 @@
     "[MUST TELL USER] Disbursement endpoints require IP whitelisting in the Qosic dashboard. Without it, requests from your production server are rejected with 401 regardless of credentials.",
     "[MUST TELL USER] Disbursement requires a funded merchant wallet on Qosic. Check your dashboard balance before scheduling a payout — Qosic does not have a separate balance API; you reconcile via the dashboard.",
     "[MUST TELL USER] Qosic mandates two-factor authentication (Authenticator app + QR code) for withdrawals from the merchant balance. This is on the dashboard side, not API-driven, but you need to enable it before disbursing in production.",
-    "Same URL routing as initiate_payment: TOGOCEL -> /tm/v1/deposit, MOOV -> /tg/v1/deposit. Each operator has its own clientid in the dashboard.",
+    "Disburse does NOT follow the initiate_payment versioning: TOGOCEL -> /tm/v2/deposit, MOOV -> /tg/v1/deposit. Payload and response are the same as v1. /tg/v2/deposit returned HTTP 502 in production tests, so Moov stays on v1. Each operator has its own clientid in the dashboard.",
+    "Keep the serviceref from the Togocel disburse response: check_payment_status (/tm/v1/gettransactionstatus) returns serviceref null for Togocel disbursements, so the deposit response is the only place to get the operator reference.",
     "transref MUST be unique. Reusing a transref across an initiate_payment and a disburse breaks status lookups."
   ],
   "open_questions": [
