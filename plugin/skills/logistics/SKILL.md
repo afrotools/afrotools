@@ -8,6 +8,7 @@ description: >
   Activate even if the user only says "add delivery to checkout", "book a
   courier for this order" or "send the customer a tracking link" — always fetch
   the exact spec before writing any code.
+  If the user is creating a new app or service from an idea, use the `studio` skill instead.
 ---
 
 # Afro.tools — Logistics skill
@@ -29,13 +30,22 @@ for the target provider and capability before writing any implementation code.
      provider is missing — check the list again before concluding anything.
    - Coverage is per country and often per city: check the provider's `country_code` and the
      spec's gotchas before promising delivery somewhere.
-   - Only if the provider is absent from `list_providers()`, or none of its capabilities
-     covers what the user needs:
-     1. Call `afrotools.request_spec({ provider: "<slug>", capability: "<capability>" })`
-        so the maintainers are notified of the demand.
-     2. Tell the user: "The spec for {provider} isn't available yet — I've logged
-        your request. You can track available specs with `/afrotools:list`."
+   - Only if the provider is absent from `list_providers()`, none of its capabilities
+     covers what the user needs, or, with no provider named, none in the user's country does:
+     1. Call `afrotools.request_spec()` so the maintainers are notified of the demand:
+        `{ provider: "<slug>", capability: "<capability>" }` for a named provider; without one,
+        what is needed and the country (ISO alpha-2), e.g. `{ capability: "ussd", country_code: "SN" }`.
+     2. If `logged` is true, tell the user: "The spec for {provider} isn't available yet — I've
+        logged your request. You can track available specs with `/afrotools:list`." (without a
+        provider: "no provider in the registry covers {need} in {country} yet"). If `logged` is
+        false because the spec exists, fetch it (step 2) instead of stopping. If the call fails,
+        say the request was not recorded.
      3. Stop — don't attempt to implement without a spec.
+
+     Exception: a provider the user explicitly chose outside the registry (afro.tools Studio's
+     "outside the registry" choice, recorded in `.afrotools/studio.md`) is implemented from its own
+     documentation, read now, with a warning that it has no afro.tools spec (no recorded gotchas, no
+     tested status). No `request_spec` from this skill (Studio already offered it).
 
 2. Call the MCP tool to fetch the spec:
    ```

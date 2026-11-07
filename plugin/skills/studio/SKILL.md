@@ -1,11 +1,15 @@
 ---
 name: studio
 description: >
-  afro.tools Studio: takes the user from an idea to an app in production for African markets —
-  a short plan, a clean design, African building blocks (mobile money, SMS, WhatsApp, OTP) wired
-  from the Afro.tools registry, and checks before going live. Invoke with: /afrotools:studio.
-  Manual invocation only.
-disable-model-invocation: true
+  afro.tools Studio: takes someone, developer or not, from an idea to an app in production for African
+  markets — a short plan, a clean design, mobile money, SMS and WhatsApp wired from the Afro.tools
+  registry, and checks before going live. Use it whenever the user wants to create, build or launch an
+  app, a website or a service from an idea, for customers in an African country ("I want an app for my
+  sewing workshop in Dakar where clients book and pay a deposit by mobile money"), even if they never
+  name Studio or afro.tools, and even when the folder already holds notes, specs or mockups. Do NOT use
+  it for a change to an app whose code already exists (a new page, a feature, a provider: "integrate
+  Paycard in my Next.js app" goes to the category skill such as payment), unless .afrotools/studio.md
+  exists in the project: then Studio resumes. Also typed as /afrotools:studio.
 ---
 
 # /afrotools:studio
@@ -23,6 +27,16 @@ first time: tokens are the assistant's usage, included in their subscription up 
 use depending on their plan. When a phase ends, suggest going on in a new conversation: the state file
 keeps everything, and each message of a long conversation costs more than the last.
 
+## When Studio started on its own
+
+If the user did not type `/afrotools:studio` and `.afrotools/studio.md` does not exist, your first
+message is one sentence on what Studio brings them (for example: "I can build this app with you, from a
+short plan to going live, with payment and messages connected without the usual errors"), then one
+question: shall we go? ("on y va ?" in French). With a yes, go on below. With a no, help them without
+Studio, write nothing in `.afrotools/`, and do not offer it again in this conversation. If the folder
+holds an app's code and the request is a change to it, Studio started by mistake: help without it and
+do not mention it.
+
 ## State
 
 Keep the journey's state in `.afrotools/studio.md` at the project root, and read it first every time
@@ -39,8 +53,15 @@ playwright_offered: true | false
 review_declined: 0 | 1 | 2
 ```
 
-Below these lines, keep the decisions taken so far (providers, keys needed, stack, hosting), one line each.
+Below these lines, keep the decisions taken so far (providers, keys needed, stack, hosting), one line each,
+and one `pending:` line per need the registry does not cover yet (see
+[references/start.md](references/start.md), step 4), for example `pending: Free Money (Bictorys)`.
 Update the file with your file-editing tool, not with shell commands.
+
+**Pending needs, on every resume:** for each `pending:` line, call `afrotools.search_specs()` again for
+that need (and its country). If a spec has arrived, tell the user in one sentence and offer to add it to
+the app (built with [references/build.md](references/build.md), replacing the provider outside the
+registry if one stands in). Remove the line once it is added or the user no longer wants it.
 
 ## First run
 
@@ -84,6 +105,8 @@ before it goes live.
 
 - Follow the rules in [references/rules.md](references/rules.md) in everything you build.
 - Never ask the user to paste an API key in the chat: they put keys in `.env` themselves.
+- A need the registry does not cover, in any phase (build included), is handled as
+  [references/start.md](references/start.md) step 4 says, and gets its `pending:` line.
 - Never invent a fact about a provider (sign-up steps, fees, delays, documents to provide): use the
   registry, the provider's documentation, or say you don't know.
 - If Studio or an afrotools skill does not behave as it should, offer `/afrotools:diagnose`.
