@@ -47,8 +47,12 @@ words; report each problem as what could go wrong for them, then what you change
    - a list of customers or orders, or another person's data, is never served without a session; a
      customer's own order may be shown through an unguessable reference in its link, never a sequential
      id;
-   - when the app has its own login, its attempts are limited per account and per hour, counted on the
-     server;
+   - when the app has its own login, its attempts are limited per hour, per account or per caller's
+     address, counted on the server; with Better Auth, its rate limiter is enabled and keeps its counts
+     in the database (`rateLimit.storage: "database"`, not the in-memory default), a phone code is also
+     counted per phone number, and the email sign-up route is closed to strangers (enabling email and
+     password opens it, page or no page: only the owner's first account passes, then the owner creates
+     the others);
    - every gotcha of these specs that applies to the code is handled.
 
    A spec's gotcha may make a rule hard (for example a status call that fails in the sandbox): say so,

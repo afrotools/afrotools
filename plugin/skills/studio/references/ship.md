@@ -16,8 +16,12 @@ Goal: the app is in production, with the user's explicit go, after the checks.
 3. **Prepare going live** with [vendor/shipping-and-launch.md](vendor/shipping-and-launch.md), kept to
    what this app needs: production access granted by each provider (`.afrotools/studio.md` says whether
    it was asked for; if not, the user asks now, and going live waits for it), the production keys, the
-   provider's production address, the webhook address registered with the provider. For the keys, fetch
-   the host's documentation page on environment variables now, never from memory, and give the user the
+   provider's production address, the webhook address registered with the provider. For the default stack
+   (`.afrotools/studio.md` says which), follow "Going live" in [stack.md](stack.md) (its order: the way the
+   code reaches the host, the database joined to the project, the plan, the production variables, the
+   webhook address, the domain, the backups and the way back), re-reading each page it links before giving
+   a step. For another host,
+   fetch its documentation page on environment variables now, never from memory, and give the user the
    exact steps with the link; they enter the values themselves, never in the chat. Offer their own
    domain name, optional (it can come later), the same way from the host's page on domains. Before going
    live, turn on the host's data backups and make sure the previous version can be put back in one
