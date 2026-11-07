@@ -55,10 +55,11 @@ templated, dated. This phase is where that is prevented; fixing it after the bui
    Impeccable is installed, `npx impeccable detect docs/preview.html` costs no tokens: run it too, it
    exits with code 2 when it finds problems.
 6. **Write the direction** from the chosen preview in `docs/design.md`, short: colours as named values,
-   the text sizes, the spacing scale, the main components and the designed states (how empty, loading,
-   error, pending and success look, one line each: the build phase gives every screen these states). If Impeccable wrote a
-   `DESIGN.md`, that is the direction: do not write a second one. With the default stack, the build phase
-   turns these values into theme tokens ([stack.md](stack.md), "On the computer"), so name them as the app
-   will use them (`primary`, `surface`, `danger`…), not after what they look like.
+   the text sizes, the spacing scale, the main components and the designed states (at least how empty,
+   loading, error, pending and success look, one line each: the build phase gives every screen its
+   states). If Impeccable wrote a `DESIGN.md`, that is the direction: do not write a second one. With the
+   default stack, the build phase puts these values into the theme's variables ([stack.md](stack.md), "On
+   the computer"), so name the colours as the theme does (`background`, `primary`, `muted`, `card`,
+   `destructive`…), not after what they look like.
 7. **Agree**, then record the direction's path and `docs/preview.html` in `.afrotools/studio.md`, set
    `phase: build`, and say in one sentence what the next phase does.
