@@ -11,7 +11,8 @@ SKILL.md's first-run step 2 for it now, flags included.
    and the secrets go into `.env` like keys (step 3): never in the chat. Then **build in small steps**,
    one feature at a time, following `docs/plan.md`, the direction recorded
    in `.afrotools/studio.md` (`docs/design.md`, or `DESIGN.md` written by Impeccable) and
-   `docs/preview.html`: reuse the preview's colours, text sizes and spacing as they are, and compare each
+   `docs/preview.html`: reuse the preview's colours, text sizes and spacing as they are (with the default
+   stack, through the theme tokens of [stack.md](stack.md), never a raw value in a screen), and compare each
    built screen with it. After each feature, run the app and check it yourself before telling the user it works. With
    `level: explain`, tell the user in one sentence what now works and how to see it.
 

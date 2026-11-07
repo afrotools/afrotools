@@ -19,6 +19,7 @@ free-tier limit from memory, and never state a fact about a bank, a card or a pr
 | Hosting | [Vercel](https://vercel.com/docs) | managed: nothing to administer, HTTPS included, a way back to the previous version in one click |
 | Database | [Neon](https://neon.com/docs) Postgres, created from inside Vercel | managed by Neon, one account and one bill with the host, a copy of the database for the computer |
 | Data access | [drizzle](https://orm.drizzle.team/docs/overview) with versioned migrations | the tables are described in code and every change to them is a file in git |
+| Interface | [Tailwind CSS](https://tailwindcss.com/docs) v4 (already in create-next-app's defaults) and [shadcn/ui](https://ui.shadcn.com/docs), one component at a time | the design direction becomes theme tokens the whole app uses; small CSS for slow connections; accessible dialogs, selects and forms copied into the project, not a dependency |
 | Login | [Better Auth](https://www.better-auth.com/docs) | runs inside the app, the users' data stays in the app's database, no extra account; its one-time codes by SMS can go through a provider of the Afro.tools registry |
 | Files | [Vercel Blob](https://vercel.com/docs/vercel-blob), only if the plan needs photos or documents | same account as the host, private or public store |
 
@@ -74,7 +75,23 @@ never forgotten: a `vercel.json` at the project root with `{ "regions": ["fra1"]
 2. **The project**: `npx create-next-app@latest <name> --yes --ts --app --src-dir` (the `--yes` flag
    answers the prompts with the defaults, so the command never waits;
    [create-next-app](https://nextjs.org/docs/app/api-reference/cli/create-next-app)); the code lives
-   under `src/`.
+   under `src/`, and Tailwind CSS is set up by those defaults.
+   - **The direction becomes tokens.** Write the colours, text sizes and spacing of `docs/design.md` (or
+     Impeccable's `DESIGN.md`) as theme variables in `globals.css`, in an `@theme` block
+     ([Tailwind theme](https://tailwindcss.com/docs/theme): a `--color-*` variable gives `bg-*`, `text-*`
+     and the other utilities). Screens use the tokens, never a raw colour or size: the preview is
+     respected by construction, and a change of direction is one file.
+   - **shadcn/ui** ("accessible components and a code distribution platform": "not a component library",
+     the code is copied into the project): `npx shadcn@latest init` once
+     ([install with Next.js](https://ui.shadcn.com/docs/installation/next); it supports Tailwind v4 and
+     reads the tokens of `globals.css`), then `npx shadcn@latest add <component>` only when a screen needs
+     one. Take it for what the agent gets wrong on its own: dialog, sheet, select, dropdown menu, toast,
+     form fields; never the whole catalogue. Icons come with it (lucide).
+   - **Fonts** through `next/font` ([fonts](https://nextjs.org/docs/app/getting-started/fonts)): a Google
+     font is served "from the same domain as your deployment, meaning no requests are sent to Google by
+     the browser", which matters on a slow connection paid by the megabyte. One font, variable if it exists.
+   - **Forms** are native `<form>` with server actions and the validation on the server (zod); no form
+     library by default.
 3. **drizzle** with the `pg` driver: `drizzle-orm` and `pg`, `drizzle-kit` and `@types/pg` as dev
    dependencies, `import { drizzle } from "drizzle-orm/node-postgres"`
    ([get started](https://orm.drizzle.team/docs/get-started-postgresql)). It is the one driver that works

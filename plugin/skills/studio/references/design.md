@@ -56,6 +56,8 @@ templated, dated. This phase is where that is prevented; fixing it after the bui
    exits with code 2 when it finds problems.
 6. **Write the direction** from the chosen preview in `docs/design.md`, short: colours as named values,
    the text sizes, the spacing scale, the main components and the designed states. If Impeccable wrote a
-   `DESIGN.md`, that is the direction: do not write a second one.
+   `DESIGN.md`, that is the direction: do not write a second one. With the default stack, the build phase
+   turns these values into theme tokens ([stack.md](stack.md), "On the computer"), so name them as the app
+   will use them (`primary`, `surface`, `danger`…), not after what they look like.
 7. **Agree**, then record the direction's path and `docs/preview.html` in `.afrotools/studio.md`, set
    `phase: build`, and say in one sentence what the next phase does.
