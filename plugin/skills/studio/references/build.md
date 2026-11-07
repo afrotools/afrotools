@@ -5,7 +5,11 @@ Goal: the app works on the user's computer with sandbox keys, every screen of th
 If `playwright_offered` is not `true` (Studio started before the browser was offered at the start), do
 SKILL.md's first-run step 2 for it now, flags included.
 
-1. **Build in small steps**, one feature at a time, following `docs/plan.md`, the direction recorded
+1. **Set the project up first**, as [stack.md](stack.md) "On the computer" says for the stack recorded in
+   `.afrotools/studio.md`: the accounts the user creates themselves (the host's, when the database lives
+   there), the database and its copy for the computer, the migrations, the login. The connection string
+   and the secrets go into `.env` like keys (step 3): never in the chat. Then **build in small steps**,
+   one feature at a time, following `docs/plan.md`, the direction recorded
    in `.afrotools/studio.md` (`docs/design.md`, or `DESIGN.md` written by Impeccable) and
    `docs/preview.html`: reuse the preview's colours, text sizes and spacing as they are, and compare each
    built screen with it. After each feature, run the app and check it yourself before telling the user it works. With

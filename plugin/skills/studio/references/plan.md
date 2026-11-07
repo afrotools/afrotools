@@ -15,9 +15,11 @@ Goal: a short plan the user agrees with, and the stack and the hosting chosen.
    With `level: explain`, show the user a summary of five to eight lines, not the whole document; tell
    them where it is if they want to read it.
 2. **Choose the stack, the hosting and the database** yourself and explain the choice in two or three
-   sentences about what it means for them (cost to start, who keeps it running, how they open the app,
-   where their data is and who backs it up). With `level: quiet`, propose the three in one line each and
-   let the developer change them. Weigh:
+   sentences about what it means for them (cost to start and how it is paid, who keeps it running, how
+   they open the app, where their data is and who backs it up). Start from the default recipe in
+   [stack.md](stack.md), unless the user already has a stack or a host, or a developer asks for another
+   (the developer path there). With `level: quiet`, propose the three in one line each and let the
+   developer change them. Weigh:
    - the people using it (phone first, weak connection: light pages, works offline when it can);
    - what the providers need: a payment webhook needs a public `https` address on the server;
    - who will maintain it: a non-developer needs managed hosting, not a server to administer;
@@ -27,7 +29,10 @@ Goal: a short plan the user agrees with, and the stack and the hosting chosen.
      the computer and in production (a second, test database at the same service serves the computer).
 
    Never state a price, a free-tier limit or a delay from memory: say where to check it (the host's
-   pricing page). Ask only if two options are close and the difference matters to them.
+   pricing page). A host's free plan may forbid commercial use: an app that sells or takes payments is
+   commercial, so say which plan it needs and ask now whether the user has a card that pays the host
+   (stack.md, "How it is paid"); without one, choose a host they can pay now, not at the ship phase.
+   Ask only if two options are close and the difference matters to them.
 3. **Personal data**: client names, phone numbers and measurements are personal data. Plan that only
    the people the user names can see them, and say so in one sentence.
 4. **Agree**: one question — does the plan suit them, anything to add or remove? Change the plan
