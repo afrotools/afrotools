@@ -4,22 +4,10 @@ Goal: the user has chosen how the app will look on their phone, and that choice 
 before any screen is built. An agent designing alone tends to make screens that look generated: safe,
 templated, dated. This phase is where that is prevented; fixing it after the build costs far more.
 
-1. **Two tools, offered here once each**, in one message, because both need a new session to load:
-   - **Impeccable**, a design specialist that designs the screens and critiques them. If no skill named
-     `impeccable` is listed and `impeccable_offered` is not `true`, recommend it in two sentences: without
-     it the design will be clean but generic. Say that it installs for every project on this computer,
-     for several agents, and that it uses more tokens during this phase. With a yes, run
-     `npx impeccable install` yourself. Set `impeccable_offered: true`, and `impeccable_use: yes` with a yes,
-     `no` without: that answer is the user's say on using Impeccable in this phase.
-   - **A browser you drive**, to see the screens as the user will: here to critique the preview, later to
-     check every built screen. If browser tools (`mcp__playwright__*`, or
-     `mcp__plugin_playwright_playwright__*` from the Playwright plugin) are not available and
-     `playwright_offered` is not `true`, offer it: free, it uses the Chrome already installed. With a yes,
-     run `claude mcp add playwright -- npx @playwright/mcp@latest --browser chrome --headless` (it is added
-     to this project only). Set `playwright_offered: true`.
-
-   Update the state file first. Then, if something was installed, tell the user to close and reopen their
-   agent in this folder and type `/afrotools:studio` again: the state file keeps where they are.
+1. **Impeccable and the browser** were offered at the start (SKILL.md, first run). If Studio started
+   before that and `impeccable_offered` or `playwright_offered` is not `true`, offer the missing one now,
+   as SKILL.md says, update the state file first, and if something was installed, one restart (close and
+   reopen the agent here, `/afrotools:studio` again).
 2. **One question**, in plain words: a look they like (an app they use every day, their shop's colours,
    a logo). If they have none, choose from the business and its people.
 3. **The bar**, whoever designs:
@@ -37,7 +25,8 @@ templated, dated. This phase is where that is prevented; fixing it after the bui
      most one web font, pages that say clearly when something is loading or failed, and that keep what was
      typed; states designed, not left to chance: empty lists, errors, payment pending, payment failed,
      test mode.
-4. **Two directions to choose from.** Make two previews of the main screen, each a single static page,
+4. **Two directions to choose from** (one, with `level: quiet`, if the developer asks for one). Make
+   two previews of the main screen, each a single static page,
    different enough to be a real choice, not two shades of one design: `docs/preview-a.html` and
    `docs/preview-b.html`, with real content in the user's language (real-looking names, prices in the
    local currency, dates).

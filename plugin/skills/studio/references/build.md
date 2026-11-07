@@ -2,18 +2,22 @@
 
 Goal: the app works on the user's computer with sandbox keys, every screen of the plan included.
 
-First, before building anything: if browser tools (`mcp__playwright__*`, or
-`mcp__plugin_playwright_playwright__*` from the Playwright plugin) are not available and
-`playwright_offered` is not `true`, offer once a browser you drive yourself to check every screen, free,
-using the Chrome already installed. With a yes, run `claude mcp add playwright -- npx @playwright/mcp@latest --browser chrome --headless` (it is added to
-this project only), set `playwright_offered: true`, then tell the user to reopen their agent here and type
-`/afrotools:studio` again. Without a yes, set `playwright_offered: true` too.
+If browser tools (`mcp__playwright__*`, or `mcp__plugin_playwright_playwright__*` from the Playwright
+plugin) are not available and `playwright_offered` is not `true` (Studio started before they were offered
+at the start), offer it once as SKILL.md says, then one restart; without a yes, set `playwright_offered:
+true` too.
 
 1. **Build in small steps**, one feature at a time, following `docs/plan.md`, the direction recorded
    in `.afrotools/studio.md` (`docs/design.md`, or `DESIGN.md` written by Impeccable) and
    `docs/preview.html`: reuse the preview's colours, text sizes and spacing as they are, and compare each
    built screen with it. After each feature, run the app and check it yourself before telling the user it works. With
    `level: explain`, tell the user in one sentence what now works and how to see it.
+
+   **Order.** First every screen that needs no provider (clients, orders, lists, the owner's pages), the
+   provider wiring (payment, messages) last: keys often take days to obtain, and nothing waits for them.
+   Tick each screen of the checklist in `docs/plan.md` when it works and, if your agent has a task list
+   tool, keep one task per screen there too: the user sees what is done and what is left, and a new
+   conversation never rebuilds a screen.
 
    **Save points.** Before the first feature, if the project has no git repository, create one
    (`git init`), after checking that `.gitignore` covers `.env` and the dependencies folder. After each
@@ -24,6 +28,11 @@ this project only), set `playwright_offered: true`, then tell the user to reopen
    you can bring the app back to any of them if a change breaks it. Going back is done only with their go,
    saying what would be lost. Never push to a remote unless they ask. Without git on the computer, skip
    save points and say so once.
+
+   **When something breaks.** Before a fix that touches several files, make a save point. After three
+   attempts at the same error, stop: say in plain words what fails and what you tried, and offer to go
+   back to the last save point or to take another approach; never a fourth silent attempt. Never say it
+   is fixed before you have seen it work (the app run, the test green).
 
    **Keep going without waiting for a go.** Once the keys are in, build feature after feature in the
    same turn. Answer the user's questions briefly, then carry on building; never end a message with
@@ -39,8 +48,9 @@ this project only), set `playwright_offered: true`, then tell the user to reopen
    webhooks follow [vendor/whatsapp-webhooks.md](vendor/whatsapp-webhooks.md); any webhook follows
    [vendor/webhook-handler-patterns.md](vendor/webhook-handler-patterns.md).
 3. **Keys**: when a feature needs them, list the variable names and where to put them (`.env` at the
-   project root, already ignored by git: check `.gitignore`), then wait until the user says they are in.
-   Never ask for the values. Start with the sandbox keys; the app shows clearly that it runs in test mode.
+   project root, already ignored by git: check `.gitignore`), and go on with the other screens until the
+   user says they are in; meanwhile the screen says it waits for that provider's keys. Never ask for the
+   values. Start with the sandbox keys; the app shows clearly that it runs in test mode.
 4. **A spec that is not `verified`** may be wrong: say so when you wire it, test it with the user's own
    number or account first, and offer a report (`afrotools.report_integration`) once it works or fails,
    as the `payment` skill says: paste the whole link it returns, even a long one (it carries the text), and
@@ -48,8 +58,10 @@ this project only), set `playwright_offered: true`, then tell the user to reopen
    (only a webhook, which needs a public address), the user's phone is the proof; never promise to "look
    at the delivery report".
 5. **Run the app yourself.** Start the dev server on a port nothing listens on (other projects of the
-   user often use 3000 and nearby ports), give the user the link, and never ask a non-developer to type a
-   command. Before giving a link, check that the page is this app (its title or a text you wrote), not
+   user often use 3000 and nearby ports), give the user the link and, when the dev server can listen on
+   the local network, start it so and give the address to open on their phone on the same Wi‑Fi (the app
+   is judged on a phone), and never ask a non-developer to type a command. Before giving a link, check
+   that the page is this app (its title or a text you wrote), not
    another program. Never stop, restart or reuse a process you did not start in this session: if a port
    is taken, pick another one.
 6. **Tests**: write tests for what moves money (payment confirmation, amount check, a duplicate webhook)
