@@ -79,6 +79,11 @@ for the target provider and capability before writing any implementation code.
    - Read the delivery status from the provider (status or journal endpoint), not from a
      client-side callback
 
+## Before going live
+
+When the integration is wired, offer `/afrotools:check` once, in one sentence: a cheap check that the keys stay out of the code and the browser, and that this provider's gotchas are handled, against its spec.
+When `.afrotools/studio.md` exists, do not offer it: afro.tools Studio runs it before going live.
+
 ## After the integration
 
 Reports are how specs get verified and fixed. The user usually tests later, so do not wait for
