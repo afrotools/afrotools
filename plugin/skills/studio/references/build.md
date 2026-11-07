@@ -2,10 +2,8 @@
 
 Goal: the app works on the user's computer with sandbox keys, every screen of the plan included.
 
-If browser tools (`mcp__playwright__*`, or `mcp__plugin_playwright_playwright__*` from the Playwright
-plugin) are not available and `playwright_offered` is not `true` (Studio started before they were offered
-at the start), offer it once as SKILL.md says, then one restart; without a yes, set `playwright_offered:
-true` too.
+If `playwright_offered` is not `true` (Studio started before the browser was offered at the start), do
+SKILL.md's first-run step 2 for it now, flags included.
 
 1. **Build in small steps**, one feature at a time, following `docs/plan.md`, the direction recorded
    in `.afrotools/studio.md` (`docs/design.md`, or `DESIGN.md` written by Impeccable) and
@@ -13,8 +11,9 @@ true` too.
    built screen with it. After each feature, run the app and check it yourself before telling the user it works. With
    `level: explain`, tell the user in one sentence what now works and how to see it.
 
-   **Order.** First every screen that needs no provider (clients, orders, lists, the owner's pages), the
-   provider wiring (payment, messages) last: keys often take days to obtain, and nothing waits for them.
+   **Order.** Build first every screen that needs no provider (clients, orders, lists, the owner's pages);
+   wire the providers (payment, messages) last: keys often take days to obtain, and nothing else waits
+   for them.
    Tick each screen of the checklist in `docs/plan.md` when it works and, if your agent has a task list
    tool, keep one task per screen there too: the user sees what is done and what is left, and a new
    conversation never rebuilds a screen.
@@ -29,15 +28,17 @@ true` too.
    saying what would be lost. Never push to a remote unless they ask. Without git on the computer, skip
    save points and say so once.
 
-   **When something breaks.** Before a fix that touches several files, make a save point. After three
-   attempts at the same error, stop: say in plain words what fails and what you tried, and offer to go
-   back to the last save point or to take another approach; never a fourth silent attempt. Never say it
-   is fixed before you have seen it work (the app run, the test green).
+   **When something breaks.** Before a fix that touches several files, commit the current state with a
+   message that says so (`before fixing: <error>`). After three attempts at the same error, stop: say in
+   plain words what fails and what you tried, and offer to go back to the last working save point or to
+   take another approach; never a fourth silent attempt. Never say it is fixed before you have seen it
+   work (the app run, the test green).
 
-   **Keep going without waiting for a go.** Once the keys are in, build feature after feature in the
+   **Keep going without waiting for a go.** From the first feature, build feature after feature in the
    same turn. Answer the user's questions briefly, then carry on building; never end a message with
    "I'll start with…" or "I'll continue with…": do it, then say what works. Stop only to ask for
-   something only they can give (a key, a decision) or when the phase is done.
+   something only they can give (a key, a decision), after three failed attempts at the same error, or
+   when the phase is done.
 2. **African building blocks** go through the afrotools skills, never from memory: for payments, the
    `payment` skill (`afrotools.get_spec()` for the payment, its status and its webhook); for SMS,
    WhatsApp and OTP, the `communications` skill. A provider outside the registry (`.afrotools/studio.md`
@@ -58,9 +59,10 @@ true` too.
    (only a webhook, which needs a public address), the user's phone is the proof; never promise to "look
    at the delivery report".
 5. **Run the app yourself.** Start the dev server on a port nothing listens on (other projects of the
-   user often use 3000 and nearby ports), give the user the link and, when the dev server can listen on
-   the local network, start it so and give the address to open on their phone on the same Wi‑Fi (the app
-   is judged on a phone), and never ask a non-developer to type a command. Before giving a link, check
+   user often use 3000 and nearby ports), give the user the link, and never ask a non-developer to type a
+   command. Once the first screen works, offer once to open the app on their phone: with a yes, start the
+   server on the local network too, find the computer's address yourself and give it, and say that anyone
+   on the same Wi-Fi can then reach it, so only on a network they trust. Before giving a link, check
    that the page is this app (its title or a text you wrote), not
    another program. Never stop, restart or reuse a process you did not start in this session: if a port
    is taken, pick another one.
@@ -88,7 +90,9 @@ true` too.
    (what it catches, that it uses tokens). Count each refusal in `review_declined` in the state file;
    at 2, stop offering it until the ship phase, in this session and the next ones. The review itself: read [../../review/SKILL.md](../../review/SKILL.md) and follow it.
 10. **When the plan's screens all work** with sandbox keys: give the user the list of manual tests from
-   `docs/plan.md`, one line each, marked done or still to do. If the `impeccable` skill is available,
+   `docs/plan.md`, one line each, marked done or still to do. If a provider's keys are still missing,
+   say so: the phase waits for them, and only for them; if the plan allows the app without that block,
+   offer to go on to ship without it and keep its `pending:` line. If the `impeccable` skill is available,
    `impeccable_use` is not `no` and `polish_offered` is not `true`, offer its polish pass on the main screens (`/impeccable polish <screen>`, or
    `/impeccable:impeccable polish <screen>`), saying it uses tokens, and set
    `polish_offered: true`. Then record it in

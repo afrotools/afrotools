@@ -6,7 +6,7 @@ Goal: the app is in production, with the user's explicit go, after the checks.
    (manual skills cannot be invoked by you, so read the file). Its free script is at the path Studio's
    SKILL.md gives under "Always" (`…/skills/check/scripts/scan-secrets.mjs`): run `node "<that path>" .`
    from the project. If that path still reads `${CLAUDE_PLUGIN_ROOT}` literally, it is the plugin's
-   folder, the one that holds `skills/`. Ignore the `${CLAUDE_SKILL_DIR}` path written in the check skill:
+   folder: the one that holds `skills/`, three levels above this file (`skills/studio/references/`). Ignore the `${CLAUDE_SKILL_DIR}` path written in the check skill:
    it is only filled in when the user types `/afrotools:check`. Fix the blocking points with the user's
    agreement.
 2. **Offer the code review and the security audit**, strongly advised: what they catch, that they use

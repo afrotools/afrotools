@@ -4,10 +4,9 @@ Goal: the user has chosen how the app will look on their phone, and that choice 
 before any screen is built. An agent designing alone tends to make screens that look generated: safe,
 templated, dated. This phase is where that is prevented; fixing it after the build costs far more.
 
-1. **Impeccable and the browser** were offered at the start (SKILL.md, first run). If Studio started
-   before that and `impeccable_offered` or `playwright_offered` is not `true`, offer the missing one now,
-   as SKILL.md says, update the state file first, and if something was installed, one restart (close and
-   reopen the agent here, `/afrotools:studio` again).
+1. **Impeccable and the browser** were offered at the start. If `impeccable_offered` or
+   `playwright_offered` is not `true` (Studio started before that), do SKILL.md's first-run step 2 for
+   the missing one now, flags included.
 2. **One question**, in plain words: a look they like (an app they use every day, their shop's colours,
    a logo). If they have none, choose from the business and its people.
 3. **The bar**, whoever designs:

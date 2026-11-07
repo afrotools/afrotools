@@ -7,7 +7,7 @@ description: >
   verified, against the Afro.tools specs of the providers used. Invoke with: /afrotools:check.
   Afro.tools Studio runs it before going live. Manual invocation only.
 disable-model-invocation: true
-allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/scan-secrets.mjs *)
+allowed-tools: Bash(node "${CLAUDE_SKILL_DIR}/scripts/scan-secrets.mjs" *)
 ---
 
 # /afrotools:check
@@ -44,8 +44,9 @@ words; report each problem as what could go wrong for them, then what you change
    - the webhook's signature is verified when the spec defines `webhook.signature`;
    - anything that sends an SMS, a WhatsApp message or a code without someone logged in is limited per
      phone number and per hour, counted on the server;
-   - customer data (names, phone numbers, orders, amounts) is served only to someone logged in: no page
-     or route returns it without a session;
+   - a list of customers or orders, or another person's data, is never served without a session; a
+     customer's own order may be shown through an unguessable reference in its link, never a sequential
+     id;
    - when the app has its own login, its attempts are limited per account and per hour, counted on the
      server;
    - every gotcha of these specs that applies to the code is handled.

@@ -83,7 +83,7 @@ for the target provider and capability before writing any implementation code.
 ## Before going live
 
 When the integration is wired, offer `/afrotools:check` once, in one sentence: a cheap check that the keys stay out of the code and the browser, and that this provider's gotchas are handled, against its spec.
-Afro.tools Studio runs it itself; outside Studio, the user types it.
+When `.afrotools/studio.md` exists, do not offer it: afro.tools Studio runs it before going live.
 
 ## After the integration
 

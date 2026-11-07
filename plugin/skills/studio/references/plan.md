@@ -24,7 +24,7 @@ Goal: a short plan the user agrees with, and the stack and the hosting chosen.
    - login, if the app needs one: the host's own or a recognised login service, never written by hand;
    - the data: a database managed by the host or by a recognised service, backed up by them, never a
      file on the server or in the project (gone at the first deploy), and the same kind of database on
-     the computer and in production.
+     the computer and in production (a second, test database at the same service serves the computer).
 
    Never state a price, a free-tier limit or a delay from memory: say where to check it (the host's
    pricing page). Ask only if two options are close and the difference matters to them.

@@ -26,7 +26,7 @@ changes what you build, and keep messages short. When something costs tokens, sa
 first time: tokens are the assistant's usage, included in their subscription up to a limit or billed by
 use depending on their plan. Give orders of magnitude, never promises: the build phase uses by far the
 most (several times the other phases together), then the design phase, then a review or an audit; start
-and plan are a few messages. Say once that `/cost` (or their plan's usage screen) shows where they stand.
+and plan are a few messages. Say once that `/usage` (or `/cost`, with billing by use) shows where they stand.
 When a phase ends, suggest going on in a new conversation: the state file keeps everything, and each
 message of a long conversation costs more than the last.
 
@@ -56,14 +56,15 @@ playwright_offered: true | false
 review_declined: 0 | 1 | 2
 ```
 
-Below these lines, keep the decisions taken so far (providers, keys needed, stack, hosting), one line each,
+Below these lines, keep the decisions taken so far (providers, keys needed, stack, hosting, database), one line each,
 and one `pending:` line per need the registry does not cover yet (see
 [references/start.md](references/start.md), step 4), for example `pending: Free Money (Bictorys)`.
 Update the file with your file-editing tool, not with shell commands.
 
-**Where we are, every time.** After reading the state file, before anything else, tell the user in one
-line where they are: the phase and, in the build phase, how many screens of the plan work and how many
-are left (`docs/plan.md` keeps the list as a checklist). Nothing already built is built again.
+**Where we are, on every resume.** When the state file exists, after reading it and before anything
+else, tell the user in one line where they are: the phase and, in the build phase, how many screens of
+the plan work and how many are left (`docs/plan.md` keeps the list as a checklist; if the plan has none,
+add one from its screens first). Nothing already built is built again.
 
 **Pending needs, on every resume:** for each `pending:` line, call `afrotools.search_specs()` again for
 that need (and its country). If a spec has arrived, tell the user in one sentence and offer to add it to
@@ -85,7 +86,7 @@ registry if one stands in). Remove the line once it is added or the user no long
      direction is enough if they ask for one. The rules and the checks do not change.
 2. **Companions, one message, once.** Three tools make Studio better; it works without them, say so.
    Offer in one message those that are missing and not yet offered (`*_offered` not `true`), each in one
-   sentence on what it brings and what it costs, and let the user say which they want:
+   sentence on what it brings and what it costs, then one question: which of these do they want?
    - **superpowers**, a method to plan and build step by step: present if skills named `superpowers:*`
      are listed. Its install command, `/plugin install superpowers@claude-plugins-official`, is one only
      the user can type in their agent: give it to them as is.
@@ -100,10 +101,10 @@ registry if one stands in). Remove the line once it is added or the user no long
      is added to this project only).
 
    Set `superpowers_offered`, `impeccable_offered` and `playwright_offered` to `true`, and `impeccable_use`
-   to `yes` or `no` from the answer, in the state file first. Then, if anything was installed, one restart
-   only: tell the user to close and reopen their agent in this folder and type `/afrotools:studio` again;
-   the state file keeps where they are. The design and build phases check that the tools are there and
-   never ask again.
+   to `yes` or `no` from the answer (leave it `unasked` when Impeccable was already there), in the state
+   file first. Then, if anything was installed or the user has a command to type, one restart only: type
+   it, then close and reopen the agent in this folder and type `/afrotools:studio` again; the state file
+   keeps where they are. The design and build phases check that the tools are there and never ask again.
 
 ## Phases
 
@@ -114,7 +115,7 @@ file says where the user is, not what to do: the phase file does.
 | Phase | File | Ends when |
 |---|---|---|
 | start | [references/start.md](references/start.md) | the user knows which providers the app uses and which keys to get |
-| plan | `references/plan.md` | a short plan is agreed, with the stack and the hosting |
+| plan | `references/plan.md` | a short plan is agreed, with the stack, the hosting and the database |
 | design | `references/design.md` | the user chose a critiqued preview of the main screen |
 | build | `references/build.md` | the app works locally with sandbox keys |
 | ship | `references/ship.md` | the app is in production, with the user's explicit go |

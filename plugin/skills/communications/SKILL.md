@@ -79,7 +79,7 @@ for the target provider and capability before writing any implementation code.
 ## Before going live
 
 When the integration is wired, offer `/afrotools:check` once, in one sentence: a cheap check that the keys stay out of the code and the browser, and that a stranger cannot make the app send many messages (a limit per number and per hour), against this provider's spec.
-Afro.tools Studio runs it itself; outside Studio, the user types it.
+When `.afrotools/studio.md` exists, do not offer it: afro.tools Studio runs it before going live.
 
 ## After the integration
 

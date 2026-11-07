@@ -79,12 +79,11 @@ for the target provider and capability before writing any implementation code.
    - Compare the verified amount with the order's total; never copy the provider's amount onto the order
    - Send the idempotency key the spec declares (a header or a field) on every payment and payout
    - Make fulfilment idempotent: the same webhook can arrive several times, and must not deliver twice
-   - Before going live, `/afrotools:check` checks these rules and looks for keys in the code
 
 ## Before going live
 
 When the integration is wired, offer `/afrotools:check` once, in one sentence: a cheap check that the keys stay out of the code and the browser, that the payment is confirmed server-side with the amount compared, and that nothing is paid twice, against this provider's spec.
-Afro.tools Studio runs it itself; outside Studio, the user types it.
+When `.afrotools/studio.md` exists, do not offer it: afro.tools Studio runs it before going live.
 
 ## After the integration
 
