@@ -195,17 +195,15 @@
     }
   },
   "gotchas": [
+    "SasPay has no working sandbox. Its docs say an sk_test_ key is SANDBOX, \"tests sans argent réel\" (docs.saspay.me/account-setup), but after a card payment made with such a key was debited for real (maintainer's test, 2026-11-01), SasPay's support answered « les clés sandbox ne sont pas fonctionnelles, veuillez utiliser les clés lives » (reply to the maintainer's ticket of 2026-11-01, read 2026-11-07). Treat every call as production: test with amounts you accept to pay or send, and never tell a tester that an sk_test_ key means no money moves.",
     "With an API key, the calling server's IP must be whitelisted for the merchant, otherwise 403 ip_not_whitelisted.",
     "No automatic currency conversion on payouts (unlike payins): the currency must match the beneficiary's country, otherwise 422 currency_country_mismatch.",
     "Send an Idempotency-Key: without it a network retry creates a second disbursement. Reusing a key with a different body, or while the first call is still running, returns 409.",
     "Amounts are decimal strings (\"10000.00\"), never floats.",
     "Valid method codes per country and the expected recipient.msisdn format are listed on the docs' formats page (/api-reference/reference/formats).",
-    "A 400 validation error has a different shape from the business errors: `error` maps each invalid field to a list of messages ({\"amount\": [\"Ce champ est obligatoire.\"]}) with no error.message or error.code, so read the field map, not just error.message (observed on the sandbox).",
-    "Payouts must be enabled for the merchant by SasPay: until then every call returns 403 payout_not_enabled, even with a whitelisted IP (observed on the sandbox).",
-    "The minimum payout is 200 XOF: below it, 400 with error.amount [\"Le montant minimum est de 200 XOF.\"] (observed on the sandbox)."
-  ],
-  "open_questions": [
-    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
+    "A 400 validation error has a different shape from the business errors: `error` maps each invalid field to a list of messages ({\"amount\": [\"Ce champ est obligatoire.\"]}) with no error.message or error.code, so read the field map, not just error.message (observed with an sk_test_ key, live test 2026-10-17).",
+    "Payouts must be enabled for the merchant by SasPay: until then every call returns 403 payout_not_enabled, even with a whitelisted IP (observed with an sk_test_ key, live test 2026-10-17).",
+    "The minimum payout is 200 XOF: below it, 400 with error.amount [\"Le montant minimum est de 200 XOF.\"] (observed with an sk_test_ key, live test 2026-10-17)."
   ],
   "evidence": {
     "spans": [

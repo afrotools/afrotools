@@ -25,11 +25,8 @@
   "website": "https://saspay.me",
   "docs_url": "https://docs.saspay.me",
   "docs_public": true,
-  "sandbox": true,
+  "sandbox": false,
   "environments": {
-    "sandbox": {
-      "base_url": "https://api.saspay.me"
-    },
     "production": {
       "base_url": "https://api.saspay.me"
     }

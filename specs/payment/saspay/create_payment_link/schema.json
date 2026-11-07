@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:b5e73488596aed524921c6480f98d58688c88c8a0302c1f4b21101e4b6f04e45"
+    "spec_hash": "sha256:2eebc8ab626ca151154affec3a1a8245f43047a92f86117f584feac1ce51b51d"
   },
   "currency": [
     "XOF",
@@ -267,12 +267,10 @@
     }
   },
   "gotchas": [
+    "SasPay has no working sandbox. Its docs say an sk_test_ key is SANDBOX, \"tests sans argent réel\" (docs.saspay.me/account-setup), but after a card payment made with such a key was debited for real (maintainer's test, 2026-11-01), SasPay's support answered « les clés sandbox ne sont pas fonctionnelles, veuillez utiliser les clés lives » (reply to the maintainer's ticket of 2026-11-01, read 2026-11-07). Treat every call as production: test with amounts you accept to pay or send, and never tell a tester that an sk_test_ key means no money moves. The verification recorded on this spec (environment: sandbox) was run with an sk_test_ key on 2026-10-17: that label is what test:live records for such a key, not proof of a separate test environment; the API answered normally, and whether such a key moves money on mobile money is not known.",
     "No server-side cross-validation: a FIXED link without amount is accepted, so always send amount with amount_type FIXED.",
     "redirect_url is required when show_confirmation_page is false, otherwise 400.",
     "Idempotency-Key is not supported here: calling twice creates two separate links."
-  ],
-  "open_questions": [
-    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
   ],
   "evidence": {
     "spans": [
