@@ -21,7 +21,7 @@ interface NotchPayError {
 }
 
 export async function unblockCustomer(id: string): Promise<UnblockCustomerResponse> {
-  const response = await fetch(`https://api.notchpay.co/customers/${id}/unblock`, {
+  const response = await fetch(`https://api.notchpay.co/customers/${encodeURIComponent(id)}/unblock`, {
     method: "POST",
     headers: {
       Authorization: NOTCHPAY_PUBLIC_KEY!,

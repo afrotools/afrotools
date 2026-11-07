@@ -35,7 +35,7 @@ export async function verifyCode(
   verificationId: string,
   code: number // integer, not string
 ): Promise<VerifyCodeResponse> {
-  const endpoint = `https://api.nimbasms.com/v1/verifications/${verificationId}`;
+  const endpoint = `https://api.nimbasms.com/v1/verifications/${encodeURIComponent(verificationId)}`;
   const response = await fetch(endpoint, {
     method: "PATCH",
     headers: {

@@ -23,7 +23,7 @@ export async function cancelPayment(
   reference: string
 ): Promise<CancelPaymentResponse> {
   const response = await fetch(
-    `https://api.notchpay.co/payments/${reference}`,
+    `https://api.notchpay.co/payments/${encodeURIComponent(reference)}`,
     {
       method: "DELETE",
       headers: {

@@ -187,7 +187,7 @@ uses one sets `spec_version: "1.1"`; a 1.0 spec stays valid as is.
 | `verification.environment` | Where it was tested. `sandbox` proves the request and response shapes, not production behaviour (prerequisites, limits, real money) |
 | `verification.ref` | URL of the run, the app's code or the report. For `community_report`, the `afrotools/afrotools` issue |
 | `verification.spec_hash` | `validate` recomputes it: a verified spec edited afterwards fails until it is verified again, or a maintainer who checked the change updates the hash (the error message prints the new value) |
-| `open_questions` | Non-empty strings. An agent must tell the user about them before relying on the spec |
+| `open_questions` | Non-empty strings. An agent must tell the user about them before relying on the spec. See § Gotchas — writing guide |
 
 **Auth that is more than one key** — added to `auth`, next to the 1.0 fields (which stay):
 
@@ -394,7 +394,7 @@ unverified → draft → ready → verified → deprecated → archived
 
 - [ ] `schema.json` passes `npm run validate`
 - [ ] `canonical_example.ts` compiles with `tsc --noEmit`
-- [ ] `gotchas[]` has at least 1 specific, actionable entry
+- [ ] `gotchas[]` has at least 1 specific, actionable and sourced entry (§ Gotchas — writing guide)
 - [ ] `example_prompt` is non-empty
 - [ ] `provider.json` exists in the parent provider directory
 - [ ] `status` field set to `ready`
@@ -478,7 +478,28 @@ The callback URL alone is not sufficient — it can be forged."
 "Read the docs carefully."
 ```
 
-Gotchas must be: specific, actionable, based on real integration experience.
+Gotchas must be specific, actionable and sourced: the provider's docs (quoted or pointed to), a test
+that was run (`test:live` or a sandbox call, dated: "observed in the sandbox, live test 2026-10-24"), a
+working integration, or an integration report a maintainer accepted. A consequence of sourced facts is
+a valid gotcha when it names those facts ("the callback is unsigned, so it can be forged").
+
+- A value quoted from the docs must belong to the field the entry is about. A search hit is a lead, not
+  a source: check that it sits under that field (the parameter, the schema property, or an example of
+  this endpoint) before quoting it, and say where it is.
+- Write that the docs don't say something only after reading the whole endpoint (parameters, linked
+  schemas, every response including errors, examples) and the shared pages it relies on (error codes,
+  authentication, webhooks). A documented 400 "invalid format" means a format is enforced even when it
+  is not given: write that the format is enforced but not documented, not that any value works.
+- Another provider's spec is not a source. A gotcha or a choice reused from it needs its reason
+  re-established from this provider's docs: for instance, whether a value can be trusted depends on
+  where it comes from here (browser redirect, callback, signed webhook, the merchant's own records) and
+  on which credential the call sends.
+- Give the source in the PR description (URL and section; for private docs, the file and where in it).
+  Put it in the entry itself only when the reader needs it to judge the entry ("observed in the
+  sandbox, live test 2026-10-24", "the docs are not public").
+
+An open question names what was checked (the endpoint, the pages) and is never answered with a guess.
+The account block keeps its own rule on sources (§ provider.json — required fields, **Account**).
 
 ---
 

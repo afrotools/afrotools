@@ -1,0 +1,171 @@
+{
+  "spec_version": "1.1",
+  "provider_api_version": "2026-11-03",
+  "capability": "capture_charge",
+  "capability_type": "synchronous",
+  "status": "ready",
+  "currency": [
+    "XOF"
+  ],
+  "auth": {
+    "type": "api_key",
+    "location": "header",
+    "field": "X-API-Key",
+    "format": "{token}",
+    "env_var": "BICTORYS_PRIVATE_KEY",
+    "credentials": [
+      {
+        "env_var": "BICTORYS_PRIVATE_KEY",
+        "description": "Bictorys private API key (Dashboard → Developers → API Keys → Private Key, prefix secret-) sent as X-API-Key on this endpoint; sandbox and production keys differ. Bictorys does not say which key this endpoint takes — see open_questions"
+      }
+    ],
+    "apply": [
+      {
+        "in": "header",
+        "name": "X-API-Key",
+        "value": "{BICTORYS_PRIVATE_KEY}"
+      }
+    ]
+  },
+  "endpoint": {
+    "method": "POST",
+    "url": "https://api.bictorys.com/pay/v1/captures"
+  },
+  "parameters": [
+    {
+      "name": "transactionId",
+      "in": "query",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "Unique identifier of the transaction Id. The transaction previously authorized: a card charge created with authorization: true (create_charge)."
+    },
+    {
+      "name": "X-Amzn-Trace-Id",
+      "in": "header",
+      "schema": {
+        "type": "string"
+      },
+      "description": "HTTP request identifier allow to trace individual request sent from client to service."
+    }
+  ],
+  "example_prompt": "Capture, totally or partially, a Bictorys card payment that was only authorized (create_charge with authorization: true), once the order is ready to be charged.",
+  "input_schema": {
+    "type": "object",
+    "description": "CaptureObjectRequest. The reference marks the request body required but neither of its fields.",
+    "properties": {
+      "amount": {
+        "type": "number",
+        "format": "double",
+        "description": "Amount to capture. Must not exceed the authorized amount; less than it is a partial capture. Example: 45000."
+      },
+      "currency": {
+        "type": "string",
+        "description": "The currency associated to the amount. Example: \"XOF\"."
+      }
+    }
+  },
+  "response_schema": {
+    "type": "object",
+    "description": "HTTP 202 — \"The amount has been captured successfully\". The reference documents no response body for it."
+  },
+  "error_schema": {
+    "description": "400 and 500 (application/problem+json) return BadRequestError / InternalServerError. 401 (\"The caller is unauthenticated\") and 403 (\"Access rights not sufficient\") have no body in the capture reference. A request with a private key from an IP address not attached to it gets HTTP 403 with the IpNotAllowed body (docs.bictorys.com/docs/getting-your-private-ip-address).",
+    "oneOf": [
+      {
+        "title": "BadRequestError — HTTP 400",
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "http status code. Example: \"400\"."
+          },
+          "title": {
+            "type": "string",
+            "description": "Default: \"Bad request.\""
+          },
+          "details": {
+            "type": "string",
+            "description": "error details. A generic enum, the same as create_charge's (not every endpoint of the reference has the same list); its only capture entry is \"E400-50: Amount exceed available capture\". Which entries this endpoint returns is not stated."
+          }
+        }
+      },
+      {
+        "title": "InternalServerError — HTTP 500",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Default: \"An error has occurred.\""
+          },
+          "details": {
+            "type": "string",
+            "description": "Default: \"An error has occurred.\""
+          }
+        }
+      },
+      {
+        "title": "IpNotAllowed — HTTP 403, IP address not attached to the private key",
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "false."
+          },
+          "error": {
+            "type": "string",
+            "description": "\"Your IP address is not allowed to access this service\"."
+          },
+          "errorType": {
+            "type": "string",
+            "description": "\"ACCESS_DENIED\"."
+          }
+        }
+      }
+    ]
+  },
+  "gotchas": [
+    "transactionId goes in the QUERY STRING, not the path or the body: POST /pay/v1/captures?transactionId={uuid}, with { amount, currency } as the JSON body. The reference declares the parameter as \"name\": \"transactionId\", with \"in\": \"query\" and \"required\": true.",
+    "The capture applies to \"a transaction previously authorized\". The documented way to get one is authorization: true in the request body, accepted by POST /pay/v1/charges (create_charge) and by PATCH /pay/v1/charges/{chargeId} (completeCharges, which completes a charge started without a payment method). Both references describe it as: \"request approval from card issuer to reserve an amount on the holder card to pay later the transaction. When set to true, an authorization request will be send to card issuer. If ignored or set to false, holder card will be charged immediately\".",
+    "Bictorys' integration guide lists the transaction status \"authorized\" as \"Payment authorized (card pre-capture)\", and create_charge's Enum3DSState lists both \"AUTHORIZED\" and \"CAPTURED\" (which one an authorized charge carries is not stated). The same guide tells you to fulfil on it: \"| `authorized` | Payment authorized (card pre-capture) | ✅ Treat as `succeeded`\" (docs.bictorys.com/docs/intégration-en). That guide never mentions this capture endpoint, and no page says whether an authorization that is never captured gets collected — see open_questions before shipping goods on \"authorized\" without capturing.",
+    "The amount must not exceed what was authorized: \"The amount of capture must not exceed authorized amount.\" A lower amount is a partial capture (\"capture totally or partially a transaction previously authorized\"). The error enum's only capture-related entry is \"E400-50: Amount exceed available capture\".",
+    "Success is HTTP 202 with no documented body: check the status code, do not parse a JSON body you were not promised. To read the transaction afterwards, call verify_transaction — what status it shows after a capture is not documented.",
+    "Bictorys' API key page (docs.bictorys.com/docs/get-your-api-key) says the public key \"doit être utilisée lorsque vous voulez appeler l'API charges charges depuis votre interface frontale ou votre application mobile\", and \"La clé privée ne doit en aucun être utilisée pour appeler nos APIs depuis votre application front-end ou application mobile\". Our recommendation, not Bictorys': a capture is a decision your backend takes once the order can be charged, never the browser — take the transactionId from your own records, not from a redirect or a client request.",
+    "A private key only works from the server IP addresses attached to it (docs.bictorys.com/docs/getting-your-private-ip-address): \"Sans attachement de votre adresse IP de serveur à une clé, vous ne pourrez pas effectuer de requêtes vers nos points d'accès.\" Another IP gets HTTP 403 {\"success\": false, \"error\": \"Your IP address is not allowed to access this service\", \"errorType\": \"ACCESS_DENIED\"}. The sandbox will not catch it: \"nous ne sommes pas stricts en ce qui concerne des adresses IP spécifiques en mode test\". Attach your production server's public IP to the production private key before going live.",
+    "No idempotency header is documented for this endpoint (only transactionId and X-Amzn-Trace-Id). Do not blindly retry a capture that timed out: call verify_transaction first, since whether a second capture of the same transaction is rejected or charges again is not documented (see open_questions).",
+    "Sandbox base URL is https://api.test.bictorys.com — the production URL is https://api.bictorys.com. The capture reference lists only the test server (https://api.test.bictorys.com/pay/v1)."
+  ],
+  "open_questions": [
+    "Which key does POST /pay/v1/captures take? The reference only says \"X-API-Key\" (ApiKeyAuth), and the integration guide's \"Quelle clé pour quelle opération ?\" table does not list captures. reference/getting-started says the public key \"est utilisée pour appeler l'API charges\", that a secret key is generated \"pour des opérations sensibles\", and \"Vos clés sécretes doivent être utilisées pour appeler nos APIs depuis votre serveur uniquement\". Captures sit under the same Checkout tag as charges, so the public key may be the one expected. Private keys carry rights: docs/get-your-api-key names checkoutWr and CustomerWr (\"Les droits nécessaires pour les plugins e-commerce sont : checkoutWr et CustomerWr.\") but not the one captures need. The integration guide's error table maps 403 \"Access right not sufficient\" to \"Mauvaise clé (publique vs privée)\" — the error to expect with the wrong key.",
+    "Is a capture required before the funds are collected, and what happens to an authorization that is never captured (expiry, automatic release)? The integration guide says to treat \"authorized\" as \"succeeded\"; the create_charge reference says the authorization reserves an amount \"to pay later the transaction\". Neither says.",
+    "What does the transaction look like after a capture — does verify_transaction move from \"authorized\" to \"succeeded\", and does Bictorys send a webhook for the capture? Not documented.",
+    "Is the capture idempotent? No idempotency header is documented, and the docs do not say whether a second capture of the same transaction, or several partial captures up to the authorized amount, are accepted.",
+    "Are amount and currency required? The reference marks the body required but neither field. Whether omitting amount captures the whole authorization is not stated.",
+    "authorization: true is accepted by POST /pay/v1/charges and by PATCH /pay/v1/charges/{chargeId} (completeCharges). Does the Bictorys-hosted checkout page itself ever request an authorization, or only an integration that sends the field? And for a charge started on the hosted checkout, is its chargeId accepted as transactionId here? The capture reference only says \"Unique identifier of the transaction Id.\"",
+    "How do you release an authorization you will not capture? No void or cancel-authorization endpoint is documented; whether refunding (PUT /pay/v1/transactions/{transactionId}/refund) applies to an authorized transaction is not stated."
+  ],
+  "evidence": {
+    "source_url": "https://docs.bictorys.com/reference/captureamount.md",
+    "source_reference": "API Reference: Pay → Checkout → Capture totally or partially a transaction previously authorized (POST /captures, operationId captureAmount)",
+    "extracted_at": "2026-11-03T18:09:29.000Z",
+    "snapshot_hash": "2faf00a7af4f5b9b71820883b660a31ea67a84801964b9c9689ceba9c69fe0c5",
+    "spans": [
+      "This API endpoint allows to capture totally or partially a transaction previously authorized.",
+      "The amount of capture must not exceed authorized amount.",
+      "\"/captures\": {",
+      "\"operationId\": \"captureAmount\"",
+      "\"name\": \"transactionId\",",
+      "\"in\": \"query\",",
+      "Unique identifier of the transaction Id.",
+      "\"$ref\": \"#/components/schemas/CaptureObjectRequest\"",
+      "\"description\": \"Amount to capture\",",
+      "\"description\": \"The currency associated to the amount.\",",
+      "The amount has been captured successfully",
+      "E400-50: Amount exceed available capture",
+      "\"url\": \"https://api.test.bictorys.com/pay/v1\",",
+      "\"name\": \"X-API-Key\""
+    ]
+  }
+}

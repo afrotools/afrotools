@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.0",
+  "spec_version": "1.1",
   "provider_api_version": "v1",
   "capability": "webhook_payment_success",
   "capability_type": "webhook",
@@ -64,10 +64,29 @@
   "response_schema": {},
   "error_schema": {},
   "gotchas": [
-    "Verify the signature: compute HMAC-SHA512(JSON.stringify(req.body), KADEVPAY_WEBHOOK_SECRET) and compare with the x-kadevpay-signature header — hash the re-serialized parsed body, not the raw request string. Use SHA-512, not SHA-256.",
+    "Verify the signature: HMAC-SHA512 with KADEVPAY_WEBHOOK_SECRET, hex digest, compared with the x-kadevpay-signature header. Use SHA-512, not SHA-256. Whether the hash covers the raw request body or the parsed body re-serialized is not settled: KadevPay's own examples disagree (see open_questions). This example follows the Node.js one, JSON.stringify(req.body); if valid webhooks fail the check, compare with the raw body as the PHP and Python examples do.",
     "Only act on event === 'payment.success' — other event types may be added by KadevPay in the future.",
     "net_amount is the actual revenue after KadevPay's 3% fee — use it for accounting, not amount.",
     "Always call verify_payment server-side after receiving the webhook — never fulfill based on the webhook payload alone.",
     "Return HTTP 200 immediately; process the event asynchronously. The webhook URL must be HTTPS and configured in the KadevPay dashboard."
-  ]
+  ],
+  "open_questions": [
+    "What the signature covers: KadevPay's examples at https://pay.kadev.ci/developer-documentation (Webhooks > Vérification de la Signature) disagree. Node.js (Express) hashes the parsed body re-serialized: \".update(JSON.stringify(req.body))\". PHP hashes the raw body: \"$payload = file_get_contents('php://input');\" then \"hash_hmac('sha512', $payload, $webhook_secret)\". Python (Flask) too: \"# On récupère le payload brut\" then \"payload = request.get_data()\". The two only agree if KadevPay sends the body exactly as JSON.stringify serializes it, which the docs do not say."
+  ],
+  "evidence": {
+    "source_url": "https://pay.kadev.ci/developer-documentation",
+    "source_reference": "Webhooks > Vérification de la Signature — PHP, Node.js (Express) and Python (Flask) tabs; the tab contents are served by the page's bundle https://pay.kadev.ci/assets/index-COQarm8F.js, which snapshot_hash covers",
+    "extracted_at": "2026-11-03T12:00:00.000Z",
+    "snapshot_hash": "04c6b3cf65381c479f9ad1aec11d6ad4abb415a845b0a0a5facac10a02dfa95c",
+    "spans": [
+      "Vérifiez cette signature en utilisant votre \"Secret Webhook\".",
+      ".update(JSON.stringify(req.body))",
+      "$payload = file_get_contents('php://input');",
+      "$computed_signature = hash_hmac('sha512', $payload, $webhook_secret);",
+      "# On récupère le payload brut",
+      "payload = request.get_data()",
+      ".digest('hex');",
+      "const signature = req.headers['x-kadevpay-signature'];"
+    ]
+  }
 }

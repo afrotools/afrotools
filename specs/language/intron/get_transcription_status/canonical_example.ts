@@ -35,7 +35,7 @@ async function readBody<T>(response: Response): Promise<T | undefined> {
 
 export async function getTranscriptionStatus(fileId: string): Promise<FileStatus> {
   // get_structured_post_processing=f (default): post-processing comes back as Markdown text.
-  const response = await fetch(`https://infer.voice.intron.io/file/v1/status/${fileId}`, {
+  const response = await fetch(`https://infer.voice.intron.io/file/v1/status/${encodeURIComponent(fileId)}`, {
     method: "GET",
     headers: { Authorization: `Bearer ${INTRON_API_KEY}` },
   });

@@ -74,7 +74,7 @@ export async function submitAudioTranscription(input: SubmitAudioInput): Promise
 }
 
 export async function pollTranscription(fileId: string): Promise<FileStatus> {
-  const response = await fetch(`${BASE_URL}/file/v1/status/${fileId}`, {
+  const response = await fetch(`${BASE_URL}/file/v1/status/${encodeURIComponent(fileId)}`, {
     method: "GET",
     headers: { Authorization: `Bearer ${INTRON_API_KEY}` },
   });

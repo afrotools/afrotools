@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-24",
-    "spec_hash": "sha256:c5ffb89f5e9671657bb8ada0d67d89a05a16bce4265932913cb1e0bcc85af43c"
+    "spec_hash": "sha256:3bff7c73397eed624996652958492de3fe85ba3b95d734760c98121c430a3b51"
   },
   "auth": {
     "type": "api_key",

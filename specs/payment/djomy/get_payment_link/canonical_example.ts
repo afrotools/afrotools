@@ -84,7 +84,7 @@ export async function getPaymentLink(
   const accessToken = await getAccessToken();
 
   const response = await fetch(
-    `${DJOMY_BASE_URL}/v1/links/${paymentLinkReference}`,
+    `${DJOMY_BASE_URL}/v1/links/${encodeURIComponent(paymentLinkReference)}`,
     {
       method: "GET",
       headers: {
@@ -107,8 +107,9 @@ export async function getPaymentLink(
 /*
 Usage example:
 
-// Retrieve a link created earlier to check its status
-const link = await getPaymentLink("lnk_abc123xyz");
+// Retrieve a link created earlier to check its status: pass the paymentLinkReference that
+// create_payment_link returned ("LINK-REF" is the value in Djomy's webhook examples)
+const link = await getPaymentLink("LINK-REF");
 
 if (link.status === "ACTIVE") {
   console.log(`Link is active. Payment page: ${link.paymentPageUrl}`);

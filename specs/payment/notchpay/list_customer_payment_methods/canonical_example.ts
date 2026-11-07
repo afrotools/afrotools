@@ -29,7 +29,7 @@ interface NotchPayError {
 export async function listCustomerPaymentMethods(
   customerId: string
 ): Promise<ListCustomerPaymentMethodsResponse> {
-  const url = `https://api.notchpay.co/customers/${customerId}/payment_methods`;
+  const url = `https://api.notchpay.co/customers/${encodeURIComponent(customerId)}/payment_methods`;
 
   const response = await fetch(url, {
     method: "GET",

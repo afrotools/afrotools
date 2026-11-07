@@ -203,7 +203,7 @@
   "gotchas": [
     "Notch Pay uses POST (not PATCH or PUT) for partial updates. Only the fields included in the body are updated; omitted fields retain their current values.",
     "Sending an empty body or only the id field will return a 422 validation error — include at least one field to update in the request body.",
-    "Customer IDs are opaque strings — pass them as-is into the URL path without any encoding.",
+    "Customer IDs are opaque strings: store them exactly as returned. The example passes the ID through encodeURIComponent; never pass an already-encoded value, or it is encoded twice.",
     "The address object uses 'address_line1' / 'address_line2' (and optional 'state'), not 'street'. Sending 'street' silently drops the field."
   ]
 }

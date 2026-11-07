@@ -7,9 +7,9 @@
   "verification": {
     "method": "app",
     "environment": "sandbox",
-    "at": "2026-04-10",
-    "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:4ac9698e935b471f2775f2ca2bafa826cf15a624a8b621ebe1707e3ab186ae7c"
+    "at": "2026-04-30",
+    "ref": "https://github.com/afrotools/examples/tree/b6b43121481b066c81791417ca0057b4e1685e36/shop",
+    "spec_hash": "sha256:5681a4dd2736160ab33f8808eedbec454339549052953a04aeebf7b4d87648ae"
   },
   "currency": [
     "GNF"
@@ -87,7 +87,7 @@
       },
       "payerNumber": {
         "type": "string",
-        "description": "Payer phone number in international format (e.g. 00224623707722). Strictly required by the API — used to pre-fill the payment portal but enforced server-side. Passing an empty string returns 400."
+        "description": "Payer phone number in international format (e.g. 00224623707722): « Le numéro de téléphone du payeur. Il est obligatoire et doit être au format international. » (components.schemas.CreatePaymentCommand.properties.payerNumber.description)."
       },
       "allowedPaymentMethods": {
         "type": "array",
@@ -145,15 +145,12 @@
             "enum": [
               "CREATED",
               "PENDING",
-              "REDIRECTED",
               "FAILED",
               "SUCCESS",
-              "CAPTURED",
-              "CANCELLED",
-              "TIMEOUT",
-              "REFUNDED"
+              "AUTHORIZED",
+              "CAPTURED"
             ],
-            "description": "REDIRECTED means the payer has been sent to the Djomy portal. Wait for webhook to know the final status."
+            "description": "The statuses Djomy's docs list for this response (AUTHORIZED marked « A ignorer pour le moment »). The payer still has to pay on the Djomy portal: get the final status from the signed webhook (see webhook_payment_completed), or from verify_payment when the payer comes back to returnUrl first."
           },
           "paidAmount": {
             "type": "number"
@@ -255,16 +252,17 @@
     }
   },
   "gotchas": [
-    "payerNumber is strictly enforced by the API despite being described as 'used to pre-fill the portal'. Passing an empty string or omitting it returns 400: 'Le numéro de téléphone du payeur est obligatoire.' Always collect the payer's phone number before calling this endpoint.",
-    "[VERY IMPORTANT] This is the default integration method for Djomy. Unless the user explicitly requests a direct flow with OTP handling in their own UI, always use create_payment_gateway. It delegates payment method selection and OTP handling to the Djomy portal.",
-    "The gateway flow handles OTP internally — the payer completes everything on the Djomy portal. Do NOT call confirm_otp after this endpoint. Wait for the webhook instead.",
-    "Redirect the payer to redirectUrl immediately after receiving the response. Do not delay — the link may expire.",
-    "Always verify payment status server-side via verify_payment before fulfilling an order. The returnUrl redirect is not a proof of payment.",
+    "payerNumber is required — « Il est obligatoire et doit être au format international » (components.schemas.CreatePaymentCommand.properties.payerNumber.description) — even though the payer then pays on the Djomy portal. The maintainer had to add a phone field to the example shop's checkout form because of it (maintainer, 2026-11-05; afrotools/examples b6b4312, 2026-04-30: « Add phone field to CustomerInfo (required by Djomy) »). Collect the payer's phone number before calling this endpoint; the docs give this endpoint's 400 as « Données de paiement invalides ou manquantes » (paths['/v1/payments/gateway'].post.responses['400'].description).",
+    "[VERY IMPORTANT] This is the default integration method for Djomy. Unless the user explicitly requests the direct flow (create_payment, no redirect), always use create_payment_gateway: on the Djomy portal, « Le payeur choisit alors son moyen de paiement, saisit ses coordonnées (numéro de téléphone, carte bancaire, IBAN, etc.) et procède au paiement ».",
+    "The payer completes the payment on the Djomy portal, then « Djomy redirige le payeur vers l’URL de retour (`returnUrl`) fournie lors de la création du paiement » (paths['/v1/payments/gateway'].post.description), which does not mention confirm_otp.",
+    "Redirect the payer to redirectUrl after receiving the response. How long it stays valid is not documented (see open_questions).",
+    "The returnUrl redirect is not a proof of payment. Fulfil from the signed webhook once its amount, currency and merchantPaymentReference match your order (see webhook_payment_completed); when the payer comes back to returnUrl before it, call verify_payment and make the same check.",
     "If an invalid payment method is passed in allowedPaymentMethods (wrong spelling or unsupported value), Djomy silently falls back to showing all available methods instead of returning an error.",
     "A missing or invalid X-API-KEY returns HTTP 401 (documented as \"Clé API manquante ou invalide\")."
   ],
   "open_questions": [
     "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it.",
-    "Is a retried create_payment_gateway safe? Djomy's docs (https://developers.djomy.africa/documentation/openapi-partner.json) document no idempotency key or duplicate handling; `merchantPaymentReference` is only described as \"Elle n'est pas obligatoire, mais fortement recommandée\", with nothing about a reused value being rejected."
+    "Is a retried create_payment_gateway safe? Djomy's docs (https://developers.djomy.africa/documentation/openapi-partner.json) document no idempotency key or duplicate handling; `merchantPaymentReference` is only described as \"Elle n'est pas obligatoire, mais fortement recommandée\", with nothing about a reused value being rejected.",
+    "How long does redirectUrl stay valid? The docs describe it as « Url de redirection vers notre portail de paiement (Djomy payment gateway). » (components.schemas.CreatedPaymentDto.properties.redirectUrl.description) and give no expiry."
   ]
 }

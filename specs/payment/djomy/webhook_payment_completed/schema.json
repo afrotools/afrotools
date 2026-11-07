@@ -3,14 +3,7 @@
   "provider_api_version": "v1.0",
   "capability": "webhook_payment_completed",
   "capability_type": "webhook",
-  "status": "verified",
-  "verification": {
-    "method": "app",
-    "environment": "sandbox",
-    "at": "2026-04-10",
-    "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:3212dde6ee2e6964c2bd1b4632aef948a466b59fd7ff00e2e994e3873686edce"
-  },
+  "status": "ready",
   "currency": [
     "GNF"
   ],
@@ -50,7 +43,7 @@
           "payout.success",
           "payout.failed"
         ],
-        "description": "Type of event. Use payment.success as the trigger to call verify_payment. payout.* events are sent only with a V2 webhook configuration."
+        "description": "Type of event. Fulfil on payment.success only, after the signature and order checks (see gotchas). payout.* events are sent only with a V2 webhook configuration."
       },
       "eventId": {
         "type": "string",
@@ -71,7 +64,7 @@
             "properties": {
               "transactionId": {
                 "type": "string",
-                "description": "Unique payment identifier — pass it to verify_payment."
+                "description": "Unique payment identifier: the key that makes fulfilment idempotent, and what verify_payment takes to reconcile."
               },
               "status": {
                 "type": "string",
@@ -150,19 +143,27 @@
   },
   "response_schema": {
     "type": "object",
-    "description": "Your endpoint must return HTTP 200. The response body is ignored by Djomy."
+    "description": "Return HTTP 200. The docs list 200, 400 and 500 responses; what Djomy does with the body or with a failed delivery is not documented (see open_questions)."
   },
   "error_schema": {},
   "gotchas": [
     "[MUST TELL USER] The Djomy webhook does not fire on its own. The developer must first set their endpoint URL in the Djomy dashboard (developer area). Without this step, no event is sent, even when the payment succeeds.",
-    "[MUST TELL USER] Djomy only calls the webhook URL over HTTPS — http:// URLs are silently ignored. In local development, the webhook never fires without an HTTPS tunnel. Tell the user explicitly: run `ngrok http 3000`, then set the ngrok URL in the Djomy developer area before testing.",
-    "Verify X-Webhook-Signature as described in webhook.signature before processing the event; ignore the webhook if it does not match or if the version prefix is not v1.",
+    "[MUST TELL USER] Djomy cannot reach localhost, and its docs require HTTPS for returnUrl and cancelUrl (they say nothing about the webhook URL). In local development, tell the user explicitly: run `ngrok http 3000`, then set the HTTPS ngrok URL in the Djomy developer area before testing.",
+    "Verify X-Webhook-Signature as described in webhook.signature before processing the event. Djomy's docs: « Pour assurer l'intégrité et l'authenticité des données envoyées, le payload de chaque webhook sera signé avec la clé secrète » and « Si la signature fournie dans la requête correspod au résultat de votre sugnature, alors poursuivre le traitement du webhook. Le cas échéant, ignorer le webhook » (paths['/votre-endpoint-webhook'].post.description). Ignore it too if the version prefix is not v1. Compute the HMAC on the raw bytes of the body (decoding and re-encoding them can change what was signed) and compare with crypto.subtle.verify, as the example does, or crypto.timingSafeEqual — never with ===, which stops at the first differing byte. Answering 400 is the example's choice: the docs only say to ignore the webhook, and describe 400 as « Erreur dans le traitement du webhook » (paths['/votre-endpoint-webhook'].post.responses['400'].description).",
     "Read the payment from data.payment with a V2 webhook configuration (the default for new configurations), or from data with V1 (merchants integrated before V2). The version is shown in the Djomy developer space — ask the user which one their configuration uses, or handle both.",
-    "Never fulfill an order based on the webhook payload alone. Always call verify_payment with the transactionId to confirm status === 'SUCCESS' server-side.",
-    "Return HTTP 200 immediately, even if your processing is asynchronous. Djomy considers a non-200 response a delivery failure.",
-    "You receive every event listed in eventType (payout.* only with a V2 configuration). Only act on payment.success for order fulfillment."
+    "A webhook whose signature matches and whose payment matches your order is enough to fulfil it, with no verify_payment call: the signature is what Djomy's docs give for authenticity (see the gotcha above), and the order check below makes sure it is this order's payment. Keep verify_payment for the returnUrl redirect, which anyone can forge, and to reconcile orders still unpaid when no webhook came (Djomy's retries are not documented, see open_questions).",
+    "Anti-fraud check, for payments from create_payment and create_payment_gateway (payment links: see open_questions). Give each order its own merchantPaymentReference, never reused, and send it: « Celle-ci peut être liée à une référence de commande chez le marchand.  Elle n'est pas obligatoire, mais fortement recommandée » (components.schemas.TransactionWebhookEventDto.properties.merchantPaymentReference.description). Before fulfilling, look up the order by it and check that status is SUCCESS, that paidAmount equals the amount you sent and that currency is the one your order is priced in, as Djomy's string (GNF, FCFA, Dollar, Leones — compare before any ISO mapping). The amount sent is « Motant à payer par le payyer » (components.schemas.InitiatePaymentCommand and CreatePaymentCommand, properties.amount.description), paidAmount « Montant payé par le client » (components.schemas.TransactionWebhookEventDto.properties.paidAmount.description) and fees « Frais prélevés sur le montant payé. » (components.schemas.TransactionWebhookEventDto.properties.fees.description); the docs' examples have paidAmount 10000, fees 1000, receivedAmount 9000 (paths['/votre-endpoint-webhook'].post.requestBody.content['application/json'].examples['V1 - Paiement réussi'] and ['V2 - Paiement réussi']). That paidAmount equals the amount sent follows from these; no page states it (see open_questions). An unknown or missing reference, or a mismatch: do not fulfil, and log it.",
+    "The docs give the header as « v1:signature » (paths['/votre-endpoint-webhook'].post.description) and mention no timestamp in what is signed (webhook.signature), so a captured webhook can be sent again. Fulfil an order once (an order already paid is left as it is), and raise an alert when an already-paid order gets a payment.success with another transactionId: a second payment on the same reference. Record eventId before any business logic, for an audit trail and to skip an event already processed.",
+    "If a real webhook fails the signature check, log it (never the secret) and report it: the check has not been seen passing on a real webhook yet (see open_questions). Do not turn the check off; orders it leaves unpaid are reconciled with verify_payment.",
+    "You receive every event listed in eventType (payout.* only with a V2 configuration). Only act on payment.success for order fulfillment: « Paiement réussi/capturé » (paths['/votre-endpoint-webhook'].post.description). Whether it can carry status CAPTURED is left open: « réussi/capturé » and components.schemas.TransactionWebhookEventDto.properties.status.enum (which lists six statuses with no link to events) do not say. The example fulfils on SUCCESS only and logs any other status (see open_questions)."
   ],
   "open_questions": [
-    "The V2 payload (data.payment, data.payout) comes from Djomy's docs and has not been tested yet; this spec's verification covered a V1 configuration."
+    "The V2 payload (data.payment, data.payout) comes from Djomy's docs and has not been tested yet; the example app's webhook route (afrotools/examples shop) reads the V1 shape (data.transactionId).",
+    "Does the signature check pass on a real webhook? The maintainer received one before the v1: prefix fix of 2026-05-13 (#45, issue #44, which cites the docs' example), and its signature never matched: the example app compared the whole header until examples commit 763ab77 (2026-10-25), and that fix was checked against a computed HMAC, not a received webhook. Djomy's docs (developers.djomy.africa: the X-Webhook-Signature parameter, and hex in the « Comment générer une signature » snippets) give HMAC-SHA256 of « le payload » with the clientSecret, as v1:<signature>, without saying whether that is the raw body as webhook.signature assumes.",
+    "Does Djomy retry a delivery that failed or got no 200, and does it read the response body? The docs list the 200, 400 and 500 responses only. Return 200 quickly, and reconcile orders still unpaid with verify_payment rather than relying on a single delivery.",
+    "Does paidAmount always equal the amount sent in create_payment / create_payment_gateway? The docs define the amount as « Motant à payer par le payyer », paidAmount as « Montant payé par le client » and fees as « Frais prélevés sur le montant payé. », and their examples fit (10000 paid, 1000 fees, 9000 received), but no page states it or says whether fees can be added on top for the payer. Not yet seen on a real payment.",
+    "Does a payment.success event ever carry status CAPTURED (components.schemas.TransactionWebhookEventDto.properties.status.enum lists it; the event is « Paiement réussi/capturé »), and what does verify_payment return then (components.schemas.GetPaymentDto.properties.status has no CAPTURED)? The example does not fulfil on CAPTURED and logs it.",
+    "Which currency does Djomy apply? The creation requests take amount and countryCode, no currency (components.schemas.CreatePaymentCommand and InitiatePaymentCommand); the webhook's currency is one of GNF, FCFA, Dollar, Leones (components.schemas.TransactionWebhookEventDto.properties.currency.enum). Store the currency your order is priced in and compare it.",
+    "Payment links: create_payment_link takes merchantReference — « Permet au marchant d'indiquer une référence qui sera lié au paiement une fois effectué.  Dans le cas de paiement à usage multiple, tous les paiements effectués seront liés au lien à travers cette référence » (components.schemas.CreatePaymentLinkRequest.properties.merchantReference.description) — and amountToPay is optional (« Si fournit, le payeur n'aura pas à le saisir au moment du paiement »). Does a link payment carry that reference as the webhook's merchantPaymentReference, next to paymentLinkReference? Until known, the order check covers create_payment and create_payment_gateway only; a link payment is logged, not fulfilled."
   ]
 }

@@ -7,9 +7,9 @@
   "verification": {
     "method": "app",
     "environment": "sandbox",
-    "at": "2026-04-10",
-    "ref": "https://github.com/afrotools/examples/tree/main/shop",
-    "spec_hash": "sha256:e87e8568c0d175324b0fa405bb0aa431a8debc9356314d75d78b27db2b7024a4"
+    "at": "2026-04-30",
+    "ref": "https://github.com/afrotools/examples/tree/b6b43121481b066c81791417ca0057b4e1685e36/shop",
+    "spec_hash": "sha256:516505e43a5af7fbc49488c71a5c27ec779cffd24fb4f588c93c6e68a84c41d6"
   },
   "currency": [
     "GNF"
@@ -105,11 +105,9 @@
               "FAILED",
               "SUCCESS",
               "REDIRECTED",
-              "CANCELLED",
-              "TIMEOUT",
-              "REFUNDED"
+              "CANCELLED"
             ],
-            "description": "Use status === 'SUCCESS' as the only safe condition to fulfill an order."
+            "description": "SUCCESS is the only status that fulfils an order, once the payment also matches the order (see gotchas)."
           },
           "paidAmount": {
             "type": "number",
@@ -136,7 +134,7 @@
               "Dollar",
               "Leones"
             ],
-            "description": "Note: these are Djomy's internal currency strings, not ISO 4217 codes."
+            "description": "Note: these are Djomy's own currency strings, not all ISO 4217 codes."
           },
           "merchantPaymentReference": {
             "type": "string"
@@ -227,12 +225,15 @@
     }
   },
   "gotchas": [
-    "Never fulfill an order until data.status === 'SUCCESS'. PENDING means payment is still in progress. CAPTURED means the amount has been collected but may differ from SUCCESS depending on the flow.",
+    "Never fulfill an order until data.status === 'SUCCESS'. PENDING means the payer has not confirmed yet. Djomy's docs list AUTHORIZED and CAPTURED for create_payment and create_payment_gateway (AUTHORIZED marked « A ignorer pour le moment »), for payment links (both marked « à ignorer pour le moment ») and in the webhook's status (TransactionWebhookEventDto: data.payment in V2, data in V1), not for this endpoint: treat any status other than SUCCESS as unpaid, and don't reject a value outside the enum.",
+    "The transactionId comes from your create_payment / create_payment_gateway record, from the signed webhook (check X-Webhook-Signature first), or from a request: after a payment link, Djomy adds transactionId to the returnUrl (components.schemas.CreatePaymentLinkRequest.properties.returnUrl.description: « Djomy rajoutera en paramètre d'url les informations suivantes : transactionId et le status. »). Prefer your own record: unencoded, a visitor's \"../…\" would send this call, with your access token and X-API-KEY, to another endpoint. The path parameter is typed only as a string; the transactionId Djomy returns is a uuid (CreatedPaymentDto and GetPaymentDto: \"format\": \"uuid\"), and the endpoint documents a 400 \"Format de référence de transaction invalide\". The example passes it through encodeURIComponent: an empty value, \".\" or \"..\" still changes the path, and the value must be the decoded one (URLSearchParams.get decodes it), or it is encoded twice.",
     "receivedAmount is what you actually receive after Djomy deducts fees. Use this for your accounting, not paidAmount.",
-    "The currency field returns non-ISO strings: 'GNF', 'FCFA', 'Dollar', 'Leones'. Map these to ISO 4217 codes (GNF, XOF, USD, SLE) in your system.",
+    "Before fulfilling on SUCCESS, check the payment against your order, as for the webhook: merchantPaymentReference is the order's, paidAmount equals the amount you sent, and currency is the one the order is priced in, as Djomy's string (compare before mapping it to ISO). Sources and limits: webhook_payment_completed's anti-fraud gotcha and open questions. Fulfil once: the webhook may confirm the same order.",
+    "The currency field returns Djomy's own strings: 'GNF', 'FCFA', 'Dollar', 'Leones' (components.schemas.GetPaymentDto.properties.currency.enum). The docs give no ISO 4217 code for FCFA, Dollar or Leones (FCFA can be XOF or XAF): ask Djomy before mapping them, and compare Djomy's string with your order's.",
     "A missing or invalid X-API-KEY returns HTTP 401 (documented as \"Clé API manquante ou invalide\")."
   ],
   "open_questions": [
-    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it."
+    "Production base URL: Djomy's API reference lists only https://sandbox-api.djomy.africa (\"Staging environment\"). Ask the user or Djomy for the production URL — never guess it.",
+    "Which status does a timed-out or refunded payment return here? The webhook has payment.timeout and payment.refunded events, but this endpoint's docs (GetPaymentDto.status) list only CREATED, PENDING, FAILED, SUCCESS, REDIRECTED and CANCELLED; the TIMEOUT and REFUNDED values this spec listed until now had no source."
   ]
 }

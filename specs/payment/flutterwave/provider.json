@@ -116,10 +116,11 @@
     ],
     "checked_at": "2026-11-03",
     "open_questions": [
-      "Flutterwave's 'How to create a Flutterwave account' page (updated 11 months ago) offers only 'a registered business account or a non-profit entity' and asks for 'Your business registration type - Sole Proprietorship, Limited Liability Company, Non-Profit entity, etc.', while the older country pages (updated about 29 months ago) list an 'Individual account' (Ghana, Côte d'Ivoire, Uganda, Tanzania, Zambia) or requirements for unregistered businesses (South Africa, Kenya). Whether an individual without a registered business can still open an account in ZA, KE, GH, CI, UG, TZ and ZM is unclear.",
+      "Outside Nigeria, whether an individual without a registered business can still open a Flutterwave account is unclear: the 'How to create a Flutterwave account' page offers only 'a registered business account or a non-profit entity' and asks for 'Your business registration type - Sole Proprietorship, Limited Liability Company, Non-Profit entity, etc.', while older country pages list an 'Individual account' (Ghana, Côte d'Ivoire, Uganda, Tanzania, Zambia) or requirements for unregistered businesses (South Africa, Kenya).",
+      "Which page reflects the current rules is unclear: on 3 November 2026 the 'How to create a Flutterwave account' page showed 'Updated 11 months ago', the Ghana, Côte d'Ivoire, Uganda, Tanzania, South Africa and Kenya pages 'Updated 30 months ago', and the Zambia page 'Updated 20 months ago'.",
       "Cameroon: Flutterwave's Cameroon onboarding page lists only 'Business (Limited Entities)' requirements (certificate of incorporation, articles of association, business license…); it does not say whether an individual or an unregistered business can open an account.",
       "Rwanda: Flutterwave's Rwanda page lists sole proprietorship, limited liability company and other entity requirements only; it does not say whether an individual can open an account.",
-      "SN, GA, SL, CG, EG, ET, MW, TD have no Flutterwave country onboarding page; the 'rest of the world' page has an 'Individual account' category but does not name the countries it covers."
+      "Senegal, Gabon, Sierra Leone, the Republic of the Congo, Egypt, Ethiopia, Malawi and Chad have no Flutterwave country onboarding page; the 'rest of the world' page has an 'Individual account' category but does not name the countries it covers."
     ],
     "country_exceptions": {
       "NG": "business_or_individual"

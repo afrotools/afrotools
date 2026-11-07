@@ -50,7 +50,7 @@ type InfobipError = {
 
 export async function create2faMessageTemplate(input: Create2faMessageTemplateInput): Promise<Create2faMessageTemplateResponse> {
   const { appId, ...body } = input;
-  const url = `${INFOBIP_BASE_URL}/2fa/2/applications/${appId}/messages`;
+  const url = `${INFOBIP_BASE_URL}/2fa/2/applications/${encodeURIComponent(appId)}/messages`;
   const response = await fetch(url, {
     method: "POST",
     headers: {

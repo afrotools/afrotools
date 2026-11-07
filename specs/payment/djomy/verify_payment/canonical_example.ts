@@ -20,9 +20,7 @@ interface PaymentStatusData {
     | "FAILED"
     | "SUCCESS"
     | "REDIRECTED"
-    | "CANCELLED"
-    | "TIMEOUT"
-    | "REFUNDED";
+    | "CANCELLED";
   paidAmount: number;
   receivedAmount: number;
   fees: number;
@@ -84,7 +82,7 @@ export async function verifyPayment(transactionId: string): Promise<PaymentStatu
   const signature = await computeHmacHex(DJOMY_CLIENT_ID!, DJOMY_CLIENT_SECRET!);
 
   const response = await fetch(
-    `${DJOMY_BASE_URL}/v1/payments/${transactionId}/status`,
+    `${DJOMY_BASE_URL}/v1/payments/${encodeURIComponent(transactionId)}/status`,
     {
       method: "GET",
       headers: {
@@ -108,17 +106,21 @@ export async function verifyPayment(transactionId: string): Promise<PaymentStatu
 /*
 Usage example:
 
-const payment = await verifyPayment("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+// For the return to returnUrl, or an order no signed webhook confirmed (webhook_payment_completed).
+const payment = await verifyPayment(order.transactionId);
 
 if (payment.status === "SUCCESS") {
-  // Safe to fulfill the order
-  // Use payment.receivedAmount for accounting (after Djomy fees)
-  // Use payment.merchantPaymentReference to match against your order
+  // Check it is this order's payment: paidAmount is the full amount (fees are taken from it),
+  // currency is Djomy's string (GNF, FCFA, Dollar, Leones), compared before any ISO mapping.
+  if (payment.merchantPaymentReference !== order.reference || payment.paidAmount !== order.amount || payment.currency !== order.currency) {
+    throw new Error(`Payment ${payment.transactionId} does not match order ${order.reference}`);
+  }
+  // Fulfil idempotently (the webhook may confirm the same order). receivedAmount is after Djomy fees.
   console.log(`Received: ${payment.receivedAmount} ${payment.currency}`);
-} else if (payment.status === "PENDING") {
-  // Payment still in progress — poll again or wait for webhook
+} else if (["CREATED", "PENDING", "REDIRECTED"].includes(payment.status)) {
+  // Not final yet (not submitted, awaiting the payer, or on the Djomy portal) — poll again or wait for the webhook
 } else {
-  // FAILED, CANCELLED, TIMEOUT — do not fulfill
+  // FAILED, CANCELLED, or a status this spec does not list — do not fulfill
   console.log(`Payment ${payment.status}: ${payment.transactionId}`);
 }
 */
