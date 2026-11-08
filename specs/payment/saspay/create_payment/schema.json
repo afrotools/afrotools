@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:0028bd2437879d31b4db079995e235a6878718c8269537bce63f7ebd94abeb3c"
+    "spec_hash": "sha256:0a9a3063eab41029af0789d22e95f0f4a052f76b990e8c1a04d6b88e05c201be"
   },
   "currency": [
     "XOF",
@@ -214,6 +214,7 @@
     }
   },
   "gotchas": [
+    "SasPay has no working sandbox. Its docs say an sk_test_ key is SANDBOX, \"tests sans argent réel\" (docs.saspay.me/account-setup), but after a card payment made with such a key was debited for real (maintainer's test, 2026-11-01), SasPay's support answered « les clés sandbox ne sont pas fonctionnelles, veuillez utiliser les clés lives » (reply to the maintainer's ticket of 2026-11-01, read 2026-11-07). Treat every call as production: test with amounts you accept to pay or send, and never tell a tester that an sk_test_ key means no money moves. The verification recorded on this spec (environment: sandbox) was run with an sk_test_ key on 2026-10-17: that label is what test:live records for such a key, not proof of a separate test environment; the API answered normally, and whether such a key moves money on mobile money is not known.",
     "Always check checkout_url in the response: for Wave, Orange Money, Djamo and cards you must redirect the customer to it; only when it is empty was a request pushed to the customer's phone.",
     "Networks that need a pre-payment OTP (Orange Money Côte d'Ivoire and Burkina Faso: the customer dials a USSD code first) require the otp field, otherwise 422 prepayment_otp_missing. This is not the post-push SMS OTP, which goes through confirm_otp.",
     "Send an Idempotency-Key (one UUID per payment attempt, reused on retries): without it a network retry creates a second real payment. Reusing a key with a different body, or while the first call is still running, returns 409.",
@@ -221,9 +222,6 @@
     "To know beforehand whether a network needs the pre-payment OTP (and show the right USSD instructions), read otp_required / otp_instructions from GET /pricing/my-rates/.",
     "Valid network codes per country and the expected customer.phone format are listed on the docs' formats page (/api-reference/reference/formats).",
     "A 400 validation error has another shape than business errors: error is a map of field names to messages ({\"field\": [\"message\"]}), not {message, code}."
-  ],
-  "open_questions": [
-    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
   ],
   "evidence": {
     "spans": [
