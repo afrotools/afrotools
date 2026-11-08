@@ -7,6 +7,7 @@ description: >
   verified, against the Afro.tools specs of the providers used. Invoke with: /afrotools:check.
   Afro.tools Studio runs it before going live. Manual invocation only.
 disable-model-invocation: true
+allowed-tools: Bash(node "${CLAUDE_SKILL_DIR}/scripts/scan-secrets.mjs" *)
 ---
 
 # /afrotools:check
@@ -43,13 +44,22 @@ words; report each problem as what could go wrong for them, then what you change
    - the webhook's signature is verified when the spec defines `webhook.signature`;
    - anything that sends an SMS, a WhatsApp message or a code without someone logged in is limited per
      phone number and per hour, counted on the server;
+   - a list of customers or orders, or another person's data, is never served without a session; a
+     customer's own order may be shown through an unguessable reference in its link, never a sequential
+     id;
+   - when the app has its own login, its attempts are limited per hour, per account or per caller's
+     address, counted on the server; with Better Auth, its rate limiter is enabled and keeps its counts
+     in the database (`rateLimit.storage: "database"`, not the in-memory default), a phone code is also
+     counted per phone number, and the email sign-up route is closed to strangers (enabling email and
+     password opens it, page or no page: only the owner's first account passes, then the owner creates
+     the others);
    - every gotcha of these specs that applies to the code is handled.
 
    A spec's gotcha may make a rule hard (for example a status call that fails in the sandbox): say so,
    and keep the payment pending rather than confirming it on a weaker proof.
 
 3. **Report** in two groups: **blocking** (money or customer data at risk) and **can wait**. A way for
-   a stranger to send messages without a limit, for a customer to pay twice, or for an order to be marked paid without a verified payment, is always
+   a stranger to send messages without a limit or to read customer data, for a customer to pay twice, or for an order to be marked paid without a verified payment, is always
    blocking. If the user goes live without fixing a blocking point, add it to
    `.afrotools/accepted-risks.md` in the format given in `../review/SKILL.md`. Fix what
    you can with the user's agreement, then run the check again.

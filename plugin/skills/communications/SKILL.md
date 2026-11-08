@@ -76,6 +76,11 @@ for the target provider and capability before writing any implementation code.
    - Native fetch only — no axios, no node-fetch
    - Credentials from `process.env`
 
+## Before going live
+
+When the integration is wired, offer `/afrotools:check` once, in one sentence: a cheap check that the keys stay out of the code and the browser, and that a stranger cannot make the app send many messages (a limit per number and per hour), against this provider's spec.
+When `.afrotools/studio.md` exists, do not offer it: afro.tools Studio runs it before going live.
+
 ## After the integration
 
 Reports are how specs get verified and fixed. The user usually tests later, so do not wait for
