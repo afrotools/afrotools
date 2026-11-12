@@ -170,6 +170,7 @@ On Claude Code older than 2.1.275, in two steps:
 ```
 
 **Auto-activated skills** based on context:
+- `studio` — **afro.tools Studio**, when you describe an app or a service to create for an African market: from the idea to an app in production (a short plan, a clean design, mobile money, SMS and WhatsApp wired from the registry, checks before going live). It asks before starting, and you can also type `/afrotools:studio`. Works for non-developers too: it explains in plain words and asks only what it must
 - `payment` — integrating a payment API
 - `communications` — integrating an SMS, WhatsApp, USSD, voice or email API
 - `identity` — integrating an identity verification (KYC, document, AML) API
@@ -181,7 +182,6 @@ On Claude Code older than 2.1.275, in two steps:
 - `/afrotools:spec <provider> <capability>` — inspect a full spec
 - `/afrotools:list` — list all available specs
 - `/afrotools:new <category> <provider> <capability>` — scaffold a new spec
-- `/afrotools:studio` — **afro.tools Studio**: from an idea to an app in production for African markets (a short plan, a clean design, mobile money, SMS and WhatsApp wired from the registry, checks before going live). Works for non-developers too: it explains in plain words and asks only what it must
 - `/afrotools:check` — before going live: keys in the code or the browser, payments confirmed server-side, nothing paid twice, webhooks verified
 - `/afrotools:review [audit]` — a code review or security audit by a separate reviewer
 - `/afrotools:diagnose` — something went wrong with Studio or a skill: a cleaned bug report you submit yourself

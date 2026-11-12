@@ -2,18 +2,57 @@
 
 Goal: the app works on the user's computer with sandbox keys, every screen of the plan included.
 
-First, before building anything: if browser tools (`mcp__playwright__*`, or
-`mcp__plugin_playwright_playwright__*` from the Playwright plugin) are not available and
-`playwright_offered` is not `true`, offer once a browser you drive yourself to check every screen, free,
-using the Chrome already installed. With a yes, run `claude mcp add playwright -- npx @playwright/mcp@latest --browser chrome --headless` (it is added to
-this project only), set `playwright_offered: true`, then tell the user to reopen their agent here and type
-`/afrotools:studio` again. Without a yes, set `playwright_offered: true` too.
+If `playwright_offered` is not `true` (Studio started before the browser was offered at the start), do
+SKILL.md's first-run step 2 for it now, flags included.
 
-1. **Build in small steps**, one feature at a time, following `docs/plan.md`, the direction recorded
+1. **Set the project up first**, as [stack.md](stack.md) "On the computer" says for the stack recorded in
+   `.afrotools/studio.md`: the accounts the user creates themselves (the host's, when the database lives
+   there), the database and its copy for the computer, the migrations, the login. The connection string
+   and the secrets go into `.env` like keys (step 3, and stack.md step 5: you never read `.env`). Then
+   **build in small steps**,
+   one feature at a time, following `docs/plan.md`, the direction recorded
    in `.afrotools/studio.md` (`docs/design.md`, or `DESIGN.md` written by Impeccable) and
-   `docs/preview.html`: reuse the preview's colours, text sizes and spacing as they are, and compare each
+   `docs/preview.html`: reuse the preview's colours, text sizes and spacing as they are (with the default
+   stack, through the theme tokens of [stack.md](stack.md), never a raw value in a screen), and compare each
    built screen with it. After each feature, run the app and check it yourself before telling the user it works. With
    `level: explain`, tell the user in one sentence what now works and how to see it.
+
+   **Each screen ships with its states**, built with the screen, not after; a screen "works" only when
+   they are there, in the customer's language, concrete, with one next step each. Some are written once
+   for the whole app, before the first screen: a `loading.tsx` and an `error.tsx` (a client component) at
+   the root and per route group, so no page ever shows an endless spinner or a blank page; one banner in
+   the root layout for offline (the browser's `online`/`offline` events: keep what is on screen, say the
+   network is gone; no offline mode in a first version, light pages instead, and a native form sent
+   while offline shows the browser's own page, accepted); one banner for **test mode** and **keys
+   missing** (step 3). The others are per screen:
+   - **empty**: why it is empty, and the one thing to do next;
+   - **loading** and **error** of their own only when the shared ones say too little (the shape of what is
+     coming; what happened, whose fault, what to do);
+   - **form**: the exact field, inline, with how to fix it; the server's validation errors come back to
+     the field;
+   - **session expired**: after signing in again the user lands on the same page (the login's
+     `callbackURL`); a cart or an order in progress lives in the database, keyed by the user, never only
+     in the browser; a half-typed form is the one thing that can be lost, so forms stay short, and a long
+     one saves a draft on the server;
+   - **payment**, three states, worded by rules 1 and 2: *pending* (the customer confirms on their
+     phone; the app says what to do if nothing comes; a "check again" button posts to the server, which
+     asks the provider once, writes the result and answers from that row for the next 10 to 30 seconds,
+     so a customer tapping it cannot hammer the provider; the order stays pending until the server asked
+     the provider and the amount matches), *not confirmed* ("the payment was not confirmed"; never "you
+     have not been charged" before the server knows; "try again" only once the server holds the
+     provider's final failure or the expiry the spec gives, and it is a new payment on the same order,
+     which the owner's page shows; a paid amount that differs from the order stays not confirmed for the
+     customer and is flagged on the owner's pending-and-failed page), *confirmed* (the reference, the
+     confirmed amount, what happens next: a call, an SMS, a date);
+   - permission denied (camera) and no search results, only when the app has such a screen.
+   Step 8 checks the empty and the error states as well as the filled screen.
+
+   **Order.** Build first every screen that needs no provider (clients, orders, lists, the owner's pages);
+   wire the providers (payment, messages) last: keys often take days to obtain, and nothing else waits
+   for them.
+   Tick each screen of the checklist in `docs/plan.md` when it works and, if your agent has a task list
+   tool, keep one task per screen there too: the user sees what is done and what is left, and a new
+   conversation never rebuilds a screen.
 
    **Save points.** Before the first feature, if the project has no git repository, create one
    (`git init`), after checking that `.gitignore` covers `.env` and the dependencies folder. After each
@@ -25,18 +64,30 @@ this project only), set `playwright_offered: true`, then tell the user to reopen
    saying what would be lost. Never push to a remote unless they ask. Without git on the computer, skip
    save points and say so once.
 
-   **Keep going without waiting for a go.** Once the keys are in, build feature after feature in the
+   **When something breaks.** Before a fix that touches several files, commit the current state with a
+   message that says so (`before fixing: <error>`). After three attempts at the same error, stop: say in
+   plain words what fails and what you tried, and offer to go back to the last working save point or to
+   take another approach; never a fourth silent attempt. Never say it is fixed before you have seen it
+   work (the app run, the test green).
+
+   **Keep going without waiting for a go.** From the first feature, build feature after feature in the
    same turn. Answer the user's questions briefly, then carry on building; never end a message with
    "I'll start with…" or "I'll continue with…": do it, then say what works. Stop only to ask for
-   something only they can give (a key, a decision) or when the phase is done.
+   something only they can give (a key, a decision), after three failed attempts at the same error, or
+   when the phase is done.
 2. **African building blocks** go through the afrotools skills, never from memory: for payments, the
    `payment` skill (`afrotools.get_spec()` for the payment, its status and its webhook); for SMS,
-   WhatsApp and OTP, the `communications` skill. Apply [rules.md](rules.md) rules 1 to 4. WhatsApp
+   WhatsApp and OTP, the `communications` skill. A provider outside the registry (`.afrotools/studio.md`
+   says so) does not go through these skills' spec lookup, and gets no second `request_spec`. Before
+   wiring it, call `afrotools.search_specs()` once for that need: if a spec has arrived since, tell the
+   user and use it instead. Otherwise wire it from its own documentation, read now, not from memory, and
+   say again that it has no afro.tools spec. Apply [rules.md](rules.md) rules 1 to 4. WhatsApp
    webhooks follow [vendor/whatsapp-webhooks.md](vendor/whatsapp-webhooks.md); any webhook follows
    [vendor/webhook-handler-patterns.md](vendor/webhook-handler-patterns.md).
 3. **Keys**: when a feature needs them, list the variable names and where to put them (`.env` at the
-   project root, already ignored by git: check `.gitignore`), then wait until the user says they are in.
-   Never ask for the values. Start with the sandbox keys; the app shows clearly that it runs in test mode.
+   project root, already ignored by git: check `.gitignore`), and go on with the other screens until the
+   user says they are in; meanwhile the screen says it waits for that provider's keys. Never ask for the
+   values. Start with the sandbox keys; the app shows clearly that it runs in test mode.
 4. **A spec that is not `verified`** may be wrong: say so when you wire it, test it with the user's own
    number or account first, and offer a report (`afrotools.report_integration`) once it works or fails,
    as the `payment` skill says: paste the whole link it returns, even a long one (it carries the text), and
@@ -45,7 +96,10 @@ this project only), set `playwright_offered: true`, then tell the user to reopen
    at the delivery report".
 5. **Run the app yourself.** Start the dev server on a port nothing listens on (other projects of the
    user often use 3000 and nearby ports), give the user the link, and never ask a non-developer to type a
-   command. Before giving a link, check that the page is this app (its title or a text you wrote), not
+   command. Once the first screen works, offer once to open the app on their phone: with a yes, start the
+   server on the local network too, find the computer's address yourself and give it, and say that anyone
+   on the same Wi-Fi can then reach it, so only on a network they trust. Before giving a link, check
+   that the page is this app (its title or a text you wrote), not
    another program. Never stop, restart or reuse a process you did not start in this session: if a port
    is taken, pick another one.
 6. **Tests**: write tests for what moves money (payment confirmation, amount check, a duplicate webhook)
@@ -65,14 +119,17 @@ this project only), set `playwright_offered: true`, then tell the user to reopen
 8. **Check the screens in a browser.** If browser tools (`mcp__playwright__*`, or
    `mcp__plugin_playwright_playwright__*` from the Playwright plugin) are available, open each
    screen at a phone's width (390 × 844), use it as the user would (create a client, an order, a payment
-   link, stopping at the provider's page: never fill it in), take a screenshot, compare it with
+   link, stopping at the provider's page: never fill it in), look at it empty and after a failed action
+   as well as filled, take a screenshot, compare it with
    `docs/preview.html`, and fix what is wrong before showing it. Without them, check pages with `curl` and describe what the user should see;
    if the project already uses Playwright, follow [vendor/webapp-testing.md](vendor/webapp-testing.md).
 9. **Review, offered once per feature**: when a feature is done, offer a code review in one sentence
    (what it catches, that it uses tokens). Count each refusal in `review_declined` in the state file;
    at 2, stop offering it until the ship phase, in this session and the next ones. The review itself: read [../../review/SKILL.md](../../review/SKILL.md) and follow it.
 10. **When the plan's screens all work** with sandbox keys: give the user the list of manual tests from
-   `docs/plan.md`, one line each, marked done or still to do. If the `impeccable` skill is available,
+   `docs/plan.md`, one line each, marked done or still to do. If a provider's keys are still missing,
+   say so: the phase waits for them, and only for them; if the plan allows the app without that block,
+   offer to go on to ship without it and keep its `pending:` line. If the `impeccable` skill is available,
    `impeccable_use` is not `no` and `polish_offered` is not `true`, offer its polish pass on the main screens (`/impeccable polish <screen>`, or
    `/impeccable:impeccable polish <screen>`), saying it uses tokens, and set
    `polish_offered: true`. Then record it in

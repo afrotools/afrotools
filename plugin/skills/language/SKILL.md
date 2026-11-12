@@ -8,6 +8,7 @@ description: >
   Intron or any provider in the Afro.tools registry. Activate even if the user only says
   "transcribe these voice notes", "add speech recognition in Swahili", "summarize recorded
   calls" or "read this message aloud in Wolof" — always fetch the exact spec before writing any code.
+  If the user is creating a new app or service from an idea, use the `studio` skill instead.
 ---
 
 # Afro.tools — Language skill
@@ -30,13 +31,22 @@ for the target provider and capability before writing any implementation code.
    - Coverage is per language, not per country: check the spec's input schema (language
      code enum) and gotchas for the exact code to send — a language may only be supported
      as a code-switched model (e.g. mixed with English).
-   - Only if the provider is absent from `list_providers()`, or none of its capabilities
-     covers what the user needs:
-     1. Call `afrotools.request_spec({ provider: "<slug>", capability: "<capability>" })`
-        so the maintainers are notified of the demand.
-     2. Tell the user: "The spec for {provider} isn't available yet — I've logged
-        your request. You can track available specs with `/afrotools:list`."
+   - Only if the provider is absent from `list_providers()`, none of its capabilities
+     covers what the user needs, or, with no provider named, none in the user's country does:
+     1. Call `afrotools.request_spec()` so the maintainers are notified of the demand:
+        `{ provider: "<slug>", capability: "<capability>" }` for a named provider; without one,
+        what is needed and the country (ISO alpha-2), e.g. `{ capability: "ussd", country_code: "SN" }`.
+     2. If `logged` is true, tell the user: "The spec for {provider} isn't available yet — I've
+        logged your request. You can track available specs with `/afrotools:list`." (without a
+        provider: "no provider in the registry covers {need} in {country} yet"). If `logged` is
+        false because the spec exists, fetch it (step 2) instead of stopping. If the call fails,
+        say the request was not recorded.
      3. Stop — don't attempt to implement without a spec.
+
+     Exception: a provider the user explicitly chose outside the registry (afro.tools Studio's
+     "outside the registry" choice, recorded in `.afrotools/studio.md`) is implemented from its own
+     documentation, read now, with a warning that it has no afro.tools spec (no recorded gotchas, no
+     tested status). No `request_spec` from this skill (Studio already offered it).
 
 2. Call the MCP tool to fetch the spec:
    ```
@@ -71,6 +81,11 @@ for the target provider and capability before writing any implementation code.
      spec lists — an accent outside its language is rejected
    - For a multipart upload, use `FormData` and let fetch set the boundary — don't set
      `Content-Type` by hand
+
+## Before going live
+
+When the integration is wired, offer `/afrotools:check` once, in one sentence: a cheap check that the keys stay out of the code and the browser, and that this provider's gotchas are handled, against its spec.
+When `.afrotools/studio.md` exists, do not offer it: afro.tools Studio runs it before going live.
 
 ## After the integration
 

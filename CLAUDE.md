@@ -95,8 +95,8 @@ afrotools/afrotools/
 ## Core rules — plugin/
 
 - `plugin/.mcp.json` points to `https://mcp.afro.tools/mcp` (Streamable HTTP)
-- `plugin/skills/payment/SKILL.md`, `plugin/skills/communications/SKILL.md`, `plugin/skills/identity/SKILL.md`, `plugin/skills/logistics/SKILL.md` and `plugin/skills/language/SKILL.md` activate automatically
-- `plugin/skills/spec/SKILL.md`, `list`, `new`, `studio`, `check`, `review` and `diagnose` are manual-only (`disable-model-invocation: true`); a manual skill cannot be invoked by the agent, so Studio reads `check` and `review` as files
+- `plugin/skills/payment/SKILL.md`, `plugin/skills/communications/SKILL.md`, `plugin/skills/identity/SKILL.md`, `plugin/skills/logistics/SKILL.md` and `plugin/skills/language/SKILL.md` activate automatically, and so does `plugin/skills/studio/SKILL.md` when the user wants to create an app or service from an idea
+- `plugin/skills/spec/SKILL.md`, `list`, `new`, `check`, `review` and `diagnose` are manual-only (`disable-model-invocation: true`); a manual skill cannot be invoked by the agent, so Studio reads `check` and `review` as files
 - `plugin/skills/studio/references/vendor/` holds copied third-party files: each starts with its source, license and changes, its license goes in `plugin/third_party/` (`scripts/third-party.test.js`)
 - When adding a new category to `specs/`, add a corresponding `plugin/skills/{category}/SKILL.md`
 - Never embed API keys or credentials in plugin files
