@@ -7,7 +7,6 @@ description: >
   verified, against the Afro.tools specs of the providers used. Invoke with: /afrotools:check.
   Afro.tools Studio runs it before going live. Manual invocation only.
 disable-model-invocation: true
-allowed-tools: Bash(node .afrotools/tools/scan-secrets.mjs *)
 ---
 
 # /afrotools:check
