@@ -4,10 +4,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import { scan } from "../plugin/skills/check/scripts/scan-secrets.mjs";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { extractScript } from "./extract-md-code-block.mjs";
 
-const CLI = path.join(path.dirname(fileURLToPath(import.meta.url)), "../plugin/skills/check/scripts/scan-secrets.mjs");
+const CLI = extractScript(fileURLToPath(new URL("../plugin/skills/check/scripts/scan-secrets.md", import.meta.url)));
+const { scan } = await import(pathToFileURL(CLI).href);
 
 function project(files) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "scan-secrets-"));

@@ -18,7 +18,10 @@ SKILL.md's first-run step 2 for it now, flags included.
    `level: explain`, tell the user in one sentence what now works and how to see it.
 
    **Each screen ships with its states**, built with the screen, not after; a screen "works" only when
-   they are there, in the customer's language, concrete, with one next step each. Some are written once
+   they are there, in the customer's language, concrete, with one next step each. Every text on a screen,
+   help texts included, is in the words of the person reading it: no file or variable name, no technical
+   term (the first end-to-end test showed "the same as in the .env file (OWNER_EMAIL)" under the email
+   field, in production). Some are written once
    for the whole app, before the first screen: a `loading.tsx` and an `error.tsx` (a client component) at
    the root and per route group, so no page ever shows an endless spinner or a blank page; one banner in
    the root layout for offline (the browser's `online`/`offline` events: keep what is on screen, say the
@@ -44,6 +47,8 @@ SKILL.md's first-run step 2 for it now, flags included.
      which the owner's page shows; a paid amount that differs from the order stays not confirmed for the
      customer and is flagged on the owner's pending-and-failed page), *confirmed* (the reference, the
      confirmed amount, what happens next: a call, an SMS, a date);
+   - **irreversible action**: as the bar in [design.md](design.md) says, a confirmation in the page that
+     names the amount or the person affected, or an undo right after;
    - permission denied (camera) and no search results, only when the app has such a screen.
    Step 8 checks the empty and the error states as well as the filled screen.
 
@@ -54,8 +59,13 @@ SKILL.md's first-run step 2 for it now, flags included.
    tool, keep one task per screen there too: the user sees what is done and what is left, and a new
    conversation never rebuilds a screen.
 
-   **Save points.** Before the first feature, if the project has no git repository, create one
-   (`git init`), after checking that `.gitignore` covers `.env` and the dependencies folder. After each
+   **Save points.** Before the first feature, a change to a live app included, check that `.gitignore`
+   covers `.env`, the dependencies folder, the browser tools' working folder (`.playwright-mcp/`,
+   the Playwright tools' default output folder in the working directory, where their snapshots, console
+   logs and screenshots land: on the second end-to-end test, they went into the app's save points), and
+   `.afrotools/tools/` (the scripts the check and diagnose skills write there from their `.md` source,
+   regenerated each run: no reason to version them), and
+   add what is missing; then, if the project has no git repository, create one (`git init`). After each
    feature that works, save it: `git add -A` then `git commit -m "<what now works, in plain words>"`. If git
    has no name set, set one for this project only (`git config user.name` and `user.email`), with the
    user's name and email if they give them, otherwise the app's name and `studio@localhost`. The first
@@ -64,7 +74,10 @@ SKILL.md's first-run step 2 for it now, flags included.
    saying what would be lost. Never push to a remote unless they ask. Without git on the computer, skip
    save points and say so once.
 
-   **When something breaks.** Before a fix that touches several files, commit the current state with a
+   **When something breaks.** A provider's error is read in the dev server's output (the log of
+   step 2) and reproduced through the app, never by replaying the call with the key taken from `.env`
+   ([stack.md](stack.md) step 5).
+   Before a fix that touches several files, commit the current state with a
    message that says so (`before fixing: <error>`). After three attempts at the same error, stop: say in
    plain words what fails and what you tried, and offer to go back to the last working save point or to
    take another approach; never a fourth silent attempt. Never say it is fixed before you have seen it
@@ -81,7 +94,10 @@ SKILL.md's first-run step 2 for it now, flags included.
    says so) does not go through these skills' spec lookup, and gets no second `request_spec`. Before
    wiring it, call `afrotools.search_specs()` once for that need: if a spec has arrived since, tell the
    user and use it instead. Otherwise wire it from its own documentation, read now, not from memory, and
-   say again that it has no afro.tools spec. Apply [rules.md](rules.md) rules 1 to 4. WhatsApp
+   say again that it has no afro.tools spec. Apply [rules.md](rules.md) rules 1 to 4. Every call to a
+   provider logs, on the server, the provider's HTTP status and response body when the status is not the
+   one the spec expects (`console.error` with the provider's name), and nothing of what it sent: that log
+   is how an error is diagnosed ([stack.md](stack.md) step 5). WhatsApp
    webhooks follow [vendor/whatsapp-webhooks.md](vendor/whatsapp-webhooks.md); any webhook follows
    [vendor/webhook-handler-patterns.md](vendor/webhook-handler-patterns.md).
 3. **Keys**: when a feature needs them, list the variable names and where to put them (`.env` at the
@@ -113,9 +129,17 @@ SKILL.md's first-run step 2 for it now, flags included.
    provider's page, what they should then see in the app. The test method (test card, test wallet, test
    number) comes only from the spec or the provider's documentation; if neither gives one, say so and
    tell them to ask the provider: never invent one. On their computer, the provider's confirmation
-   (webhook) cannot reach the app without a public address: so the app asks the provider for the status
-   itself (rule 1), when the customer comes back and with a "check the payment" button on a pending
-   order. Ask what they saw, and use it in the report (step 4).
+   (webhook), its return page, and any link it sends the customer on the app's behalf need a public
+   `https` address: when a provider with a webhook is wired, or whose capability sends the customer a
+   link back to the app (a payment link, a link in a WhatsApp template, a link in an SMS message), before
+   your own test of step 6, set up the tunnel of [stack.md](stack.md) "On the computer" step 7, and the webhook address reaches
+   the provider as that step says (sent by the app, or pasted by the user in the provider's test
+   settings), the same for every such provider (payment, WhatsApp…). A link approved in advance, such as
+   a WhatsApp template's button, follows stack.md step 7's own note on it. The app still asks the
+   provider for the status itself (rule 1),
+   when the customer comes back and with a "check the payment" button on a pending order: the tunnel
+   serves the test, the status check stays for production and for the times the tunnel is off. Ask what
+   they saw, and use it in the report (step 4).
 8. **Check the screens in a browser.** If browser tools (`mcp__playwright__*`, or
    `mcp__plugin_playwright_playwright__*` from the Playwright plugin) are available, open each
    screen at a phone's width (390 × 844), use it as the user would (create a client, an order, a payment

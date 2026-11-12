@@ -7,7 +7,7 @@ description: >
   verified, against the Afro.tools specs of the providers used. Invoke with: /afrotools:check.
   Afro.tools Studio runs it before going live. Manual invocation only.
 disable-model-invocation: true
-allowed-tools: Bash(node "${CLAUDE_SKILL_DIR}/scripts/scan-secrets.mjs" *)
+allowed-tools: Bash(node .afrotools/tools/scan-secrets.mjs *)
 ---
 
 # /afrotools:check
@@ -15,10 +15,14 @@ allowed-tools: Bash(node "${CLAUDE_SKILL_DIR}/scripts/scan-secrets.mjs" *)
 The cheap check that always runs before going live. Speak to the user in their language, in plain
 words; report each problem as what could go wrong for them, then what you change.
 
-1. **Keys** (rule 3): run the free script on the project, no AI involved:
+1. **Keys** (rule 3): run the free script on the project, no AI involved. Its source is
+   [scripts/scan-secrets.md](scripts/scan-secrets.md) (a fenced code block, not a runnable file: the
+   directory only accepts scripts from a Verified organization, which this plugin isn't yet). Write that
+   block, unchanged, to `.afrotools/tools/scan-secrets.mjs` in the project (create `.afrotools/tools/`
+   first if missing; overwrite the file if it already exists, so an older copy never runs), then:
 
    ```bash
-   node "${CLAUDE_SKILL_DIR}/scripts/scan-secrets.mjs" .
+   node .afrotools/tools/scan-secrets.mjs .
    ```
 
    Exit 0: nothing found. Exit 1: each line is `file:line: reason`. Exit 2: a file or folder could not

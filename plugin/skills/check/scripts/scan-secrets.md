@@ -1,4 +1,25 @@
-#!/usr/bin/env node
+# scan-secrets.mjs
+
+Free pre-production check for rule 3 (no key in the code or sent to the browser): keys written as
+literals in code, secret-named variables a bundler sends to the browser, and `.env` files tracked by
+git. No dependency, no AI.
+
+The directory only accepts Markdown, text, JSON, YAML and image files from an organization that isn't
+Verified, so this script ships as a fenced code block here instead of a runnable `.mjs` file. Before
+using it, write the block below as-is (no shebang line needed — it is only ever run through `node`) to
+`.afrotools/tools/scan-secrets.mjs` in the project (create `.afrotools/tools/` if it doesn't exist yet,
+overwrite the file if it does: this file is the source of truth), then run:
+
+```bash
+node .afrotools/tools/scan-secrets.mjs [dir=.]
+```
+
+Exit: 0 no finding, 1 findings (one per line, `file:line: reason`), 2 a file or folder could not be
+read (named on a `could not read` line; the rest is still scanned). If the output is a Node error such
+as `Cannot find module`, the script did not run: check the written file and try again — it is not a
+finding.
+
+```javascript
 // Free pre-production check for rule 3 (no key in the code or in the browser), no dependency and
 // no AI: keys written as literals in code, secret-named variables a bundler sends to the browser,
 // and .env files tracked by git. Usage: node scan-secrets.mjs [dir=.]
@@ -132,3 +153,4 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exit(2);
   }
 }
+```

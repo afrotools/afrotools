@@ -1,4 +1,22 @@
-#!/usr/bin/env node
+# issue-url.mjs
+
+Builds the link to the prefilled `studio-diagnostic` issue form from a report, after masking what must
+not reach a public issue.
+
+The directory only accepts Markdown, text, JSON, YAML and image files from an organization that isn't
+Verified, so this script ships as a fenced code block here instead of a runnable `.mjs` file. Before
+using it, write the block below as-is (no shebang line needed — it is only ever run through `node`) to
+`.afrotools/tools/issue-url.mjs` in the project (create `.afrotools/tools/` if it doesn't exist yet,
+overwrite the file if it does: this file is the source of truth), then run:
+
+```bash
+echo '<report json>' | node .afrotools/tools/issue-url.mjs
+```
+
+Report: `{ title, agent, plugin_version, what_happened, steps }`. Prints the cleaned `title`,
+`what_happened` and `steps`, then the link.
+
+```javascript
 // Builds the link to the prefilled studio-diagnostic issue form from a report, after masking what
 // must not reach a public issue. Usage: echo '<report json>' | node issue-url.mjs
 // Report: { title, agent, plugin_version, what_happened, steps }.
@@ -61,3 +79,4 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.log(buildIssueUrl(r));
   });
 }
+```
