@@ -25,10 +25,14 @@ Speak to the user in their language; the report itself is written in English.
    tokens, phone numbers or e-mail addresses, even partially.
 
 2. **Build the link**: pass the report as JSON on stdin to the script, which masks e-mails, phone
-   numbers, bearer tokens, secret-named values and long tokens, and keeps the URL under GitHub's limit:
+   numbers, bearer tokens, secret-named values and long tokens, and keeps the URL under GitHub's limit.
+   Its source is [scripts/issue-url.md](scripts/issue-url.md) (a fenced code block, not a runnable file:
+   the directory only accepts scripts from a Verified organization, which this plugin isn't yet). Write
+   that block, unchanged, to `.afrotools/tools/issue-url.mjs` in the project (create `.afrotools/tools/`
+   first if missing; overwrite the file if it already exists, so an older copy never runs), then:
 
    ```bash
-   node "${CLAUDE_SKILL_DIR}/scripts/issue-url.mjs" <<'EOF'
+   node .afrotools/tools/issue-url.mjs <<'EOF'
    <report as JSON>
    EOF
    ```

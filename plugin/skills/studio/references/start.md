@@ -5,7 +5,8 @@ Goal: the user knows what the app will do, which African providers it uses, and 
 1. **Say what Studio does for them**, in one sentence about the result, not the tools. For example:
    "I'll build your app with you, and connect payment and messages without the usual errors."
    Skip it if you already said it when Studio started on its own.
-2. **Understand the idea in their words**: what the app does, for whom, in which country. At most
+2. **Understand the idea in their words**: what the app does, for whom, in which country, and the
+   business's name as it should appear on the screens and in the messages (never make one up). At most
    three questions, only about what the user has not said. Then always, even when their first message
    said everything, play the idea back in two or three lines with their own words ("If I understand
    correctly: …", in their language) and ask one question: "Is that right?". Correct it until they say
@@ -67,6 +68,6 @@ Goal: the user knows what the app will do, which African providers it uses, and 
 
    Tell the user to put the keys in a `.env` file at the project root themselves, and never to paste
    them in the chat. Do not describe sign-up steps, documents or delays the registry does not give.
-6. **Record** the providers, the key names, whether there is a registered business or a merchant
-   account, and, for each provider, whether production access was asked for in `.afrotools/studio.md`,
+6. **Record** the business's name, the providers, the key names, whether there is a registered business or
+   a merchant account, and, for each provider, whether production access was asked for in `.afrotools/studio.md`,
    set `phase: plan`, and say in one sentence what the next phase does.

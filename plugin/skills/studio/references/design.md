@@ -23,7 +23,9 @@ templated, dated. This phase is where that is prevented; fixing it after the bui
      (`inputmode="numeric"` for amounts and phone numbers); weak connection: no heavy images or video, at
      most one web font, pages that say clearly when something is loading or failed, and that keep what was
      typed; states designed, not left to chance: empty lists, errors, payment pending, payment failed,
-     test mode.
+     test mode; an action that cannot be undone (cancel a payment, delete, mark delivered, remove an
+     account) asks once in the page, saying what it changes, or can be undone right after; everyday
+     actions stay one tap.
 4. **Two directions to choose from** (one, with `level: quiet`, if the developer asks for one). Make
    two previews of the main screen, each a single static page,
    different enough to be a real choice, not two shades of one design: `docs/preview-a.html` and

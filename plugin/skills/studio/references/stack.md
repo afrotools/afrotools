@@ -64,16 +64,21 @@ never forgotten: a `vercel.json` at the project root with `{ "regions": ["fra1"]
 1. **The account and the database come first**, because every screen needs data. The user creates these
    themselves, with the links: a [Vercel account](https://vercel.com/signup); then the Neon database from
    the [Neon integration on the Vercel Marketplace](https://vercel.com/marketplace/neon) (**Install**,
-   region Frankfurt, a plan they pick; the steps are on
-   [Neon's page about it](https://neon.com/docs/guides/vercel-managed-integration)). In the Neon console
+   region Frankfurt, a plan they pick, the name the screen proposes; the steps are on
+   [Neon's page about it](https://neon.com/docs/guides/vercel-managed-integration)). Say before they open
+   it that the optional **Auth** ("Managed Better Auth") and **Realtime** stay unticked: the app runs its
+   own Better Auth (step 4), Auth would only add profiles synced to Postgres and two variables the app
+   never reads. In the Neon console
    (opened from Vercel's **Storage** tab), they create a branch named `dev`: a Neon branch is "a
    copy-on-write clone of your data", so the computer works on a copy and production keeps its own data.
    They copy the `dev` branch's **direct** connection string (connection pooling off in Neon's connect
    dialog; [connect from any app](https://neon.com/docs/connect/connect-from-any-app)) into `.env`
    themselves as `DATABASE_URL`: it holds a password, so never in the chat, and you never read `.env`
-   (see step 5; `grep -q '^DATABASE_URL=' .env` tells you whether it is there without showing it). A
-   developer who has Postgres or Docker on the computer may use a local Postgres instead; production
-   stays on Neon.
+   (see step 5; `grep -q '^DATABASE_URL=' .env` tells you whether it is there without showing it). At
+   `level: explain`, always the `dev` branch, even when a Postgres is installed on the computer: nothing
+   to install or keep running, and [plan.md](plan.md) wants the same kind of database on the computer
+   and in production, so the Neon steps are not left for the ship phase. A developer at `level: quiet`
+   who asks for it may use a local Postgres instead; production stays on Neon.
 2. **The project.** The folder already holds `.afrotools/`, `docs/` and `.env`, and create-next-app
    refuses a folder with files it does not know. So scaffold next to it, then move everything in:
    `npx create-next-app@latest ../<name>-scaffold --yes --ts --app --src-dir` (the `--yes` flag answers
@@ -155,7 +160,15 @@ never forgotten: a `vercel.json` at the project root with `{ "regions": ["fra1"]
      hence `storage` and `enabled`), then regenerate the tables (a `rateLimit` table). Both counts are in
      the database, as rule 4 asks, and `check` looks for both.
 5. **Secrets and `.env`.** You never read `.env`, and never edit it with your file tool (editing means
-   reading it first, and reading puts the user's keys in the chat). What you add to it goes through one
+   reading it first, and reading puts the user's keys in the chat). Not even to diagnose a provider's
+   error (on the second end-to-end test, the agent put the key from `.env` in a shell variable to
+   replay the call with `curl`, and the key ended up in its own output): the only commands that touch
+   `.env` are the ones in this step and step 1's `grep -q`, none of which prints a value. A provider's
+   error is read in the output of the dev server you started: the app logs the provider's status and
+   response body, as [build.md](build.md) step 2 asks, and never anything it sent, headers, body or
+   address, since some providers carry the key in the body or the URL (PayGate, Paycard); if the body
+   echoes the request, the status alone; a webhook's headers are never logged either. Then it is
+   reproduced through the app's own action, as build.md step 6 tests it. What you add to it goes through one
    shell command that shows nothing, guarded so a resume does not add it twice:
    `grep -q '^BETTER_AUTH_SECRET=' .env || printf 'BETTER_AUTH_SECRET=%s\n' "$(node -e "process.stdout.write(require('crypto').randomBytes(32).toString('base64'))")" >> .env`
    (Node is already there; `openssl` is not always, on Windows). Same form for `OWNER_EMAIL=<the email
@@ -167,6 +180,109 @@ never forgotten: a `vercel.json` at the project root with `{ "regions": ["fra1"]
    through the app once logged in), **public** for what anyone may see (product photos). On the computer,
    the user puts the store's read-write token in `.env` themselves; on Vercel, the connected project
    authenticates by itself ([Vercel Blob](https://vercel.com/docs/vercel-blob)).
+7. **A public address for the computer, when a provider needs one.** A provider's confirmation
+   (its webhook), its return page, and any link it sends the customer on the app's behalf all need a
+   public `https` address, and the computer has none: on the second end-to-end test, Bictorys refused a
+   `localhost` return address (its `create_charge` spec: the redirect addresses must start with
+   `https://`, or the charge itself is refused), and the confirmation could only be seen through the
+   "check the payment" button; on the third, a WhatsApp template's button — a link sent to the customer,
+   not a webhook — pointed at the production address with no way to try the click-through before going
+   live. So, when you wire a provider that has a webhook (a spec with `capability_type: "webhook"` among
+   those `afrotools.search_specs()` returns for it; for a provider outside the registry, a webhook in its
+   documentation) or whose capability sends the customer a link back to the app (a payment link, a link
+   in a WhatsApp template, a link in an SMS message), put the dev server behind a tunnel with
+   [ngrok](https://ngrok.com/docs/getting-started/), the same way for every such provider (payment,
+   WhatsApp…; the Hookdeck tunnel named in [vendor/whatsapp-webhooks.md](vendor/whatsapp-webhooks.md) is
+   not used, this one is) — before your own test of [build.md](build.md) step 6. Read the full
+   `input_schema` before concluding a capability sends nothing back to the customer: the link can sit
+   several levels down (Infobip's `send_whatsapp_template`, `capability_type: "synchronous"`, buries a
+   `URL`-type template button under `content.templateData.buttons`). At
+   `level: explain`, say it is a temporary public address for their computer, so the service can tell the
+   app that a payment went through, or so the link it sends can be tried, while you test.
+   - **Account and install.** If `ngrok` is not on the computer, offer it in one message, never the
+     same message as the companions offer: what it is for (the temporary public address above), that it
+     has a free plan ([free plan limits](https://ngrok.com/docs/pricing-limits/free-plan-limits/), read
+     now), that it takes an account and one command to type once in their terminal, and what a no means
+     for this provider (the last bullet: the confirmation seen through the button only, or, with a
+     provider that refuses `http` return addresses, nothing tried before production); they decide, and
+     the answer goes into `.afrotools/studio.md` as `tunnel: yes | no`; with `no`, do not offer again.
+     With a yes, the user creates the free ngrok account themselves, and you install the agent yourself
+     when `brew` is on the computer (`brew install ngrok`); otherwise send them to the download page the
+     getting-started page links for Linux and Windows. Then they run, in their own terminal
+     application, the one `ngrok config add-authtoken …` command their dashboard shows: it ties the
+     program to their account, the only command a non-developer types during the build
+     ([build.md](build.md) step 5), because it holds a secret, never in the chat; and you never read
+     ngrok's configuration file. You see whether it is done when `ngrok http` starts, or refuses to for
+     want of an authtoken.
+   - **One tunnel per computer.** The free plan has one dev domain per account
+     ([free plan limits](https://ngrok.com/docs/pricing-limits/free-plan-limits/)). Before starting,
+     `GET http://127.0.0.1:4040/api/endpoints` ([agent API](https://ngrok.com/docs/agent/api/)): if
+     something answers, a tunnel already runs on this computer, for this project or another; do not start
+     a second one, say so. Otherwise start it yourself, in the background, on the dev server's port:
+     `ngrok http <port>`. Every account, the free ones included, has a dev domain such as
+     `<assigned-name>.ngrok-free.dev`, "static: it doesn't change when you restart the agent", and
+     `ngrok http` "puts it on your dev domain automatically"
+     ([domains](https://ngrok.com/docs/universal-gateway/domains/)), so the address a provider holds
+     stays valid from one session to the next. Read it in `endpoints[0].url` of that same
+     `GET /api/endpoints` (the public address; `upstream.url` is the computer's), never from
+     `/api/requests/http`: it holds the captured requests, secrets of the provider's webhook included.
+     ngrok is a process you started: stop it with the dev server at the end of the session.
+   - **The dev server** must accept that hostname: `allowedDevOrigins: ["<the dev domain>"]` in
+     `next.config.ts`, without scheme or port
+     ([allowedDevOrigins](https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins)):
+     Next.js "blocks cross-origin requests to dev-only assets and endpoints during development by
+     default". Restart the dev server after this and after the `.env` line below.
+   - **The app's public address** is one variable, `APP_URL`: the links sent to customers and the return
+     and webhook addresses given to a provider come from it, never from a literal, except a link
+     approved in advance (the next bullet). On the computer it is
+     the tunnel address, in production the site's (Going live, step 3). Write it to `.env` with the
+     one-line form of step 5 (not a secret; if the line is already there with another address, rewrite
+     it with a shell command that shows nothing, never by editing the file). `BETTER_AUTH_URL` stays
+     unset on the computer and the owner keeps using `http://localhost:<port>`; a customer's test
+     journey, when customers log in (step 4), starts on the tunnel address and stays there: a session
+     opened on `localhost` does not exist on the dev domain.
+   - **The webhook address**, `${APP_URL}/api/webhooks/<provider>`, reaches the provider one of two
+     ways, and the webhook spec or the create capability's input says which: when the create capability
+     takes it in its input (LengoPay's `callback_url`), the app sends it on every request and the user
+     registers nothing; otherwise give the user the address to paste in the provider's **test**
+     settings, and where those are, read now in the provider's documentation (`docs_url`), never from
+     memory. At `level: explain`: "the address where <provider> tells your app that a payment went
+     through; paste it in <where the documentation says>, in the test part". The secret the webhook spec
+     asks for: when the provider gives it on registration, the user copies it into `.env` themselves
+     ([build.md](build.md) step 3); when the merchant chooses it (Bictorys's `X-Secret-Key`), the user
+     makes a long one with their password manager and pastes it in both places themselves, since they
+     have to see it. If the account already serves another app, a provider may take only one webhook
+     address per account or environment: say so and let the user decide; never tell them to replace an
+     address this app did not register. In production the address is the site's (Going live, step 4).
+   - **A link approved in advance (a WhatsApp template's button).** A dynamic URL button's domain is
+     registered with Meta when the template is created: "you must still register the domain with Meta,
+     but you can define placeholder parameters that are populated using the Infobip WhatsApp API when
+     sending the message"
+     ([Infobip: dynamic template button URLs](https://www.infobip.com/docs/whatsapp/whatsapp-over-api#dynamic-template-button-urls-with-shortening-and-tracking),
+     read now for the provider at hand — a different provider's WhatsApp template capability may register
+     the domain differently). Only the placeholder at the end of the URL (`{{n}}`) varies per message, so
+     `APP_URL` cannot swap the domain per environment the way the app's own code does. No capability in
+     this registry creates or submits a template; the user does it themselves, by hand, in the provider's
+     console (Infobip's WhatsApp Manager, or Meta Business Manager). Before they submit one, say so and
+     let them choose, at `level: explain`: "this button's link gets fixed in place when the template is
+     approved; I can have you submit it with your test address so you can try the whole flow now, but it
+     will need a second approval with the live address before it goes out to real customers — or you can
+     submit it once with the live address and leave this one part untested until then. Which do you
+     want?" Record the choice in `.afrotools/studio.md` as `template_domain: tunnel | production`; never
+     pick it for them.
+   - **The warning page.** On the free plan, ngrok shows a page "in front of all HTML browser traffic",
+     with a **Visit** button, once per browser; it "does not impact users serving APIs or accessing
+     ngrok endpoints programmatically", so the webhooks pass
+     ([free plan limits](https://ngrok.com/docs/pricing-limits/free-plan-limits/), where the plan's
+     quotas are: never state them from memory). Tell the user before their test: the first thing they
+     see after paying, when the provider sends them back to the app, is that page, and one click on
+     **Visit** ends it.
+   - **Without the tunnel** (`tunnel: no`, or the install fails), the app still
+     asks the provider for the status itself (rule 1, [build.md](build.md) step 7) and "check the
+     payment" does the work, but the return page cannot show on the computer, and a provider that
+     refuses an `http` return address (Bictorys) cannot be tried from the computer at all: say so; the
+     whole journey is then first seen in production, with a small real payment. A link in a WhatsApp
+     template or an SMS message stays on the production address too, and is first tried in production.
 
 ### Going live (ship phase, with [ship.md](ship.md))
 
@@ -178,7 +294,15 @@ re-read now. Two ways to get the code to Vercel:
   ([vercel login](https://vercel.com/docs/cli/login)); you check with `npx vercel whoami` (it prints a
   username, nothing secret). Then you create the project without deploying: `npx vercel link --yes`
   ("skip questions you are asked when setting up a new Vercel Project";
-  [vercel link](https://vercel.com/docs/cli/link)). Deploying is `npx vercel --prod`
+  [vercel link](https://vercel.com/docs/cli/link)). Before any `npx vercel`, preview included, write a
+  `.vercelignore` at the project root with two lines, `.env` and `.env.*`: the CLI uploads the folder's
+  files, and its [default ignore list](https://vercel.com/docs/builds/build-features#ignored-files-and-folders)
+  skips `.env.local` and `.env.*.local`, not `.env` (on the first end-to-end test, the computer's `.env`
+  went up with the first `vercel --prod` although `.gitignore` ignored it; the app refused to start in
+  production with the sandbox variables, and the file is visible in that deployment's sources to the
+  Vercel team). `npx vercel deploy --dry`, from the linked project, lists the files a deploy would include
+  without creating one ([dry-run deployments](https://vercel.com/changelog/dry-run-deployments-with-vercel-cli),
+  CLI 54.17.2 or later): run it once and check no `.env` is in the list. Deploying is `npx vercel --prod`
   ([vercel deploy](https://vercel.com/docs/cli/deploy)), run only at step 7 and only on their go; every
   later change goes live the same way, through Studio. A change they want to try before production is
   `npx vercel` without `--prod`: a preview address.
@@ -193,11 +317,20 @@ re-read now. Two ways to get the code to Vercel:
 Then, in order:
 
 1. **The database joins the project**: the Vercel project exists now (linked or imported). In its
-   **Storage** tab the user connects the Neon database created in the build phase (if the tab asks for a
-   deployment first, deploy once with `npx vercel`, without `--prod`); with GitHub, they tick **Create
-   database branch for deployment: Preview**, so every preview deployment gets its own copy of the data
-   (`preview/<git-branch>`) and production keeps the `main` branch. The integration adds `DATABASE_URL`,
-   `DATABASE_URL_UNPOOLED` and the `PG*` variables itself.
+   **Storage** tab the user connects the Neon database created in the build phase (the tab takes a project
+   linked by `vercel link --yes` and never deployed; if it asks for a deployment first, deploy once with
+   `npx vercel`, without `--prod`). Its **Connect Project** screen asks three things, say them before the
+   user opens it ([Neon's page](https://neon.com/docs/guides/vercel-managed-integration)):
+   - the environments: all three, Development, Preview and Production;
+   - **Create database branch for deployment**: tick **Preview**, never Production, on both paths. Every
+     preview deployment then gets its own copy of the data and production keeps the `main` branch; without
+     it a preview would run against production's data, with the sandbox keys of step 3 and the `build`
+     script's migrations. Each branch counts against the plan's allowance, the `dev` branch too
+     ([plans](https://neon.com/docs/introduction/plans));
+   - the custom prefix: empty, unless the project already uses those variable names for something else.
+
+   The integration adds `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, the `PG*` pieces and legacy `POSTGRES_*`
+   variables itself: tell the user these extra names are expected, the app reads `DATABASE_URL` only.
 2. **The plan**: an app that sells or takes payments is commercial usage, so the user upgrades to Pro
    ([Hobby plan](https://vercel.com/docs/plans/hobby), **Settings → Billing**) and pays with their card
    (see "How it is paid").
@@ -205,7 +338,8 @@ Then, in order:
    Secret by default). A new secret for production, never the computer's, piped so it is neither shown nor
    kept in the shell history:
    `node -e "process.stdout.write(require('crypto').randomBytes(32).toString('base64'))" | npx vercel env add BETTER_AUTH_SECRET production`.
-   The values that are not secret, with `--value`: `BETTER_AUTH_URL` (the app's address, `https://…`)
+   The values that are not secret, with `--value`: `BETTER_AUTH_URL` and `APP_URL` (both the app's
+   address, `https://…`; `APP_URL` replaces the computer's tunnel address of "On the computer" step 7)
    and `OWNER_EMAIL`, each `npx vercel env add <NAME> production --value "<value>" --no-sensitive --yes`.
    The providers' production keys the user enters themselves, in **Settings → Environment Variables**,
    environment **Production** only ([environment variables](https://vercel.com/docs/environment-variables));

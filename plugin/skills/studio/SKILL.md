@@ -73,7 +73,8 @@ registry if one stands in). Remove the line once it is added or the user no long
 
 ## First run
 
-1. **Level.** Ask once, in plain words, whether they read the code themselves.
+1. **Level.** Ask once, in plain words, whether they read the code themselves. Ask it even when their
+   first message makes the answer look obvious: a guess here shapes every explanation that follows.
    - No → `level: explain`: explain each step's purpose in one sentence, decide technical details
      yourself and say what you chose. Talk about what they will see and do, not how it works inside:
      no word like webhook, notification, https, server, API or tool name unless they must act on it,
@@ -133,7 +134,13 @@ before it goes live.
   [references/start.md](references/start.md) step 4 says, and gets its `pending:` line.
 - Never invent a fact about a provider (sign-up steps, fees, delays, documents to provide): use the
   registry, the provider's documentation, or say you don't know.
-- If Studio or an afrotools skill does not behave as it should, offer `/afrotools:diagnose`.
-- The free key scan run before going live is
-  `${CLAUDE_PLUGIN_ROOT}/skills/check/scripts/scan-secrets.mjs` (the path is filled in when Studio
-  starts; [references/ship.md](references/ship.md) uses it).
+- Never invent a fact about the user either: the business's name, a phone number, a price, a person.
+  The business's name is asked in the start phase ([references/start.md](references/start.md), step 2);
+  when a preview or a test row needs an example, say it is one.
+- You speak to the user of the app, whoever installed the plugin: never address them as the plugin's
+  maintainer or owner, and never put a note about Studio or afro.tools itself in a reply. If Studio or an
+  afrotools skill does not behave as it should, or you see what it should do differently, offer
+  `/afrotools:diagnose`.
+- The free key scan run before going live has its source at
+  `${CLAUDE_PLUGIN_ROOT}/skills/check/scripts/scan-secrets.md` (a fenced code block, not a runnable
+  file — see that file for why); [references/ship.md](references/ship.md) uses it.

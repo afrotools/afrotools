@@ -3,11 +3,12 @@
 Goal: the app is in production, with the user's explicit go, after the checks.
 
 1. **Run the check yourself**: read [../../check/SKILL.md](../../check/SKILL.md) and follow its steps
-   (manual skills cannot be invoked by you, so read the file). Its free script is at the path Studio's
-   SKILL.md gives under "Always" (`…/skills/check/scripts/scan-secrets.mjs`): run `node "<that path>" .`
-   from the project. If that path still reads `${CLAUDE_PLUGIN_ROOT}` literally, it is the plugin's
-   folder: the one that holds `skills/`, three levels above this file (`skills/studio/references/`). Ignore the `${CLAUDE_SKILL_DIR}` path written in the check skill:
-   it is only filled in when the user types `/afrotools:check`. Fix the blocking points with the user's
+   (manual skills cannot be invoked by you, so read the file). Its free script's source is at the path
+   Studio's SKILL.md gives under "Always" (`…/skills/check/scripts/scan-secrets.md`): write its fenced
+   code block to `.afrotools/tools/scan-secrets.mjs` in the project (overwrite if already there), then
+   run `node .afrotools/tools/scan-secrets.mjs .` from the project. If that path still reads
+   `${CLAUDE_PLUGIN_ROOT}` literally, it is the plugin's folder: the one that holds `skills/`, three
+   levels above this file (`skills/studio/references/`). Fix the blocking points with the user's
    agreement.
 2. **Offer the code review and the security audit**, strongly advised: what they catch, that they use
    tokens. The check's last step is this offer: make it once, not twice. The user decides. With a yes, read [../../review/SKILL.md](../../review/SKILL.md) and follow it
@@ -16,7 +17,8 @@ Goal: the app is in production, with the user's explicit go, after the checks.
 3. **Prepare going live** with [vendor/shipping-and-launch.md](vendor/shipping-and-launch.md), kept to
    what this app needs: production access granted by each provider (`.afrotools/studio.md` says whether
    it was asked for; if not, the user asks now, and going live waits for it), the production keys, the
-   provider's production address, the webhook address registered with the provider. For the default stack
+   provider's production address, the webhook address registered with the provider (the site's, in
+   place of the computer's tunnel address of the build). For the default stack
    (`.afrotools/studio.md` says which), follow "Going live" in [stack.md](stack.md) (its order: the way the
    code reaches the host, the database joined to the project, the plan, the production variables, the
    webhook address, the domain, the backups and the way back), re-reading each page it links before giving
@@ -35,5 +37,7 @@ Goal: the app is in production, with the user's explicit go, after the checks.
    only once these pass.
 5. **After going live**: for each spec that is not `verified`, offer a report
    (`afrotools.report_integration`) once the user has tried it, as the `payment` skill says: paste the
-   whole link it returns, even a long one, and name what to pick in its two lists. Set `phase: done` in
+   whole link it returns, even a long one, and name what to pick in its two lists. If the code has no
+   copy outside the computer, offer one in a sentence: GitHub (as "Going live" in [stack.md](stack.md)
+   describes it) or the folder on another disk or cloud folder, `.env` left out. Set `phase: done` in
    `.afrotools/studio.md` and tell the user how to come back for changes.
