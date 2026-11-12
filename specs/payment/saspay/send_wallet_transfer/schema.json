@@ -185,12 +185,10 @@
     }
   },
   "gotchas": [
+    "SasPay has no working sandbox. Its docs say an sk_test_ key is SANDBOX, \"tests sans argent réel\" (docs.saspay.me/account-setup), but after a card payment made with such a key was debited for real (maintainer's test, 2026-11-01), SasPay's support answered « les clés sandbox ne sont pas fonctionnelles, veuillez utiliser les clés lives » (reply to the maintainer's ticket of 2026-11-01, read 2026-11-07). Treat every call as production: test with amounts you accept to pay or send, and never tell a tester that an sk_test_ key means no money moves.",
     "Only one PENDING transfer per merchant at a time: a new call while one awaits admin approval returns 422 transfer_already_pending.",
     "The transfer is COMPLETED immediately only if WALLET_TRANSFER_AUTO_APPROVE is enabled; otherwise it stays PENDING until an admin approves it, and the target wallet is not credited before then.",
     "Send an Idempotency-Key: without it a network retry reserves the amount a second time. Reusing a key with a different body, or while the first call is still running, returns 409."
-  ],
-  "open_questions": [
-    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
   ],
   "evidence": {
     "spans": [

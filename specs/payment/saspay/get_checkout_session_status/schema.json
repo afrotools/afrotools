@@ -8,7 +8,7 @@
     "method": "test_live",
     "environment": "sandbox",
     "at": "2026-10-17",
-    "spec_hash": "sha256:8c84c1cdcf9eb117ea4fc43fc2ace6754a21e3064e489f1c7959f3bd09158fa5"
+    "spec_hash": "sha256:c5fcb316b8ad88eaec8766d8aca1e2fef6b66356c641a8e376cdf93e77166b68"
   },
   "currency": [
     "XOF",
@@ -122,12 +122,10 @@
     }
   },
   "gotchas": [
+    "SasPay has no working sandbox: an sk_test_ key reaches the same production API as a live key. SasPay's support answered « les clés sandbox ne sont pas fonctionnelles, veuillez utiliser les clés lives » after a card payment made with such a key was debited for real (maintainer's test and ticket of 2026-11-01, reply read 2026-11-07; details in create_checkout_session). This call reads or changes production data. The verification recorded on this spec (environment: sandbox) was run with an sk_test_ key on 2026-10-17: that label is what test:live records for such a key, not proof of a separate test environment; the API answered normally, and whether such a key moves money on mobile money is not known.",
     "Meant for polling when no webhook is configured: it re-checks the real gateway state on each call.",
     "Authenticated calls are limited to 300 requests per minute per account; beyond that the API returns 429, so space out polling.",
     "`success: true` only means the call worked; the outcome is in data.status (PAID for a paid session; session statuses PENDING | PAID | EXPIRED | CANCELLED) and data.transaction_status (SUCCESS for the payment; transaction statuses PENDING | SUCCESS | FAILED | CANCELLED)."
-  ],
-  "open_questions": [
-    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set."
   ],
   "evidence": {
     "spans": [

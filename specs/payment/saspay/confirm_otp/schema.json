@@ -118,12 +118,12 @@
     }
   },
   "gotchas": [
+    "SasPay has no working sandbox. Its docs say an sk_test_ key is SANDBOX, \"tests sans argent réel\" (docs.saspay.me/account-setup), but after a card payment made with such a key was debited for real (maintainer's test, 2026-11-01), SasPay's support answered « les clés sandbox ne sont pas fonctionnelles, veuillez utiliser les clés lives » (reply to the maintainer's ticket of 2026-11-01, read 2026-11-07). Treat every call as production: test with amounts you accept to pay or send, and never tell a tester that an sk_test_ key means no money moves.",
     "This is a second step, only for networks that require a customer-side confirmation after the initial push (e.g. Wizall Senegal, Coris Benin). On other networks it returns 400.",
     "A failed confirmation returns a deliberately generic 422 message: never expect the gateway's reason in it.",
     "409 means the transaction cannot be confirmed in its current state (not_pending, no_gateway, no_attempt): check it with verify_payment instead of retrying the OTP."
   ],
   "open_questions": [
-    "How SasPay tells sandbox from production on the same host, https://api.saspay.me (sandbox test runs and the production OpenAPI both use it): key type or account mode — not documented in this spec set.",
     "Is a retried confirm-otp call safe? The OpenAPI declares no Idempotency-Key header on POST /payments/{payment_id}/confirm-otp/, and the Idempotence section of the API reference does not list this route among the money-moving ones."
   ],
   "evidence": {
