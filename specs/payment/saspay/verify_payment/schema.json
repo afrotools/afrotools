@@ -7,8 +7,8 @@
   "verification": {
     "method": "test_live",
     "environment": "sandbox",
-    "at": "2026-10-17",
-    "spec_hash": "sha256:9fb52bdd3dfae9d2500e335570670625cd4501e06464d8e7fc2a35008233288e"
+    "at": "2026-11-16",
+    "spec_hash": "sha256:3667ab4779cecc233b16c7cc799795e5bd2d5a1fb4cc7f226382d5ab3a7a5f08"
   },
   "currency": [
     "XOF",
@@ -196,6 +196,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "bank_transfer": {
+            "type": "object",
+            "description": "Observed empty in the sandbox (live test 2026-11-16); its shape when a bank transfer is involved is not documented."
           }
         }
       },
@@ -231,7 +235,7 @@
     }
   },
   "gotchas": [
-    "SasPay has no working sandbox: an sk_test_ key reaches the same production API as a live key. SasPay's support answered « les clés sandbox ne sont pas fonctionnelles, veuillez utiliser les clés lives » after a card payment made with such a key was debited for real (maintainer's test and ticket of 2026-11-01, reply read 2026-11-07; details in create_checkout_session). This call reads or changes production data. The verification recorded on this spec (environment: sandbox) was run with an sk_test_ key on 2026-10-17: that label is what test:live records for such a key, not proof of a separate test environment; the API answered normally, and whether such a key moves money on mobile money is not known.",
+    "api.saspay.me treats every call as production, even with an sk_test_ key: SasPay's support confirmed « les clés sandbox ne sont pas fonctionnelles, veuillez utiliser les clés lives » after a card payment made with one was debited for real (maintainer's test and ticket of 2026-11-01, reply read 2026-11-07; details in create_checkout_session). This call reads or changes production data. Test against sandbox-api.saspay.me instead: a genuinely separate host, confirmed by the maintainer's own live test on 2026-11-16 — this exact call (GET .../payments/{payment_id}/verify/) returned SUCCESS with an external_reference prefixed sbx-success-.",
     "Only deliver the product or grant access once this returns SUCCESS.",
     "A PENDING payment is re-checked against the gateway on each call, so the status can change between two calls.",
     "Every response is wrapped in the same envelope: read the payload from data, and on failure read error.message and error.code.",
