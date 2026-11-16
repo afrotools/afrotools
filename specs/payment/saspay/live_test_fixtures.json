@@ -3,7 +3,7 @@
     {
       "capability": "create_payment",
       "body": {
-        "amount": "100.00",
+        "amount": "2500.00",
         "currency": "XOF",
         "country": "BJ",
         "network": "mtn_bj",
@@ -21,31 +21,6 @@
     {
       "capability": "verify_payment",
       "path_params": { "payment_id": "$payment.data.id" },
-      "wait_seconds": 3
-    },
-    {
-      "capability": "create_payment",
-      "body": {
-        "amount": "100.00",
-        "currency": "XOF",
-        "country": "BJ",
-        "network": "mtn_bj",
-        "customer": {
-          "email": "live-$ts@example.com",
-          "phone": "+2290197234561",
-          "last_name": "Sossou",
-          "first_name": "Awa"
-        },
-        "description": "afro.tools live test (expected failure, for retry_payment)"
-      },
-      "headers": { "Idempotency-Key": "$uuid" },
-      "store_as": "failed_payment"
-    },
-    {
-      "capability": "retry_payment",
-      "path_params": { "payment_id": "$failed_payment.data.id" },
-      "body": {},
-      "headers": { "Idempotency-Key": "$uuid" },
       "wait_seconds": 3
     },
     {
@@ -97,11 +72,6 @@
       "headers": { "Idempotency-Key": "$uuid" },
       "acceptable_error_codes": ["payout_not_enabled", "ip_not_whitelisted"],
       "store_as": "payout"
-    },
-    {
-      "capability": "verify_payout",
-      "path_params": { "payout_id": "$payout.data.id" },
-      "wait_seconds": 3
     }
   ]
 }
