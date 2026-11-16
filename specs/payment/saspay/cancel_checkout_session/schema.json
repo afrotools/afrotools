@@ -7,7 +7,7 @@
   "verification": {
     "method": "test_live",
     "environment": "sandbox",
-    "at": "2026-10-17",
+    "at": "2026-11-16",
     "spec_hash": "sha256:be25f19fd5323f3daa0a3a83de0b7fb5338275a9cf74fc46ca902bc1f9ce6cca"
   },
   "currency": [
