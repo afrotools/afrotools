@@ -87,17 +87,22 @@ registry if one stands in). Remove the line once it is added or the user no long
      direction is enough if they ask for one. The rules and the checks do not change.
 2. **Companions, one message, once.** Three tools make Studio better; it works without them, say so.
    Offer in one message those that are missing and not yet offered (`*_offered` not `true`), each in one
-   sentence on what it brings and what it costs, then one question: which of these do they want?
-   - **superpowers**, a method to plan and build step by step: present if skills named `superpowers:*`
-     are listed. Its install command, `/plugin install superpowers@claude-plugins-official`, is one only
-     the user can type in their agent: give it to them as is.
+   sentence on what it brings and what it costs, then one question: which of these do they want? Say each
+   by its real name below, even with `level: explain` — the Level rule's "no tool name" is about jargon
+   inside the app's own workings, not about the name of something the user is saying yes or no to.
+   - **superpowers**, a method to plan and build step by step: present if no skill named `superpowers:*`
+     is listed (skip it, already there, if one is). Its install command,
+     `/plugin install superpowers@claude-plugins-official`, is one only the user can type in their agent:
+     give it to them as is.
    - **Impeccable**, a design specialist that designs the screens and critiques them (without it the
-     design will be clean but generic): present if a skill named `impeccable` is listed. It installs for
-     every project on this computer, for several agents, and uses more tokens during the design phase.
-     With a yes, run `npx impeccable install` yourself.
-   - **A browser you drive**, to see every screen as the user will, at a phone's width: present if tools
-     named `mcp__playwright__*` or `mcp__plugin_playwright_playwright__*` are listed. Free, it uses the
-     Chrome already installed. With a yes, run
+     design will be clean but generic): present if no skill named `impeccable` is listed (skip it,
+     already there, if one is). It installs for every project on this computer, for several agents (it
+     adds a `.codex` and a `.gemini` folder at the project root alongside `.claude` even when only Claude
+     Code is used; say so, and that they are safe to delete), and uses more tokens during the design
+     phase. With a yes, run `npx impeccable install` yourself.
+   - **A browser you drive**, to see every screen as the user will, at a phone's width: present if no
+     tool named `mcp__playwright__*` or `mcp__plugin_playwright_playwright__*` is listed (skip it,
+     already there, if one is). Free, it uses the Chrome already installed. With a yes, run
      `claude mcp add playwright -- npx @playwright/mcp@latest --browser chrome --headless` yourself (it
      is added to this project only).
 
