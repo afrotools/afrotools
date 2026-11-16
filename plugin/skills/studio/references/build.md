@@ -103,7 +103,8 @@ SKILL.md's first-run step 2 for it now, flags included.
 3. **Keys**: when a feature needs them, list the variable names and where to put them (`.env` at the
    project root, already ignored by git: check `.gitignore`), and go on with the other screens until the
    user says they are in; meanwhile the screen says it waits for that provider's keys. Never ask for the
-   values. Start with the sandbox keys; the app shows clearly that it runs in test mode.
+   values, not even to confirm one that looks wrong ([rules.md](rules.md) rule 3). Start with the sandbox
+   keys; the app shows clearly that it runs in test mode.
 4. **A spec that is not `verified`** may be wrong: say so when you wire it, test it with the user's own
    number or account first, and offer a report (`afrotools.report_integration`) once it works or fails,
    as the `payment` skill says: paste the whole link it returns, even a long one (it carries the text), and

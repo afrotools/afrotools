@@ -13,11 +13,15 @@ cost, and the user decides.
    or payout, and make fulfilment idempotent: the same webhook can arrive several times. Why: a Bictorys
    payout without its idempotency key failed with a 500 (afrotools#166); retries without one can charge
    twice.
-3. **No key in the code or in the browser, and sandbox kept apart from production.** Keys live in
-   server-side environment variables (`.env`, outside git). Variables a bundler sends to the browser
-   (`NEXT_PUBLIC_`, `VITE_`, `EXPO_PUBLIC_`, `REACT_APP_`, `PUBLIC_`) never hold a secret. The app always
-   knows whether it runs against the sandbox or production. Why: a key in the code or in the page is
-   public the day the code or the site is.
+3. **No key in the code, in the browser, or in the chat, and sandbox kept apart from production.** Keys
+   live in server-side environment variables (`.env`, outside git). Variables a bundler sends to the
+   browser (`NEXT_PUBLIC_`, `VITE_`, `EXPO_PUBLIC_`, `REACT_APP_`, `PUBLIC_`) never hold a secret. The app
+   always knows whether it runs against the sandbox or production. Why: a key in the code or in the page
+   is public the day the code or the site is.
+   Never read a value out of `.env` to print it, quote it back, or ask the user to confirm it matches —
+   not even to recover when `.env` looks wrong (changed unexpectedly, a variable you don't recognize).
+   In that case, ask the user to open the file themselves and read back variable **names** only, or to
+   get a new value from the provider and paste it into `.env` directly, never into the chat.
 4. **Every message costs money, so a stranger cannot make the app send many.** Anything that sends an
    SMS, a WhatsApp message or a one-time code without someone logged in (sign-up, "send me a code",
    "resend the link") is limited per phone number and per hour, counted on the server in the database
