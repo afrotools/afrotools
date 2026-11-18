@@ -51,7 +51,7 @@ specs/payment/paycard/
 └── webhook_payment_completed/
 ```
 
-Voir [ATSS.md](./ATSS.md) pour la spécification complète (en anglais).
+Voir [ATSS.fr.md](./ATSS.fr.md) pour la spécification complète, ou [ATSS.md](./ATSS.md) en anglais.
 
 ---
 

@@ -1,5 +1,7 @@
 # specs/ — CLAUDE.md (ATSS v1.1)
 
+🇬🇧 English · 🇫🇷 [Français](./ATSS.fr.md)
+
 ## What is ATSS
 
 ATSS (Afro Tools Spec Standard) defines the structure, required fields, and rules
