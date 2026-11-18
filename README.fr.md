@@ -36,7 +36,7 @@ graph LR
 
 Une spec se trouve à `specs/{category}/{provider}/{capability}/` et contient exactement deux fichiers :
 
-- **`schema.json`** — description conforme ATSS de la capacité de l'API (endpoint, auth, schémas d'entrée/sortie, pièges)
+- **`schema.json`** — description conforme ATSS de la capacité de l'API (endpoint, auth, schémas d'entrée/sortie, gotchas)
 - **`canonical_example.ts`** — implémentation TypeScript en fetch natif, qui compile avec `tsc --noEmit`
 
 Chaque fournisseur a aussi un **`provider.json`** à la racine de son dossier :
@@ -62,7 +62,7 @@ automatiquement à chaque merge sur `main` — pour éviter qu'une copie traduit
 dérive de la réalité comme c'est déjà arrivé deux fois dans ce repo (voir
 `ATSS.md` § Provider index), il n'est pas dupliqué ici. Consultez-le dans le
 [README anglais](./README.md#providers), ou parcourez une page par fournisseur
-— capacités, pièges, qui peut ouvrir un compte — sur
+— capacités, gotchas, qui peut ouvrir un compte — sur
 [afro.tools/fr/providers](https://afro.tools/fr/providers).
 
 ---
@@ -162,7 +162,7 @@ Sur une version de Claude Code antérieure à 2.1.275, en deux étapes :
 - `identity` — intégrer une API de vérification d'identité (KYC, document, AML)
 - `logistics` — intégrer une API de livraison ou de coursier (tarif, réservation, suivi, annulation de livraisons)
 - `language` — intégrer une API de synthèse ou reconnaissance vocale pour les langues africaines
-- `debug` — quand une intégration basée sur une spec afrotools échoue → diagnostique si le problème vient d'une erreur de spec, d'un piège manquant ou d'un changement d'API non documenté
+- `debug` — quand une intégration basée sur une spec afrotools échoue → diagnostique si le problème vient d'une erreur de spec, d'un gotcha manquant ou d'un changement d'API non documenté
 
 **Commandes manuelles :**
 - `/afrotools:spec <provider> <capability>` — inspecter une spec complète
