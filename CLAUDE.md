@@ -44,6 +44,9 @@ afrotools/afrotools/
 │   │   └── plugin.json
 │   ├── .mcp.json
 │   └── skills/
+│       ├── studio/
+│       │   ├── SKILL.md         ← auto-activation: idea → app in production (/afrotools:studio)
+│       │   └── references/      ← one file per phase (start, plan, design, build, ship) + vendor/
 │       ├── payment/
 │       │   └── SKILL.md         ← auto-activation for payment APIs
 │       ├── communications/
@@ -54,10 +57,20 @@ afrotools/afrotools/
 │       │   └── SKILL.md         ← auto-activation for delivery / courier APIs
 │       ├── language/
 │       │   └── SKILL.md         ← auto-activation for speech/language APIs
+│       ├── debug/
+│       │   └── SKILL.md         ← auto-activation when an afrotools-based integration fails
 │       ├── spec/
 │       │   └── SKILL.md         ← /afrotools:spec (manual only)
-│       └── list/
-│           └── SKILL.md         ← /afrotools:list (manual only)
+│       ├── list/
+│       │   └── SKILL.md         ← /afrotools:list (manual only)
+│       ├── new/
+│       │   └── SKILL.md         ← /afrotools:new, scaffold a spec from docs (manual only)
+│       ├── check/
+│       │   └── SKILL.md         ← /afrotools:check, pre-production checks (manual only)
+│       ├── review/
+│       │   └── SKILL.md         ← /afrotools:review, code review or audit (manual only)
+│       └── diagnose/
+│           └── SKILL.md         ← /afrotools:diagnose, prefilled bug report (manual only)
 ├── scripts/
 │   ├── validate.js
 │   ├── validate.test.js
@@ -67,14 +80,17 @@ afrotools/afrotools/
 │   ├── ci_resolve_live_test_env.py
 │   └── generate-readme.js
 ├── ATSS.md
+├── STUDIO.md
 ├── schema.template.json
 ├── CONTRIBUTING.md
+├── CONTRIBUTING.fr.md
 ├── CODE_OF_CONDUCT.md
 ├── SECURITY.md
 ├── CHANGELOG.md
 ├── LICENSE
 ├── CLAUDE.md
 ├── README.md
+├── README.fr.md
 └── package.json
 ```
 

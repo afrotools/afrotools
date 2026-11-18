@@ -153,6 +153,44 @@ jobs:
             echo "✅  No plugin/skills/ changes — no version bump required."
           fi
 
+  # README.md/CONTRIBUTING.md each have a French translation (README.fr.md,
+  # CONTRIBUTING.fr.md). This only checks that both sides of a pair were touched in the same
+  # PR, either direction — it cannot tell whether the translation is actually up to date, same
+  # as check-plugin-version cannot tell a skill still works. It exists so this repo doesn't
+  # drift the way specs/CLAUDE.md and the hand-maintained provider table once did (see ATSS.md
+  # § Provider index).
+  check-fr-docs-sync:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Require both languages to be touched together
+        run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD)
+          MISMATCHED=""
+
+          for f in README CONTRIBUTING; do
+            EN_CHANGED=0; echo "$CHANGED" | grep -qx "$f.md" && EN_CHANGED=1
+            FR_CHANGED=0; echo "$CHANGED" | grep -qx "$f.fr.md" && FR_CHANGED=1
+
+            if [ "$EN_CHANGED" = "1" ] && [ "$FR_CHANGED" = "0" ]; then
+              MISMATCHED="$MISMATCHED $f.md (changed without $f.fr.md)"
+            elif [ "$FR_CHANGED" = "1" ] && [ "$EN_CHANGED" = "0" ]; then
+              MISMATCHED="$MISMATCHED $f.fr.md (changed without $f.md)"
+            fi
+          done
+
+          if [ -n "$MISMATCHED" ]; then
+            echo "❌  Changed one language without the other:$MISMATCHED"
+            echo ""
+            echo "Touch both files of the pair in this PR (even just to note what changed on"
+            echo "the other side), or open a follow-up PR for the other language before merging."
+            exit 1
+          fi
+          echo "✅  No README/CONTRIBUTING pair changed on only one language."
+
   # A removed capability or field breaks the integrations built on it: the PR needs the "breaking"
   # label (ATSS.md § Compatibility policy). Labels are read when the job runs, so re-running it after
   # setting the label is enough (a re-run keeps the event's original payload).

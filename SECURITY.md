@@ -11,7 +11,7 @@ There is no server code, no authentication logic, and no secrets stored here.
 - Supply chain issues in validation tooling (`package.json` devDependencies)
 
 **Out of scope:**
-- Vulnerabilities in the Afro.tools MCP server (`afrotools/mcp` — separate private repo)
+- Vulnerabilities in the Afro.tools MCP server and website (maintained in a separate private repo)
 - Vulnerabilities in provider APIs themselves (report directly to the provider)
 
 ## Reporting a vulnerability

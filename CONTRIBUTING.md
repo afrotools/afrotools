@@ -1,12 +1,14 @@
 # Contributing to Afro.tools
 
+🇬🇧 English · 🇫🇷 [Français](./CONTRIBUTING.fr.md)
+
 Thank you for helping expand AI-ready coverage for African APIs.
 
 ---
 
 ## What you can contribute
 
-- **New spec** — a `provider.json` + `schema.json` + `canonical_example.ts` for a provider/capability not yet in the registry
+- **New spec** — a `provider.json` + `schema.json` + `canonical_example.ts` for a provider/capability not yet in the registry. No time to write it yourself? Share the provider's docs — a link or a file — at [afro.tools/contribute](https://afro.tools/contribute) instead; a maintainer writes the spec for you
 - **Fix** — correcting a field, improving gotchas, or fixing a compilation error
 - **Docs** — improving ATSS.md, README, or this file
 - **Integration report** — you integrated a provider from its spec: tell us whether it matched the API (below)
@@ -295,6 +297,32 @@ Update `CHANGELOG.md` under `## [Unreleased]`.
 
 ---
 
+## Contributing to the plugin
+
+`plugin/skills/` holds two kinds of skill: auto-activated ones that trigger from context
+(`studio`, `payment`, `communications`, `identity`, `logistics`, `language`, `debug`) and
+manual-only commands (`spec`, `list`, `new`, `check`, `review`, `diagnose`). Each lives at
+`plugin/skills/{name}/SKILL.md`, with an optional `references/` folder for longer material
+the skill loads on demand (Studio's five phases, for instance, are one file each under
+`plugin/skills/studio/references/`).
+
+**Copying a third-party file into a skill's `references/vendor/`** (as Studio's does, from
+`phuryn/pm-skills`, `addyosmani/agent-skills`, `hookdeck/webhook-skills` and
+`anthropics/skills`): the file must start with its source, license and what you changed, and
+the license itself goes in `plugin/third_party/`. `scripts/third-party.test.js` checks every
+copied file declares its source and license — run it before opening the PR.
+
+**Testing a skill change.** There is no `npm run validate` equivalent for skills: verify your
+change by running the affected command (or, for `studio`, the phase you touched) end to end
+in a scratch project, and say in your PR description what you exercised and what you didn't
+— the same honesty the spec `verified` status asks for. Don't claim a skill change is tested
+when it was only read.
+
+If your change touches `plugin/skills/`, see "Updating plugin skills" below: the version
+bump it describes is required, checked by CI.
+
+---
+
 ## Commit conventions
 
 We use [Conventional Commits](https://www.conventionalcommits.org/):
@@ -346,16 +374,19 @@ git pull origin main
 claude plugin update afrotools   # refresh cache to match current repo
 ```
 
-### Long-term solution (not yet implemented)
+### Version bump required
 
-The proper fix is a `plugin/plugin.json` manifest with a `version` field. Every PR
-that touches `plugin/skills/` should bump that version — Claude Code will then detect
-the version mismatch and prompt users to update automatically, without any manual step.
+`plugin/.claude-plugin/plugin.json` carries a `version` field. CI's `check-plugin-version`
+job fails any PR that touches `plugin/skills/` without bumping it — bump it as part of
+your change, before opening the PR. This only lets reviewers and CI tell a skill changed;
+it does not refresh a user's cached install on its own — they still run `claude plugin
+update afrotools` themselves, as described above.
 
-This is tracked as a future improvement. When implemented:
-1. Add `plugin/plugin.json` with `{ "version": "x.y.z" }`
-2. Any PR touching `plugin/skills/` must bump the version as part of the change
-3. CI should fail if skills changed but version was not bumped
+`.claude-plugin/marketplace.json` carries its own, separate `metadata.version` — the
+marketplace manifest's version, not the plugin's. It is not checked by CI and does not
+need to track `plugin.json`; bump it by hand when the marketplace listing itself changes
+(a plugin added or removed, its `description`, `keywords` or `category` edited in
+`marketplace.json`) — not on every `plugin/skills/` change.
 
 ---
 
