@@ -79,6 +79,9 @@ See [ATSS.md](./ATSS.md) for the full specification.
 
 **Legend:** ✅ All verified = all capabilities `verified` · X verified · Y ready = Y specs not yet tested against the API · 📋 Ready = written from the docs, not yet tested · 🗓 Planned = specs coming soon
 
+For a human-readable page per provider — capabilities, gotchas, who can open an account, and
+the AI prompt to use — browse [afro.tools/providers](https://afro.tools/providers).
+
 ---
 
 ## Use with an MCP client
@@ -170,7 +173,7 @@ On Claude Code older than 2.1.275, in two steps:
 ```
 
 **Auto-activated skills** based on context:
-- `studio` — **afro.tools Studio**, when you describe an app or a service to create for an African market: from the idea to an app in production (a short plan, a clean design, mobile money, SMS and WhatsApp wired from the registry, checks before going live). It asks before starting, and you can also type `/afrotools:studio`. Works for non-developers too: it explains in plain words and asks only what it must
+- `studio` — **afro.tools Studio**, when you describe an app or a service to create for an African market: from the idea to an app in production (a short plan, a clean design, mobile money, SMS and WhatsApp wired from the registry, checks before going live). It asks before starting, and you can also type `/afrotools:studio`. Works for non-developers too: it explains in plain words and asks only what it must. See [STUDIO.md](./STUDIO.md) for how it's structured
 - `payment` — integrating a payment API
 - `communications` — integrating an SMS, WhatsApp, USSD, voice or email API
 - `identity` — integrating an identity verification (KYC, document, AML) API
@@ -192,7 +195,9 @@ Studio offers three optional companions once, never required: [superpowers](http
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) to add a spec or improve an existing one.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) to add a spec or improve an existing one. No time to
+write it yourself? Share the provider's docs — a link or a file — at
+[afro.tools/contribute](https://afro.tools/contribute) and we write the spec for you.
 
 **Integrated a provider?** [Report it](https://github.com/afrotools/afrotools/issues/new?template=integration-report.yml) — worked or not, sandbox or
 production. A report that worked can make the spec `verified`, credited to you; one that did not

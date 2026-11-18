@@ -34,7 +34,7 @@ That is one step on Claude Code 2.1.275 or later. On an older version:
 - **The MCP server** (`https://mcp.afro.tools/mcp`, declared in `.mcp.json`) answers the agent's requests for specs. It receives the tool called and its parameters (a provider name, a search text) and the name your agent gives itself when it connects. For an integration report, it also receives the text the agent wrote and only turns it into the link below: it is not stored. Nothing in the plugin sends your code, your files or your keys to it.
 - **Two scripts run on your computer, with no network access:** the check skill writes `skills/check/scripts/scan-secrets.md`'s code block to `.afrotools/tools/scan-secrets.mjs` in your project and runs it to find keys; the diagnose skill does the same with `skills/diagnose/scripts/issue-url.md` to build a link.
 - **Reports and diagnostics** only build a pre-filled GitHub link. Nothing is sent until you read the text and submit the form yourself on GitHub.
-- **Studio can offer to install two optional companions**, the Impeccable design plugin and the Playwright browser tool, and only runs the command after you say yes. It never fills a payment page and never confirms a payment for you.
+- **Studio can offer to install three optional companions**, superpowers (a planning method), the Impeccable design plugin and the Playwright browser tool, and only runs the command after you say yes. It never fills a payment page and never confirms a payment for you.
 - **Studio writes into your project:** a `.afrotools/studio.md` state file, `docs/` notes, and local Git save points. It never pushes unless you ask.
 - Your provider keys stay in your own `.env`. The plugin never stores them or sends them anywhere; the local scan only looks for keys that should not be in your code.
 
@@ -42,7 +42,7 @@ What the project collects, and for how long: [afro.tools/privacy](https://afro.t
 
 ## Providers
 
-See the [registry](https://afro.tools/providers) for the list, the countries each one serves and the status of each capability. Missing a provider? [Request it](https://github.com/afrotools/afrotools/issues/new?template=new_spec.yml).
+See the [registry](https://afro.tools/providers) for the list, the countries each one serves and the status of each capability. Missing a provider? [Request it](https://github.com/afrotools/afrotools/issues/new?template=new_spec.yml), or share its docs at [afro.tools/contribute](https://afro.tools/contribute) and we write the spec for you.
 
 ## License
 
