@@ -80,6 +80,7 @@ afrotools/afrotools/
 │   ├── ci_resolve_live_test_env.py
 │   └── generate-readme.js
 ├── ATSS.md
+├── ATSS.fr.md
 ├── STUDIO.md
 ├── schema.template.json
 ├── CONTRIBUTING.md

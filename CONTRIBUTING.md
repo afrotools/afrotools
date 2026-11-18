@@ -2,6 +2,9 @@
 
 🇬🇧 English · 🇫🇷 [Français](./CONTRIBUTING.fr.md)
 
+<!-- Same convention as README.md: "gotcha(s)" stays in French docs too, never "piège" — it's the
+     literal schema.json field name, and matches the site's existing French ATSS translation. -->
+
 Thank you for helping expand AI-ready coverage for African APIs.
 
 ---

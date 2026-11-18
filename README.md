@@ -2,6 +2,10 @@
 
 🇬🇧 English · 🇫🇷 [Français](./README.fr.md)
 
+<!-- French docs keep schema.json terms like "gotcha(s)" as the English loanword, never translated
+     (e.g. not "piège") — it's the literal field name, and matching the site's existing French ATSS
+     translation. If you're translating a new sentence, check this convention first. -->
+
 [![mcptry](https://mcptry.com/badge/io.github.afrotools/afrotools)](https://mcptry.com/servers/io.github.afrotools/afrotools)
 
 > Integrate Wave, Paycard, and any African API in a single prompt.
