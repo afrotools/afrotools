@@ -189,7 +189,7 @@ qui en utilise un met `spec_version: "1.1"` ; une spec 1.0 reste valide telle qu
 | `verification.environment` | Où ça a été testé. `sandbox` prouve la structure des requêtes et des réponses, pas le comportement en production (prérequis, limites, argent réel) |
 | `verification.ref` | URL de l'exécution, du code de l'app ou du rapport. Pour `community_report`, l'issue d'`afrotools/afrotools` |
 | `verification.spec_hash` | `validate` le recalcule : une spec vérifiée puis modifiée échoue tant qu'elle n'est pas revérifiée, à moins qu'un mainteneur ayant contrôlé le changement ne mette le hash à jour (le message d'erreur affiche la nouvelle valeur) |
-| `open_questions` | Chaînes non vides. Un agent doit en informer l'utilisateur avant de s'appuyer sur la spec. Voir § Pièges — guide d'écriture |
+| `open_questions` | Chaînes non vides. Un agent doit en informer l'utilisateur avant de s'appuyer sur la spec. Voir § Gotchas — guide d'écriture |
 
 **Une authentification à plus d'une clé** — s'ajoute à `auth`, à côté des champs 1.0 (qui restent) :
 
@@ -389,14 +389,14 @@ unverified → draft → ready → verified → deprecated → archived
 
 - [ ] `schema.json` passe `npm run validate` (structure + bloc evidence)
 - [ ] Bloc `evidence` présent avec `source_url`, `source_reference`, `extracted_at`, `snapshot_hash`, et au moins une entrée `spans[]` fondée
-- [ ] Généré automatiquement par le pipeline de découverte (`core/tools/discovery`) — les contributeurs n'écrivent pas de spec `unverified` à la main
+- [ ] Généré automatiquement par le pipeline de discovery (`core/tools/discovery`) — les contributeurs n'écrivent pas de spec `unverified` à la main
 - [ ] Pas encore relu par un humain pour la justesse, au-delà des contrôles automatisés — un mainteneur qui relit la PR la fait passer à `draft` (nécessite plus de travail) ou à `ready` (semble correcte) en modifiant `status`, et en retirant ou gardant `evidence` à titre de documentation
 
 ### ready — critères
 
 - [ ] `schema.json` passe `npm run validate`
 - [ ] `canonical_example.ts` compile avec `tsc --noEmit`
-- [ ] `gotchas[]` contient au moins 1 entrée précise, actionnable et sourcée (§ Pièges — guide d'écriture)
+- [ ] `gotchas[]` contient au moins 1 entrée précise, actionnable et sourcée (§ Gotchas — guide d'écriture)
 - [ ] `example_prompt` n'est pas vide
 - [ ] `provider.json` existe dans le dossier parent du fournisseur
 - [ ] Le champ `status` est mis à `ready`
@@ -431,7 +431,7 @@ agent. Ne jamais décrire AI Ready comme « vérifié », « testé » ou « pr�
 ## Politique de compatibilité
 
 Les agents maintiennent des intégrations générées à partir de ces specs. Un changement qui rend une telle intégration
-fausse sans en avertir l'agent est **breaking** :
+fausse sans en avertir l'agent est **cassant** (breaking) :
 
 - retirer une capacité : supprimer son dossier, ou faire repasser une spec servie (`unverified`, `ready`,
   `verified`, `deprecated`) à `draft` ou à `archived`, que le MCP ne sert pas ;
@@ -442,8 +442,8 @@ fausse sans en avertir l'agent est **breaking** :
   l'agent lit le nouvel emplacement dans la spec. Seuls les noms d'en-tête ignorent la casse.
 
 Changer le type d'un champ, rendre obligatoire une entrée optionnelle ou restreindre un enum casse aussi des
-intégrations ; le relecteur en juge. Ajouter une capacité, un champ optionnel, un piège ou
-une question ouverte, ou corriger une description, n'est pas breaking.
+intégrations ; le relecteur en juge. Ajouter une capacité, un champ optionnel, un gotcha ou
+une question ouverte, ou corriger une description, n'est pas cassant.
 
 `scripts/spec-diff.js` compare les specs d'une PR à `main` et liste les capacités retirées ainsi que les
 champs retirés ou renommés (un renommage apparaît comme un retrait), et, pour information, les champs de requête
@@ -456,18 +456,18 @@ le pose une fois le retrait confirmé comme intentionnel, puis relance le job.
    et `replaced_by` / `removed_after` quand c'est connu. Le MCP continue à servir la spec, avec un avertissement
    qui nomme `replaced_by`.
 2. Une fois que le fournisseur l'a vraiment arrêtée (ou après `removed_after`), supprimer le dossier et ajouter une
-   tombe dans `removed_capabilities` de `provider.json`. `get_spec` répond alors avec une erreur
+   tombstone (une entrée qui garde la trace de la capacité retirée) dans `removed_capabilities` de `provider.json`. `get_spec` répond alors avec une erreur
    portant `removed_in`, `reason` et `alternatives`, au lieu d'un simple « introuvable ». Cette PR a besoin
    du label `breaking`.
 
 **Quand le registre retire une capacité que le fournisseur offre toujours** (une réécriture, une spec qui n'aurait
 pas dû être écrite) : supprimer le dossier, avec le label `breaking`, sans statut `deprecated`
-ni tombe — `get_spec` répond avec les capacités restantes du fournisseur. Exemple : les 25
+ni tombstone — `get_spec` répond avec les capacités restantes du fournisseur. Exemple : les 25
 capacités Flutterwave que afrotools/afrotools#94 a retirées.
 
 ---
 
-## Pièges — guide d'écriture
+## Gotchas — guide d'écriture
 
 **Bon :**
 ```
@@ -480,10 +480,10 @@ The callback URL alone is not sufficient — it can be forged."
 "Read the docs carefully."
 ```
 
-Les pièges doivent être précis, actionnables et sourcés : la doc du fournisseur (citée ou pointée), un test
+Les gotchas doivent être précis, actionnables et sourcés : la doc du fournisseur (citée ou pointée), un test
 réellement effectué (`test:live` ou un appel sandbox, daté : « observé en sandbox, test live le 2026-10-24 »), une
 intégration qui fonctionne ou un rapport d'intégration accepté par un mainteneur. Une conséquence de faits sourcés est
-un piège valide quand elle nomme ces faits (« le callback n'est pas signé, donc il peut être falsifié »).
+un gotcha valide quand elle nomme ces faits (« le callback n'est pas signé, donc il peut être falsifié »).
 
 - Une valeur citée depuis la doc doit appartenir au champ dont parle l'entrée. Un résultat de recherche est une piste, pas
   une source : vérifiez qu'elle se trouve bien sous ce champ (le paramètre, la propriété du schéma ou un exemple de
@@ -492,7 +492,7 @@ un piège valide quand elle nomme ces faits (« le callback n'est pas signé, do
   et les pages partagées dont il dépend (codes d'erreur, authentification, webhooks) avant d'écrire que la doc ne dit
   pas quelque chose. Un 400 documenté « format invalide » veut dire qu'un format est imposé même quand il
   n'est pas donné : écrivez que le format est imposé mais non documenté, pas que n'importe quelle valeur fonctionne.
-- La spec d'un autre fournisseur n'est pas une source. Un piège ou un choix repris d'elle a besoin que sa raison
+- La spec d'un autre fournisseur n'est pas une source. Un gotcha ou un choix repris d'elle a besoin que sa raison
   soit rétablie à partir de la doc de ce fournisseur-ci : par exemple, si une valeur est fiable dépend d'
   où elle vient ici (redirection navigateur, callback, webhook signé, les propres registres du marchand) et
   de quel identifiant l'appel envoie.
@@ -511,5 +511,5 @@ Voir le tableau auto-généré dans [README.md](./README.md) — il est régén�
 (`scripts/generate-readme.js`) à chaque merge sur `main` et n'est jamais désynchronisé.
 Ce fichier gardait autrefois une deuxième copie, maintenue à la main, de ce tableau ; elle s'était
 désynchronisée de la réalité en quelques semaines, et ça ne vaut pas la peine de la réintroduire ici. Pour une page par
-fournisseur — capacités, pièges, exigences de compte — voir
+fournisseur — capacités, gotchas, exigences de compte — voir
 [afro.tools/fr/providers](https://afro.tools/fr/providers), construite à partir de ce même registre.

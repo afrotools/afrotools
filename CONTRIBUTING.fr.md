@@ -9,7 +9,7 @@ Merci d'aider à étendre la couverture AI-ready des API africaines.
 ## Ce que vous pouvez contribuer
 
 - **Nouvelle spec** — un `provider.json` + `schema.json` + `canonical_example.ts` pour un fournisseur/une capacité pas encore dans le registre. Pas le temps de l'écrire vous-même ? Partagez la documentation du fournisseur — un lien ou un fichier — sur [afro.tools/fr/contribute](https://afro.tools/fr/contribute) à la place ; un mainteneur écrit la spec pour vous
-- **Correction** — corriger un champ, améliorer les pièges (gotchas), ou corriger une erreur de compilation
+- **Correction** — corriger un champ, améliorer les gotchas ou corriger une erreur de compilation
 - **Documentation** — améliorer ATSS.md/ATSS.fr.md, le README ou ce fichier
 - **Rapport d'intégration** — vous avez intégré un fournisseur à partir de sa spec : dites-nous si ça correspondait à l'API (ci-dessous)
 
@@ -28,7 +28,7 @@ L'agent n'envoie jamais rien lui-même.
 - **Ça a marché** — un mainteneur vérifie le rapport et l'enregistre comme preuve pour chaque capacité
   qui a fonctionné : `status: "verified"` avec `verification.method: "community_report"` et un lien vers
   votre issue (ATSS.fr.md § verified). Vous êtes crédité en tant que contributeur.
-- **Une spec est fausse** — le rapport devient une correction : le champ, le code de statut ou le piège est corrigé
+- **Une spec est fausse** — le rapport devient une correction : le champ, le code de statut ou le gotcha est corrigé
   à partir de votre retour et de la documentation du fournisseur.
 
 ---
@@ -256,7 +256,7 @@ réponse. Le rapport ne contient jamais de valeur de réponse. Attachez-le à vo
   exactes). Si votre fournisseur n'en a pas encore, demandez à un mainteneur de l'ajouter, ou lancez simplement
   `test:live` en local — vous n'avez pas besoin d'attendre.
 
-Si vous sautez la vérification live, ajoutez ce piège à chaque spec dont la réponse n'a pas été vérifiée :
+Si vous sautez la vérification live, ajoutez ce gotcha à chaque spec dont la réponse n'a pas été vérifiée :
 
 ```
 "response_schema not verified against live API — validate field names and types before shipping."
