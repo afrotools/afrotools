@@ -153,6 +153,41 @@ jobs:
             echo "✅  No plugin/skills/ changes — no version bump required."
           fi
 
+  # README.md and CONTRIBUTING.md each have a French translation (README.fr.md,
+  # CONTRIBUTING.fr.md). This only checks the translation file was touched in the same PR — it
+  # cannot tell whether the translation is actually up to date, same as check-plugin-version
+  # cannot tell a skill still works. It exists so this repo doesn't drift the way
+  # specs/CLAUDE.md and the hand-maintained provider table once did (see ATSS.md § Provider
+  # index).
+  check-fr-docs-sync:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Require the French translation to be touched too
+        run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD)
+          MISSING=""
+
+          for f in README CONTRIBUTING; do
+            if echo "$CHANGED" | grep -qx "$f.md"; then
+              if ! echo "$CHANGED" | grep -qx "$f.fr.md"; then
+                MISSING="$MISSING $f.md"
+              fi
+            fi
+          done
+
+          if [ -n "$MISSING" ]; then
+            echo "❌  Changed without touching its French translation:$MISSING"
+            echo ""
+            echo "Update the matching .fr.md in this PR (even just to note what changed),"
+            echo "or open a follow-up PR for the translation before merging."
+            exit 1
+          fi
+          echo "✅  No README.md/CONTRIBUTING.md change without its .fr.md touched."
+
   # A removed capability or field breaks the integrations built on it: the PR needs the "breaking"
   # label (ATSS.md § Compatibility policy). Labels are read when the job runs, so re-running it after
   # setting the label is enough (a re-run keeps the event's original payload).

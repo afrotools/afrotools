@@ -1,5 +1,7 @@
 # Contributing to Afro.tools
 
+🇬🇧 English · 🇫🇷 [Français](./CONTRIBUTING.fr.md)
+
 Thank you for helping expand AI-ready coverage for African APIs.
 
 ---

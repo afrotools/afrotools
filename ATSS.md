@@ -1,8 +1,8 @@
-# specs/ — CLAUDE.md (ATSS Specification v1.1)
+# specs/ — CLAUDE.md (ATSS v1.1)
 
 ## What is ATSS
 
-ATSS (Afro.tools Spec Specification) defines the structure, required fields, and rules
+ATSS (Afro Tools Spec Standard) defines the structure, required fields, and rules
 for every spec in this registry.
 
 A spec is a structured, machine-readable description of one API capability.

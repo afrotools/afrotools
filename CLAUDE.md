@@ -83,12 +83,14 @@ afrotools/afrotools/
 ├── STUDIO.md
 ├── schema.template.json
 ├── CONTRIBUTING.md
+├── CONTRIBUTING.fr.md
 ├── CODE_OF_CONDUCT.md
 ├── SECURITY.md
 ├── CHANGELOG.md
 ├── LICENSE
 ├── CLAUDE.md
 ├── README.md
+├── README.fr.md
 └── package.json
 ```
 
