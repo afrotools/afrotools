@@ -4,7 +4,7 @@
  * @atss 1.1
  * @capability_type webhook
  */
-// Written from SasPay's webhook documentation (signature, tolerance, envelope). Not executed against the live API.
+// Tested in sandbox through a working app: transaction.success delivered, signature checked, order confirmed.
 
 import { createHmac, timingSafeEqual } from "crypto";
 
@@ -33,6 +33,7 @@ interface SaspayTransactionData {
   country?: string;
   network?: string;
   msisdn?: string;
+  metadata?: Record<string, unknown>; // echoed from creation, e.g. { order_reference }
 }
 
 interface SaspayWebhookPayload {

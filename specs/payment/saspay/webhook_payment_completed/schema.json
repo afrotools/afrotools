@@ -3,7 +3,7 @@
   "provider_api_version": "2026-10-12",
   "capability": "webhook_payment_completed",
   "capability_type": "webhook",
-  "status": "ready",
+  "status": "verified",
   "currency": [
     "XOF",
     "CDF",
@@ -18,6 +18,12 @@
     "UGX",
     "ZMW"
   ],
+  "verification": {
+    "method": "app",
+    "environment": "sandbox",
+    "at": "2026-11-23",
+    "spec_hash": "sha256:8e6a54e7d1e894701012b4598ec40cd3ed6ba6cd1f19cf74039db86672f0122f"
+  },
   "auth": {
     "type": "none"
   },
@@ -118,6 +124,11 @@
           "msisdn": {
             "type": "string",
             "description": "Number debited (payin) or credited (payout). Empty before 17 August 2026."
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The metadata you passed when creating the payment or checkout session, echoed back (e.g. { order_reference }). Use it to find your order."
           }
         }
       }
