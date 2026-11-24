@@ -78,6 +78,7 @@ export async function handleSaspayWebhook(
   if (payload.event !== "transaction.success") return { status: 200 };
   if (await deps.alreadyProcessed(payload.data.id, payload.event)) return { status: 200 };
 
+  // Before fulfilling, compare data.amount and data.currency with the order's.
   // Accounting: data.charged (paid by the customer) and data.net_amount (received), never data.amount alone.
   await deps.onPaymentSucceeded(payload.data);
   return { status: 200 };
@@ -89,7 +90,7 @@ Usage example (Express):
 app.post("/webhooks/saspay", express.raw({ type: "application/json" }), async (req, res) => {
   const { status } = await handleSaspayWebhook(req.headers, req.body.toString("utf8"), {
     alreadyProcessed: (id, event) => db.webhookEvents.existsOrInsert(id, event),
-    onPaymentSucceeded: (data) => orders.markPaid(data.reference, data.net_amount),
+    onPaymentSucceeded: (data) => orders.markPaid(data.metadata?.order_reference, data),
   });
   res.sendStatus(status);
 });
