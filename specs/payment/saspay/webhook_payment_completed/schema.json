@@ -8,6 +8,7 @@
     "method": "app",
     "environment": "sandbox",
     "at": "2026-11-23",
+    "ref": "https://github.com/afrotools/examples/tree/b6f0e4bd2ce103f6c44c9d2599a65ac929dd3454/shop-senegal",
     "spec_hash": "sha256:59cd141bc437dacced75bfcbe05198e31a0b412c8278caafadaa74c548d96051"
   },
   "currency": [
