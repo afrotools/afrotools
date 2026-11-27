@@ -3,7 +3,14 @@
   "provider_api_version": "2026-10-12",
   "capability": "webhook_payment_completed",
   "capability_type": "webhook",
-  "status": "ready",
+  "status": "verified",
+  "verification": {
+    "method": "app",
+    "environment": "sandbox",
+    "at": "2026-11-23",
+    "ref": "https://github.com/afrotools/examples/tree/b6f0e4bd2ce103f6c44c9d2599a65ac929dd3454/shop-senegal",
+    "spec_hash": "sha256:59cd141bc437dacced75bfcbe05198e31a0b412c8278caafadaa74c548d96051"
+  },
   "currency": [
     "XOF",
     "CDF",
@@ -118,6 +125,11 @@
           "msisdn": {
             "type": "string",
             "description": "Number debited (payin) or credited (payout). Empty before 17 August 2026."
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The metadata passed when creating the checkout session, echoed back (observed in the sandbox, 2026-11-23: { order_reference } came back unchanged). Use it to find your order: data.reference is SasPay's own id, not yours."
           }
         }
       }
@@ -138,7 +150,8 @@
     "Each event is attempted 5 times (immediately, then +30s, +5min, +30min, +2h) with a 15s timeout per attempt, then marked FAILED for good (only a manual resend from the dashboard retries it). Answer 2xx right away, process in the background, and make processing idempotent on data.id, since a retried event can arrive twice.",
     "For accounting use data.charged (what left the payer) and data.net_amount (what you receive), never data.amount alone: which one includes the fee depends on fee_charge_mode.",
     "Do not depend on the exact data shape of settlement.* events: SasPay states it is not guaranteed yet.",
-    "data.msisdn is empty on transactions created before 17 August 2026; country, network and the amounts are always present."
+    "data.msisdn is empty on transactions created before 17 August 2026; country, network and the amounts are always present.",
+    "Find your order with data.metadata (the metadata you set on the checkout session, echoed back: observed in the sandbox, 2026-11-23), or with a stored data.id. data.reference is SasPay's own reference, not your order number."
   ],
   "evidence": {
     "source_url": "https://docs.saspay.me/api-reference/webhooks",
@@ -157,5 +170,9 @@
       "le contenu de `data` n'est pas garanti pour ces events précis pour le moment",
       "`msisdn` est vide sur les transactions antérieures au 17 août 2026"
     ]
-  }
+  },
+  "open_questions": [
+    "Is data.metadata also echoed for a payment created with create_payment? Only a checkout session was tested (2026-11-23).",
+    "What does data.metadata hold when no metadata was set at creation: absent, {} or null?"
+  ]
 }

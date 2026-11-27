@@ -4,7 +4,7 @@
  * @atss 1.1
  * @capability_type webhook
  */
-// Written from SasPay's webhook documentation (signature, tolerance, envelope). Not executed against the live API.
+// Tested in sandbox through a working app: transaction.success delivered, signature checked, order confirmed.
 
 import { createHmac, timingSafeEqual } from "crypto";
 
@@ -33,6 +33,7 @@ interface SaspayTransactionData {
   country?: string;
   network?: string;
   msisdn?: string;
+  metadata?: Record<string, unknown>; // echoed from creation, e.g. { order_reference }
 }
 
 interface SaspayWebhookPayload {
@@ -77,6 +78,7 @@ export async function handleSaspayWebhook(
   if (payload.event !== "transaction.success") return { status: 200 };
   if (await deps.alreadyProcessed(payload.data.id, payload.event)) return { status: 200 };
 
+  // Before fulfilling, compare data.amount and data.currency with the order's.
   // Accounting: data.charged (paid by the customer) and data.net_amount (received), never data.amount alone.
   await deps.onPaymentSucceeded(payload.data);
   return { status: 200 };
@@ -88,7 +90,7 @@ Usage example (Express):
 app.post("/webhooks/saspay", express.raw({ type: "application/json" }), async (req, res) => {
   const { status } = await handleSaspayWebhook(req.headers, req.body.toString("utf8"), {
     alreadyProcessed: (id, event) => db.webhookEvents.existsOrInsert(id, event),
-    onPaymentSucceeded: (data) => orders.markPaid(data.reference, data.net_amount),
+    onPaymentSucceeded: (data) => orders.markPaid(data.metadata?.order_reference, data),
   });
   res.sendStatus(status);
 });
