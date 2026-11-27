@@ -76,8 +76,9 @@ const transaction = await verifyTransaction(transactionId);
 if (transaction.status === "succeeded") {
   // On success this response carries no amount and no timestamp (see the "succeeded" gotcha), so
   // there is nothing to read them from here: find the order in your own records by the id you
-  // stored, and if you must check the amount paid, read it from GET /pay/v1/transactions
-  // (match on paymentReference).
+  // stored; the amount actually paid is only in a verified webhook_payment_completed payload.
+  // GET /pay/v1/transactions is not a fallback: it answered 403 with the public key in the
+  // sandbox (afrotools issue #216).
   await fulfillOrder(transactionId);
 } else if (transaction.status === "authorized") {
   // Funds only reserved, not captured — do not fulfil until the spec's open question
