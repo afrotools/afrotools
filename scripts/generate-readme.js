@@ -35,7 +35,7 @@ const LABELS = {
   fr: {
     header: "| Fournisseur | Catégorie | Pays | Capacités | Statut |",
     planned: "🗓 Planifié",
-    allVerified: "✅ Tout verified",
+    allVerified: "✅ Toutes verified",
   },
 }
 const START_MARKER =
@@ -226,10 +226,11 @@ function buildTable(providers, lang) {
 // ─── README injection ─────────────────────────────────────────────────────────
 
 /**
- * Inject the generated table into a README between the HTML comment markers.
+ * Return the README's content with the generated table between the HTML comment markers.
  * Idempotent: running twice produces the same result.
  * @param {string} readmePath
  * @param {string} table
+ * @returns {string}
  */
 function injectIntoReadme(readmePath, table) {
   let content
@@ -254,14 +255,16 @@ function injectIntoReadme(readmePath, table) {
   }
 
   const replacement = `${START_MARKER}\n${table}\n${END_MARKER}`
-  const updated = content.replace(regex, replacement)
-
-  fs.writeFileSync(readmePath, updated, "utf8")
-  console.log(`✓ ${path.basename(readmePath)} updated (${providers.length} providers)`)
+  return content.replace(regex, replacement)
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 const providers = discoverProviders()
 const sorted = sortProviders(providers)
-for (const t of TARGETS) injectIntoReadme(t.path, buildTable(sorted, t.lang))
+// Build every file first, so a README without its markers leaves none of them half-written
+const updates = TARGETS.map((t) => ({ path: t.path, content: injectIntoReadme(t.path, buildTable(sorted, t.lang)) }))
+for (const u of updates) {
+  fs.writeFileSync(u.path, u.content, "utf8")
+  console.log(`✓ ${path.basename(u.path)} updated (${providers.length} providers)`)
+}

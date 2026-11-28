@@ -80,7 +80,7 @@ Voir [ATSS.fr.md](./ATSS.fr.md) pour la spécification complète, ou [ATSS.md](.
 | Yango Delivery | logistics | 🇨🇮 🇬🇭 🇸🇳 +1 | 8 | 📋 Ready |
 <!-- fin du tableau -->
 
-**Légende :** ✅ Tout verified = toutes les capacités `verified` · X verified · Y ready = Y specs pas encore testées contre l'API · 📋 Ready = écrites depuis la doc, pas encore testées · 🗓 Planifié = specs à venir
+**Légende :** ✅ Toutes verified = toutes les capacités `verified` · X verified · Y ready = Y specs pas encore testées par rapport à l'API · 📋 Ready = écrites depuis la doc, pas encore testées · 🗓 Planifié = specs à venir
 
 Le tableau est régénéré à chaque merge sur `main` par `scripts/generate-readme.js`, en même
 temps que celui du [README anglais](./README.md#providers). Pour une page par fournisseur
