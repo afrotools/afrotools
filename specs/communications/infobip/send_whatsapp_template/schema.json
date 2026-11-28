@@ -890,6 +890,7 @@
     "The OpenAPI lists these API key scopes for this endpoint (x-scopes): message:send, whatsapp:message:send, whatsapp:manage. Give the key a matching scope when you create it.",
     "Each Infobip account has its own base URL, xxxxx.api.infobip.com, shown once you log in to the Infobip API Resource hub. Set it in INFOBIP_BASE_URL (https://xxxxx.api.infobip.com in this spec is a placeholder). It identifies your account, the API key authenticates it.",
     "Templates can be sent at any time, outside the 24-hour window, but each one must be registered and pre-approved by WhatsApp first: check it with list_whatsapp_templates (status APPROVED, exact name and language).",
+    "A dynamic URL button keeps the domain registered when the template was approved; only the {{1}} suffix is filled at send time (templateData.buttons [{\"type\":\"URL\",\"parameter\":\"…\"}]). A template approved with a tunnel or staging domain must be approved again with the production domain (integration report, afrotools issue #217). No Infobip spec in this registry creates WhatsApp templates: create or resubmit them in the Infobip portal.",
     "The body is a bulk envelope: messages[] can hold several recipients, sent under one bulkId; the response lists one status per message.",
     "The response doesn't contain the final delivery status: delivery (and seen) reports go to notifyUrl per message, or to an account-level URL set up by Infobip support.",
     "Errors on this endpoint are { requestError: { serviceException: { messageId, text, validationErrors } } } — not the errorCode shape of the SMS v3 endpoints.",
@@ -918,8 +919,8 @@
   "verification": {
     "method": "community_report",
     "environment": "production",
-    "at": "2026-10-29",
-    "ref": "https://github.com/afrotools/afrotools/issues/169",
-    "spec_hash": "sha256:e55653c4e2517837c4600268b354c3188e8d271f8ec5ad1c70ed87bdd0383aa6"
+    "at": "2026-11-27",
+    "ref": "https://github.com/afrotools/afrotools/issues/217",
+    "spec_hash": "sha256:0194340d9fae89753aafa564ab13e1a65b08196e872a9dafd95c883bbf74eb88"
   }
 }

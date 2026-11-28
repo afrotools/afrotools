@@ -3,7 +3,7 @@
   "provider_api_version": "3.255.0",
   "capability": "send_sms",
   "capability_type": "synchronous",
-  "status": "ready",
+  "status": "verified",
   "auth": {
     "type": "api_key",
     "location": "header",
@@ -605,7 +605,7 @@
   },
   "gotchas": [
     "Send the API key as 'Authorization: App <API_KEY>' — the prefix App; Bearer is only for OAuth 2.0 access tokens. Infobip API keys have a predefined expiry date and can be revoked at any time; a missing or invalid credential answers 401.",
-    "The OpenAPI lists these API key scopes for this endpoint (x-scopes): message:send, sms:message:send, sms:manage. Give the key a matching scope when you create it.",
+    "The OpenAPI lists these API key scopes for this endpoint (x-scopes): message:send, sms:message:send, sms:manage. Give the key a matching scope when you create it. The API key used for WhatsApp, which lacked an SMS scope, sent with the App prefix, answered HTTP 403 {\"errorCode\":\"E403\",\"description\":\"Insufficient permissions to access the requested resource.\",…} on this endpoint, and a key with the SMS scope sent the SMS (production, 2026-11-26/27, integration report, afrotools issue #217).",
     "Each Infobip account has its own base URL, xxxxx.api.infobip.com, shown once you log in to the Infobip API Resource hub. Set it in INFOBIP_BASE_URL (https://xxxxx.api.infobip.com in this spec is a placeholder). It identifies your account, the API key authenticates it.",
     "Free trial accounts: the default test sender is ServiceSMS and messages only go to the phone numbers verified at signup (up to 5), within the trial's free credits. Self sign-up accounts cannot send SMS to South Sudan.",
     "A 200 only means the request was accepted: each message comes back with a status (groupName PENDING, ACCEPTED, ...). The final state arrives as a delivery report — webhook (webhooks.delivery.url, or your Subscription settings when no URL is given) or get_sms_delivery_reports.",
@@ -613,7 +613,7 @@
     "options.schedule.sendAt schedules the send (format yyyy-MM-dd'T'HH:mm:ss.SSSZ), at most 180 days ahead; keep the bulkId to follow the batch.",
     "Sender rules are per country: an alphanumeric sender is 3-11 characters and can't receive replies. 44 of the 54 African country cards require registering the sender for local traffic and 27 also for international traffic (Nigeria: local '+20' days with documents such as the CAC certificate, international 6 days), and South Africa doesn't support alphanumeric senders at all. Check the country card on Infobip's SMS coverage page before going live.",
     "Infobip's coverage page has a card for every African country, but says it \"covers general market and service provisioning details for the most frequently requested countries and does not reflect full Infobip coverage\": for account-specific coverage, contact your account manager or Support. Some cards set allowed send time windows (e.g. Botswana: never on Sunday).",
-    "A 400 on this endpoint is { errorCode, description, action, violations[] (property + violation), resources[] }. Other statuses have no schema in the OpenAPI; the 401 body shown on the authentication page is { requestError: { serviceException: { messageId: 'UNAUTHORIZED', text } } } — handle both shapes.",
+    "A 400 on this endpoint is { errorCode, description, action, violations[] (property + violation), resources[] }. Other statuses have no schema in the OpenAPI; the 401 body shown on the authentication page is { requestError: { serviceException: { messageId: 'UNAUTHORIZED', text } } } — handle both shapes. In production (2026-11-26/27, integration report, afrotools issue #217) a 401 (E401, malformed key: another variable had been appended to the key's env line) and a 403 (E403, key without the SMS scope) both came back in the errorCode shape.",
     "Not described here: options.regional (indiaDlt, turkeyIys, southKorea). Infobip's OpenAPI: «Region-specific parameters, often imposed by local laws. Use this, if country or region that you are sending an SMS to requires additional information.» Its three entries are for numbers registered in India, Turkey and South Korea, outside this registry's African scope; see Infobip's API reference to send there."
   ],
   "evidence": {
@@ -637,5 +637,12 @@
       "/sms/3/messages",
       "Send SMS message"
     ]
+  },
+  "verification": {
+    "method": "community_report",
+    "environment": "production",
+    "at": "2026-11-27",
+    "ref": "https://github.com/afrotools/afrotools/issues/217",
+    "spec_hash": "sha256:204b6839575bce6b067c1515ad3f63103c046388c3a5430a8b1a9705fd856533"
   }
 }
