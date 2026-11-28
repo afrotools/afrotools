@@ -40,8 +40,8 @@ SKILL.md's first-run step 2 for it now, flags included.
    - **payment**, three states, worded by rules 1 and 2: *pending* (the customer confirms on their
      phone; the app says what to do if nothing comes; a "check again" button posts to the server, which
      asks the provider once, writes the result and answers from that row for the next 10 to 30 seconds,
-     so a customer tapping it cannot hammer the provider; the order stays pending until the server asked
-     the provider and the amount matches), *not confirmed* ("the payment was not confirmed"; never "you
+     so a customer tapping it cannot hammer the provider; the order stays pending until the server holds
+     a proof rule 1 accepts and the amount matches), *not confirmed* ("the payment was not confirmed"; never "you
      have not been charged" before the server knows; "try again" only once the server holds the
      provider's final failure or the expiry the spec gives, and it is a new payment on the same order,
      which the owner's page shows; a paid amount that differs from the order stays not confirmed for the
@@ -90,7 +90,10 @@ SKILL.md's first-run step 2 for it now, flags included.
    when the phase is done.
 2. **African building blocks** go through the afrotools skills, never from memory: for payments, the
    `payment` skill (`afrotools.get_spec()` for the payment, its status and its webhook); for SMS,
-   WhatsApp and OTP, the `communications` skill. A provider outside the registry (`.afrotools/studio.md`
+   WhatsApp and OTP, the `communications` skill. Each capability is wired from its spec's
+   `canonical_example.ts`: the same calls, checks and order, adapted only to the framework (a route, a
+   function taking its dependencies) and to what rules 1 to 4 and this step add; never a hand-written
+   variant of it. A provider outside the registry (`.afrotools/studio.md`
    says so) does not go through these skills' spec lookup, and gets no second `request_spec`. Before
    wiring it, call `afrotools.search_specs()` once for that need: if a spec has arrived since, tell the
    user and use it instead. Otherwise wire it from its own documentation, read now, not from memory, and
@@ -136,10 +139,11 @@ SKILL.md's first-run step 2 for it now, flags included.
    your own test of step 6, set up the tunnel of [stack.md](stack.md) "On the computer" step 7, and the webhook address reaches
    the provider as that step says (sent by the app, or pasted by the user in the provider's test
    settings), the same for every such provider (payment, WhatsApp…). A link approved in advance, such as
-   a WhatsApp template's button, follows stack.md step 7's own note on it. The app still asks the
-   provider for the status itself (rule 1),
-   when the customer comes back and with a "check the payment" button on a pending order: the tunnel
-   serves the test, the status check stays for production and for the times the tunnel is off. Ask what
+   a WhatsApp template's button, follows stack.md step 7's own note on it. Where the payment's spec
+   has a status capability, the app also asks it when the customer comes back and with a "check the
+   payment" button on a pending order (rule 1; reconciliation, not a gate on a webhook its spec trusts):
+   the tunnel serves the test, the status check stays for production and for the times the tunnel is
+   off. Ask what
    they saw, and use it in the report (step 4).
 8. **Check the screens in a browser.** If browser tools (`mcp__playwright__*`, or
    `mcp__plugin_playwright_playwright__*` from the Playwright plugin) are available, open each

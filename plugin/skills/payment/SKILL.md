@@ -74,8 +74,10 @@ for the target provider and capability before writing any implementation code.
 4. Implement using the `canonical_example.ts` pattern:
    - Native fetch only — no axios, no node-fetch
    - Credentials from `process.env`
-   - Confirm every payment server-side with the provider's status capability before fulfilling an
-     order: neither the return page nor a webhook alone proves a payment
+   - Confirm every payment server-side before fulfilling an order: by default with the provider's
+     status capability; on the webhook alone only when its spec says that is enough (its gotchas, or
+     its example fulfils without a status call) and once it is authenticated as that example does. The
+     return page never proves a payment; do not add a status call the spec advises against
    - Compare the verified amount with the order's total; never copy the provider's amount onto the order
    - Send the idempotency key the spec declares (a header or a field) on every payment and payout
    - Make fulfilment idempotent: the same webhook can arrive several times, and must not deliver twice

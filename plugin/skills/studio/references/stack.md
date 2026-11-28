@@ -72,9 +72,19 @@ never forgotten: a `vercel.json` at the project root with `{ "regions": ["fra1"]
    (opened from Vercel's **Storage** tab), they create a branch named `dev`: a Neon branch is "a
    copy-on-write clone of your data", so the computer works on a copy and production keeps its own data.
    They copy the `dev` branch's **direct** connection string (connection pooling off in Neon's connect
-   dialog; [connect from any app](https://neon.com/docs/connect/connect-from-any-app)) into `.env`
+   dialog, and its **Branch** list set to `dev`, not the default branch, which is production's;
+   [connect from any app](https://neon.com/docs/connect/connect-from-any-app)) into `.env`
    themselves as `DATABASE_URL`: it holds a password, so never in the chat, and you never read `.env`
-   (see step 5; `grep -q '^DATABASE_URL=' .env` tells you whether it is there without showing it). At
+   (see step 5; `grep -q '^DATABASE_URL=' .env` tells you whether it is there without showing it).
+   Then check it is the `dev` branch before the first migration: print only the first label of its
+   host, an `ep-…` compute id with no password (the one exception to [rules.md](rules.md) rule 3):
+   `node --env-file=.env -e "try{console.log(new URL(process.env.DATABASE_URL).hostname.split('.')[0])}catch{console.log('DATABASE_URL is not a URL')}"`
+   (the `catch` keeps Node's error, which would show the whole string, out of the output). Ask the user
+   to find that id under the `dev` branch in the Neon console (**Branches → dev → Computes**). If it
+   ends in `-pooler`, pooling is on: they copy the direct string again. If it sits under the default
+   branch, the computer would write to production's data: they copy the `dev` string again. Why: a Studio
+   app's tests once wrote to production's database through a string copied from the default branch
+   (afrotools#218). At
    `level: explain`, always the `dev` branch, even when a Postgres is installed on the computer: nothing
    to install or keep running, and [plan.md](plan.md) wants the same kind of database on the computer
    and in production, so the Neon steps are not left for the ship phase. A developer at `level: quiet`
@@ -99,6 +109,11 @@ never forgotten: a `vercel.json` at the project root with `{ "regions": ["fra1"]
    - Components come one at a time, `npx shadcn@latest add <component>`, only when a screen needs one,
      for what the agent gets wrong on its own: `button`, `input`, `label`, `select`, `dialog`, `sheet`,
      `dropdown-menu`, `sonner` (toasts). Not `form`: it wraps a form library, and forms here are native.
+     A form's submit button always gets `type="submit"` explicitly, whichever base shadcn installed: its Button built on Base UI
+     renders `type="button"`, and Base UI says "unlike the native button element, `type="submit"` must
+     be specified on Button for it to act as a submit button"
+     ([Base UI Button](https://base-ui.com/react/components/button)); without it the form never submits
+     (afrotools#218).
      Icons come with it (lucide).
    - **Fonts**: replace the default font with the direction's one through `next/font`
      ([fonts](https://nextjs.org/docs/app/getting-started/fonts)): a Google font is served "from the same
@@ -277,9 +292,9 @@ never forgotten: a `vercel.json` at the project root with `{ "regions": ["fra1"]
      quotas are: never state them from memory). Tell the user before their test: the first thing they
      see after paying, when the provider sends them back to the app, is that page, and one click on
      **Visit** ends it.
-   - **Without the tunnel** (`tunnel: no`, or the install fails), the app still
-     asks the provider for the status itself (rule 1, [build.md](build.md) step 7) and "check the
-     payment" does the work, but the return page cannot show on the computer, and a provider that
+   - **Without the tunnel** (`tunnel: no`, or the install fails), a payment
+     whose spec has a status capability is still confirmed by "check the payment" (rule 1,
+     [build.md](build.md) step 7), but the return page cannot show on the computer, and a provider that
      refuses an `http` return address (Bictorys) cannot be tried from the computer at all: say so; the
      whole journey is then first seen in production, with a small real payment. A link in a WhatsApp
      template or an SMS message stays on the production address too, and is first tried in production.
