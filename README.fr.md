@@ -57,12 +57,34 @@ Voir [ATSS.fr.md](./ATSS.fr.md) pour la spécification complète, ou [ATSS.md](.
 
 ## Fournisseurs
 
-Le tableau des fournisseurs (nom, catégorie, pays, capacités, statut) est régénéré
-automatiquement à chaque merge sur `main` — pour éviter qu'une copie traduite ne
-dérive de la réalité comme c'est déjà arrivé deux fois dans ce repo (voir
-`ATSS.md` § Provider index), il n'est pas dupliqué ici. Consultez-le dans le
-[README anglais](./README.md#providers), ou parcourez une page par fournisseur
-— capacités, gotchas, qui peut ouvrir un compte — sur
+<!-- tableau généré automatiquement par le pipeline — ne pas éditer manuellement -->
+| Fournisseur | Catégorie | Pays | Capacités | Statut |
+|----------|----------|---------|--------------|--------|
+| SasPay | payment | 🇧🇫 🇧🇯 🇨🇩 +15 | 13 | 8 verified · 5 ready |
+| Smile ID | identity | 🇨🇮 🇸🇳 🇬🇳 +3 | 11 | 7 verified · 4 ready |
+| Bictorys | payment | 🇸🇳 🇨🇮 🇲🇱 +3 | 5 | 3 verified · 2 ready |
+| Infobip | communications | 🇦🇴 🇧🇫 🇧🇮 +51 | 13 | 3 verified · 10 ready |
+| Djomy | payment | 🇬🇳 | 7 | 2 verified · 5 ready |
+| LengoPay | payment | 🇬🇳 | 8 | 2 verified · 6 ready |
+| Paycard | payment | 🇬🇳 | 3 | 2 verified · 1 ready |
+| Africa's Talking | communications | 🇧🇫 🇧🇯 🇨🇮 +17 | 7 | 1 verified · 6 ready |
+| Flutterwave | payment | 🇳🇬 🇬🇭 🇰🇪 +15 | 33 | 📋 Ready |
+| Intron | language | 🇦🇴 🇧🇫 🇧🇮 +51 | 7 | 📋 Ready |
+| KadevPay | payment | 🇨🇮 | 3 | 📋 Ready |
+| NimbaSMS | communications | 🇬🇳 | 11 | 📋 Ready |
+| Notch Pay | payment | 🇨🇲 🇨🇮 🇸🇳 +3 | 31 | 📋 Ready |
+| Orange Money Mali | payment | 🇲🇱 | 2 | 📋 Ready |
+| PayGate | payment | 🇹🇬 | 6 | 📋 Ready |
+| Qosic | payment | 🇹🇬 | 4 | 📋 Ready |
+| Wave | payment | 🇸🇳 🇨🇮 🇲🇱 +8 | 12 | 📋 Ready |
+| Yango Delivery | logistics | 🇨🇮 🇬🇭 🇸🇳 +1 | 8 | 📋 Ready |
+<!-- fin du tableau -->
+
+**Légende :** ✅ Tout verified = toutes les capacités `verified` · X verified · Y ready = Y specs pas encore testées contre l'API · 📋 Ready = écrites depuis la doc, pas encore testées · 🗓 Planifié = specs à venir
+
+Le tableau est régénéré à chaque merge sur `main` par `scripts/generate-readme.js`, en même
+temps que celui du [README anglais](./README.md#providers). Pour une page par fournisseur
+— capacités, gotchas, qui peut ouvrir un compte — voir
 [afro.tools/fr/providers](https://afro.tools/fr/providers).
 
 ---

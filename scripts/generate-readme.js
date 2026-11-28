@@ -6,9 +6,11 @@
  * generate-readme.js
  *
  * Reads all provider.json and schema.json files from specs/ and generates
- * the providers table in README.md between the HTML comment markers.
+ * the providers table between the HTML comment markers of README.md and
+ * README.fr.md (the French one with French headers; status names stay English).
  *
  * Usage: node scripts/generate-readme.js
+ *        README_PATH=other/README.md node scripts/generate-readme.js  (English only)
  */
 
 const fs = require("fs")
@@ -17,7 +19,25 @@ const path = require("path")
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const SPECS_ROOT = path.resolve(__dirname, "../specs")
-const README_PATH = process.env.README_PATH ?? path.resolve(__dirname, "../README.md")
+const TARGETS = process.env.README_PATH
+  ? [{ path: process.env.README_PATH, lang: "en" }]
+  : [
+      { path: path.resolve(__dirname, "../README.md"), lang: "en" },
+      { path: path.resolve(__dirname, "../README.fr.md"), lang: "fr" },
+    ]
+
+const LABELS = {
+  en: {
+    header: "| Provider | Category | Country | Capabilities | Status |",
+    planned: "🗓 Planned",
+    allVerified: "✅ All verified",
+  },
+  fr: {
+    header: "| Fournisseur | Catégorie | Pays | Capacités | Statut |",
+    planned: "🗓 Planifié",
+    allVerified: "✅ Tout verified",
+  },
+}
 const START_MARKER =
   "<!-- tableau généré automatiquement par le pipeline — ne pas éditer manuellement -->"
 const END_MARKER = "<!-- fin du tableau -->"
@@ -149,15 +169,16 @@ function discoverProviders() {
 /**
  * Compute the display status for a provider based on its capabilities.
  * @param {Capability[]} capabilities
+ * @param {"en" | "fr"} lang
  * @returns {string}
  */
-function computeStatus(capabilities) {
-  if (capabilities.length === 0) return "🗓 Planifié"
+function computeStatus(capabilities, lang) {
+  if (capabilities.length === 0) return LABELS[lang].planned
 
   const verifiedCount = capabilities.filter((c) => c.status === "verified").length
   const readyCount = capabilities.length - verifiedCount
 
-  if (verifiedCount === capabilities.length) return "✅ All verified"
+  if (verifiedCount === capabilities.length) return LABELS[lang].allVerified
   if (verifiedCount > 0) return `${verifiedCount} verified · ${readyCount} ready`
   return "📋 Ready"
 }
@@ -185,16 +206,17 @@ function sortProviders(providers) {
 /**
  * Build the Markdown providers table.
  * @param {ProviderData[]} providers
+ * @param {"en" | "fr"} lang
  * @returns {string}
  */
-function buildTable(providers) {
-  const header = "| Provider | Category | Country | Capabilities | Status |"
+function buildTable(providers, lang) {
+  const header = LABELS[lang].header
   const sep = "|----------|----------|---------|--------------|--------|"
 
   const rows = providers.map((p) => {
     const flags = buildFlags(p.country_code)
     const capCount = p.capabilities.length > 0 ? String(p.capabilities.length) : "—"
-    const status = computeStatus(p.capabilities)
+    const status = computeStatus(p.capabilities, lang)
     return `| ${p.name} | ${p.category} | ${flags} | ${capCount} | ${status} |`
   })
 
@@ -204,16 +226,17 @@ function buildTable(providers) {
 // ─── README injection ─────────────────────────────────────────────────────────
 
 /**
- * Inject the generated table into README.md between the HTML comment markers.
+ * Inject the generated table into a README between the HTML comment markers.
  * Idempotent: running twice produces the same result.
+ * @param {string} readmePath
  * @param {string} table
  */
-function injectIntoReadme(table) {
+function injectIntoReadme(readmePath, table) {
   let content
   try {
-    content = fs.readFileSync(README_PATH, "utf8")
+    content = fs.readFileSync(readmePath, "utf8")
   } catch (err) {
-    console.error(`Could not read README.md: ${err.message}`)
+    console.error(`Could not read ${readmePath}: ${err.message}`)
     process.exit(1)
   }
 
@@ -223,7 +246,7 @@ function injectIntoReadme(table) {
 
   if (!regex.test(content)) {
     console.error(
-      "ERROR: Markers not found in README.md.\n" +
+      `ERROR: Markers not found in ${readmePath}.\n` +
         `Expected opening marker: ${START_MARKER}\n` +
         `Expected closing marker: ${END_MARKER}`
     )
@@ -233,13 +256,12 @@ function injectIntoReadme(table) {
   const replacement = `${START_MARKER}\n${table}\n${END_MARKER}`
   const updated = content.replace(regex, replacement)
 
-  fs.writeFileSync(README_PATH, updated, "utf8")
-  console.log(`✓ README.md updated (${providers.length} providers)`)
+  fs.writeFileSync(readmePath, updated, "utf8")
+  console.log(`✓ ${path.basename(readmePath)} updated (${providers.length} providers)`)
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 const providers = discoverProviders()
 const sorted = sortProviders(providers)
-const table = buildTable(sorted)
-injectIntoReadme(table)
+for (const t of TARGETS) injectIntoReadme(t.path, buildTable(sorted, t.lang))
