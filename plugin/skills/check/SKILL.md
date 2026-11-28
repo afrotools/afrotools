@@ -39,8 +39,9 @@ words; report each problem as what could go wrong for them, then what you change
    `.afrotools/studio.md`, or the code), fetch its specs: `afrotools.get_spec()` for the payment, its
    status and its webhook. Then read the code that handles them and check, one line each, yes or no
    with the file and line:
-   - a payment is marked paid only after the server asked the provider for its status, never on the
-     return page or the webhook alone;
+   - a payment is marked paid only after a status call made by the server, or on a webhook alone when
+     its spec says that is enough (its gotchas, or its example fulfils without a status call) and the
+     server authenticates it as that example does; never on the return page;
    - the verified amount is compared with the order's total, never copied onto the order;
    - the idempotency key the spec declares is sent on every payment and payout;
    - handling the same webhook twice does not deliver or credit twice;
@@ -58,8 +59,10 @@ words; report each problem as what could go wrong for them, then what you change
      the others);
    - every gotcha of these specs that applies to the code is handled.
 
-   A spec's gotcha may make a rule hard (for example a status call that fails in the sandbox): say so,
-   and keep the payment pending rather than confirming it on a weaker proof.
+   A spec's gotcha may make a rule hard (for example a provider whose webhook cannot be authenticated
+   and whose status call fails in the sandbox): say so, and keep the payment pending rather than
+   confirming it on a proof weaker than its spec trusts. A webhook its spec says is enough, once
+   authenticated, is not a weaker proof.
 
 3. **Report** in two groups: **blocking** (money or customer data at risk) and **can wait**. A way for
    a stranger to send messages without a limit or to read customer data, for a customer to pay twice, or for an order to be marked paid without a verified payment, is always

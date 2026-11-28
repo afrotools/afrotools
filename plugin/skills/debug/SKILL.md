@@ -35,7 +35,7 @@ then systematically compare it against the user's implementation to find the gap
      not `amount`); compare the user's payload against `input_schema`
    - **Status values** — enums are case-sensitive (e.g. LengoPay uses `SUCCESS`,
      not `success`); `code: 0` on Paycard means "found", not "paid"
-   - **Webhook** — returning HTTP 200 immediately, not fulfilling on callback alone,
+   - **Webhook** — returning HTTP 200 immediately, not fulfilling on a callback its spec does not trust alone (see its gotchas),
      HTTPS required for some providers
 
 5. Surface the diagnosis clearly:

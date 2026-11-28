@@ -27,6 +27,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **Studio, payment proof and two recipe traps** (plugin 1.9.4, #218): rule 1 no longer requires a
+  status call after every webhook. By default the server confirms a payment with the provider's status
+  call; a webhook alone is enough only when its spec says so, once authenticated as its example does;
+  the return page never. Each capability is wired from its spec's `canonical_example.ts`, and when
+  Studio's rule and a spec seem to disagree, the user is told before wiring and the spec wins. Studio
+  had gated a Bictorys webhook on a status call and a list endpoint that answered 403, so no payment
+  could be confirmed. `check`, `debug` and the `payment` skill say the same. The stack recipe has the
+  user pick the `dev` branch in Neon's connect dialog and checks the compute id of `DATABASE_URL`
+  against the console before the first migration (tests had written to production), and gives every
+  form's submit button `type="submit"`: shadcn's Button built on Base UI renders `type="button"`.
 - **Studio, companions and secrets** (plugin 1.9.3): the three companions' offer condition was
   inverted — it asked to install superpowers, Impeccable or the browser when a matching skill or
   tool was already listed, instead of when one was missing, so an already-installed companion got
