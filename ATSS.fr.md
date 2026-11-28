@@ -507,7 +507,7 @@ Le bloc account garde sa propre règle sur les sources (§ provider.json — cha
 
 ## Index des fournisseurs
 
-Voir le tableau auto-généré dans [README.md](./README.md) — il est régénéré par la CI
+Voir le tableau auto-généré dans [README.fr.md](./README.fr.md#fournisseurs) (et [README.md](./README.md#providers) en anglais) — il est régénéré par la CI
 (`scripts/generate-readme.js`) à chaque merge sur `main` et n'est jamais désynchronisé.
 Ce fichier gardait autrefois une deuxième copie, maintenue à la main, de ce tableau ; elle s'était
 désynchronisée de la réalité en quelques semaines, et ça ne vaut pas la peine de la réintroduire ici. Pour une page par
